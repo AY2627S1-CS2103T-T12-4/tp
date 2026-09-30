@@ -19,15 +19,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Project Advisor
 
-### Jane Doe
+### Zheng Yuxiao
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/enchantedcolesaw.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/enchantedcolesaw)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Debugger 2
+* Responsibilities: Debug
 
 ### Johnny Doe
 
