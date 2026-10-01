@@ -57,3 +57,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
+
+### Arav
+
+<img src="images/arav31.png" width="200px">
+
+[[github](https://github.com/arav31)]
+
+* Role: Developer
+* Responsibilities: Developing
