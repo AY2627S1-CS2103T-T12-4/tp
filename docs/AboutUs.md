@@ -19,15 +19,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Project Advisor
 
-### Jane Doe
+### Arav
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/arav31.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/arav31)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Developing
 
 ### Johnny Doe
 
@@ -57,12 +56,3 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
-
-### Arav
-
-<img src="images/arav31.png" width="200px">
-
-[[github](https://github.com/arav31)]
-
-* Role: Developer
-* Responsibilities: Developing
