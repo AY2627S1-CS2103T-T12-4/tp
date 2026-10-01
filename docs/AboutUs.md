@@ -9,16 +9,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### Ma Mingyang (Marcus)
-
-<img src="images/marcusma06-code.png" width="200px">
-
-[[github](https://github.com/MarcusMa06-code)]
-[[portfolio](team/marcusma06-code.md)]
-
-* Role: Developer
-* Responsibilities: Developing
-
 ### Lin Ziyang
 
 <img src="images/linziyang2025-byte.png" width="200px">
@@ -44,6 +34,16 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Testing
 * Responsibilities: Ensure testing is done properly and on time
+
+### Ma Mingyang (Marcus)
+
+<img src="images/marcusma06-code.png" width="200px">
+
+[[github](https://github.com/MarcusMa06-code)]
+[[portfolio](team/marcusma06-code.md)]
+
+* Role: Developer
+* Responsibilities: Developing
 
 ### Jean Doe
 
