@@ -9,15 +9,15 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Ma Mingyang (Marcus)
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/marcusma06-code.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/MarcusMa06-code)]
+[[portfolio](team/marcusma06-code.md)]
 
-* Role: Project Advisor
+* Role: Developer
+* Responsibilities: Documentation
 
 ### Jane Doe
 
