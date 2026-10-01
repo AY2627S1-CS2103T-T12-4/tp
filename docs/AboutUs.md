@@ -17,26 +17,33 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/marcusma06-code.md)]
 
 * Role: Developer
-* Responsibilities: Documentation
+* Responsibilities: Developing
 
-### Jane Doe
+### Lin Ziyang
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/linziyang2025-byte.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
-* Responsibilities: UI
-
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/linziyang2025-byte)]
 
 * Role: Developer
-* Responsibilities: Data
+
+### Zheng Yuxiao
+
+<img src="images/enchantedcolesaw.png" width="200px">
+
+[[github](http://github.com/enchantedcolesaw)]
+
+* Role: Debugger 2
+* Responsibilities: Debug
+
+### Lim En Xi
+
+<img src="images/limenxi07.png" width="200px">
+
+[[github](https://github.com/limenxi07)]
+
+* Role: Testing
+* Responsibilities: Ensure testing is done properly and on time
 
 ### Jean Doe
 
