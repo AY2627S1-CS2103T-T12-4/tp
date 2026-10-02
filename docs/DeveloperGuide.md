@@ -261,13 +261,14 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
+* is a teaching assistant (TA) for CS2040S who runs weekly tutorial sessions
+* handles several tutorial groups of around 20 students each
+* records tutorial attendance and class participation every week, and grades the problem sets submitted by each student
+* works alone from their own laptop
+* can type fast and prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Track each student's tutorial attendance, class participation scores, and assignment submissions across tutorial groups as fast as the TA can type, which saves the TA time compared to paper sheets or clicking through Canvas.
 
 
 ### User stories
@@ -325,7 +326,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 ### Glossary
 
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **TA (teaching assistant)**: A person who runs tutorial sessions for a course and records the students' attendance, participation, and assignment results
+* **Tutorial group**: A fixed group of students, around 20, that attends the same weekly tutorial session run by one TA
+* **Active group**: The tutorial group that the commands currently apply to
+* **Student ID**: The unique identifier of a student, such as `A0123456X`, which distinguishes students with similar names
+* **Week**: A teaching week of the semester, numbered 1 to 13, to which attendance and participation records belong
+* **Attendance status**: Whether a student was present or absent at the tutorial of a given week
+* **Participation score**: A whole number from 0 to 5 awarded to a student for contributing in the tutorial of a given week
+* **Assignment**: A piece of coursework, such as a problem set, that students submit and the TA grades
+* **Submission status**: Whether a student has submitted a given assignment
+* **Grade**: A whole number from 0 to 100 given to a student for an assignment
+* **Command box**: The text field in which the user types commands, one line at a time
 
 --------------------------------------------------------------------------------------------------------------------
 
