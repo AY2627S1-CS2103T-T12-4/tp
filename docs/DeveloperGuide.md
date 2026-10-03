@@ -287,40 +287,336 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `TAssist` and the **Actor** is the `TA`, unless specified otherwise)
 
-**Use case: Delete a person**
+The following extensions apply to every use case that changes or views records of a tutorial group, and are not repeated below:
+
+* \*a. There is no active tutorial group.
+    * \*a1. TAssist shows an error message asking the TA to create or select a group first.
+
+      Use case ends.
+
+* \*b. The TA's command is missing a required parameter, contains an unknown prefix, or repeats a parameter.
+    * \*b1. TAssist shows an error message with the correct command format. No data is changed.
+
+      Use case resumes from the step at which the command was entered.
+
+**Use case: UC01 - Set up a tutorial group**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  TA requests to create a tutorial group with a given name.
+2.  TAssist creates the group, makes it the active group, and shows a confirmation.
+3.  TA requests to list all tutorial groups.
+4.  TAssist shows all tutorial groups and indicates the active group.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The group name is invalid.
+    * 1a1. TAssist shows an error message stating the valid group name format.
 
-  Use case ends.
+      Use case resumes at step 1.
 
-* 3a. The given index is invalid.
+* 1b. A group with the same name (case-insensitive) already exists.
+    * 1b1. TAssist shows an error message stating that the group already exists.
 
-    * 3a1. AddressBook shows an error message.
+      Use case ends.
+
+* 3a. No tutorial group exists.
+    * 3a1. TAssist informs the TA that there are no groups and shows how to create one.
+
+      Use case ends.
+
+**Use case: UC02 - Switch to another tutorial group**
+
+**MSS**
+
+1.  TA requests to switch to a tutorial group with a given name.
+2.  TAssist makes that group the active group and shows a confirmation.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No group with the given name (case-insensitive) exists.
+    * 1a1. TAssist shows an error message stating that the group does not exist.
+
+      Use case resumes at step 1.
+
+**Use case: UC03 - Add a student to the active group**
+
+**MSS**
+
+1.  TA requests to add a student with a given name and student ID.
+2.  TAssist adds the student to the active group and shows a confirmation.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The name or student ID is invalid.
+    * 1a1. TAssist shows an error message stating the valid format.
+
+      Use case resumes at step 1.
+
+* 1b. A student with the same student ID (case-insensitive) already exists in the active group.
+    * 1b1. TAssist shows an error message stating that the student ID already exists in the group.
+
+      Use case ends.
+
+* 1c. A student with the same name but a different student ID exists in the active group.
+    * 1c1. TAssist adds the student as a separate student.
 
       Use case resumes at step 2.
 
-*{More to be added}*
+**Use case: UC04 - Remove a student from the active group**
+
+**MSS**
+
+1.  TA requests to list the students in the active group.
+2.  TAssist shows the name and student ID of every student in the group.
+3.  TA requests to delete a specific student by student ID.
+4.  TAssist removes the student and the student's attendance, participation and assignment records from the group, and shows a confirmation.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The group has no students.
+
+  Use case ends.
+
+* 3a. No student in the active group has the given student ID.
+    * 3a1. TAssist shows an error message stating that the student does not exist in the group.
+
+      Use case resumes at step 2.
+
+**Use case: UC05 - Take attendance during a tutorial**
+
+**Preconditions:** The active group has at least one student.
+
+**MSS**
+
+1.  TA requests to mark a student as present or absent for a given week.
+2.  TAssist records the attendance and shows a confirmation.
+3.  TA repeats steps 1-2 until every student in the group has been marked.
+4.  TA requests to view the group's attendance for that week.
+5.  TAssist shows the attendance status of every student in the group for that week.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No student in the active group has the given student ID.
+    * 1a1. TAssist shows an error message stating that the student does not exist in the group.
+
+      Use case resumes at step 1.
+
+* 1b. The week is not a whole number from 1 to 13.
+    * 1b1. TAssist shows an error message stating the valid range of weeks.
+
+      Use case resumes at step 1.
+
+* 1c. The status is not `present` or `absent`.
+    * 1c1. TAssist shows an error message stating the valid statuses.
+
+      Use case resumes at step 1.
+
+* 1d. The student already has an attendance record for that week (e.g. the TA is correcting a mistake).
+    * 1d1. TAssist replaces the existing record with the new status and shows that the record was updated.
+
+      Use case resumes at step 3.
+
+* 4a. No attendance has been recorded for that week.
+    * 4a1. TAssist informs the TA that there are no attendance records for that week.
+
+      Use case ends.
+
+* 5a. Some students have no attendance record for that week.
+    * 5a1. TAssist shows those students as not recorded.
+
+      Use case ends.
+
+**Use case: UC06 - Record class participation**
+
+**Preconditions:** The active group has at least one student.
+
+**MSS**
+
+1.  TA requests to set a student's participation score for a given week.
+2.  TAssist records the score and shows a confirmation.
+3.  TA requests to view the group's participation scores for that week.
+4.  TAssist shows the participation score of every student in the group for that week.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No student in the active group has the given student ID.
+    * 1a1. TAssist shows an error message stating that the student does not exist in the group.
+
+      Use case resumes at step 1.
+
+* 1b. The week is not a whole number from 1 to 13, or the score is not a whole number from 0 to 5.
+    * 1b1. TAssist shows an error message stating the valid values. The existing score, if any, is unchanged.
+
+      Use case resumes at step 1.
+
+* 1c. The student already has a participation score for that week.
+    * 1c1. TAssist replaces the previous score with the new score and shows that the score was updated.
+
+      Use case resumes at step 3.
+
+* 4a. Some students have no participation score for that week.
+    * 4a1. TAssist shows those students as not recorded.
+
+      Use case ends.
+
+**Use case: UC07 - Track an assignment**
+
+**Preconditions:** The active group has at least one student.
+
+**MSS**
+
+1.  TA requests to create an assignment with a given name.
+2.  TAssist creates the assignment for the active group and shows a confirmation.
+3.  TA requests to mark a student's assignment as submitted.
+4.  TAssist records the submission status and shows a confirmation.
+5.  TA requests to record a grade for that student's assignment.
+6.  TAssist records the grade and shows a confirmation.
+7.  TA repeats steps 3-6 for other students.
+8.  TA requests to view the records of the assignment.
+9.  TAssist shows the submission status and grade of every student in the group for that assignment.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The assignment name is invalid.
+    * 1a1. TAssist shows an error message stating the valid assignment name format.
+
+      Use case resumes at step 1.
+
+* 1b. An assignment with the same name (case-insensitive) already exists in the active group.
+    * 1b1. TAssist shows an error message stating that the assignment already exists.
+
+      Use case ends.
+
+* 3a. The assignment does not exist in the active group.
+    * 3a1. TAssist shows an error message stating that the assignment does not exist.
+
+      Use case resumes at step 3.
+
+* 3b. No student in the active group has the given student ID.
+    * 3b1. TAssist shows an error message stating that the student does not exist in the group.
+
+      Use case resumes at step 3.
+
+* 3c. The submission status is not `yes` or `no`.
+    * 3c1. TAssist shows an error message stating the valid statuses.
+
+      Use case resumes at step 3.
+
+* 5a. The grade is not a whole number from 0 to 100.
+    * 5a1. TAssist shows an error message stating the valid range of grades.
+
+      Use case resumes at step 5.
+
+* 5b. The student's assignment has not been marked as submitted.
+    * 5b1. TAssist shows an error message asking the TA to mark the assignment as submitted first.
+
+      Use case resumes at step 3.
+
+* 5c. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
+    * 5c1. TAssist replaces the previous grade with the new grade.
+
+      Use case resumes at step 6.
+
+* 9a. Some students have not submitted the assignment.
+    * 9a1. TAssist shows those students as not submitted, without a grade.
+
+      Use case ends.
+
+**Use case: UC08 - Get help on a command**
+
+**MSS**
+
+1.  TA requests help on a specific topic (e.g. attendance).
+2.  TAssist shows the command formats and examples for that topic.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The TA does not specify a topic.
+    * 1a1. TAssist shows the formats of all commands.
+
+      Use case ends.
+
+* 1b. The given topic is not a valid topic.
+    * 1b1. TAssist shows an error message listing the valid topics.
+
+      Use case ends.
+
+**Use case: UC09 - Export a group's records**
+
+**Preconditions:** The active group has at least one student.
+
+**MSS**
+
+1.  TA requests to export the records of the active group.
+2.  TAssist saves the group's students, attendance, participation scores, and assignment records to a CSV file, and shows the location of the file.
+3.  TA sends the file to the course coordinator.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. TAssist is unable to write the file.
+    * 2a1. TAssist shows an error message stating that the export failed. No data is changed.
+
+      Use case ends.
+
+**Use case: UC10 - Resume work after restarting TAssist**
+
+**MSS**
+
+1.  TA closes TAssist after recording data.
+2.  TA launches TAssist again.
+3.  TAssist loads the saved data and shows the tutorial groups and records as they were when TAssist was closed.
+
+    Use case ends.
+
+**Extensions**
+
+* 3a. No saved data is found.
+    * 3a1. TAssist starts with no data and informs the TA.
+
+      Use case ends.
+
+* 3b. The saved data cannot be read.
+    * 3b1. TAssist shows an error message and does not overwrite the saved data file.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+2.  Should be able to hold up to 10 tutorial groups of 30 students each, with records for 13 weeks and 20 assignments per group, without noticeable sluggishness in performance for typical usage.
+3.  Should show the result of any command within 1 second when holding the amount of data stated above.
+4.  A TA with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+5.  A TA who is familiar with the commands should be able to record attendance for a group of 20 students within 2 minutes, so that attendance can be taken during a tutorial.
+6.  Should be used by a single TA on their own computer; it does not need to support multiple users or sharing data between users.
+7.  Should work without an internet connection, and should not send any data to an external server, so that student records stay on the TA's computer.
+8.  Should save data automatically after every successful command that changes data, so that no recorded data is lost when TAssist is closed or stops unexpectedly after that command.
+9.  A command that fails should not change any data, either in the app or in the data file.
+10. Should store data locally in a human-editable text file, so that an advanced user can inspect or repair the data without using TAssist.
+11. Should not depend on a database management system.
+12. Should be distributed as a single JAR file of at most 100MB that runs without an installer.
+13. The GUI should work well (i.e. no resolution-related inconveniences) for standard screen resolutions of 1920x1080 and higher, and for screen scales of 100% and 125%. It should be usable (i.e. all functions can be used, even if the layout is not optimal) for resolutions of 1280x720 and higher, and for screen scales of 150%.
+14. Every error message should state what is wrong with the command, so that a TA can correct the command without referring to the User Guide.
 
 ### Glossary
 
