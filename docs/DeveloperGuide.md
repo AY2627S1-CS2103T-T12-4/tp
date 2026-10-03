@@ -273,18 +273,51 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priority 1 = Must have in MVP, Priority 2 = Nice to have, Priority 3 = Stretch
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+| # | Priority | As a … | I can … | So that I can … |
+| --- | --- | --- | --- | --- |
+| 1 | P1 | new user | see usage instructions / a command list | refer to them when I forget how to use the app |
+| 2 | P2 | new user | see the app populated with sample data | see what the app looks like when in use |
+| 3 | P2 | new user | purge all sample data | get rid of the data I used for exploring |
+| 4 | P3 | new user | see an example of the correct format when I mistype a command | fix my mistake without opening the help page |
+| 5 | P3 | new user | go through a short guided setup | get my first group set up without reading a manual |
+| 6 | P1 | TA | create a tutorial group | keep each of my groups' records separate |
+| 7 | P1 | TA | add a student to a tutorial group | start tracking that student |
+| 8 | P1 | TA | list all students in a group | see who I am teaching |
+| 9 | P1 | TA | delete a student | remove someone who dropped the module |
+| 10 | P1 | TA | switch between my tutorial groups | work on the group I am currently teaching |
+| 11 | P2 | TA | import a student list from a CSV file | avoid typing 60 names by hand |
+| 12 | P2 | TA | edit a student's details | fix a typo or update a changed name |
+| 13 | P2 | TA | move a student from one group to another | handle students who switch tutorial slots |
+| 14 | P3 | TA | record a private note, like a student’s preferred name or name pronunciation | address students the way they want in class |
+| 15 | P3 | TA | attach a photo to a student | learn to recognise my students’ faces |
+| 16 | P1 | TA | mark a student present or absent for a given week | keep a record of attendance |
+| 17 | P1 | TA | view a tutorial group’s attendance for a given week | check I have not missed anyone before class ends |
+| 18 | P1 | busy TA | correct an attendance mark I entered wrongly | keep my records accurate |
+| 19 | P2 | TA | mark a student as late rather than absent | record partial attendance fairly |
+| 20 | P2 | TA | record a reason for an absence | tell excused absences apart from unexcused ones |
+| 21 | P3 | TA | mark the whole group present in one command | mark a full-attendance week in seconds |
+| 22 | P3 | TA | see one student's attendance across the whole semester | answer individual students’ queries about their attendance |
+| 23 | P1 | TA | give a student a participation score for a week | record who contributed in class |
+| 24 | P1 | TA | change a participation score I already gave | correct myself after the session |
+| 25 | P1 | TA | see the participation scores for a group in a week | check my marking is consistent across students |
+| 26 | P2 | TA | award a participation point with a single short command | do it mid-discussion without losing my train of thought |
+| 27 | P3 | TA | see each student's total participation score so far | know who is falling behind on participation |
+| 28 | P3 | TA | see who has never participated | make a point of calling on them next week |
+| 29 | P1 | TA | create an assignment for a group | start tracking it |
+| 30 | P1 | TA | mark a student's assignment as submitted or not | track who handed in work |
+| 31 | P1 | TA | record a grade for a student’s assignment | keep marks in one place |
+| 32 | P2 | TA | see which students have not submitted an assignment | chase them before the deadline passes |
+| 33 | P3 | TA | set a deadline for an assignment | tell late submissions from on-time ones |
+| 34 | P3 | TA | mark a submission as late | apply the late penalty consistently |
+| 35 | P2 | TA | find a student by name or student ID | pull up their record without scrolling |
+| 36 | P2 | TA | see a single student's full record | answer a student's question about their standing |
+| 37 | P1 | TA | have my data saved automatically | not lose a session's marks if the app closes |
+| 38 | P1 | TA | have my data stored on my own laptop | keep student records private |
+| 39 | P2 | TA | export a group's records to CSV | hand figures to the course coordinator |
+| 40 | P3 | TA | import partial records from another TA's export | take over a group mid-semester |
 
-*{More to be added}*
 
 ### Use cases
 
