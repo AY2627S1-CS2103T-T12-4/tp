@@ -72,46 +72,46 @@ public class WorkspaceSmokeTest {
 
     @Test
     public void workspace_navigationCommandsAndResizing_rendersAndPreservesBehavior() throws Exception {
-        onFx(this::initializeWorkspace);
+        runOnFx(this::initializeWorkspace);
         try {
             verifyScreens();
             verifyKeyboard();
             assertFalse(Files.exists(data), "Screen navigation must not write contact data");
             verifyRoster();
-            onFx(() -> render(root, "long-values", 853, 440));
+            runOnFx(() -> render(root, "long-values", 853, 440));
             verifyFailure();
-            onFx(() -> render(root, "error", 853, 440));
-            onFx(() -> {
+            runOnFx(() -> render(root, "error", 853, 440));
+            runOnFx(() -> {
                 enter(input, "view storage");
                 Label status = (Label) root.lookup("#saveLocationStatus");
                 assertTrue(status.getText().startsWith("Local data file"));
                 enter(input, "find MissingPerson");
                 assertTrue(model.getFilteredPersonList().isEmpty());
             });
-            onFx(() -> render(root, "empty-roster", 853, 440));
-            onFx(() -> enter(input, "list"));
-            onFx(() -> render(root, "students-large", 1920, 1040));
-            onFx(() -> render(root, "students-medium", 1536, 824));
-            onFx(() -> render(root, "students-laptop", 1280, 680));
+            runOnFx(() -> render(root, "empty-roster", 853, 440));
+            runOnFx(() -> enter(input, "list"));
+            runOnFx(() -> render(root, "students-large", 1920, 1040));
+            runOnFx(() -> render(root, "students-medium", 1536, 824));
+            runOnFx(() -> render(root, "students-laptop", 1280, 680));
         } finally {
-            onFx(() -> stage.hide());
+            runOnFx(() -> stage.hide());
         }
     }
 
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
-            onFx(() -> {
+            runOnFx(() -> {
                 enter(input, "view " + view.getKeyword());
                 assertEquals(view.getKeyword(), tabs.getSelectionModel().getSelectedItem().getId());
                 assertTrue(input.getText().isEmpty());
             });
-            onFx(() -> render(root, view.getKeyword(), 960, 640));
-            onFx(() -> render(root, view.getKeyword() + "-compact", 853, 440));
+            runOnFx(() -> render(root, view.getKeyword(), 960, 640));
+            runOnFx(() -> render(root, view.getKeyword() + "-compact", 853, 440));
         }
     }
 
     private void verifyKeyboard() throws Exception {
-        onFx(() -> {
+        runOnFx(() -> {
             input.setText("find Alex");
             input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1, false, false, false, false));
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
@@ -123,7 +123,7 @@ public class WorkspaceSmokeTest {
     }
 
     private void verifyRoster() throws Exception {
-        onFx(() -> {
+        runOnFx(() -> {
             enter(input, "help");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
             enter(input, "find Alex");
@@ -141,7 +141,7 @@ public class WorkspaceSmokeTest {
     }
 
     private void verifyFailure() throws Exception {
-        onFx(() -> {
+        runOnFx(() -> {
             enter(input, "delete 1");
             TableView<?> table = (TableView<?>) root.lookup("#personTable");
             assertEquals("1", table.getColumns().getFirst().getCellObservableValue(0).getValue());
@@ -170,7 +170,7 @@ public class WorkspaceSmokeTest {
         assertEquals(7, tabs.getTabs().size());
     }
 
-    private void onFx(CheckedAction action) throws Exception {
+    private void runOnFx(CheckedAction action) throws Exception {
         FutureTask<Void> check = new FutureTask<>(() -> {
             action.run();
             return null;
