@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox styleClass="content-card" minHeight="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <HBox styleClass="card-heading" alignment="CENTER_LEFT" spacing="12">
+    <Label fx:id="title" styleClass="section-title" />
+    <Region HBox.hgrow="ALWAYS" />
+    <Label text="Coming soon" styleClass="coming-soon" />
+  </HBox>
+  <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" minHeight="0">
+    <VBox minHeight="270">
+      <FlowPane fx:id="filters" hgap="6" vgap="6" styleClass="preview-filters" />
+      <TableView fx:id="records" VBox.vgrow="ALWAYS" minHeight="220" editable="false">
+        <placeholder>
+          <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
+            <Label text="Coming soon" styleClass="empty-title" />
+            <Label fx:id="description" wrapText="true" maxWidth="460" styleClass="muted" />
+            <Label text="You can keep managing contacts in Students." wrapText="true" styleClass="muted" />
+          </VBox>
+        </placeholder>
+      </TableView>
+    </VBox>
+  </ScrollPane>
+</VBox>

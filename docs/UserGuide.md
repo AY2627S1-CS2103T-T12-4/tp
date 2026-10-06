@@ -3,7 +3,9 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
+This v1.2 increment introduces the TAssist interface while retaining the existing contact commands.
+Tutorial groups, student IDs, attendance, participation, and assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -12,18 +14,19 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
+1. Ensure that Java `25` is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `.jar` file from the [team releases page](https://github.com/AY2627S1-CS2103T-T12-4/tp/releases), when available.
+   If no release is available yet, build the project with `./gradlew shadowJar` and use `build/libs/addressbook.jar`.
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for TAssist.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+   ![TAssist student roster](images/TAssistUi.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the command reference.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -39,6 +42,27 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
+
+## Using the workspace
+
+The top row opens **Students**, **Groups**, **Attendance**, **Participation**, **Assignments**, **Help**, and **Storage**.
+Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
+Press **Escape** to return focus to the command box, or **F1** to open Help.
+
+* **Students** displays live contact records. The row numbers match the indices used by `edit` and `delete`.
+  `find` filters the roster; `list` restores all contacts. Changing screens preserves the filter.
+  Scroll the table horizontally to see all fields and vertically to see more contacts. Hover over a shortened value
+  to read its full text. Sorting is disabled to preserve command indices.
+* **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
+  label. They contain no simulated records. Week controls are unavailable, and their domain commands are not yet
+  supported. Existing tags are not tutorial groups; phone numbers are not student IDs.
+* **Help** provides an offline reference for currently supported commands.
+* **Storage** shows the configured local JSON file and explains automatic saving.
+
+Feedback turns red when a command fails. The failed input stays in the command box so you can correct it.
+Long feedback and screen contents can be scrolled. Smaller windows use a compact layout.
+The footer shows the local file path and reports successful saves or command failures.
+Opening a screen with `view` does not save or change data.
 
 ## Features
 
@@ -66,12 +90,21 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Opens the offline command reference in the Help screen.
 
 Format: `help`
 
+
+### Opening a screen: `view`
+
+Format: `view SCREEN`
+
+`SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
+Screen names ignore case. Specify exactly one screen name. This command preserves the current roster filter.
+An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
+an invalid command format and show the expected syntax.
+
+Examples: `view students`, `view attendance`, `view storage`.
 
 ### Adding a person: `add`
 
@@ -154,14 +187,16 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+TAssist saves contact data after successful commands, except `view`, which only changes the visible screen.
+You do not need to save manually. A failed command does not indicate a successful save; read the feedback.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+Contact data is saved as `data/addressbook.json` relative to the folder from which you launch TAssist.
+The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until a successful command other than `view` saves the contact data. Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -181,7 +216,6 @@ _Details coming soon ..._
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -196,3 +230,5 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **Help** | `help`
+**View** | `view SCREEN`<br> e.g., `view attendance`
+**Exit** | `exit`

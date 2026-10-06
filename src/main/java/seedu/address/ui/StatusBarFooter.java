@@ -1,10 +1,10 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
 
 /**
@@ -14,6 +14,8 @@ public class StatusBarFooter extends UiPart<Region> {
 
     private static final String FXML = "StatusBarFooter.fxml";
 
+    private final Path saveLocation;
+
     @FXML
     private Label saveLocationStatus;
 
@@ -22,7 +24,17 @@ public class StatusBarFooter extends UiPart<Region> {
      */
     public StatusBarFooter(Path saveLocation) {
         super(FXML);
-        saveLocationStatus.setText(Paths.get(".").resolve(saveLocation).toString());
+        this.saveLocation = saveLocation;
+        setStatus("Local data file");
+    }
+
+    /**
+     * Shows the latest command status alongside the configured file path.
+     */
+    public void setStatus(String status) {
+        String text = status + " · " + saveLocation;
+        saveLocationStatus.setText(text);
+        saveLocationStatus.setTooltip(new Tooltip(text));
     }
 
 }
