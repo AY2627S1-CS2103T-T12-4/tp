@@ -13,6 +13,7 @@ public class ViewCommand extends Command {
     public static final String MESSAGE_USAGE = "view: Opens a screen.\n"
             + "Parameters: students | groups | attendance | participation | assignments | help | storage\n"
             + "Example: view attendance";
+    public static final String MESSAGE_UNKNOWN_SCREEN = "Unknown screen: %s.\n" + MESSAGE_USAGE;
 
     private final WorkspaceView view;
 

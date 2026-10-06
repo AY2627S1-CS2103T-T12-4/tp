@@ -101,6 +101,8 @@ Format: `view SCREEN`
 
 `SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
 Screen names ignore case. Specify exactly one screen name. This command preserves the current roster filter.
+An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
+an invalid command format and show the expected syntax.
 
 Examples: `view students`, `view attendance`, `view storage`.
 
