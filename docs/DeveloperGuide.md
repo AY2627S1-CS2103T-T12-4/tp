@@ -170,6 +170,61 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Command registration and shared validation
+
+`CommandRegistry` maps a feature keyword and subcommand to a `Parser<? extends Command>`.
+Each feature owns its registrations, so adding a subcommand does not require editing another feature's parser
+or adding a case to the legacy command switch. Register commands before creating `LogicManager`:
+
+```java
+CommandRegistry registry = new CommandRegistry();
+registry.register("group", "add", new GroupAddCommandParser());
+registry.register("student", "list", new StudentListCommandParser());
+Logic logic = new LogicManager(model, storage, registry);
+```
+
+This example shows how future feature parsers are connected; those feature commands are not yet implemented.
+The default `LogicManager(model, storage)` still supports the existing AB3 commands and `view`.
+`AddressBookParser` takes a snapshot of registrations at construction. Later changes to the source registry
+do not change the running parser. A feature keyword cannot shadow an existing legacy command.
+Duplicate registrations and invalid registration keywords are developer errors and throw `IllegalArgumentException`.
+
+For registered commands, `AddressBookParser` extracts the first keyword and lets `CommandRegistry` extract
+the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
+produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.
+Unknown feature keywords report an unknown command. Both keywords use lowercase letters; surrounding whitespace
+and repeated whitespace between keywords are ignored. Argument values retain their capitalization and spacing
+until their value validator normalizes them.
+
+Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
+
+```java
+TAssistArgumentParser arguments = new TAssistArgumentParser(
+        List.of(PREFIX_NAME, PREFIX_ID), List.of());
+ArgumentMultimap values = arguments.parse(args);
+StudentName name = TAssistParserUtil.parseStudentName(values.getValue(PREFIX_NAME).orElseThrow());
+StudentId id = TAssistParserUtil.parseStudentId(values.getValue(PREFIX_ID).orElseThrow());
+```
+
+Prefixes contain lowercase letters followed by `/`, and start at the beginning of arguments or after whitespace.
+Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
+parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
+Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
+produce specific errors. Optional parameters may appear at most once. Empty values are retained for the value
+validator to report a value error instead of a missing-parameter error. A command declaring no prefixes rejects
+extra input. These checks do not change the legacy AB3 tokenization or repeated-tag behavior.
+
+`TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
+It also validates assignment names (1–60 characters after whitespace normalization), weeks (whole numbers 1–13),
+participation scores (whole numbers 0–5), and grades (whole numbers 0–100). Assignment names retain capitalization
+and have no additional character restrictions. Numeric input is trimmed, accepts digits including leading zeros,
+and rejects signs, decimals, out-of-range values, and integer overflow with a field-specific `ParseException`.
+
+Parsers only validate and construct commands. `LogicManager` executes and saves after parsing succeeds;
+parsing failures neither execute a command nor call storage. Registry, argument, and value-validator unit tests
+cover these rules. `LogicManagerTest` also verifies that rejected feature input leaves the model and existing
+data file unchanged, using a storage implementation that fails if saving is attempted.
+
 ### TAssist domain model
 
 TAssist's own data is modelled by the classes below. They currently live beside the AddressBook model and are not yet used by the running app; a later change switches the app over to them.

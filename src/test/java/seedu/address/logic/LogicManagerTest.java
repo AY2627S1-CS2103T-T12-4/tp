@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,18 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.CommandRegistry;
+import seedu.address.logic.parser.Prefix;
+import seedu.address.logic.parser.TAssistArgumentParser;
+import seedu.address.logic.parser.TAssistParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.StudentId;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -58,7 +65,7 @@ public class LogicManagerTest {
     @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
-        assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
+        assertParseException(invalidCommand, String.format(MESSAGE_UNKNOWN_COMMAND, invalidCommand));
     }
 
     @Test
@@ -94,6 +101,51 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_registeredCommand_validatesExecutesAndSaves() throws Exception {
+        Path dataFile = temporaryFolder.resolve("feature.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        logic = new LogicManager(model, storage, createFeatureRegistry());
+
+        Person expectedPerson = new PersonBuilder().withName("Alice Tan").build();
+        Model expectedModel = new ModelManager();
+        expectedModel.addPerson(expectedPerson);
+        assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ",
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)), expectedModel);
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_invalidFeatureCommands_doesNotExecuteOrSave() throws Exception {
+        model.addPerson(AMY);
+        Path dataFile = temporaryFolder.resolve("unchanged.json");
+        String existingData = "Existing file contents must not be overwritten.";
+        Files.writeString(dataFile, existingData);
+        JsonAddressBookStorage saveDetectingStorage = new JsonAddressBookStorage(dataFile) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Invalid input must not call storage.");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(saveDetectingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), createFeatureRegistry());
+
+        assertParseException("unknown add", String.format(MESSAGE_UNKNOWN_COMMAND, "unknown"));
+        assertParseException("student", String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
+                "student", "add", "student"));
+        assertParseException("student unknown", String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
+                "unknown", "student", "add"));
+        assertParseException("student add id/A1", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS,
+                "n/"));
+        assertParseException("student add n/Alice n/Ben id/A1",
+                Messages.getErrorMessageForDuplicatePrefixes(new Prefix("n/")));
+        assertParseException("student add n/Alice id/A1 x/value",
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "x/", "n/ id/"));
+        assertParseException("student add n/Alice id/ABC", StudentId.MESSAGE_CONSTRAINTS);
+        assertEquals(existingData, Files.readString(dataFile));
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -122,6 +174,20 @@ public class LogicManagerTest {
         CommandResult result = logic.execute(inputCommand);
         assertEquals(expectedMessage, result.getFeedbackToUser());
         assertEquals(expectedModel, model);
+    }
+
+    private CommandRegistry createFeatureRegistry() {
+        Prefix namePrefix = new Prefix("n/");
+        Prefix idPrefix = new Prefix("id/");
+        TAssistArgumentParser argumentParser = new TAssistArgumentParser(List.of(namePrefix, idPrefix), List.of());
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("student", "add", args -> {
+            ArgumentMultimap values = argumentParser.parse(args);
+            String name = TAssistParserUtil.parseStudentName(values.getValue(namePrefix).orElseThrow()).fullName;
+            TAssistParserUtil.parseStudentId(values.getValue(idPrefix).orElseThrow());
+            return new AddCommand(new PersonBuilder().withName(name).build());
+        });
+        return registry;
     }
 
     /**
