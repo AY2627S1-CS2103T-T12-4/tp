@@ -29,10 +29,17 @@ public class ViewCommandParserTest {
     }
 
     @Test
-    public void parseCommand_missingUnknownOrRepeatedScreen_throwsParseException() {
-        for (String input : new String[]{"view", "view unknown", "view students help", "view students students"}) {
-            String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE);
+    public void parseCommand_missingOrMultipleScreens_throwsParseException() {
+        String[] inputs = {"view", "view students help", "view students students", "view students\thelp"};
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE);
+        for (String input : inputs) {
             assertThrows(ParseException.class, expected, () -> parser.parseCommand(input));
         }
+    }
+
+    @Test
+    public void parseCommand_unknownScreen_throwsParseException() {
+        String expected = String.format(ViewCommand.MESSAGE_UNKNOWN_SCREEN, "unknown");
+        assertThrows(ParseException.class, expected, () -> parser.parseCommand("view unknown"));
     }
 }

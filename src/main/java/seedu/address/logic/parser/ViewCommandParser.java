@@ -14,11 +14,17 @@ public class ViewCommandParser implements Parser<ViewCommand> {
     @Override
     public ViewCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        String screenName = args.trim();
+        if (screenName.isEmpty() || screenName.split("\\s+").length != 1) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
+        }
+
         for (WorkspaceView view : WorkspaceView.values()) {
-            if (view.getKeyword().equalsIgnoreCase(args.trim())) {
+            if (view.getKeyword().equalsIgnoreCase(screenName)) {
                 return new ViewCommand(view);
             }
         }
-        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
+
+        throw new ParseException(String.format(ViewCommand.MESSAGE_UNKNOWN_SCREEN, screenName));
     }
 }
