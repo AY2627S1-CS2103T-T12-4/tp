@@ -749,8 +749,8 @@ The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
 roster filtering, filter preservation across screens, adding a long record, row numbering after deletion,
-invalid-input retention,
-and empty results. Normal unit tests cover screen parsing, result identity and navigation with unavailable storage.
+invalid-input retention, and empty results. Normal unit tests cover screen parsing, result identity and navigation
+with unavailable storage.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 

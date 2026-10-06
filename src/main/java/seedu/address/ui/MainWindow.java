@@ -56,8 +56,10 @@ public class MainWindow extends UiPart<Stage> {
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+
         setWindowDefaultSize(logic.getGuiSettings());
         setAccelerators();
+
         Region workspace = (Region) primaryStage.getScene().getRoot();
         workspace.heightProperty().addListener((observable, oldHeight, height) ->
                 workspace.pseudoClassStateChanged(PseudoClass.getPseudoClass("compact"), height.doubleValue() < 540));
@@ -86,10 +88,13 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath);
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
+
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+
         statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
+
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         Platform.runLater(commandBox::focus);

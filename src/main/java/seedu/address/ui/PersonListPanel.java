@@ -61,10 +61,10 @@ public class PersonListPanel extends UiPart<Region> {
      */
     private static class RosterCell extends TableCell<Person, String> {
         @Override
-        protected void updateItem(String value, boolean empty) {
-            super.updateItem(value, empty);
-            setText(empty ? null : value);
-            Tooltip tooltip = empty || value == null ? null : new Tooltip(value);
+        protected void updateItem(String value, boolean isEmpty) {
+            super.updateItem(value, isEmpty);
+            setText(isEmpty ? null : value);
+            Tooltip tooltip = isEmpty || value == null ? null : new Tooltip(value);
             if (tooltip != null) {
                 tooltip.setWrapText(true);
                 tooltip.setMaxWidth(480);
