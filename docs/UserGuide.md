@@ -85,6 +85,10 @@ Opening a screen with `view` does not save or change data.
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
+* Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
+  and suggest entering `help`. They do not change or save your data. Tutorial-group, student, attendance,
+  participation, and assignment commands remain **Coming soon**.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
