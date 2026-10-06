@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -81,6 +82,9 @@ public class WorkspaceSmokeTest {
             verifyFailure();
             onFx(() -> render(root, "error", 853, 440));
             onFx(() -> {
+                enter(input, "view storage");
+                Label status = (Label) root.lookup("#saveLocationStatus");
+                assertTrue(status.getText().startsWith("Local data file"));
                 enter(input, "find MissingPerson");
                 assertTrue(model.getFilteredPersonList().isEmpty());
             });
