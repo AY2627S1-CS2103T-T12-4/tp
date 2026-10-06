@@ -744,10 +744,12 @@ The optional `WorkspaceSmokeTest` needs a desktop and JavaFX. Set the environmen
 `JAVA_TOOL_OPTIONS=-Dtassist.uiTests=true`, then run
 `./gradlew test --tests seedu.address.ui.WorkspaceSmokeTest`. Unset the variable after the run.
 It uses temporary storage and writes rendered previews to `build/ui-previews/`.
+Linux CI enables this test under the runner's virtual display (`xvfb-run`) so the uploaded coverage includes the UI.
+The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
-roster filtering,
-filter preservation across screens, adding a long record, row numbering after deletion, invalid-input retention,
+roster filtering, filter preservation across screens, adding a long record, row numbering after deletion,
+invalid-input retention,
 and empty results. Normal unit tests cover screen parsing, result identity and navigation with unavailable storage.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
