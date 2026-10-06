@@ -21,9 +21,7 @@ src/test/data/sandbox/
 .DS_Store
 docs/_site/
 
-# AI Agents
-AGENTS.md
-CLAUDE.md
+# AI Agents (AGENTS.md and CLAUDE.md are shared with the team, so they are not ignored)
 /.claude/
 /.codex/
 
