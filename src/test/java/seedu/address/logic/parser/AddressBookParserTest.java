@@ -22,6 +22,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -95,6 +96,49 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_unknownCommand_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
+        assertThrows(ParseException.class, String.format(MESSAGE_UNKNOWN_COMMAND, "unknownCommand"), () ->
+                parser.parseCommand("unknownCommand"));
+    }
+
+    @Test
+    public void parseCommand_registeredFeatures_dispatchesWithoutChangingLegacyCommands() throws Exception {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "list", args -> new ListCommand());
+        registry.register("student", "add", args -> new AddCommand(new PersonBuilder().withName(args).build()));
+        AddressBookParser featureParser = new AddressBookParser(registry);
+
+        assertTrue(featureParser.parseCommand("  group\t list  ") instanceof ListCommand);
+        assertEquals(new AddCommand(new PersonBuilder().withName("Alice Tan").build()),
+                featureParser.parseCommand("student\n add Alice Tan"));
+        assertTrue(featureParser.parseCommand("list extra") instanceof ListCommand);
+        assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
+                featureParser.parseCommand("view attendance").execute(new ModelManager()));
+    }
+
+    @Test
+    public void constructor_snapshotOfRegistrations_canBeReusedAndDoesNotChange() throws Exception {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "list", args -> new ListCommand());
+        AddressBookParser firstParser = new AddressBookParser(registry);
+        AddressBookParser secondParser = new AddressBookParser(registry);
+        registry.register("group", "add", args -> new ClearCommand());
+
+        assertTrue(firstParser.parseCommand("group list") instanceof ListCommand);
+        assertTrue(secondParser.parseCommand("group list") instanceof ListCommand);
+        assertThrows(ParseException.class, () -> firstParser.parseCommand("group add"));
+        assertTrue(new AddressBookParser(registry).parseCommand("group add") instanceof ClearCommand);
+    }
+
+    @Test
+    public void constructor_legacyKeywordConflict_throwsIllegalArgumentException() {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("add", "student", args -> new ListCommand());
+        assertThrows(IllegalArgumentException.class, () -> new AddressBookParser(registry));
+    }
+
+    @Test
+    public void nullInputs_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new AddressBookParser(null));
+        assertThrows(NullPointerException.class, () -> parser.parseCommand(null));
     }
 }
