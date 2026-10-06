@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.WorkspaceView;
+
 public class CommandResultTest {
     @Test
     public void equals() {
@@ -53,11 +55,21 @@ public class CommandResultTest {
     }
 
     @Test
+    public void equals_screenNavigation_distinguishesTargets() {
+        CommandResult result = new CommandResult("feedback", WorkspaceView.HELP);
+        assertEquals(result, new CommandResult("feedback", WorkspaceView.HELP));
+        assertEquals(result.hashCode(), new CommandResult("feedback", WorkspaceView.HELP).hashCode());
+        assertNotEquals(result, new CommandResult("feedback", WorkspaceView.STUDENTS));
+        assertNotEquals(result, new CommandResult("feedback"));
+        assertTrue(new CommandResult("feedback").getView().isEmpty());
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", view=null}";
         assertEquals(expected, commandResult.toString());
     }
 }

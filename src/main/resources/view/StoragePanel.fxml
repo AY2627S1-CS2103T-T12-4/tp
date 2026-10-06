@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox styleClass="content-card" minHeight="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <VBox styleClass="card-heading" spacing="4">
+    <Label text="Local data" styleClass="section-title" />
+    <Label text="Automatic persistence" styleClass="muted" />
+  </VBox>
+  <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
+    <VBox styleClass="storage-content" spacing="16">
+      <Label text="Your records stay on this computer" styleClass="empty-title" wrapText="true" />
+      <Label text="Successful contact commands save automatically to the local JSON file."
+             wrapText="true" styleClass="muted" />
+      <Label text="DATA FILE" styleClass="eyebrow" />
+      <Label fx:id="filePath" styleClass="file-path" wrapText="true" maxWidth="Infinity" />
+      <Label text="The file is created after the first successful contact command. A first launch shows sample contacts."
+             wrapText="true" styleClass="muted" />
+      <Label text="Close TAssist before editing the file manually. Keep a backup: invalid edits can cause data loss."
+             wrapText="true" styleClass="muted" />
+      <Label text="Tutorial groups, attendance, participation and assignment storage are coming soon."
+             wrapText="true" styleClass="coming-soon-note" />
+    </VBox>
+  </ScrollPane>
+</VBox>
