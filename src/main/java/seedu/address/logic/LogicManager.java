@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
@@ -11,6 +13,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -35,9 +38,20 @@ public class LogicManager implements Logic {
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this.model = model;
-        this.storage = storage;
-        addressBookParser = new AddressBookParser();
+        this(model, storage, new CommandRegistry());
+    }
+
+    /**
+     * Constructs a logic manager with feature commands registered before startup.
+     *
+     * @param model The application model.
+     * @param storage The local persistence component.
+     * @param commandRegistry The feature command registrations.
+     */
+    public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry) {
+        this.model = requireNonNull(model);
+        this.storage = requireNonNull(storage);
+        addressBookParser = new AddressBookParser(commandRegistry);
     }
 
     @Override
