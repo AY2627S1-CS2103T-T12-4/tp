@@ -65,4 +65,16 @@ public class StringUtil {
             return false;
         }
     }
+
+    /**
+     * Returns {@code s} without leading and trailing whitespace, and with each run of internal whitespace
+     * replaced by a single space.
+     * e.g. {@code "  Alice   Tan "} becomes {@code "Alice Tan"}.
+     *
+     * @throws NullPointerException if {@code s} is null.
+     */
+    public static String normalizeSpaces(String s) {
+        requireNonNull(s);
+        return s.trim().replaceAll("\\s+", " ");
+    }
 }

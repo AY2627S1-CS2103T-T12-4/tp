@@ -170,6 +170,47 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### TAssist domain model
+
+TAssist's own data is modelled by the classes below. They currently live beside the AddressBook model and are not yet used by the running app; a later change switches the app over to them.
+
+<img src="images/TAssistModelClassDiagram.png" width="300" />
+
+* `TAssist` is the root object. It holds the tutorial groups in a `UniqueGroupList` and remembers which group is active, if any. Other components see it through the read-only `ReadOnlyTAssist` interface.
+* A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList`.
+* A `Student` has a `StudentName` and a `StudentId`, and is immutable.
+* `UniqueGroupList` and `UniqueStudentList` share the uniqueness logic of the generic `UniqueList`, which also exposes the items as an unmodifiable `ObservableList` that the UI can bind to.
+
+These classes follow the rules in our feature specification:
+
+* **Group names** are compared case-insensitively, so `T01` and `t01` are the same group. The name is shown with the capitalization the TA typed.
+* **Student IDs** are stored in uppercase, so they are compared case-insensitively. A student ID is unique *within a group* only, so the same student can be in two groups (e.g. for a make-up session). Two students may share a name if their IDs differ.
+* **Spaces:** leading and trailing spaces are ignored, and repeated spaces inside group names and student names count as one space.
+* **Active group:** the active group, if any, is always one of the groups held. Adding a group does not make it active by itself; commands decide when to switch.
+* **Copies:** `new TAssist(data)` copies every group, so changing the copy never changes the original.
+
+#### Where per-student records are stored
+
+Attendance, participation scores and assignment results are not implemented yet. When they are, they will be stored **on the `Student` object, inside the group the student belongs to**:
+
+* **Weekly records** (attendance and participation): each `Student` will hold one week-keyed record per kind, e.g. a mapping from `Week` to `AttendanceStatus`. Both kinds will use one shared weekly record mechanism, so the attendance and participation features only add their own value types and messages.
+* **Assignments:** a `Group` will hold the list of assignments created for it, since assignment names are unique within a group. Each `Student` will hold their own submission status and grade for each assignment, keyed by assignment name.
+* As `Student` is immutable, recording or updating a value will replace the student in its group with an updated copy.
+
+**Aspect: Where per-student records are stored**
+
+* **Alternative 1 (current choice):** Store the records on each `Student`, inside its group.
+  * Pros: A student's records are automatically scoped to the right group, which matters because student IDs are only unique within a group. Removing a student also removes all of their records, so no record can point to a student who no longer exists. The data file nests group → students → records, which is easy to read and edit by hand, and each feature adds its own field without changing the others.
+  * Cons: `Student` grows a field for each kind of record, and every update creates a new `Student` object.
+
+* **Alternative 2:** Keep separate tables in each `Group`, keyed by student ID (e.g. one attendance table, one participation table).
+  * Pros: `Student` stays small, and each feature owns its own table.
+  * Cons: Removing a student must also clean up every table, and a wrong manual edit of the data file can leave records for a student who does not exist.
+
+* **Alternative 3:** Keep one list of records for the whole app, keyed by group, student ID and week.
+  * Pros: All records are in one place.
+  * Cons: Every lookup has to filter by group and student, and the data file is the hardest of the three to read and edit by hand.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
