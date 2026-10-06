@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox styleClass="content-card" minHeight="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <VBox styleClass="card-heading" spacing="4">
+    <Label text="Help" styleClass="section-title" />
+    <Label text="Command reference" styleClass="muted" />
+  </VBox>
+  <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
+    <VBox fx:id="commands" styleClass="help-content" spacing="14" />
+  </ScrollPane>
+</VBox>

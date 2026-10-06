@@ -1,0 +1,154 @@
+/* Visual design based on the user-supplied TAssist UI Mockups.html. Native JavaFX controls only. */
+.root {
+    -fx-font-family: "System";
+    -fx-font-size: 13px;
+    -fx-text-background-color: #1c1d1f;
+    -fx-accent: #0e6b61;
+    -fx-focus-color: #0e6b61;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: #f4f3ee;
+}
+.label { -fx-text-fill: #1c1d1f; }
+.app-header {
+    -fx-background-color: #1c1d1f;
+    -fx-padding: 0 20;
+    -fx-min-height: 52;
+    -fx-pref-height: 52;
+}
+.brand { -fx-text-fill: #f4f3ee; -fx-font-size: 18px; -fx-font-weight: bold; }
+.app-header .header-caption, .menu-bar .label { -fx-text-fill: #c9c7bf; }
+.app-header .active-group {
+    -fx-text-fill: #f4f3ee;
+    -fx-background-color: #2e3033;
+    -fx-background-radius: 6;
+    -fx-padding: 5 12;
+    -fx-font-family: monospace;
+}
+.menu-bar { -fx-background-color: transparent; -fx-padding: 0; }
+.menu-bar .menu:hover, .menu-bar .menu:showing { -fx-background-color: #383b3f; }
+.context-menu { -fx-background-color: white; -fx-background-radius: 6; -fx-padding: 6; }
+.context-menu .label { -fx-text-fill: #1c1d1f; }
+.menu-item:focused { -fx-background-color: #e6f2ef; }
+.group-strip {
+    -fx-padding: 12 20;
+    -fx-border-color: transparent transparent #dedcd5 transparent;
+}
+.eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a5d64; }
+.muted, .card-caption { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
+.main-content { -fx-padding: 10 20 16 20; }
+.workspace-tabs > .tab-header-area { -fx-padding: 0 0 10 0; }
+.workspace-tabs > .tab-header-area > .tab-header-background { -fx-background-color: transparent; }
+.workspace-tabs .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10;
+}
+.workspace-tabs .tab .tab-label { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
+.workspace-tabs .tab:selected { -fx-background-color: #0e6b61; }
+.workspace-tabs .tab:selected .tab-label { -fx-text-fill: white; }
+.workspace-tabs .tab:focused { -fx-border-color: #0e6b61; -fx-border-radius: 6; }
+.workspace-tabs .tab .focus-indicator { -fx-border-color: transparent; }
+.content-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #dedcd5;
+    -fx-border-radius: 10;
+    -fx-padding: 1;
+}
+.card-heading { -fx-padding: 14 16; -fx-border-color: transparent transparent #dedcd5 transparent; }
+.section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.card-caption { -fx-padding: 8 16; }
+.coming-soon {
+    -fx-text-fill: #6d5621;
+    -fx-background-color: #f6edda;
+    -fx-background-radius: 5;
+    -fx-padding: 4 8;
+    -fx-font-size: 11px;
+}
+.coming-soon-note { -fx-text-fill: #6d5621; }
+.preview-filters { -fx-padding: 10 16; }
+.week-chip {
+    -fx-background-color: #f4f3ee;
+    -fx-border-color: #dedcd5;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-padding: 4 8;
+    -fx-min-width: 28;
+}
+.week-chip:disabled { -fx-opacity: 0.7; }
+.table-view { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.table-view .column-header-background, .table-view .column-header, .table-view .filler {
+    -fx-background-color: #fafaf7;
+}
+.table-view .column-header { -fx-border-color: transparent transparent #dedcd5 transparent; -fx-size: 38; }
+.table-view .column-header .label {
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5a5d64;
+}
+.table-row-cell { -fx-background-color: white; -fx-cell-size: 43; }
+.table-row-cell:filled:selected { -fx-background-color: #e6f2ef; }
+.table-row-cell:filled:hover { -fx-background-color: #f2f8f6; }
+.table-cell {
+    -fx-border-color: transparent transparent #ecebe6 transparent;
+    -fx-padding: 10 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-text-fill: #1c1d1f;
+}
+.table-row-cell:empty .table-cell { -fx-border-color: transparent; }
+.table-view .placeholder { -fx-background-color: white; }
+.empty-state { -fx-padding: 16; }
+.empty-state .label { -fx-text-alignment: center; }
+.empty-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.scroll-pane, .scroll-pane > .viewport { -fx-background-color: transparent; }
+.scroll-pane { -fx-padding: 0; -fx-background-insets: 0; }
+.scroll-bar { -fx-background-color: #f4f3ee; -fx-pref-width: 10; -fx-pref-height: 10; }
+.scroll-bar .thumb { -fx-background-color: #c9c7bf; -fx-background-radius: 8; }
+.help-content, .storage-content { -fx-padding: 18 16; }
+.command-reference { -fx-padding: 0 0 12 0; -fx-border-color: transparent transparent #ecebe6 transparent; }
+.command-syntax, .file-path { -fx-font-family: monospace; -fx-font-size: 12px; -fx-text-fill: #0e6b61; }
+.command-box {
+    -fx-background-color: white;
+    -fx-border-color: #0e6b61;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 0 12;
+}
+.command-prompt { -fx-text-fill: #0e6b61; -fx-font-family: monospace; -fx-font-weight: bold; }
+.command-box .text-field {
+    -fx-background-color: transparent;
+    -fx-font-family: monospace;
+    -fx-font-size: 13px;
+    -fx-padding: 8 0;
+    -fx-text-fill: #1c1d1f;
+    -fx-prompt-text-fill: #757980;
+}
+.command-box .text-field.error { -fx-text-fill: #a12c2c; }
+.key-hint { -fx-text-fill: #757980; -fx-font-size: 11px; }
+.feedback-pane { -fx-background-color: #e6f2ef; -fx-background-radius: 8; -fx-padding: 4 8; }
+.feedback-pane:failure { -fx-background-color: #fbe9e7; }
+.feedback-pane .text-area, .feedback-pane .text-area .content {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-text-fill: #1c1d1f;
+}
+.feedback-pane .text-area { -fx-font-size: 13px; -fx-padding: 0; }
+.status-bar {
+    -fx-padding: 7 20;
+    -fx-border-color: #dedcd5 transparent transparent transparent;
+}
+.status-bar .label { -fx-text-fill: #5a5d64; -fx-font-size: 11px; }
+.status-bar .status-dot { -fx-text-fill: #0e6b61; }
+.tooltip { -fx-font-size: 12px; -fx-background-color: #1c1d1f; -fx-text-fill: white; }
+
+.workspace:compact .app-header { -fx-min-height: 42; -fx-pref-height: 42; }
+.workspace:compact .group-strip { -fx-padding: 6 16; }
+.workspace:compact .main-content { -fx-padding: 6 16 8 16; -fx-spacing: 8; }
+.workspace:compact .workspace-tabs > .tab-header-area { -fx-padding: 0 0 6 0; }
+.workspace:compact .workspace-tabs .tab { -fx-padding: 4 10; }
+.workspace:compact .card-heading { -fx-padding: 10 16; }
+.workspace:compact #resultDisplayPlaceholder { -fx-min-height: 44; -fx-pref-height: 44; -fx-max-height: 44; }
+.workspace:compact .status-bar { -fx-padding: 5 16; }
