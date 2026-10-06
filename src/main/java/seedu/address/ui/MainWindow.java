@@ -143,6 +143,7 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
+                statusBarFooter.setStatus("Local data file");
             } else {
                 statusBarFooter.setStatus("Changes saved");
                 workspacePanel.showView(result.isShowHelp() ? WorkspaceView.HELP : WorkspaceView.STUDENTS);
