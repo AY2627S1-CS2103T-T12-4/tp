@@ -4,17 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 
 import org.junit.jupiter.api.Test;
 
 public class StudentTest {
 
-    private static final StudentName NAME_ALICE = new StudentName("Alice Tan");
-    private static final StudentName NAME_BEN = new StudentName("Ben Lim");
-    private static final StudentId ID_ALICE = new StudentId("A0123456X");
-    private static final StudentId ID_BEN = new StudentId("A0234567Y");
-
-    private final Student alice = new Student(NAME_ALICE, ID_ALICE);
+    private static final StudentName NAME_ALICE = ALICE.getName();
+    private static final StudentName NAME_BEN = BEN.getName();
+    private static final StudentId ID_ALICE = ALICE.getStudentId();
+    private static final StudentId ID_BEN = BEN.getStudentId();
 
     @Test
     public void constructor_nullField_throwsNullPointerException() {
@@ -25,50 +25,50 @@ public class StudentTest {
     @Test
     public void isSameStudent() {
         // same object -> returns true
-        assertTrue(alice.isSameStudent(alice));
+        assertTrue(ALICE.isSameStudent(ALICE));
 
         // null -> returns false
-        assertFalse(alice.isSameStudent(null));
+        assertFalse(ALICE.isSameStudent(null));
 
         // same student ID, different name -> returns true
-        assertTrue(alice.isSameStudent(new Student(NAME_BEN, ID_ALICE)));
+        assertTrue(ALICE.isSameStudent(new Student(NAME_BEN, ID_ALICE)));
 
         // same student ID in a different case -> returns true
-        assertTrue(alice.isSameStudent(new Student(NAME_ALICE, new StudentId("a0123456x"))));
+        assertTrue(ALICE.isSameStudent(new Student(NAME_ALICE, new StudentId("a0123456x"))));
 
         // same name, different student ID -> returns false
-        assertFalse(alice.isSameStudent(new Student(NAME_ALICE, ID_BEN)));
+        assertFalse(ALICE.isSameStudent(new Student(NAME_ALICE, ID_BEN)));
     }
 
     @Test
     public void equals() {
         // same values -> returns true
-        assertTrue(alice.equals(new Student(NAME_ALICE, ID_ALICE)));
+        assertTrue(ALICE.equals(new Student(NAME_ALICE, ID_ALICE)));
 
         // same object -> returns true
-        assertTrue(alice.equals(alice));
+        assertTrue(ALICE.equals(ALICE));
 
         // null -> returns false
-        assertFalse(alice.equals(null));
+        assertFalse(ALICE.equals(null));
 
         // different type -> returns false
-        assertFalse(alice.equals(5));
+        assertFalse(ALICE.equals(5));
 
         // different name -> returns false
-        assertFalse(alice.equals(new Student(NAME_BEN, ID_ALICE)));
+        assertFalse(ALICE.equals(new Student(NAME_BEN, ID_ALICE)));
 
         // different student ID -> returns false
-        assertFalse(alice.equals(new Student(NAME_ALICE, ID_BEN)));
+        assertFalse(ALICE.equals(new Student(NAME_ALICE, ID_BEN)));
     }
 
     @Test
     public void hashCode_sameValues_sameHashCode() {
-        assertEquals(alice.hashCode(), new Student(NAME_ALICE, ID_ALICE).hashCode());
+        assertEquals(ALICE.hashCode(), new Student(NAME_ALICE, ID_ALICE).hashCode());
     }
 
     @Test
     public void toStringMethod() {
         String expected = Student.class.getCanonicalName() + "{name=" + NAME_ALICE + ", studentId=" + ID_ALICE + "}";
-        assertEquals(expected, alice.toString());
+        assertEquals(expected, ALICE.toString());
     }
 }
