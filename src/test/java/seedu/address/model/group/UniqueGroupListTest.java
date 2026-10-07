@@ -12,11 +12,12 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.group.exceptions.DuplicateGroupException;
 import seedu.address.model.group.exceptions.GroupNotFoundException;
+import seedu.address.testutil.TypicalGroups;
 
 public class UniqueGroupListTest {
 
-    private static final Group T01 = new Group(new GroupName("T01"));
-    private static final Group T02 = new Group(new GroupName("T02"));
+    private final Group t01 = TypicalGroups.getT01();
+    private final Group t02 = TypicalGroups.getT02();
 
     private final UniqueGroupList uniqueGroupList = new UniqueGroupList();
 
@@ -28,61 +29,61 @@ public class UniqueGroupListTest {
 
     @Test
     public void contains_groupNotInList_returnsFalse() {
-        assertFalse(uniqueGroupList.contains(T01));
-        assertFalse(uniqueGroupList.contains(T01.getName()));
+        assertFalse(uniqueGroupList.contains(t01));
+        assertFalse(uniqueGroupList.contains(t01.getName()));
     }
 
     @Test
     public void contains_groupWithSameNameInDifferentCase_returnsTrue() {
-        uniqueGroupList.add(T01);
+        uniqueGroupList.add(t01);
         assertTrue(uniqueGroupList.contains(new Group(new GroupName("t01"))));
         assertTrue(uniqueGroupList.contains(new GroupName("t01")));
     }
 
     @Test
     public void add_sameNameInDifferentCase_throwsDuplicateGroupException() {
-        uniqueGroupList.add(T01);
+        uniqueGroupList.add(t01);
         Group sameName = new Group(new GroupName("t01"));
         assertThrows(DuplicateGroupException.class, () -> uniqueGroupList.add(sameName));
     }
 
     @Test
     public void find_existingAndMissingName_correctResult() {
-        uniqueGroupList.add(T01);
-        assertEquals(Optional.of(T01), uniqueGroupList.find(new GroupName("t01")));
-        assertEquals(Optional.empty(), uniqueGroupList.find(T02.getName()));
+        uniqueGroupList.add(t01);
+        assertEquals(Optional.of(t01), uniqueGroupList.find(new GroupName("t01")));
+        assertEquals(Optional.empty(), uniqueGroupList.find(t02.getName()));
     }
 
     @Test
     public void remove_groupDoesNotExist_throwsGroupNotFoundException() {
-        assertThrows(GroupNotFoundException.class, () -> uniqueGroupList.remove(T01));
+        assertThrows(GroupNotFoundException.class, () -> uniqueGroupList.remove(t01));
     }
 
     @Test
     public void remove_existingGroup_removesGroup() {
-        uniqueGroupList.add(T01);
-        uniqueGroupList.remove(T01);
+        uniqueGroupList.add(t01);
+        uniqueGroupList.remove(t01);
         assertTrue(uniqueGroupList.asUnmodifiableObservableList().isEmpty());
     }
 
     @Test
     public void setGroups_listWithDuplicateNames_throwsDuplicateGroupException() {
-        List<Group> groupsWithSameName = List.of(T01, new Group(new GroupName("t01")));
+        List<Group> groupsWithSameName = List.of(t01, new Group(new GroupName("t01")));
         assertThrows(DuplicateGroupException.class, () -> uniqueGroupList.setGroups(groupsWithSameName));
     }
 
     @Test
     public void setGroups_validList_replacesContents() {
-        uniqueGroupList.add(T01);
-        uniqueGroupList.setGroups(List.of(T02));
-        assertEquals(List.of(T02), uniqueGroupList.asUnmodifiableObservableList());
+        uniqueGroupList.add(t01);
+        uniqueGroupList.setGroups(List.of(t02));
+        assertEquals(List.of(t02), uniqueGroupList.asUnmodifiableObservableList());
     }
 
     @Test
     public void equals() {
-        uniqueGroupList.add(T01);
+        uniqueGroupList.add(t01);
         UniqueGroupList sameList = new UniqueGroupList();
-        sameList.add(T01);
+        sameList.add(t01);
 
         assertTrue(uniqueGroupList.equals(sameList));
         assertEquals(uniqueGroupList.hashCode(), sameList.hashCode());
