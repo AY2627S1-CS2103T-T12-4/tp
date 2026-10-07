@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 
@@ -55,5 +56,14 @@ public class TypicalGroups {
      */
     public static List<Group> getTypicalGroups() {
         return new ArrayList<>(Arrays.asList(getT01(), getT02(), getT03()));
+    }
+
+    /**
+     * Returns a new {@code TAssist} with the typical groups T01, T02 and T03, and no active group.
+     */
+    public static TAssist getTypicalTAssist() {
+        TAssistBuilder builder = new TAssistBuilder();
+        getTypicalGroups().forEach(builder::withGroup);
+        return builder.build();
     }
 }
