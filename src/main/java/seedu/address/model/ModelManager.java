@@ -3,36 +3,54 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 
 /**
- * Represents the in-memory model of the address book data.
+ * Represents the in-memory model of the address book data and the TAssist data.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
     private final AddressBook addressBook;
+    private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
 
     /**
-     * Initializes a ModelManager with the given addressBook and userPrefs.
+     * Initializes a ModelManager with copies of the given addressBook, tAssist and userPrefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyTAssist tAssist, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(addressBook, tAssist, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing with address book: " + addressBook + ", TAssist data: " + tAssist
+                + " and user prefs " + userPrefs);
 
         this.addressBook = new AddressBook(addressBook);
+        this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        trackActiveGroup();
+    }
+
+    /**
+     * Initializes a ModelManager with a copy of the given addressBook and userPrefs, and no TAssist data.
+     */
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
+        this(addressBook, new TAssist(), userPrefs);
     }
 
     public ModelManager() {
@@ -110,6 +128,84 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
+    //=========== TAssist ===================================================================================
+
+    @Override
+    public void setTAssist(ReadOnlyTAssist tAssist) {
+        requireNonNull(tAssist);
+        this.tAssist.resetData(tAssist);
+        trackActiveGroup();
+    }
+
+    @Override
+    public ReadOnlyTAssist getTAssist() {
+        return tAssist;
+    }
+
+    @Override
+    public boolean hasGroup(GroupName name) {
+        requireNonNull(name);
+        return tAssist.hasGroup(name);
+    }
+
+    @Override
+    public void addGroup(Group group) {
+        requireNonNull(group);
+        tAssist.addGroup(group);
+    }
+
+    @Override
+    public Group getGroup(GroupName name) {
+        requireNonNull(name);
+        return tAssist.getGroup(name);
+    }
+
+    @Override
+    public void setActiveGroup(GroupName name) {
+        requireNonNull(name);
+        tAssist.setActiveGroup(name);
+        logger.info("Active group is now " + name);
+        trackActiveGroup();
+    }
+
+    @Override
+    public Optional<Group> getActiveGroup() {
+        return tAssist.getActiveGroup();
+    }
+
+    @Override
+    public void addStudent(GroupName groupName, Student student) {
+        requireAllNonNull(groupName, student);
+        tAssist.addStudent(groupName, student);
+    }
+
+    @Override
+    public Student removeStudent(GroupName groupName, StudentId studentId) {
+        requireAllNonNull(groupName, studentId);
+        return tAssist.removeStudent(groupName, studentId);
+    }
+
+    //=========== Active Group Accessors =====================================================================
+
+    @Override
+    public ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty() {
+        return activeGroupTracker.activeGroupProperty();
+    }
+
+    @Override
+    public ObservableList<Student> getActiveGroupStudentList() {
+        return activeGroupTracker.getStudentList();
+    }
+
+    /**
+     * Points the active group views at the group that is active in {@code tAssist}.
+     */
+    private void trackActiveGroup() {
+        activeGroupTracker.track(tAssist.getActiveGroup());
+        assert activeGroupTracker.activeGroupProperty().get().equals(tAssist.getActiveGroup())
+                : "The active group views must show the active group";
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -122,6 +218,7 @@ public class ModelManager implements Model {
         }
 
         return addressBook.equals(otherModelManager.addressBook)
+                && tAssist.equals(otherModelManager.tAssist)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }

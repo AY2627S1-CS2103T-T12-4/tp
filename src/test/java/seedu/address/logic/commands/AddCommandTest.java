@@ -9,10 +9,12 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Messages;
@@ -20,8 +22,13 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -139,6 +146,61 @@ public class AddCommandTest {
 
         @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setTAssist(ReadOnlyTAssist tAssist) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ReadOnlyTAssist getTAssist() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean hasGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addGroup(Group group) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Group getGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setActiveGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Group> getActiveGroup() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addStudent(GroupName groupName, Student student) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Student removeStudent(GroupName groupName, StudentId studentId) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Student> getActiveGroupStudentList() {
             throw new AssertionError("This method should not be called.");
         }
     }
