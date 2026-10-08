@@ -26,7 +26,7 @@
             </Menu>
           </MenuBar>
           <Region HBox.hgrow="ALWAYS" />
-          <Label text="Active group" styleClass="header-caption" />
+          <Label fx:id="activeGroupCaption" text="Active group" styleClass="header-caption" />
           <Label fx:id="activeGroupLabel" styleClass="active-group" maxWidth="240" />
         </HBox>
         <HBox styleClass="group-strip" spacing="12" alignment="CENTER_LEFT">
