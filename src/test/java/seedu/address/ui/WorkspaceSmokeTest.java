@@ -234,8 +234,9 @@ public class WorkspaceSmokeTest {
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
-            enter(input, "student list");
-            assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
+            enter(input, "list");
+            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
+                    "Contact commands keep the current screen");
         });
     }
 
