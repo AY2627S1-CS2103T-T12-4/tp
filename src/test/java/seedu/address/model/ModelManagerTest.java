@@ -261,6 +261,44 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setActiveGroup_alreadyActiveGroup_keepsViewsAndDoesNotNotify() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        List<Optional<Group>> notifiedGroups = new ArrayList<>();
+        modelManager.activeGroupProperty().addListener((observable, oldGroup, newGroup) ->
+                notifiedGroups.add(newGroup));
+
+        modelManager.setActiveGroup(new GroupName("t01"));
+
+        assertTrue(notifiedGroups.isEmpty());
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
+    }
+
+    @Test
+    public void setTAssist_equalActiveGroup_doesNotNotifyButStudentListFollows() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        List<Optional<Group>> notifiedGroups = new ArrayList<>();
+        modelManager.activeGroupProperty().addListener((observable, oldGroup, newGroup) ->
+                notifiedGroups.add(newGroup));
+
+        modelManager.setTAssist(typicalTAssistWithActiveGroup(NAME_T01));
+        modelManager.addStudent(NAME_T01, FIONA);
+
+        assertTrue(notifiedGroups.isEmpty());
+        assertTrue(modelManager.getActiveGroupStudentList().contains(FIONA));
+    }
+
+    @Test
+    public void setActiveGroup_afterSwitching_oldGroupChangesDoNotReachStudentList() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setActiveGroup(NAME_T02);
+        modelManager.setActiveGroup(NAME_T01);
+
+        modelManager.addStudent(NAME_T02, FIONA);
+
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
+    }
+
+    @Test
     public void setActiveGroup_missingGroup_throwsAndKeepsActiveGroup() {
         modelManager = modelWithActiveGroup(NAME_T01);
         assertThrows(GroupNotFoundException.class, () -> modelManager.setActiveGroup(NAME_T04));
