@@ -29,10 +29,7 @@
           <Label fx:id="activeGroupCaption" text="Active group" styleClass="header-caption" />
           <Label fx:id="activeGroupLabel" styleClass="active-group" maxWidth="240" />
         </HBox>
-        <HBox styleClass="group-strip" spacing="12" alignment="CENTER_LEFT">
-          <Label text="GROUPS" styleClass="eyebrow" />
-          <Label text="Tutorial groups coming soon" styleClass="muted" />
-        </HBox>
+        <StackPane fx:id="groupStripPlaceholder" />
         <VBox styleClass="main-content" spacing="12" VBox.vgrow="ALWAYS" minHeight="0">
           <StackPane fx:id="workspacePlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
           <StackPane fx:id="resultDisplayPlaceholder" minHeight="62" prefHeight="72" maxHeight="90" />

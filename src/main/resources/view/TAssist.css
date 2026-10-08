@@ -31,9 +31,20 @@
 .context-menu .label { -fx-text-fill: #1c1d1f; }
 .menu-item:focused { -fx-background-color: #e6f2ef; }
 .group-strip {
-    -fx-padding: 12 20;
+    -fx-padding: 8 20;
     -fx-border-color: transparent transparent #dedcd5 transparent;
 }
+.group-chips-scroll { -fx-padding: 0; }
+.group-chips-scroll .scroll-bar:horizontal { -fx-pref-height: 6; }
+.group-chip {
+    -fx-background-color: white;
+    -fx-border-color: #dedcd5;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 2 10;
+    -fx-font-family: monospace;
+}
+.group-chip:active { -fx-background-color: #0e6b61; -fx-border-color: #0e6b61; -fx-text-fill: white; }
 .eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a5d64; }
 .muted, .card-caption { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
 .main-content { -fx-padding: 10 20 16 20; }

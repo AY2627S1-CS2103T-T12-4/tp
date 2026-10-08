@@ -20,6 +20,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
@@ -38,6 +39,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.model.ModelManager;
+import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
@@ -118,6 +120,7 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
                 assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP);
                 assertFalse(root.lookup("#activeGroupCaption").isVisible());
+                assertGroupChips(List.of("T01", "T02", "T03"), "");
             });
             runOnFx(() -> render(root, "no-active-group", 853, 440));
 
@@ -125,6 +128,7 @@ public class WorkspaceSmokeTest {
                 model.setActiveGroup(TypicalGroups.NAME_T01);
                 assertStudentsShown("T01");
                 assertTrue(root.lookup("#activeGroupCaption").isVisible());
+                assertGroupChips(List.of("T01", "T02", "T03"), "T01");
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
             });
 
@@ -140,6 +144,15 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown("T03");
                 assertEquals(1, studentTable().getItems().size());
             });
+
+            runOnFx(() -> {
+                model.setTAssist(new TAssist());
+                assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                assertGroupChips(List.of(), "");
+                assertTrue(root.lookupAll(".muted").stream().anyMatch(node -> node instanceof Label label
+                        && label.getText().equals(GroupStrip.NO_GROUPS)));
+            });
+            runOnFx(() -> render(root, "no-groups", 853, 440));
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -254,6 +267,19 @@ public class WorkspaceSmokeTest {
     private void assertEmptyTitle(String expectedTitle) {
         assertTrue(studentTable().getItems().isEmpty());
         assertEquals(expectedTitle, ((Label) root.lookup("#emptyTitle")).getText());
+    }
+
+    /**
+     * Asserts that the group strip shows a chip for each of {@code expectedNames}, in order, and that only the
+     * chip named {@code expectedActiveName} is highlighted. An empty {@code expectedActiveName} means none is.
+     */
+    private void assertGroupChips(List<String> expectedNames, String expectedActiveName) {
+        List<Label> chips = root.lookupAll(".group-chip").stream().map(node -> (Label) node).toList();
+        assertEquals(expectedNames, chips.stream().map(Label::getText).toList());
+        for (Label chip : chips) {
+            boolean isActive = chip.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active"));
+            assertEquals(chip.getText().equals(expectedActiveName), isActive, chip.getText());
+        }
     }
 
     private TableView<?> studentTable() {
