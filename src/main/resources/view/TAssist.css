@@ -28,14 +28,6 @@
     -fx-pref-height: 22;
     -fx-max-height: 22;
 }
-.ghost-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 6;
-    -fx-text-fill: #5a5d64;
-    -fx-padding: 6 12;
-    -fx-cursor: hand;
-}
-.ghost-button:hover { -fx-background-color: #f0efe9; -fx-text-fill: #1c1d1f; }
 .context-menu { -fx-background-color: white; -fx-background-radius: 6; -fx-padding: 6; }
 .context-menu .label { -fx-text-fill: #1c1d1f; }
 .menu-item:focused { -fx-background-color: #e6f2ef; }
@@ -53,18 +45,34 @@
 .eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a5d64; }
 .muted, .card-caption { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
 .main-content { -fx-padding: 10 20 16 20; }
-.workspace-tabs > .tab-header-area { -fx-padding: 0 0 10 0; }
-.workspace-tabs > .tab-header-area > .tab-header-background { -fx-background-color: transparent; }
-.workspace-tabs .tab {
+/* The tab strip is hidden. The navigation bar in the top chrome opens the screens instead. */
+.workspace-tabs { -fx-tab-min-height: 0; -fx-tab-max-height: 0; }
+.workspace-tabs > .tab-header-area { -fx-padding: 0; -fx-max-height: 0; visibility: hidden; }
+.workspace-tabs > .tab-content-area { -fx-padding: 0; }
+.nav-bar { -fx-padding: 0 14; }
+.nav-button {
     -fx-background-color: transparent;
-    -fx-background-radius: 6;
-    -fx-padding: 6 10;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: #5a5d64;
+    -fx-font-size: 13px;
+    -fx-padding: 9 10 8 10;
+    -fx-cursor: hand;
 }
-.workspace-tabs .tab .tab-label { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
-.workspace-tabs .tab:selected { -fx-background-color: #0e6b61; }
-.workspace-tabs .tab:selected .tab-label { -fx-text-fill: white; }
-.workspace-tabs .tab:focused { -fx-border-color: #0e6b61; -fx-border-radius: 6; }
-.workspace-tabs .tab .focus-indicator { -fx-border-color: transparent; }
+.nav-button:hover { -fx-text-fill: #1c1d1f; }
+.nav-button:current { -fx-text-fill: #0e6b61; -fx-font-weight: bold; -fx-border-color: transparent transparent #0e6b61 transparent; }
+.nav-button:focused { -fx-background-color: transparent; }
+.soon-dot {
+    -fx-background-color: #d9a441;
+    -fx-background-radius: 3;
+    -fx-min-width: 6;
+    -fx-pref-width: 6;
+    -fx-max-width: 6;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+}
 .content-card {
     -fx-background-color: white;
     -fx-background-radius: 10;
@@ -171,7 +179,6 @@
 
 .workspace:compact .top-bar { -fx-min-height: 44; -fx-pref-height: 44; -fx-padding: 0 16; }
 .workspace:compact .main-content { -fx-padding: 6 16 8 16; -fx-spacing: 8; }
-.workspace:compact .workspace-tabs > .tab-header-area { -fx-padding: 0 0 6 0; }
-.workspace:compact .workspace-tabs .tab { -fx-padding: 4 10; }
+.workspace:compact .nav-button { -fx-padding: 6 8 5 8; }
 .workspace:compact .card-heading { -fx-padding: 10 16; }
 .workspace:compact .status-bar { -fx-padding: 5 16; }
