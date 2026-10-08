@@ -184,12 +184,23 @@ Logic logic = new LogicManager(model, storage, registry);
 ```
 
 This example shows how future feature parsers and help text are connected; those feature commands are not yet
-implemented. Existing AB3 commands and `view` keep their built-in help entries. The `help` command combines both sets,
-prints command formats and examples in the result panel, and opens the offline Help screen. The Help screen renders the
-same entries. `AddressBookParser` and `LogicManager` take snapshots of registrations at construction. Later changes to
-the source registry do not change the running parser or its help. A feature keyword cannot shadow an existing legacy
-command. Duplicate registrations and invalid registration keywords are developer errors and throw
-`IllegalArgumentException`.
+implemented.
+
+* `AddressBookParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
+  registry do not change the running parser or its help.
+* A feature keyword cannot shadow an existing legacy command. Duplicate registrations and invalid registration
+  keywords are developer errors and throw `IllegalArgumentException`.
+
+#### In-app help
+
+* Existing AB3 commands and `view` keep their built-in `HelpEntry` objects in `HelpCatalog`. `AddressBookParser` combines
+  them with the registered feature entries, and `Logic#getHelpEntries()` exposes the combined list.
+* `HelpCommandParser` accepts an optional topic. `HelpCatalog.TOPICS` lists the valid topics, and an unknown topic
+  throws a `ParseException` with the message required for unknown topics. A feature's `HelpEntry` topic must equal
+  its feature keyword, so a feature appears under `help TOPIC` only if its keyword is listed in `HelpCatalog.TOPICS`.
+* `HelpCommand` formats the entries (or only those of the requested topic) with `HelpCatalog.format` and returns them
+  as the feedback of its `CommandResult`, so `MainWindow` only displays the result and opens the Help screen.
+* The Help screen (`HelpPanel`) renders the same entries and uses `HelpCatalog.getTopicHeading` for its headings.
 
 For registered commands, `AddressBookParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
