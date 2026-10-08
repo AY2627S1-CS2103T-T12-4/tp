@@ -65,7 +65,7 @@ public class MainApp extends Application {
      * An empty TAssist is used instead if {@code storage}'s data file is not found,
      * or if errors occur when reading it.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         Path dataFilePath = storage.getTAssistFilePath();
         logger.info("Using data file : " + dataFilePath);
 
