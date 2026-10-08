@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGroups.NAME_T01;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,15 +15,11 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
-import seedu.address.model.student.StudentName;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
+import seedu.address.testutil.StudentBuilder;
 
 public class GroupTest {
-
-    private static final GroupName NAME_T01 = new GroupName("T01");
-    private static final Student ALICE = new Student(new StudentName("Alice Tan"), new StudentId("A0123456X"));
-    private static final Student BEN = new Student(new StudentName("Ben Lim"), new StudentId("A0234567Y"));
 
     private final Group group = new Group(NAME_T01);
 
@@ -58,7 +57,7 @@ public class GroupTest {
     @Test
     public void addStudent_duplicateStudentId_throwsDuplicateStudentException() {
         group.addStudent(ALICE);
-        Student sameId = new Student(new StudentName("Alicia Tan"), ALICE.getStudentId());
+        Student sameId = new StudentBuilder(ALICE).withName("Alicia Tan").build();
         assertThrows(DuplicateStudentException.class, () -> group.addStudent(sameId));
     }
 
