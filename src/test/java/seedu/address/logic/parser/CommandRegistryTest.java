@@ -16,6 +16,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.testutil.HelpEntryBuilder;
 
 public class CommandRegistryTest {
     private final CommandRegistry registry = new CommandRegistry();
@@ -92,7 +93,7 @@ public class CommandRegistryTest {
         registry.register("student", "add", args -> new ClearCommand(), helpEntry("student", "student add"));
 
         assertEquals(List.of(originalEntry), copy.getHelpEntries());
-        assertEquals(1, registry.getHelpEntries().size() - copy.getHelpEntries().size());
+        assertEquals(2, registry.getHelpEntries().size());
         assertTrue(copy.parseCommand("student", "list") instanceof ListCommand);
     }
 
@@ -150,6 +151,6 @@ public class CommandRegistryTest {
     }
 
     private HelpEntry helpEntry(String topic, String commandFormat) {
-        return new HelpEntry(topic, commandFormat, "Description", List.of(commandFormat));
+        return new HelpEntryBuilder().withTopic(topic).withCommandFormat(commandFormat).build();
     }
 }
