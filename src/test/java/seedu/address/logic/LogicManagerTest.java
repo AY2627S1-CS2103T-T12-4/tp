@@ -44,6 +44,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.StudentId;
 import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.HelpEntryBuilder;
@@ -65,8 +66,12 @@ public class LogicManagerTest {
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(addressBookStorage, createTAssistStorage(), userPrefsStorage);
         logic = new LogicManager(model, storage);
+    }
+
+    private JsonTAssistStorage createTAssistStorage() {
+        return new JsonTAssistStorage(temporaryFolder.resolve("tassist.json"));
     }
 
     @Test
@@ -102,7 +107,7 @@ public class LogicManagerTest {
                 throw DUMMY_AD_EXCEPTION;
             }
         };
-        logic = new LogicManager(model, new StorageManager(failingStorage,
+        logic = new LogicManager(model, new StorageManager(failingStorage, createTAssistStorage(),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
         assertEquals(WorkspaceView.HELP, logic.execute("view help").getView().orElseThrow());
     }
@@ -113,8 +118,8 @@ public class LogicManagerTest {
         registry.register("student", "list", args -> new ListCommand(),
                 new HelpEntryBuilder().withCommandFormat("student list").build());
         logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(
-                temporaryFolder.resolve("help.json")), new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))),
-                registry);
+                temporaryFolder.resolve("help.json")), createTAssistStorage(),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), registry);
 
         CommandResult all = logic.execute("help");
         assertTrue(all.isShowHelp());
@@ -133,7 +138,7 @@ public class LogicManagerTest {
     @Test
     public void execute_registeredCommand_validatesExecutesAndSaves() throws Exception {
         Path dataFile = temporaryFolder.resolve("feature.json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile), createTAssistStorage(),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         logic = new LogicManager(model, storage, createFeatureRegistry());
 
@@ -157,7 +162,7 @@ public class LogicManagerTest {
                 throw new AssertionError("Invalid input must not call storage.");
             }
         };
-        logic = new LogicManager(model, new StorageManager(saveDetectingStorage,
+        logic = new LogicManager(model, new StorageManager(saveDetectingStorage, createTAssistStorage(),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), createFeatureRegistry());
 
         assertParseException("unknown add", String.format(MESSAGE_UNKNOWN_COMMAND, "unknown"));
@@ -303,7 +308,7 @@ public class LogicManagerTest {
 
         JsonUserPrefsStorage userPrefsStorage =
                 new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(addressBookStorage, createTAssistStorage(), userPrefsStorage);
 
         logic = new LogicManager(model, storage);
 
