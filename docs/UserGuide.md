@@ -4,8 +4,8 @@ title: User Guide
 ---
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
-This v1.2 increment introduces the TAssist interface while retaining the existing contact commands.
-Tutorial groups, student IDs, attendance, participation, and assignments are **coming soon**.
+The Students screen shows the students in your active tutorial group.
+Commands for tutorial groups, students, attendance, participation, and assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -23,7 +23,7 @@ Tutorial groups, student IDs, attendance, participation, and assignments are **c
 1. Copy the file to the folder you want to use as the _home folder_ for TAssist.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   A GUI similar to the one below should appear in a few seconds.<br>
    ![TAssist student roster](images/TAssistUi.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the command reference.<br>
@@ -49,13 +49,14 @@ The top row opens **Students**, **Groups**, **Attendance**, **Participation**, *
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
 Press **Escape** to return focus to the command box, or **F1** to open Help.
 
-* **Students** displays live contact records. The row numbers match the indices used by `edit` and `delete`.
-  `find` filters the roster; `list` restores all contacts. Changing screens preserves the filter.
-  Scroll the table horizontally to see all fields and vertically to see more contacts. Hover over a shortened value
-  to read its full text. Sorting is disabled to preserve command indices.
+* **Students** lists the students in the active tutorial group with their names and student IDs. The header at the
+  top right shows the name of the active group, or **None** when no group is active. Both update as soon as the
+  active group or its students change. When there are no students to list, the screen says whether no group is
+  active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
+  more students.
 * **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
   label. They contain no simulated records. Week controls are unavailable, and their domain commands are not yet
-  supported. Existing tags are not tutorial groups; phone numbers are not student IDs.
+  supported.
 * **Help** provides an offline reference for currently supported commands.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -89,6 +90,9 @@ Opening a screen with `view` does not save or change data.
   and suggest entering `help`. They do not change or save your data. Tutorial-group, student, attendance,
   participation, and assignment commands remain **Coming soon**.
 
+* The contact commands (`add`, `list`, `edit`, `find`, `delete`, and `clear`) are left over from AddressBook and will
+  be removed soon. They still change the contact data file, but contacts are no longer shown in the workspace.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
@@ -115,7 +119,7 @@ Examples:
 Format: `view SCREEN`
 
 `SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
-Screen names ignore case. Specify exactly one screen name. This command preserves the current roster filter.
+Screen names ignore case. Specify exactly one screen name. Opening a screen does not change any data.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
 an invalid command format and show the expected syntax.
 
