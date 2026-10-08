@@ -5,8 +5,10 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -18,7 +20,9 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.group.Group;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
 /**
@@ -87,6 +91,16 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty() {
+        return model.activeGroupProperty();
+    }
+
+    @Override
+    public ObservableList<Student> getActiveGroupStudentList() {
+        return model.getActiveGroupStudentList();
     }
 
     @Override
