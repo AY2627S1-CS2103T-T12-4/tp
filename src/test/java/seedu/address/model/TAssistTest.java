@@ -15,11 +15,14 @@ import static seedu.address.testutil.TypicalStudents.DANIEL;
 import static seedu.address.testutil.TypicalStudents.ELLE;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.exceptions.DuplicateGroupException;
@@ -130,6 +133,32 @@ public class TAssistTest {
     @Test
     public void resetData_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> tAssist.resetData(null));
+    }
+
+    @Test
+    public void resetData_activeGroupNotAmongGroups_throwsAssertionError() {
+        ReadOnlyTAssist inconsistentData = new ReadOnlyTAssist() {
+            @Override
+            public ObservableList<Group> getGroupList() {
+                return FXCollections.observableArrayList();
+            }
+
+            @Override
+            public Optional<Group> getActiveGroup() {
+                return Optional.of(TypicalGroups.getT01());
+            }
+        };
+
+        assertThrows(AssertionError.class, () -> tAssist.resetData(inconsistentData));
+    }
+
+    @Test
+    public void getActiveGroup_activeGroupNameNotAmongGroups_throwsAssertionError() throws Exception {
+        Field activeGroupName = TAssist.class.getDeclaredField("activeGroupName");
+        activeGroupName.setAccessible(true);
+        activeGroupName.set(tAssist, NAME_T01);
+
+        assertThrows(AssertionError.class, tAssist::getActiveGroup);
     }
 
     @Test
