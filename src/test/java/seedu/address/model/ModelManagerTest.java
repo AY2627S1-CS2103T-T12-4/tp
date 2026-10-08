@@ -7,16 +7,21 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
+import static seedu.address.testutil.TypicalGroups.NAME_T04;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
+import seedu.address.model.group.exceptions.DuplicateGroupException;
+import seedu.address.model.group.exceptions.GroupNotFoundException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.TAssistBuilder;
@@ -147,6 +152,62 @@ public class ModelManagerTest {
         modelManager = modelWithActiveGroup(NAME_T01);
         modelManager.setTAssist(typicalTAssistWithActiveGroup(NAME_T02));
         assertEquals(typicalTAssistWithActiveGroup(NAME_T02), modelManager.getTAssist());
+    }
+
+    @Test
+    public void hasGroup_nullName_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.hasGroup(null));
+    }
+
+    @Test
+    public void hasGroup_groupInTAssist_returnsTrueIgnoringCase() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertTrue(modelManager.hasGroup(new GroupName("t02")));
+        assertFalse(modelManager.hasGroup(NAME_T04));
+    }
+
+    @Test
+    public void addGroup_newGroup_addsGroupWithoutMakingItActive() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addGroup(new Group(NAME_T04));
+        assertTrue(modelManager.hasGroup(NAME_T04));
+        assertEquals(Optional.of(TypicalGroups.getT01()), modelManager.getActiveGroup());
+    }
+
+    @Test
+    public void addGroup_duplicateName_throwsDuplicateGroupException() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(DuplicateGroupException.class, () -> modelManager.addGroup(new Group(new GroupName("t03"))));
+    }
+
+    @Test
+    public void getGroup_existingGroup_returnsGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertEquals(TypicalGroups.getT02(), modelManager.getGroup(new GroupName("t02")));
+    }
+
+    @Test
+    public void getGroup_missingGroup_throwsGroupNotFoundException() {
+        assertThrows(GroupNotFoundException.class, () -> modelManager.getGroup(NAME_T04));
+    }
+
+    @Test
+    public void setActiveGroup_nullName_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setActiveGroup(null));
+    }
+
+    @Test
+    public void setActiveGroup_existingGroupInDifferentCase_makesGroupActive() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setActiveGroup(new GroupName("t02"));
+        assertEquals(Optional.of(TypicalGroups.getT02()), modelManager.getActiveGroup());
+    }
+
+    @Test
+    public void setActiveGroup_missingGroup_throwsAndKeepsActiveGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(GroupNotFoundException.class, () -> modelManager.setActiveGroup(NAME_T04));
+        assertEquals(Optional.of(TypicalGroups.getT01()), modelManager.getActiveGroup());
     }
 
     @Test
