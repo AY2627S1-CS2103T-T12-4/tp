@@ -7,11 +7,13 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
+import static seedu.address.testutil.TypicalGroups.NAME_T03;
 import static seedu.address.testutil.TypicalGroups.NAME_T04;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,8 +47,20 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void constructor_noTAssistGiven_showsNoActiveGroup() {
+        assertActiveGroupShown(modelManager, Optional.empty());
+    }
+
+    @Test
     public void constructor_nullTAssist_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new ModelManager(new AddressBook(), null, new UserPrefs()));
+    }
+
+    @Test
+    public void constructor_tAssistWithActiveGroup_showsActiveGroupAndItsStudents() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertEquals(TypicalGroups.getTypicalTAssist().getGroupList(), modelManager.getTAssist().getGroupList());
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
     }
 
     @Test
@@ -156,6 +170,28 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setTAssist_otherActiveGroup_showsNewActiveGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setTAssist(typicalTAssistWithActiveGroup(NAME_T02));
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT02()));
+    }
+
+    @Test
+    public void setTAssist_noActiveGroup_clearsActiveGroupViews() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setTAssist(new TAssist());
+        assertActiveGroupShown(modelManager, Optional.empty());
+    }
+
+    @Test
+    public void setTAssist_sameActiveGroup_followsNewCopyOfGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setTAssist(typicalTAssistWithActiveGroup(NAME_T01));
+        modelManager.addStudent(NAME_T01, FIONA);
+        assertTrue(modelManager.getActiveGroupStudentList().contains(FIONA));
+    }
+
+    @Test
     public void hasGroup_nullName_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.hasGroup(null));
     }
@@ -205,10 +241,36 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setActiveGroup_existingGroup_showsNewActiveGroupAndItsStudents() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setActiveGroup(NAME_T02);
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT02()));
+    }
+
+    @Test
+    public void setActiveGroup_existingGroup_notifiesActiveGroupListeners() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        List<Optional<Group>> notifiedGroups = new ArrayList<>();
+        modelManager.activeGroupProperty().addListener((observable, oldGroup, newGroup) ->
+                notifiedGroups.add(newGroup));
+
+        modelManager.setActiveGroup(NAME_T03);
+
+        assertEquals(List.of(Optional.of(TypicalGroups.getT03())), notifiedGroups);
+    }
+
+    @Test
     public void setActiveGroup_missingGroup_throwsAndKeepsActiveGroup() {
         modelManager = modelWithActiveGroup(NAME_T01);
         assertThrows(GroupNotFoundException.class, () -> modelManager.setActiveGroup(NAME_T04));
         assertEquals(Optional.of(TypicalGroups.getT01()), modelManager.getActiveGroup());
+    }
+
+    @Test
+    public void setActiveGroup_missingGroup_keepsActiveGroupViews() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(GroupNotFoundException.class, () -> modelManager.setActiveGroup(NAME_T04));
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
     }
 
     @Test
@@ -228,6 +290,46 @@ public class ModelManagerTest {
 
         assertEquals(student, removedStudent);
         assertFalse(modelManager.getGroup(NAME_T02).hasStudent(student.getStudentId()));
+    }
+
+    @Test
+    public void addStudent_toActiveGroup_studentListShowsStudent() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addStudent(NAME_T01, FIONA);
+        assertTrue(modelManager.getActiveGroupStudentList().contains(FIONA));
+        assertEquals(modelManager.getGroup(NAME_T01).getStudentList(), modelManager.getActiveGroupStudentList());
+    }
+
+    @Test
+    public void addStudent_toInactiveGroup_studentListUnchanged() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addStudent(NAME_T02, FIONA);
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
+    }
+
+    @Test
+    public void addStudent_toPreviouslyActiveGroup_studentListUnchanged() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setActiveGroup(NAME_T02);
+        modelManager.addStudent(NAME_T01, FIONA);
+        assertEquals(TypicalGroups.getT02().getStudentList(), modelManager.getActiveGroupStudentList());
+    }
+
+    @Test
+    public void removeStudent_fromActiveGroup_studentListNoLongerShowsStudent() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        Student student = TypicalGroups.getT01().getStudentList().getFirst();
+
+        Student removedStudent = modelManager.removeStudent(NAME_T01, student.getStudentId());
+
+        assertEquals(student, removedStudent);
+        assertFalse(modelManager.getActiveGroupStudentList().contains(student));
+    }
+
+    @Test
+    public void getActiveGroupStudentList_modifyList_throwsUnsupportedOperationException() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getActiveGroupStudentList().remove(0));
     }
 
     @Test
@@ -255,5 +357,15 @@ public class ModelManagerTest {
      */
     private static ModelManager modelWithActiveGroup(GroupName activeGroupName) {
         return new ModelManager(new AddressBook(), typicalTAssistWithActiveGroup(activeGroupName), new UserPrefs());
+    }
+
+    /**
+     * Asserts that {@code model} shows {@code expectedGroup} as the active group, along with its students.
+     */
+    private static void assertActiveGroupShown(Model model, Optional<Group> expectedGroup) {
+        assertEquals(expectedGroup, model.activeGroupProperty().get());
+        List<Student> expectedStudents = expectedGroup.map(Group::getStudentList).map(List::copyOf)
+                .orElse(List.of());
+        assertEquals(expectedStudents, model.getActiveGroupStudentList());
     }
 }
