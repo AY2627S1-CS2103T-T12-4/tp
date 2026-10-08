@@ -8,6 +8,8 @@ Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
+Class "<<interface>>\nReadOnlyTAssist" as ReadOnlyTAssist
+Class TAssist
 Class AddressBook
 Class ModelManager
 Class UserPrefs
@@ -32,6 +34,9 @@ ModelManager .up.|> Model
 Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyAddressBook
 ModelManager -left-> "1" AddressBook
+ModelManager -down-> "1" TAssist
+TAssist .up.|> ReadOnlyTAssist
+Model .down.> ReadOnlyTAssist
 ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 

@@ -1,0 +1,39 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam SequenceBoxFontColor MODEL_COLOR
+skinparam SequenceBoxBorderColor MODEL_COLOR
+skinparam SequenceArrowColor #333333
+skinparam SequenceLifeLineBorderColor #999999
+
+box Model #FDECEE
+participant ":ModelManager" as ModelManager MODEL_COLOR
+participant ":TAssist" as TAssist MODEL_COLOR
+participant ":ActiveGroupTracker" as ActiveGroupTracker MODEL_COLOR
+end box
+
+[-> ModelManager : setActiveGroup(T02)
+activate ModelManager
+
+ModelManager -> TAssist : setActiveGroup(T02)
+activate TAssist
+TAssist --> ModelManager
+
+ModelManager -> TAssist : getActiveGroup()
+TAssist --> ModelManager : T02
+deactivate TAssist
+
+ModelManager -> ActiveGroupTracker : track(T02)
+activate ActiveGroupTracker
+
+ActiveGroupTracker -> ActiveGroupTracker : stop following T01's students
+ActiveGroupTracker -> ActiveGroupTracker : follow T02's students
+ActiveGroupTracker -> ActiveGroupTracker : set active group to T02
+
+ActiveGroupTracker --> ModelManager
+deactivate ActiveGroupTracker
+
+[<-- ModelManager
+deactivate ModelManager
+
+@enduml

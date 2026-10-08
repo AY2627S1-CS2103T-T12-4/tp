@@ -138,6 +138,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores the TAssist data, i.e., the tutorial groups, their students and the active group, in a `TAssist` object (see [TAssist domain model](#tassist-domain-model)). It exposes the active group and the active group's students as observable values that the UI can bind to (see [Observing the active group](#observing-the-active-group)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -240,7 +241,7 @@ data file unchanged, using a storage implementation that fails if saving is atte
 
 ### TAssist domain model
 
-TAssist's own data is modelled by the classes below. They currently live beside the AddressBook model and are not yet used by the running app; a later change switches the app over to them.
+TAssist's own data is modelled by the classes below. `ModelManager` holds a `TAssist` beside the AddressBook data while the app moves over to TAssist, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is not saved yet, so the app starts with no tutorial groups.
 
 <img src="images/TAssistModelClassDiagram.png" width="300" />
 
@@ -278,6 +279,35 @@ Attendance, participation scores and assignment results are not implemented yet.
 * **Alternative 3:** Keep one list of records for the whole app, keyed by group, student ID and week.
   * Pros: All records are in one place.
   * Cons: Every lookup has to filter by group and student, and the data file is the hardest of the three to read and edit by hand.
+
+#### Observing the active group
+
+The UI shows the active group and its students, and must update when either changes. `Model` and `Logic` provide two observable views for this:
+
+* `activeGroupProperty()` holds the active group, or an empty `Optional` when no group is active.
+* `getActiveGroupStudentList()` is an unmodifiable `ObservableList` of the active group's students. It is empty when no group is active.
+
+Both views are kept by `ActiveGroupTracker`, a helper class inside the `Model` component. The student list *follows* the active group: it listens to the active group's own student list, so adding or removing a student in that group shows at once. Whenever the active group may have changed (`setActiveGroup` or `setTAssist`), `ModelManager` asks the tracker to track the new active group. The tracker stops listening to the old group, copies the new group's students into the list it exposes, and then updates the active group. The sequence diagram below shows this for `setActiveGroup`.
+
+<img src="images/ActiveGroupSequenceDiagram.png" width="600" />
+
+`setTAssist` replaces every group with a copy, so the tracker is pointed at the copy of the active group even when the active group's name stays the same. Changes to a group that is no longer active do not show in the list.
+
+`activeGroupProperty()` compares groups by value, so it does not notify when the active group is replaced by an equal one, for example when `setTAssist` loads the same data. Bind to `getActiveGroupStudentList()` for the students, and do not keep a `Group` taken from the property, as it may be replaced by an equal copy without notice.
+
+**Aspect: How the UI follows the active group's students**
+
+* **Alternative 1 (current choice):** `Model` exposes one student list that follows the active group.
+  * Pros: The UI binds once and never needs to know which group is active. Listener bookkeeping is in one small class that is easy to unit test without the UI.
+  * Cons: The list holds a copy of the active group's students, which is refreshed after each change (cheap for a tutorial group of about 20 students).
+
+* **Alternative 2:** The UI listens to the active group and rebinds its table to the new group's own student list.
+  * Pros: No copy of the students is kept.
+  * Cons: Every UI part that shows students must repeat the rebinding logic, and the UI must remember to stop listening to the old group.
+
+* **Alternative 3:** Keep one list of all students and filter it by the active group, like AB3's filtered person list.
+  * Pros: Reuses the familiar `FilteredList` pattern.
+  * Cons: Students belong to a group in our model, and a student ID is only unique within a group. A flat list of all students would have to be rebuilt whenever any group changes.
 
 ### \[Proposed\] Undo/redo feature
 

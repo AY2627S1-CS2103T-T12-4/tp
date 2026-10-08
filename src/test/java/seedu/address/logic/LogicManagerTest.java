@@ -11,12 +11,14 @@ import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,7 @@ import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.HelpEntryBuilder;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.TypicalGroups;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -187,6 +190,31 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void activeGroupProperty_groupBecomesActive_showsActiveGroup() {
+        model.setTAssist(TypicalGroups.getTypicalTAssist());
+        assertEquals(Optional.empty(), logic.activeGroupProperty().get());
+
+        model.setActiveGroup(TypicalGroups.NAME_T02);
+
+        assertEquals(Optional.of(TypicalGroups.getT02()), logic.activeGroupProperty().get());
+    }
+
+    @Test
+    public void getActiveGroupStudentList_groupBecomesActive_showsItsStudents() {
+        model.setTAssist(TypicalGroups.getTypicalTAssist());
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+
+        model.setActiveGroup(TypicalGroups.NAME_T02);
+
+        assertEquals(TypicalGroups.getT02().getStudentList(), logic.getActiveGroupStudentList());
+    }
+
+    @Test
+    public void getActiveGroupStudentList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> logic.getActiveGroupStudentList().add(FIONA));
     }
 
     /**
