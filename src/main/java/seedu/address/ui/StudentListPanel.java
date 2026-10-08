@@ -34,6 +34,8 @@ public class StudentListPanel extends UiPart<Region> {
 
     private static final String FXML = "StudentListPanel.fxml";
     private static final double ROW_NUMBER_WIDTH = 56;
+    private static final double NAME_COLUMN_WIDTH = 320;
+    private static final double ID_COLUMN_WIDTH = 180;
     private static final double TOOLTIP_MAX_WIDTH = 480;
 
     @FXML
@@ -57,11 +59,10 @@ public class StudentListPanel extends UiPart<Region> {
         requireAllNonNull(activeGroup, students);
 
         studentTable.setItems(students);
-        studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
                 .setMaxWidth(ROW_NUMBER_WIDTH);
-        addColumn("NAME", 240, student -> student.getName().toString());
-        addColumn("STUDENT ID", 140, student -> student.getStudentId().toString());
+        addColumn("NAME", NAME_COLUMN_WIDTH, student -> student.getName().toString());
+        addColumn("STUDENT ID", ID_COLUMN_WIDTH, student -> student.getStudentId().toString());
         // Row numbers depend on positions, which change when another student is removed.
         students.addListener((ListChangeListener<Student>) change -> studentTable.refresh());
 

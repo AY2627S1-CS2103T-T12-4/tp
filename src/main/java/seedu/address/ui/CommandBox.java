@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
@@ -15,6 +16,7 @@ public class CommandBox extends UiPart<Region> {
 
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
+    private static final PseudoClass INPUT_FOCUSED = PseudoClass.getPseudoClass("input-focused");
 
     private final CommandExecutor commandExecutor;
 
@@ -29,6 +31,8 @@ public class CommandBox extends UiPart<Region> {
         this.commandExecutor = commandExecutor;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        commandTextField.focusedProperty().addListener((observable, wasFocused, isFocused) ->
+                getRoot().pseudoClassStateChanged(INPUT_FOCUSED, isFocused));
     }
 
     /**
