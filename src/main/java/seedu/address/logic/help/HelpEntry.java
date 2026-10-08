@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.List;
+import java.util.Objects;
+
+import seedu.address.commons.util.ToStringBuilder;
 
 /**
  * Stores the usage information for one command in the in-app reference.
@@ -48,5 +51,37 @@ public final class HelpEntry {
 
     public List<String> getExamples() {
         return examples;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof HelpEntry otherEntry)) {
+            return false;
+        }
+
+        return topic.equals(otherEntry.topic)
+                && commandFormat.equals(otherEntry.commandFormat)
+                && description.equals(otherEntry.description)
+                && examples.equals(otherEntry.examples);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(topic, commandFormat, description, examples);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .add("topic", topic)
+                .add("commandFormat", commandFormat)
+                .add("description", description)
+                .add("examples", examples)
+                .toString();
     }
 }
