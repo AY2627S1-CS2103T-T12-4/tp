@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -12,6 +13,8 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.help.HelpCatalog;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -32,6 +35,7 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
+    private final List<HelpEntry> helpEntries;
     private final AddressBookParser addressBookParser;
 
     /**
@@ -51,7 +55,9 @@ public class LogicManager implements Logic {
     public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry) {
         this.model = requireNonNull(model);
         this.storage = requireNonNull(storage);
-        addressBookParser = new AddressBookParser(commandRegistry);
+        CommandRegistry registeredCommands = requireNonNull(commandRegistry);
+        helpEntries = HelpCatalog.getEntries(registeredCommands.getHelpEntries());
+        addressBookParser = new AddressBookParser(registeredCommands);
     }
 
     @Override
@@ -75,6 +81,11 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    @Override
+    public List<HelpEntry> getHelpEntries() {
+        return helpEntries;
     }
 
     @Override
