@@ -63,7 +63,7 @@ public class JsonSerializableTAssistTest {
     }
 
     @Test
-    public void toModelType_activeGroupInDifferentCase_setsActiveGroup() throws Exception {
+    public void toModelType_activeGroupInDifferentCaseWithSpaces_setsActiveGroup() throws Exception {
         TAssist expected = new TAssistBuilder(TypicalGroups.getTypicalTAssist())
                 .withActiveGroup(TypicalGroups.NAME_T03).build();
         assertEquals(expected, new JsonSerializableTAssist(" t03 ", TYPICAL_GROUPS).toModelType());

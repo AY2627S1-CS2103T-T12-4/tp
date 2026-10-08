@@ -11,12 +11,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
+import seedu.address.model.group.GroupName;
 import seedu.address.testutil.GroupBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -69,12 +71,22 @@ public class JsonTAssistStorageTest {
 
     @Test
     public void read_invalidAndValidGroups_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readTAssist("invalidAndValidGroupTAssist.json"));
+        assertReadFailsWithReason("invalidAndValidGroupTAssist.json", GroupName.MESSAGE_CONSTRAINTS);
     }
 
     @Test
     public void read_unknownActiveGroup_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readTAssist("unknownActiveGroupTAssist.json"));
+        assertReadFailsWithReason("unknownActiveGroupTAssist.json",
+                String.format(JsonSerializableTAssist.MESSAGE_UNKNOWN_ACTIVE_GROUP, "T09"));
+    }
+
+    /**
+     * Asserts that reading {@code fileInTestDataFolder} fails because of {@code expectedReason}.
+     */
+    private void assertReadFailsWithReason(String fileInTestDataFolder, String expectedReason) {
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                readTAssist(fileInTestDataFolder));
+        assertEquals(expectedReason, e.getCause().getMessage());
     }
 
     @Test
