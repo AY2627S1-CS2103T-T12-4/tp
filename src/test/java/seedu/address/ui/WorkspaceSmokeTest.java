@@ -103,6 +103,25 @@ public class WorkspaceSmokeTest {
         }
     }
 
+    @Test
+    public void exitCommand_savesWindowSettingsAndClosesWindow() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                double width = stage.getWidth();
+                double height = stage.getHeight();
+
+                enter(input, "exit");
+
+                assertFalse(stage.isShowing());
+                assertEquals(width, model.getGuiSettings().getWindowWidth());
+                assertEquals(height, model.getGuiSettings().getWindowHeight());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
             runOnFx(() -> {
