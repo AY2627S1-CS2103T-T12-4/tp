@@ -100,7 +100,8 @@ reference.
 Format: `help [TOPIC]`
 
 * `TOPIC` is one of `group`, `student`, `attendance`, `participation`, or `assignment`. It is not case-sensitive.
-* With a `TOPIC`, only the commands of that topic are shown. If no command of that topic exists yet, TAssist says so.
+* With a `TOPIC`, only the commands of that topic are shown in the result panel. If no command of that topic exists
+  yet, TAssist says so. The Help screen that opens alongside always lists every command.
 * An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
   and does not change any data.
 
