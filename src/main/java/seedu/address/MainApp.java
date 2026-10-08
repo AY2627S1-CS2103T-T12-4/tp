@@ -20,7 +20,6 @@ import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
-import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -37,7 +36,6 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
     private static final Path TASSIST_FILE_PATH = Paths.get("data", "tassist.json");
 
     protected Ui ui;
@@ -52,9 +50,8 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(TASSIST_FILE_PATH);
-        storage = new StorageManager(addressBookStorage, tAssistStorage, userPrefsStorage);
+        storage = new StorageManager(tAssistStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
 

@@ -45,7 +45,6 @@ import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.StudentId;
-import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -296,11 +295,10 @@ public class LogicManagerTest {
 
     /**
      * Returns a {@code StorageManager} that keeps TAssist data in {@code tAssistStorage},
-     * and other data in temporary files.
+     * and user prefs in a temporary file.
      */
     private StorageManager createStorage(JsonTAssistStorage tAssistStorage) {
-        return new StorageManager(new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json")),
-                tAssistStorage, new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        return new StorageManager(tAssistStorage, new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
     }
 
     /**
