@@ -21,7 +21,7 @@ public class HelpCommand extends Command {
             + "Add a topic to see only that area.\n"
             + "Parameters: [TOPIC]\n"
             + "Topics: " + String.join(", ", HelpCatalog.TOPICS) + "\n"
-            + "Example: " + COMMAND_WORD + " " + HelpCatalog.TOPICS.get(1);
+            + "Example: " + COMMAND_WORD + " student";
 
     public static final String MESSAGE_UNKNOWN_TOPIC =
             "Unknown help topic. Available topics: " + String.join(", ", HelpCatalog.TOPICS) + ".";
