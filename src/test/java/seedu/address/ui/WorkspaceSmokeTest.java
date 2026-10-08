@@ -39,17 +39,25 @@ import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Phone;
+import seedu.address.model.student.Student;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.StudentBuilder;
+import seedu.address.testutil.TypicalGroups;
 
 /**
  * Exercises the real JavaFX views on a desktop when tassist.uiTests is enabled.
  */
 @EnabledIfSystemProperty(named = "tassist.uiTests", matches = "true")
 public class WorkspaceSmokeTest {
+    /** Number of repeats that brings a word near the 60-character limit of group and student names. */
+    private static final int LONG_NAME_REPEATS = 6;
+
     @TempDir
     public Path temporaryFolder;
 
@@ -82,22 +90,73 @@ public class WorkspaceSmokeTest {
             verifyScreens();
             verifyKeyboard();
             assertFalse(Files.exists(data), "Screen navigation must not write contact data");
-            verifyRoster();
-            runOnFx(() -> render(root, "long-values", 853, 440));
+            verifyCommands();
             verifyFailure();
             runOnFx(() -> render(root, "error", 853, 440));
             runOnFx(() -> {
                 enter(input, "view storage");
                 Label status = (Label) root.lookup("#saveLocationStatus");
                 assertTrue(status.getText().startsWith("Local data file"));
-                enter(input, "find MissingPerson");
-                assertTrue(model.getFilteredPersonList().isEmpty());
             });
-            runOnFx(() -> render(root, "empty-roster", 853, 440));
-            runOnFx(() -> enter(input, "list"));
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                enter(input, "view students");
+            });
             runOnFx(() -> render(root, "students-large", 1920, 1040));
             runOnFx(() -> render(root, "students-medium", 1536, 824));
             runOnFx(() -> render(root, "students-laptop", 1280, 680));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentsScreen_activeGroupChanges_showsActiveGroupAndItsStudents() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                assertStudentsShown(MainWindow.NO_ACTIVE_GROUP);
+                assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP_TITLE);
+            });
+            runOnFx(() -> render(root, "no-active-group", 853, 440));
+
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                assertStudentsShown("T01");
+                assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
+            });
+
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T03);
+                assertStudentsShown("T03");
+                assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
+            });
+            runOnFx(() -> render(root, "empty-group", 853, 440));
+
+            runOnFx(() -> {
+                model.addStudent(TypicalGroups.NAME_T03, new StudentBuilder().build());
+                assertStudentsShown("T03");
+                assertEquals(1, studentTable().getItems().size());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentsScreen_longNames_keepsLayoutUsable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                GroupName longGroupName = new GroupName("Longgroup".repeat(LONG_NAME_REPEATS));
+                model.addGroup(new Group(longGroupName));
+                model.addStudent(longGroupName, new StudentBuilder().withName("Longname".repeat(LONG_NAME_REPEATS))
+                        .withStudentId("A".repeat(19) + "1").build());
+                model.setActiveGroup(longGroupName);
+                Label header = (Label) root.lookup("#activeGroupLabel");
+                assertEquals(longGroupName.toString(), header.getTooltip().getText());
+            });
+            runOnFx(() -> render(root, "long-values", 853, 440));
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -146,7 +205,7 @@ public class WorkspaceSmokeTest {
         });
     }
 
-    private void verifyRoster() throws Exception {
+    private void verifyCommands() throws Exception {
         runOnFx(() -> {
             TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
             enter(input, "help");
@@ -156,28 +215,21 @@ public class WorkspaceSmokeTest {
             enter(input, "help student");
             assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
             assertFalse(feedbackArea.getText().contains("view SCREEN"));
-            enter(input, "find Alex");
-            assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
-            assertEquals(1, model.getFilteredPersonList().size());
             enter(input, "view help");
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
-            enter(input, "view students");
-            assertEquals(1, model.getFilteredPersonList().size());
-            enter(input, "list");
-            int originalSize = model.getFilteredPersonList().size();
-            enter(input, "add n/" + "Longname ".repeat(30).trim()
-                    + " p/98765432 e/long@example.com a/" + "Long address ".repeat(40));
-            assertEquals(originalSize + 1, model.getFilteredPersonList().size());
+            enter(input, "student list");
+            assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
         });
     }
 
     private void verifyFailure() throws Exception {
         runOnFx(() -> {
-            enter(input, "delete 1");
-            TableView<?> table = (TableView<?>) root.lookup("#personTable");
-            assertEquals("1", table.getColumns().getFirst().getCellObservableValue(0).getValue());
+            model.setActiveGroup(TypicalGroups.NAME_T01);
+            Student firstStudent = model.getActiveGroupStudentList().getFirst();
+            model.removeStudent(TypicalGroups.NAME_T01, firstStudent.getStudentId());
+            assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
             enter(input, "edit 1 p/invalid");
             assertEquals("edit 1 p/invalid", input.getText());
             assertTrue(input.getStyleClass().contains("error"));
@@ -186,8 +238,29 @@ public class WorkspaceSmokeTest {
         });
     }
 
+    /**
+     * Asserts that the header names {@code expectedGroup} and the Students screen lists the active group's students.
+     */
+    private void assertStudentsShown(String expectedGroup) {
+        assertEquals(expectedGroup, ((Label) root.lookup("#activeGroupLabel")).getText());
+        assertEquals(model.getActiveGroupStudentList(), studentTable().getItems());
+    }
+
+    /**
+     * Asserts that the empty Students screen explains itself with {@code expectedTitle}.
+     */
+    private void assertEmptyTitle(String expectedTitle) {
+        assertTrue(studentTable().getItems().isEmpty());
+        assertEquals(expectedTitle, ((Label) root.lookup("#emptyTitle")).getText());
+    }
+
+    private TableView<?> studentTable() {
+        return (TableView<?>) root.lookup("#studentTable");
+    }
+
     private void initializeWorkspace() {
-        model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+        model = new ModelManager(SampleDataUtil.getSampleAddressBook(), TypicalGroups.getTypicalTAssist(),
+                new UserPrefs());
         data = temporaryFolder.resolve("contacts.json");
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
