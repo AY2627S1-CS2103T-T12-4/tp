@@ -203,8 +203,8 @@ Format: `exit`
 ### Saving the data
 
 TAssist saves your tutorial groups, their students, and the active group after successful commands, except `view`,
-which only changes the visible screen. You do not need to save manually. A failed command does not change your data;
-read the feedback to check whether a command succeeded.
+which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
+successful save; read the feedback.
 
 Contacts from the existing contact commands are not saved, so they are cleared when you close TAssist.
 

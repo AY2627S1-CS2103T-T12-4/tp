@@ -83,8 +83,9 @@ scrolls in both directions. No contact fields are repurposed as student IDs or t
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
-screens does not change the model or filter. Other successful commands save TAssist data through `Storage`, and
-existing contact commands bring the roster into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
+screens does not change the model or filter. Other successful commands save TAssist data through `Storage`.
+Contact commands bring the roster into view, but contacts are not saved. `help` and F1 display the inline reference.
+Failed commands retain their input and show red feedback.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
