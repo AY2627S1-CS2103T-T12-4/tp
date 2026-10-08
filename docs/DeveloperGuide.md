@@ -172,22 +172,35 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Command registration and shared validation
 
-`CommandRegistry` maps a feature keyword and subcommand to a `Parser<? extends Command>`.
-Each feature owns its registrations, so adding a subcommand does not require editing another feature's parser
-or adding a case to the legacy command switch. Register commands before creating `LogicManager`:
+`CommandRegistry` maps a feature keyword and subcommand to a `Parser<? extends Command>` and its `HelpEntry`.
+Each feature owns its parser, format, description, and examples, so adding a command does not require editing another
+feature's help content or adding a case to the legacy command switch. Register commands before creating `LogicManager`:
 
 ```java
 CommandRegistry registry = new CommandRegistry();
-registry.register("group", "add", new GroupAddCommandParser());
-registry.register("student", "list", new StudentListCommandParser());
+registry.register("group", "add", new GroupAddCommandParser(),
+        new HelpEntry("group", "group add n/NAME", "Add a student group.", List.of("group add n/Tutorial 1")));
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
-This example shows how future feature parsers are connected; those feature commands are not yet implemented.
-The default `LogicManager(model, storage)` still supports the existing AB3 commands and `view`.
-`AddressBookParser` takes a snapshot of registrations at construction. Later changes to the source registry
-do not change the running parser. A feature keyword cannot shadow an existing legacy command.
-Duplicate registrations and invalid registration keywords are developer errors and throw `IllegalArgumentException`.
+This example shows how future feature parsers and help text are connected; those feature commands are not yet
+implemented.
+
+* `AddressBookParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
+  registry do not change the running parser or its help.
+* A feature keyword cannot shadow an existing legacy command. Duplicate registrations and invalid registration
+  keywords are developer errors and throw `IllegalArgumentException`.
+
+#### In-app help
+
+* Existing AB3 commands and `view` keep their built-in `HelpEntry` objects in `HelpCatalog`. `AddressBookParser` combines
+  them with the registered feature entries, and `Logic#getHelpEntries()` exposes the combined list.
+* `HelpCommandParser` accepts an optional topic. `HelpCatalog.TOPICS` lists the valid topics, and an unknown topic
+  throws a `ParseException` with the message required for unknown topics. A feature's `HelpEntry` topic must equal
+  its feature keyword, so a feature appears under `help TOPIC` only if its keyword is listed in `HelpCatalog.TOPICS`.
+* `HelpCommand` formats the entries (or only those of the requested topic) with `HelpCatalog.format` and returns them
+  as the feedback of its `CommandResult`, so `MainWindow` only displays the result and opens the Help screen.
+* The Help screen (`HelpPanel`) renders the same entries and uses `HelpCatalog.getTopicHeading` for its headings.
 
 For registered commands, `AddressBookParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands

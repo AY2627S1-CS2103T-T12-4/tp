@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.nio.file.Path;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 import javafx.collections.ObservableList;
@@ -12,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import seedu.address.commons.core.WorkspaceView;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.model.person.Person;
 
 /**
@@ -27,8 +29,9 @@ public class WorkspacePanel extends UiPart<TabPane> {
     /**
      * Creates the workspace with live contacts and explicit previews of future features.
      */
-    public WorkspacePanel(ObservableList<Person> persons, Path dataFilePath) {
+    public WorkspacePanel(ObservableList<Person> persons, Path dataFilePath, List<HelpEntry> helpEntries) {
         super("WorkspacePanel.fxml");
+        requireNonNull(helpEntries);
         personListPanel = new PersonListPanel(persons);
         addView(WorkspaceView.STUDENTS, personListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
@@ -40,7 +43,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
         addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",
                 "Assignment selection, submissions and grades are coming soon.",
                 "NAME", "STUDENT ID", "SUBMISSION", "GRADE").getRoot());
-        addView(WorkspaceView.HELP, new HelpPanel().getRoot());
+        addView(WorkspaceView.HELP, new HelpPanel(helpEntries).getRoot());
         addView(WorkspaceView.STORAGE, new StoragePanel(dataFilePath).getRoot());
         assert views.size() == WorkspaceView.values().length : "Every workspace screen must be registered";
     }

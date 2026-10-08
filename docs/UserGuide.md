@@ -82,8 +82,8 @@ Opening a screen with `view` does not save or change data.
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for commands that take no parameters, such as `list`, `exit`, and `clear`, are ignored.<br>
+  For example, `list 123` is interpreted as `list`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data. Tutorial-group, student, attendance,
@@ -94,9 +94,20 @@ Opening a screen with `view` does not save or change data.
 
 ### Viewing help: `help`
 
-Opens the offline command reference in the Help screen.
+Typing `help` shows the formats and examples of available commands in the result panel and opens the offline command
+reference.
 
-Format: `help`
+Format: `help [TOPIC]`
+
+* `TOPIC` is one of `group`, `student`, `attendance`, `participation`, or `assignment`. It is not case-sensitive.
+* With a `TOPIC`, only the commands of that topic are shown in the result panel. If no command of that topic exists
+  yet, TAssist says so. The Help screen that opens alongside always lists every command.
+* An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
+  and does not change any data.
+
+Examples:
+* `help`
+* `help student`
 
 
 ### Opening a screen: `view`
@@ -134,7 +145,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
@@ -150,7 +161,7 @@ Examples:
 
 Finds persons whose names contain any of the given keywords.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find KEYWORD [MORE_KEYWORDS]…​`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
@@ -231,8 +242,8 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **List** | `list`
-**Help** | `help`
+**Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
 **Exit** | `exit`
