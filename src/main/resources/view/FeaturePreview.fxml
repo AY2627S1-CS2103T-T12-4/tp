@@ -21,7 +21,7 @@
           <VBox alignment="CENTER" spacing="10" styleClass="empty-state">
             <Label text="Coming soon" styleClass="empty-title" />
             <Label fx:id="description" wrapText="true" maxWidth="460" styleClass="muted" />
-            <Label text="You can keep managing contacts in Students." wrapText="true" styleClass="muted" />
+            <Label text="Students shows the students in the active group." wrapText="true" styleClass="muted" />
           </VBox>
         </placeholder>
       </TableView>

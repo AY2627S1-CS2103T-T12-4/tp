@@ -98,7 +98,8 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         showActiveGroup(logic.activeGroupProperty());
 
-        workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath, logic.getHelpEntries());
+        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+                dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
 
         resultDisplay = new ResultDisplay();

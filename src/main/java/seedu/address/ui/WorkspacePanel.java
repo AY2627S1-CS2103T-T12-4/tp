@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -14,10 +16,11 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.help.HelpEntry;
-import seedu.address.model.person.Person;
+import seedu.address.model.group.Group;
+import seedu.address.model.student.Student;
 
 /**
- * Hosts the seven TAssist screens while preserving the live roster across navigation.
+ * Hosts the seven TAssist screens while preserving the live student roster across navigation.
  */
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
@@ -26,13 +29,14 @@ public class WorkspacePanel extends UiPart<TabPane> {
     private TabPane tabs;
 
     /**
-     * Creates the workspace with live contacts and explicit previews of future features.
+     * Creates the workspace with the active group's live students and explicit previews of future features.
      */
-    public WorkspacePanel(ObservableList<Person> persons, Path dataFilePath, List<HelpEntry> helpEntries) {
+    public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
+            Path dataFilePath, List<HelpEntry> helpEntries) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        PersonListPanel personListPanel = new PersonListPanel(persons);
-        addView(WorkspaceView.STUDENTS, personListPanel.getRoot());
+        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students);
+        addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
                 "Create and switch between tutorial groups in a future increment.", "#", "GROUP", "STATUS").getRoot());
         addWeeklyView(WorkspaceView.ATTENDANCE, "Weekly attendance",
