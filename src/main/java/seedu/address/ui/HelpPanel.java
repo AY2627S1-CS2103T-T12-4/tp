@@ -34,7 +34,7 @@ public class HelpPanel extends UiPart<Region> {
             addCommand(entry);
         }
         Label planned = new Label("Coming soon: tutorial groups, student IDs, attendance, participation and "
-                + "assignments. Their domain commands are not available in this increment.");
+                + "assignments. Their domains are not available yet.");
         planned.setWrapText(true);
         planned.getStyleClass().add("coming-soon-note");
         commands.getChildren().add(planned);
