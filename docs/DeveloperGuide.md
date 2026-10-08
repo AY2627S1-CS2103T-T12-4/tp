@@ -293,6 +293,8 @@ Both views are kept by `ActiveGroupTracker`, a helper class inside the `Model` c
 
 `setTAssist` replaces every group with a copy, so the tracker is pointed at the copy of the active group even when the active group's name stays the same. Changes to a group that is no longer active do not show in the list.
 
+`activeGroupProperty()` compares groups by value, so it does not notify when the active group is replaced by an equal one, for example when `setTAssist` loads the same data. Bind to `getActiveGroupStudentList()` for the students, and do not keep a `Group` taken from the property, as it may be replaced by an equal copy without notice.
+
 **Aspect: How the UI follows the active group's students**
 
 * **Alternative 1 (current choice):** `Model` exposes one student list that follows the active group.
