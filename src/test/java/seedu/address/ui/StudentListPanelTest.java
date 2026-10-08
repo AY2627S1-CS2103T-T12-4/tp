@@ -22,16 +22,6 @@ public class StudentListPanelTest {
     }
 
     @Test
-    public void describeGroup_activeGroup_namesGroup() {
-        assertEquals("Group T01", StudentListPanel.describeGroup(Optional.of(TypicalGroups.getT01())));
-    }
-
-    @Test
-    public void describeGroup_noActiveGroup_saysNoActiveGroup() {
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP_CAPTION, StudentListPanel.describeGroup(Optional.empty()));
-    }
-
-    @Test
     public void describeEmptyState_activeGroup_namesGroup() {
         assertEquals("No students in T03 yet",
                 StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03())));
@@ -41,7 +31,7 @@ public class StudentListPanelTest {
 
     @Test
     public void describeEmptyState_noActiveGroup_explainsHowToSeeStudents() {
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP_TITLE, StudentListPanel.describeEmptyTitle(Optional.empty()));
+        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, StudentListPanel.describeEmptyTitle(Optional.empty()));
         assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, StudentListPanel.describeEmptyHint(Optional.empty()));
     }
 }

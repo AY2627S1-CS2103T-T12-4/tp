@@ -24,6 +24,7 @@
     -fx-padding: 5 12;
     -fx-font-family: monospace;
 }
+.app-header .active-group:no-group { -fx-font-family: "System"; -fx-text-fill: #c9c7bf; }
 .menu-bar { -fx-background-color: transparent; -fx-padding: 0; }
 .menu-bar .menu:hover, .menu-bar .menu:showing { -fx-background-color: #383b3f; }
 .context-menu { -fx-background-color: white; -fx-background-radius: 6; -fx-padding: 6; }

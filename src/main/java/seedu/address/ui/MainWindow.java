@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -32,9 +33,8 @@ import seedu.address.model.group.Group;
  * Connects the TAssist workspace, command input and feedback to application logic.
  */
 public class MainWindow extends UiPart<Stage> {
-    static final String NO_ACTIVE_GROUP = "None";
-
     private static final String FXML = "MainWindow.fxml";
+    private static final PseudoClass NO_GROUP = PseudoClass.getPseudoClass("no-group");
     private final Logger logger = LogsCenter.getLogger(getClass());
     private final Stage primaryStage;
     private final Logic logic;
@@ -49,6 +49,8 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane commandBoxPlaceholder;
     @FXML
     private MenuItem helpMenuItem;
+    @FXML
+    private Label activeGroupCaption;
     @FXML
     private Label activeGroupLabel;
     @FXML
@@ -115,11 +117,20 @@ public class MainWindow extends UiPart<Stage> {
 
     /**
      * Keeps the header showing the name of {@code activeGroup}, with a tooltip for names too long to fit.
+     * When no group is active, the header says so in the same words as the Students screen.
      */
     private void showActiveGroup(ObservableValue<Optional<Group>> activeGroup) {
         activeGroupLabel.textProperty().bind(Bindings.createStringBinding(() ->
-                activeGroup.getValue().map(group -> group.getName().toString()).orElse(NO_ACTIVE_GROUP),
+                activeGroup.getValue().map(group -> group.getName().toString())
+                        .orElse(StudentListPanel.NO_ACTIVE_GROUP),
                 activeGroup));
+        BooleanBinding hasActiveGroup = Bindings.createBooleanBinding(() -> activeGroup.getValue().isPresent(),
+                activeGroup);
+        activeGroupCaption.visibleProperty().bind(hasActiveGroup);
+        activeGroupCaption.managedProperty().bind(hasActiveGroup);
+        activeGroupLabel.pseudoClassStateChanged(NO_GROUP, !hasActiveGroup.get());
+        hasActiveGroup.addListener((observable, hadGroup, hasGroup) ->
+                activeGroupLabel.pseudoClassStateChanged(NO_GROUP, !hasGroup));
         Tooltip fullName = new Tooltip();
         fullName.textProperty().bind(activeGroupLabel.textProperty());
         activeGroupLabel.setTooltip(fullName);

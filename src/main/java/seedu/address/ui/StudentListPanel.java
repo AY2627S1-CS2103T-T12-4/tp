@@ -24,8 +24,7 @@ import seedu.address.model.student.Student;
  * Shows the students in the active tutorial group, or explains why there are none to show.
  */
 public class StudentListPanel extends UiPart<Region> {
-    static final String NO_ACTIVE_GROUP_CAPTION = "No active group";
-    static final String NO_ACTIVE_GROUP_TITLE = "No active group";
+    static final String NO_ACTIVE_GROUP = "No active group";
     static final String NO_ACTIVE_GROUP_HINT = "Add a tutorial group and make it active to see its students here.";
     static final String EMPTY_GROUP_TITLE_FORMAT = "No students in %s yet";
     static final String EMPTY_GROUP_HINT_FORMAT = "Students you add to %s will appear here.";
@@ -38,8 +37,6 @@ public class StudentListPanel extends UiPart<Region> {
     private TableView<Student> studentTable;
     @FXML
     private Label studentCount;
-    @FXML
-    private Label groupCaption;
     @FXML
     private Label emptyTitle;
     @FXML
@@ -63,8 +60,6 @@ public class StudentListPanel extends UiPart<Region> {
 
         studentCount.textProperty().bind(Bindings.createStringBinding(() -> describeCount(students.size()),
                 students));
-        groupCaption.textProperty().bind(Bindings.createStringBinding(() -> describeGroup(activeGroup.getValue()),
-                activeGroup));
         emptyTitle.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyTitle(activeGroup.getValue()),
                 activeGroup));
         emptyHint.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyHint(activeGroup.getValue()),
@@ -95,18 +90,11 @@ public class StudentListPanel extends UiPart<Region> {
     }
 
     /**
-     * Returns the caption that names the active group, or says that no group is active.
-     */
-    static String describeGroup(Optional<Group> activeGroup) {
-        return activeGroup.map(group -> "Group " + group.getName()).orElse(NO_ACTIVE_GROUP_CAPTION);
-    }
-
-    /**
      * Returns the title shown in place of the table when there are no students to show.
      */
     static String describeEmptyTitle(Optional<Group> activeGroup) {
         return activeGroup.map(group -> String.format(EMPTY_GROUP_TITLE_FORMAT, group.getName()))
-                .orElse(NO_ACTIVE_GROUP_TITLE);
+                .orElse(NO_ACTIVE_GROUP);
     }
 
     /**

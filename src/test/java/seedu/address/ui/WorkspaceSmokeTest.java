@@ -115,14 +115,16 @@ public class WorkspaceSmokeTest {
         runOnFx(this::initializeWorkspace);
         try {
             runOnFx(() -> {
-                assertStudentsShown(MainWindow.NO_ACTIVE_GROUP);
-                assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP_TITLE);
+                assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP);
+                assertFalse(root.lookup("#activeGroupCaption").isVisible());
             });
             runOnFx(() -> render(root, "no-active-group", 853, 440));
 
             runOnFx(() -> {
                 model.setActiveGroup(TypicalGroups.NAME_T01);
                 assertStudentsShown("T01");
+                assertTrue(root.lookup("#activeGroupCaption").isVisible());
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
             });
 
@@ -277,7 +279,7 @@ public class WorkspaceSmokeTest {
         tabs = (TabPane) root.lookup("#tabs");
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
-        assertEquals(MainWindow.NO_ACTIVE_GROUP, ((Label) root.lookup("#activeGroupLabel")).getText());
+        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, ((Label) root.lookup("#activeGroupLabel")).getText());
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
