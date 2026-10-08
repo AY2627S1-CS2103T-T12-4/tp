@@ -8,6 +8,8 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 
 /**
  * The API of the Model component.
@@ -109,4 +111,17 @@ public interface Model {
      * Returns the active group, or an empty {@code Optional} if no group is active.
      */
     Optional<Group> getActiveGroup();
+
+    /**
+     * Adds {@code student} to the group named {@code groupName}.
+     * The group must exist, and no student in it may have the same student ID.
+     */
+    void addStudent(GroupName groupName, Student student);
+
+    /**
+     * Removes the student with {@code studentId} from the group named {@code groupName},
+     * and returns the removed student.
+     * The group must exist, and the student must be in it.
+     */
+    Student removeStudent(GroupName groupName, StudentId studentId);
 }

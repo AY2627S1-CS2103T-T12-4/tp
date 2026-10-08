@@ -14,6 +14,8 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 
 /**
  * Represents the in-memory model of the address book data and the TAssist data.
@@ -164,6 +166,16 @@ public class ModelManager implements Model {
     @Override
     public Optional<Group> getActiveGroup() {
         return tAssist.getActiveGroup();
+    }
+
+    @Override
+    public void addStudent(GroupName groupName, Student student) {
+        tAssist.addStudent(groupName, student);
+    }
+
+    @Override
+    public Student removeStudent(GroupName groupName, StudentId studentId) {
+        return tAssist.removeStudent(groupName, studentId);
     }
 
     @Override

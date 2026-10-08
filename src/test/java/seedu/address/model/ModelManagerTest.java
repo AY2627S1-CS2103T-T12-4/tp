@@ -23,6 +23,7 @@ import seedu.address.model.group.GroupName;
 import seedu.address.model.group.exceptions.DuplicateGroupException;
 import seedu.address.model.group.exceptions.GroupNotFoundException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.student.Student;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
@@ -208,6 +209,25 @@ public class ModelManagerTest {
         modelManager = modelWithActiveGroup(NAME_T01);
         assertThrows(GroupNotFoundException.class, () -> modelManager.setActiveGroup(NAME_T04));
         assertEquals(Optional.of(TypicalGroups.getT01()), modelManager.getActiveGroup());
+    }
+
+    @Test
+    public void addStudent_toGroup_addsStudentToThatGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addStudent(new GroupName("t02"), FIONA);
+        assertTrue(modelManager.getGroup(NAME_T02).hasStudent(FIONA.getStudentId()));
+        assertFalse(modelManager.getGroup(NAME_T01).hasStudent(FIONA.getStudentId()));
+    }
+
+    @Test
+    public void removeStudent_studentInGroup_removesAndReturnsStudent() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        Student student = TypicalGroups.getT02().getStudentList().getFirst();
+
+        Student removedStudent = modelManager.removeStudent(NAME_T02, student.getStudentId());
+
+        assertEquals(student, removedStudent);
+        assertFalse(modelManager.getGroup(NAME_T02).hasStudent(student.getStudentId()));
     }
 
     @Test
