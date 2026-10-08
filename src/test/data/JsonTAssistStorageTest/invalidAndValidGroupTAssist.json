@@ -1,0 +1,13 @@
+{
+  "activeGroup" : "T01",
+  "groups" : [ {
+    "name" : "T01",
+    "students" : [ {
+      "name" : "Alice Tan",
+      "studentId" : "A0123456X"
+    } ]
+  }, {
+    "name" : "T0@",
+    "students" : [ ]
+  } ]
+}

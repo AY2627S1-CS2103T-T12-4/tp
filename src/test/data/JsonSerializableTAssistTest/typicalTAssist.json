@@ -1,0 +1,28 @@
+{
+  "activeGroup" : "T02",
+  "groups" : [ {
+    "name" : "T01",
+    "students" : [ {
+      "name" : "Alice Tan",
+      "studentId" : "A0123456X"
+    }, {
+      "name" : "Ben Lim",
+      "studentId" : "A0234567Y"
+    }, {
+      "name" : "Carl Goh",
+      "studentId" : "A0345678Z"
+    } ]
+  }, {
+    "name" : "T02",
+    "students" : [ {
+      "name" : "Daniel Ong",
+      "studentId" : "A0456789W"
+    }, {
+      "name" : "Elle Teo",
+      "studentId" : "A0567890U"
+    } ]
+  }, {
+    "name" : "T03",
+    "students" : [ ]
+  } ]
+}
