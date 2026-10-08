@@ -13,7 +13,6 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.CommandRegistry;
@@ -35,7 +34,6 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
-    private final List<HelpEntry> helpEntries;
     private final AddressBookParser addressBookParser;
 
     /**
@@ -55,9 +53,7 @@ public class LogicManager implements Logic {
     public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry) {
         this.model = requireNonNull(model);
         this.storage = requireNonNull(storage);
-        CommandRegistry registeredCommands = requireNonNull(commandRegistry);
-        helpEntries = HelpCatalog.getEntries(registeredCommands.getHelpEntries());
-        addressBookParser = new AddressBookParser(registeredCommands);
+        addressBookParser = new AddressBookParser(commandRegistry);
     }
 
     @Override
@@ -85,7 +81,7 @@ public class LogicManager implements Logic {
 
     @Override
     public List<HelpEntry> getHelpEntries() {
-        return helpEntries;
+        return addressBookParser.getHelpEntries();
     }
 
     @Override
