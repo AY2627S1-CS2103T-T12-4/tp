@@ -98,14 +98,14 @@ Opening a screen with `view` does not save or change data.
 
 ### Viewing help: `help`
 
-Typing `help` shows the formats and examples of available commands in the result panel and opens the offline command
-reference.
+Opens the **Help** screen, which lists the format and examples of every available command.
+The feedback box confirms with `Showing the command reference.`
 
 Format: `help [TOPIC]`
 
 * `TOPIC` is one of `group`, `student`, `attendance`, `participation`, or `assignment`. It is not case-sensitive.
-* With a `TOPIC`, only the commands of that topic are shown in the result panel. If no command of that topic exists
-  yet, TAssist says so. The Help screen that opens alongside always lists every command.
+* With a `TOPIC`, the Help screen opens at that topic's commands, for example `Showing student commands.`
+  If no command of that topic exists yet, TAssist says so and opens the Help screen from the top.
 * An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
   and does not change any data.
 
