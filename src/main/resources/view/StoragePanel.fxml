@@ -11,7 +11,7 @@
   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
     <VBox styleClass="storage-content" spacing="16">
       <Label text="Your records stay on this computer" styleClass="empty-title" wrapText="true" />
-      <Label text="Successful commands other than view save your tutorial groups and students to the local JSON file."
+      <Label text="Successful commands other than view save your tutorial groups, students and active group to the local JSON file."
              wrapText="true" styleClass="muted" />
       <Label text="DATA FILE" styleClass="eyebrow" />
       <Label fx:id="filePath" styleClass="file-path" wrapText="true" maxWidth="Infinity" />
