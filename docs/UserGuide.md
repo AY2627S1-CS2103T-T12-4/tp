@@ -94,7 +94,8 @@ Opening a screen with `view` does not save or change data.
 
 ### Viewing help: `help`
 
-Opens the offline command reference in the Help screen.
+Typing `help` shows the formats and examples of available commands in the result panel and opens the offline command
+reference.
 
 Format: `help`
 
