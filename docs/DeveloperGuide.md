@@ -74,17 +74,20 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of `MainWindow`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`.
-`WorkspacePanel` hosts the live `PersonListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
+`WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
-The roster observes the existing filtered person list. Columns cannot be sorted or reordered, so displayed indices
-remain consistent with commands. A list change refreshes the row numbers. Long values have tooltips, and the table
-scrolls in both directions. No contact fields are repurposed as student IDs or tutorial groups.
+The Students screen (`StudentListPanel`) and the active group label in the header observe the two views that `Logic`
+provides: `activeGroupProperty()` and `getActiveGroupStudentList()` (see
+[Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
+the active group or its students shows at once. When the table is empty, its placeholder says whether no group is active
+or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
 screens does not change the model or filter. Existing contact commands still save through `Storage` and bring the
-roster into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
+Students screen into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -96,7 +99,7 @@ The `UI` component,
 * executes user commands using the `Logic` component.
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* depends on some classes in the `Model` component because it displays `Group` and `Student` objects from the model.
 
 ### Logic component
 
@@ -887,17 +890,18 @@ Linux CI enables this test under the runner's virtual display (`xvfb-run`) so th
 The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
-roster filtering, filter preservation across screens, adding a long record, row numbering after deletion,
-invalid-input retention, and empty results. Normal unit tests cover screen parsing, result identity and navigation
-with unavailable storage.
+the active group label, the Students screen following the active group and its students, both empty states, long
+group and student names, row numbering after a removal, and invalid-input retention. Normal unit tests cover screen
+parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
 1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
    Verify that preview features are explicitly unavailable, and the storage path is the actual contact data path.
-2. Use `find Alex`, `view help`, and `view students`. The filter should remain active; `list` should restore all contacts.
-3. Add, edit and delete temporary contacts. Check the displayed row indices, save feedback, and records after restart.
-4. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
-5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
+2. Use `view students`. With no active group, the header shows **None** and the Students screen says that no group
+   is active. Once group and student commands are available, make a group active and add and remove students in it.
+   The header and the table should update at once.
+3. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
+4. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
    100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
    853x440 content pixels, allowing for window decorations at 150% scaling.
