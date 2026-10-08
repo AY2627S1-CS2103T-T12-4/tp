@@ -161,8 +161,27 @@
 }
 .command-box .text-field.error { -fx-text-fill: #a12c2c; }
 .key-hint { -fx-text-fill: #757980; -fx-font-size: 11px; }
-.feedback-pane { -fx-background-color: #e6f2ef; -fx-background-radius: 8; -fx-padding: 4 8; }
-.feedback-pane:failure { -fx-background-color: #fbe9e7; }
+.feedback-pane {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #dedcd5;
+    -fx-border-radius: 8;
+    -fx-padding: 7 12;
+}
+.feedback-pane:failure { -fx-background-color: #fdf3f1; -fx-border-color: #ebc2bb; }
+.feedback-icon {
+    -fx-background-color: #e6f2ef;
+    -fx-background-radius: 10;
+    -fx-text-fill: #0e6b61;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-min-width: 20;
+    -fx-pref-width: 20;
+    -fx-min-height: 20;
+    -fx-pref-height: 20;
+}
+.feedback-pane:failure .feedback-icon { -fx-background-color: #f7d9d4; -fx-text-fill: #a12c2c; }
 .feedback-pane .text-area, .feedback-pane .text-area .content {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
