@@ -135,6 +135,7 @@ public class WorkspaceSmokeTest {
                 assertGroupChips(List.of("T01", "T02", "T03"), "");
             });
             runOnFx(() -> render(root, "no-active-group", 853, 440));
+            runOnFx(() -> render(root, "no-active-group-minimum", 640, 420));
 
             runOnFx(() -> {
                 model.setActiveGroup(TypicalGroups.NAME_T01);
