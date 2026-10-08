@@ -1,20 +1,12 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -27,14 +19,12 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.group.Group;
 
 /**
  * Connects the TAssist workspace, command input and feedback to application logic.
  */
 public class MainWindow extends UiPart<Stage> {
     private static final String FXML = "MainWindow.fxml";
-    private static final PseudoClass NO_GROUP = PseudoClass.getPseudoClass("no-group");
     private final Logger logger = LogsCenter.getLogger(getClass());
     private final Stage primaryStage;
     private final Logic logic;
@@ -47,12 +37,6 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane commandBoxPlaceholder;
-    @FXML
-    private MenuItem helpMenuItem;
-    @FXML
-    private Label activeGroupCaption;
-    @FXML
-    private Label activeGroupLabel;
     @FXML
     private StackPane groupStripPlaceholder;
     @FXML
@@ -84,7 +68,6 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void setAccelerators() {
-        helpMenuItem.setAccelerator(KeyCombination.valueOf("F1"));
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.F1) {
                 handleHelp();
@@ -100,7 +83,6 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
-        showActiveGroup(logic.activeGroupProperty());
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
@@ -117,27 +99,6 @@ public class MainWindow extends UiPart<Stage> {
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         Platform.runLater(commandBox::focus);
-    }
-
-    /**
-     * Keeps the header showing the name of {@code activeGroup}, with a tooltip for names too long to fit.
-     * When no group is active, the header says so in the same words as the Students screen.
-     */
-    private void showActiveGroup(ObservableValue<Optional<Group>> activeGroup) {
-        activeGroupLabel.textProperty().bind(Bindings.createStringBinding(() ->
-                activeGroup.getValue().map(group -> group.getName().toString())
-                        .orElse(StudentListPanel.NO_ACTIVE_GROUP),
-                activeGroup));
-        BooleanBinding hasActiveGroup = Bindings.createBooleanBinding(() -> activeGroup.getValue().isPresent(),
-                activeGroup);
-        activeGroupCaption.visibleProperty().bind(hasActiveGroup);
-        activeGroupCaption.managedProperty().bind(hasActiveGroup);
-        activeGroupLabel.pseudoClassStateChanged(NO_GROUP, !hasActiveGroup.get());
-        hasActiveGroup.addListener((observable, hadGroup, hasGroup) ->
-                activeGroupLabel.pseudoClassStateChanged(NO_GROUP, !hasGroup));
-        Tooltip fullName = new Tooltip();
-        fullName.textProperty().bind(activeGroupLabel.textProperty());
-        activeGroupLabel.setTooltip(fullName);
     }
 
     private void setWindowDefaultSize(GuiSettings guiSettings) {

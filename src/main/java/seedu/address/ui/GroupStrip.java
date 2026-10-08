@@ -10,15 +10,15 @@ import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import seedu.address.model.group.Group;
 
 /**
- * Shows every tutorial group as a chip below the header, with the active group highlighted.
+ * Shows every tutorial group as a chip in the top bar, with the active group highlighted.
  */
-public class GroupStrip extends UiPart<Region> {
+public class GroupStrip extends UiPart<ScrollPane> {
     static final String NO_GROUPS = "No tutorial groups yet";
 
     private static final String FXML = "GroupStrip.fxml";
