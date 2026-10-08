@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -24,8 +25,10 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.Prefix;
@@ -41,6 +44,7 @@ import seedu.address.model.student.StudentId;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.HelpEntryBuilder;
 import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerTest {
@@ -98,6 +102,29 @@ public class LogicManagerTest {
         logic = new LogicManager(model, new StorageManager(failingStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
         assertEquals(WorkspaceView.HELP, logic.execute("view help").getView().orElseThrow());
+    }
+
+    @Test
+    public void execute_help_returnsCommandReferenceInFeedback() throws Exception {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("student", "list", args -> new ListCommand(),
+                new HelpEntryBuilder().withCommandFormat("student list").build());
+        logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(
+                temporaryFolder.resolve("help.json")), new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))),
+                registry);
+
+        CommandResult all = logic.execute("help");
+        assertTrue(all.isShowHelp());
+        assertEquals(HelpCatalog.format(logic.getHelpEntries()), all.getFeedbackToUser());
+
+        CommandResult topic = logic.execute("help student");
+        assertTrue(topic.isShowHelp());
+        assertEquals(HelpCatalog.format(List.of(logic.getHelpEntries().getLast())), topic.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_helpUnknownTopic_throwsParseException() {
+        assertThrows(ParseException.class, HelpCommand.MESSAGE_UNKNOWN_TOPIC, () -> logic.execute("help xyz"));
     }
 
     @Test

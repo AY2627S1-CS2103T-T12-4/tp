@@ -129,8 +129,14 @@ public class WorkspaceSmokeTest {
 
     private void verifyRoster() throws Exception {
         runOnFx(() -> {
+            TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
             enter(input, "help");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
+            assertTrue(feedbackArea.getText().contains("view SCREEN"));
+            enter(input, "help student");
+            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
+            assertFalse(feedbackArea.getText().contains("view SCREEN"));
             enter(input, "find Alex");
             assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
             assertEquals(1, model.getFilteredPersonList().size());
