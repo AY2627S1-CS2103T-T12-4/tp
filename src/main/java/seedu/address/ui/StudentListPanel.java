@@ -70,6 +70,10 @@ public class StudentListPanel extends UiPart<Region> {
         Tooltip fullTitle = new Tooltip();
         fullTitle.textProperty().bind(groupTitle.textProperty());
         groupTitle.setTooltip(fullTitle);
+        BooleanBinding hasActiveGroup = Bindings.createBooleanBinding(() -> activeGroup.getValue().isPresent(),
+                activeGroup);
+        studentCount.visibleProperty().bind(hasActiveGroup);
+        studentCount.managedProperty().bind(hasActiveGroup);
         studentCount.textProperty().bind(Bindings.createStringBinding(() -> describeCount(students.size()),
                 students));
         emptyTitle.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyTitle(activeGroup.getValue()),

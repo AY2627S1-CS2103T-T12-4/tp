@@ -131,7 +131,6 @@ public class WorkspaceSmokeTest {
             runOnFx(() -> {
                 assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
                 assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP);
-                assertFalse(root.lookup("#activeGroupCaption").isVisible());
                 assertGroupChips(List.of("T01", "T02", "T03"), "");
             });
             runOnFx(() -> render(root, "no-active-group", 853, 440));
@@ -139,7 +138,6 @@ public class WorkspaceSmokeTest {
             runOnFx(() -> {
                 model.setActiveGroup(TypicalGroups.NAME_T01);
                 assertStudentsShown("T01");
-                assertTrue(root.lookup("#activeGroupCaption").isVisible());
                 assertGroupChips(List.of("T01", "T02", "T03"), "T01");
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
             });
@@ -180,8 +178,8 @@ public class WorkspaceSmokeTest {
                 model.addStudent(longGroupName, new StudentBuilder().withName("Longname".repeat(LONG_NAME_REPEATS))
                         .withStudentId("A".repeat(19) + "1").build());
                 model.setActiveGroup(longGroupName);
-                Label header = (Label) root.lookup("#activeGroupLabel");
-                assertEquals(longGroupName.toString(), header.getTooltip().getText());
+                Label title = (Label) root.lookup("#groupTitle");
+                assertEquals(longGroupName.toString(), title.getTooltip().getText());
             });
             runOnFx(() -> render(root, "long-values", 853, 440));
         } finally {
@@ -268,10 +266,9 @@ public class WorkspaceSmokeTest {
     }
 
     /**
-     * Asserts that the header names {@code expectedGroup} and the Students screen lists the active group's students.
+     * Asserts that the Students screen is titled for {@code expectedGroup} and lists the active group's students.
      */
     private void assertStudentsShown(String expectedGroup) {
-        assertEquals(expectedGroup, ((Label) root.lookup("#activeGroupLabel")).getText());
         String expectedTitle = expectedGroup.equals(StudentListPanel.NO_ACTIVE_GROUP)
                 ? StudentListPanel.STUDENTS_TITLE : expectedGroup;
         assertEquals(expectedTitle, ((Label) root.lookup("#groupTitle")).getText());
@@ -327,7 +324,7 @@ public class WorkspaceSmokeTest {
         tabs = (TabPane) root.lookup("#tabs");
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, ((Label) root.lookup("#activeGroupLabel")).getText());
+        assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
