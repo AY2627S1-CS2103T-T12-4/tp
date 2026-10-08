@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 
 /**
@@ -28,7 +29,7 @@ public class HelpPanel extends UiPart<Region> {
         for (HelpEntry entry : requireNonNull(helpEntries)) {
             requireNonNull(entry);
             if (!entry.getTopic().equals(previousTopic)) {
-                addTopicHeading(entry.getTopic().isEmpty() ? "Current commands" : titleCase(entry.getTopic()));
+                addTopicHeading(HelpCatalog.getTopicHeading(entry.getTopic()));
                 previousTopic = entry.getTopic();
             }
             addCommand(entry);
@@ -44,10 +45,6 @@ public class HelpPanel extends UiPart<Region> {
         Label heading = new Label(topic);
         heading.getStyleClass().add("section-title");
         commands.getChildren().add(heading);
-    }
-
-    private String titleCase(String topic) {
-        return Character.toUpperCase(topic.charAt(0)) + topic.substring(1) + " commands";
     }
 
     private void addCommand(HelpEntry entry) {
