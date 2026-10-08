@@ -114,6 +114,7 @@
     -fx-background-color: #fafaf7;
 }
 .table-view .column-header { -fx-border-color: transparent transparent #dedcd5 transparent; -fx-size: 38; }
+.table-view .filler { -fx-border-color: transparent transparent #dedcd5 transparent; }
 .table-view .column-header .label {
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 0 12;
@@ -121,16 +122,20 @@
     -fx-font-weight: bold;
     -fx-text-fill: #5a5d64;
 }
-.table-row-cell { -fx-background-color: white; -fx-cell-size: 43; }
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-cell-size: 44;
+    -fx-border-color: transparent transparent #ecebe6 transparent;
+}
 .table-row-cell:filled:selected { -fx-background-color: #e6f2ef; }
 .table-row-cell:filled:hover { -fx-background-color: #f2f8f6; }
 .table-cell {
-    -fx-border-color: transparent transparent #ecebe6 transparent;
+    -fx-border-color: transparent;
     -fx-padding: 10 12;
     -fx-alignment: CENTER_LEFT;
     -fx-text-fill: #1c1d1f;
 }
-.table-row-cell:empty .table-cell { -fx-border-color: transparent; }
+.table-row-cell:empty { -fx-border-color: transparent; }
 .table-view .placeholder { -fx-background-color: white; }
 .empty-state { -fx-padding: 16; }
 .empty-state .label { -fx-alignment: center; -fx-text-alignment: center; }
@@ -144,12 +149,13 @@
 .command-syntax, .file-path { -fx-font-family: monospace; -fx-font-size: 12px; -fx-text-fill: #0e6b61; }
 .command-box {
     -fx-background-color: white;
-    -fx-border-color: #0e6b61;
+    -fx-border-color: #b7d3ce;
     -fx-border-width: 2;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-padding: 0 12;
 }
+.command-box:input-focused { -fx-border-color: #0e6b61; }
 .command-prompt { -fx-text-fill: #0e6b61; -fx-font-family: monospace; -fx-font-weight: bold; }
 .command-box .text-field {
     -fx-background-color: transparent;
@@ -160,7 +166,13 @@
     -fx-prompt-text-fill: #757980;
 }
 .command-box .text-field.error { -fx-text-fill: #a12c2c; }
-.key-hint { -fx-text-fill: #757980; -fx-font-size: 11px; }
+.status-bar .key {
+    -fx-background-color: #ecebe6;
+    -fx-background-radius: 4;
+    -fx-text-fill: #3a3d42;
+    -fx-font-weight: bold;
+    -fx-padding: 1 6;
+}
 .feedback-pane {
     -fx-background-color: white;
     -fx-background-radius: 8;

@@ -5,4 +5,10 @@
       xmlns:fx="http://javafx.com/fxml/1">
   <Label text="●" styleClass="status-dot" />
   <Label fx:id="saveLocationStatus" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+  <HBox styleClass="shortcut-hints" alignment="CENTER_RIGHT" spacing="6" minWidth="-Infinity">
+    <Label text="F1" styleClass="key" />
+    <Label text="Help" />
+    <Label text="Esc" styleClass="key" />
+    <Label text="Command box" />
+  </HBox>
 </HBox>
