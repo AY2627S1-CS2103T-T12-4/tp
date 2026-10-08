@@ -24,6 +24,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -35,6 +36,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
@@ -223,13 +225,14 @@ public class WorkspaceSmokeTest {
     private void verifyCommands() throws Exception {
         runOnFx(() -> {
             TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
-            enter(input, "help");
-            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
-            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
-            assertTrue(feedbackArea.getText().contains("view SCREEN"));
+            ScrollPane helpScrollPane = (ScrollPane) root.lookup("#helpScrollPane");
             enter(input, "help student");
-            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
-            assertFalse(feedbackArea.getText().contains("view SCREEN"));
+            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+            assertEquals("Showing student commands.", feedbackArea.getText());
+            assertTrue(helpScrollPane.getVvalue() > helpScrollPane.getVmin(), "Help scrolls to the topic");
+            enter(input, "help");
+            assertEquals(HelpCommand.MESSAGE_SHOWING_HELP, feedbackArea.getText());
+            assertEquals(helpScrollPane.getVmin(), helpScrollPane.getVvalue());
             enter(input, "view help");
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label

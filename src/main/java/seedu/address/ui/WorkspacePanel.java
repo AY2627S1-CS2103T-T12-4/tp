@@ -24,6 +24,7 @@ import seedu.address.model.student.Student;
  */
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
+    private final HelpPanel helpPanel;
 
     @FXML
     private TabPane tabs;
@@ -46,7 +47,8 @@ public class WorkspacePanel extends UiPart<TabPane> {
         addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",
                 "Assignment selection, submissions and grades are coming soon.",
                 "NAME", "STUDENT ID", "SUBMISSION", "GRADE").getRoot());
-        addView(WorkspaceView.HELP, new HelpPanel(helpEntries).getRoot());
+        helpPanel = new HelpPanel(helpEntries);
+        addView(WorkspaceView.HELP, helpPanel.getRoot());
         addView(WorkspaceView.STORAGE, new StoragePanel(dataFilePath).getRoot());
         assert views.size() == WorkspaceView.values().length : "Every workspace screen must be registered";
     }
@@ -69,5 +71,16 @@ public class WorkspacePanel extends UiPart<TabPane> {
      */
     public void showView(WorkspaceView view) {
         tabs.getSelectionModel().select(views.get(requireNonNull(view)));
+    }
+
+    /**
+     * Opens Help at the commands of {@code topic}, or at the top if {@code topic} is empty.
+     */
+    public void showHelp(String topic) {
+        showView(WorkspaceView.HELP);
+        // Lay out the newly selected Help screen first, so that it can find where the topic starts.
+        getRoot().applyCss();
+        getRoot().layout();
+        helpPanel.scrollToTopic(topic);
     }
 }

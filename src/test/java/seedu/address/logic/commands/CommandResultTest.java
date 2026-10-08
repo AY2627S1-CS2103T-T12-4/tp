@@ -65,11 +65,22 @@ public class CommandResultTest {
     }
 
     @Test
+    public void forHelp_topic_opensHelpAtTopic() {
+        CommandResult result = CommandResult.forHelp("feedback", "student");
+        assertTrue(result.isShowHelp());
+        assertEquals("student", result.getHelpTopic());
+        assertEquals(result, CommandResult.forHelp("feedback", "student"));
+        assertEquals(result.hashCode(), CommandResult.forHelp("feedback", "student").hashCode());
+        assertNotEquals(result, CommandResult.forHelp("feedback", "group"));
+        assertEquals(new CommandResult("feedback", true, false), CommandResult.forHelp("feedback", ""));
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", view=null}";
+                + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=}";
         assertEquals(expected, commandResult.toString());
     }
 }

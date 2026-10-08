@@ -23,25 +23,30 @@ public class CommandResult {
 
     private final WorkspaceView view;
 
+    /** Help topic to show first, or an empty string to show Help from the top. */
+    private final String helpTopic;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, null);
+        this(feedbackToUser, showHelp, exit, null, "");
     }
 
-    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view) {
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
+            String helpTopic) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.view = view;
+        this.helpTopic = requireNonNull(helpTopic);
     }
 
     /**
      * Constructs a result that requests a workspace screen.
      */
     public CommandResult(String feedbackToUser, WorkspaceView view) {
-        this(feedbackToUser, false, false, requireNonNull(view));
+        this(feedbackToUser, false, false, requireNonNull(view), "");
     }
 
     /**
@@ -50,6 +55,14 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Returns a result that opens Help at the commands of {@code helpTopic}.
+     * An empty {@code helpTopic} opens Help from the top.
+     */
+    public static CommandResult forHelp(String feedbackToUser, String helpTopic) {
+        return new CommandResult(feedbackToUser, true, false, null, helpTopic);
     }
 
     public String getFeedbackToUser() {
@@ -68,6 +81,10 @@ public class CommandResult {
         return Optional.ofNullable(view);
     }
 
+    public String getHelpTopic() {
+        return helpTopic;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -82,12 +99,13 @@ public class CommandResult {
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
-                && view == otherCommandResult.view;
+                && view == otherCommandResult.view
+                && helpTopic.equals(otherCommandResult.helpTopic);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, view);
+        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic);
     }
 
     @Override
@@ -97,6 +115,7 @@ public class CommandResult {
                 .add("showHelp", showHelp)
                 .add("exit", exit)
                 .add("view", view)
+                .add("helpTopic", helpTopic)
                 .toString();
     }
 

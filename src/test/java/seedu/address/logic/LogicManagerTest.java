@@ -30,7 +30,6 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.Prefix;
@@ -109,7 +108,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_help_returnsCommandReferenceInFeedback() throws Exception {
+    public void execute_help_opensHelpWithShortConfirmation() throws Exception {
         CommandRegistry registry = new CommandRegistry();
         registry.register("student", "list", args -> new ListCommand(),
                 new HelpEntryBuilder().withCommandFormat("student list").build());
@@ -118,12 +117,10 @@ public class LogicManagerTest {
                 registry);
 
         CommandResult all = logic.execute("help");
-        assertTrue(all.isShowHelp());
-        assertEquals(HelpCatalog.format(logic.getHelpEntries()), all.getFeedbackToUser());
+        assertEquals(CommandResult.forHelp(HelpCommand.MESSAGE_SHOWING_HELP, ""), all);
 
         CommandResult topic = logic.execute("help student");
-        assertTrue(topic.isShowHelp());
-        assertEquals(HelpCatalog.format(List.of(logic.getHelpEntries().getLast())), topic.getFeedbackToUser());
+        assertEquals(CommandResult.forHelp("Showing student commands.", "student"), topic);
     }
 
     @Test

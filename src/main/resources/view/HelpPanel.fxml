@@ -8,7 +8,7 @@
     <Label text="Help" styleClass="section-title" />
     <Label text="Command reference" styleClass="muted" />
   </VBox>
-  <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
+  <ScrollPane fx:id="helpScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
     <VBox fx:id="commands" styleClass="help-content" spacing="14" />
   </ScrollPane>
 </VBox>
