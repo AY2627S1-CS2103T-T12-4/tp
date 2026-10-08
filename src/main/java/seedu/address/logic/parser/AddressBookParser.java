@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -20,6 +21,8 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ViewCommand;
+import seedu.address.logic.help.HelpCatalog;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -38,6 +41,7 @@ public class AddressBookParser {
             ExitCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
 
     private final CommandRegistry commandRegistry;
+    private final List<HelpEntry> helpEntries;
 
     /**
      * Creates a parser for legacy commands with no feature commands registered.
@@ -57,6 +61,16 @@ public class AddressBookParser {
         checkArgument(LEGACY_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
                 "Feature keywords must not conflict with existing AB3 commands.");
         this.commandRegistry = new CommandRegistry(commandRegistry);
+        helpEntries = HelpCatalog.getEntries(commandRegistry.getHelpEntries());
+    }
+
+    /**
+     * Returns the help entries of legacy commands followed by the registered feature commands.
+     *
+     * @return An immutable list of command help entries.
+     */
+    public List<HelpEntry> getHelpEntries() {
+        return helpEntries;
     }
 
     /**
@@ -89,7 +103,7 @@ public class AddressBookParser {
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
-            case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             default -> commandRegistry.parseCommand(commandWord, arguments);
         };

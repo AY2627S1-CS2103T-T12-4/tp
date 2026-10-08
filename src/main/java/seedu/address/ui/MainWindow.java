@@ -20,7 +20,6 @@ import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -145,10 +144,8 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult result = logic.execute(commandText);
-            String feedback = result.isShowHelp() ? HelpCatalog.format(logic.getHelpEntries())
-                    : result.getFeedbackToUser();
             logger.info("Result: " + result.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(feedback);
+            resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
                 statusBarFooter.setStatus("Local data file");
