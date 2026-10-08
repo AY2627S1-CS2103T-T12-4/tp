@@ -68,7 +68,15 @@
     -fx-padding: 1;
 }
 .card-heading { -fx-padding: 14 16; -fx-border-color: transparent transparent #dedcd5 transparent; }
-.section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.section-title { -fx-font-size: 17px; -fx-font-weight: bold; }
+.count-badge {
+    -fx-text-fill: #0e6b61;
+    -fx-background-color: #e6f2ef;
+    -fx-background-radius: 10;
+    -fx-padding: 2 9;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
 .card-caption { -fx-padding: 8 16; }
 .coming-soon {
     -fx-text-fill: #6d5621;
@@ -112,7 +120,7 @@
 .table-row-cell:empty .table-cell { -fx-border-color: transparent; }
 .table-view .placeholder { -fx-background-color: white; }
 .empty-state { -fx-padding: 16; }
-.empty-state .label { -fx-text-alignment: center; }
+.empty-state .label { -fx-alignment: center; -fx-text-alignment: center; }
 .empty-title { -fx-font-size: 16px; -fx-font-weight: bold; }
 .scroll-pane, .scroll-pane > .viewport { -fx-background-color: transparent; }
 .scroll-pane { -fx-padding: 0; -fx-background-insets: 0; }
