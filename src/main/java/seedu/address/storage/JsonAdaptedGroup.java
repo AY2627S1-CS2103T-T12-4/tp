@@ -17,7 +17,7 @@ import seedu.address.model.student.Student;
  */
 class JsonAdaptedGroup {
 
-    public static final String MISSING_NAME_MESSAGE = "Group's name field is missing.";
+    public static final String MISSING_FIELD_MESSAGE_FORMAT = "Group's %s field is missing.";
     public static final String MESSAGE_EMPTY_STUDENT = "Group %s has an empty entry in its student list.";
     public static final String MESSAGE_DUPLICATE_STUDENT = "Group %s has more than one student with ID %s.";
 
@@ -51,7 +51,7 @@ class JsonAdaptedGroup {
      */
     public Group toModelType() throws IllegalValueException {
         if (name == null) {
-            throw new IllegalValueException(MISSING_NAME_MESSAGE);
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "name"));
         }
         if (!GroupName.isValidGroupName(name)) {
             throw new IllegalValueException(GroupName.MESSAGE_CONSTRAINTS);

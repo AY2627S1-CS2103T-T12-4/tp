@@ -81,6 +81,7 @@ public class JsonTAssistStorage {
     /**
      * Similar to {@link #saveTAssist(ReadOnlyTAssist)}.
      *
+     * @param tAssist cannot be null.
      * @param filePath location of the data. Cannot be null.
      */
     public void saveTAssist(ReadOnlyTAssist tAssist, Path filePath) throws IOException {
