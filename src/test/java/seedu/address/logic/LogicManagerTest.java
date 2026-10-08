@@ -37,17 +37,20 @@ import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.TAssistArgumentParser;
 import seedu.address.logic.parser.TAssistParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyTAssist;
+import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.StudentId;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.HelpEntryBuilder;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
 
 public class LogicManagerTest {
@@ -62,11 +65,7 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
-        JsonAddressBookStorage addressBookStorage =
-                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-        logic = new LogicManager(model, storage);
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("tassist.json"))));
     }
 
     @Test
@@ -90,20 +89,12 @@ public class LogicManagerTest {
     @Test
     public void execute_view_doesNotCreateDataFile() throws Exception {
         assertEquals(WorkspaceView.ATTENDANCE, logic.execute("view attendance").getView().orElseThrow());
-        assertFalse(Files.exists(temporaryFolder.resolve("addressBook.json")));
+        assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
     }
 
     @Test
     public void execute_viewWithUnavailableStorage_success() throws Exception {
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(
-                temporaryFolder.resolve("unavailable.json")) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw DUMMY_AD_EXCEPTION;
-            }
-        };
-        logic = new LogicManager(model, new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_AD_EXCEPTION)));
         assertEquals(WorkspaceView.HELP, logic.execute("view help").getView().orElseThrow());
     }
 
@@ -112,8 +103,7 @@ public class LogicManagerTest {
         CommandRegistry registry = new CommandRegistry();
         registry.register("student", "list", args -> new ListCommand(),
                 new HelpEntryBuilder().withCommandFormat("student list").build());
-        logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(
-                temporaryFolder.resolve("help.json")), new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))),
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("help.json"))),
                 registry);
 
         CommandResult all = logic.execute("help");
@@ -132,17 +122,18 @@ public class LogicManagerTest {
 
     @Test
     public void execute_registeredCommand_validatesExecutesAndSaves() throws Exception {
-        Path dataFile = temporaryFolder.resolve("feature.json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
-                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        TAssist tAssist = new TAssistBuilder(TypicalGroups.getTypicalTAssist())
+                .withActiveGroup(TypicalGroups.NAME_T02).build();
+        model.setTAssist(tAssist);
+        StorageManager storage = createStorage(new JsonTAssistStorage(temporaryFolder.resolve("feature.json")));
         logic = new LogicManager(model, storage, createFeatureRegistry());
 
         Person expectedPerson = new PersonBuilder().withName("Alice Tan").build();
-        Model expectedModel = new ModelManager();
+        Model expectedModel = new ModelManager(new AddressBook(), tAssist, new UserPrefs());
         expectedModel.addPerson(expectedPerson);
         assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ",
                 String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)), expectedModel);
-        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        assertEquals(tAssist, new TAssist(storage.readTAssist().orElseThrow()));
     }
 
     @Test
@@ -151,14 +142,13 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("unchanged.json");
         String existingData = "Existing file contents must not be overwritten.";
         Files.writeString(dataFile, existingData);
-        JsonAddressBookStorage saveDetectingStorage = new JsonAddressBookStorage(dataFile) {
+        JsonTAssistStorage saveDetectingStorage = new JsonTAssistStorage(dataFile) {
             @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+            public void saveTAssist(ReadOnlyTAssist tAssist) {
                 throw new AssertionError("Invalid input must not call storage.");
             }
         };
-        logic = new LogicManager(model, new StorageManager(saveDetectingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), createFeatureRegistry());
+        logic = new LogicManager(model, createStorage(saveDetectingStorage), createFeatureRegistry());
 
         assertParseException("unknown add", String.format(MESSAGE_UNKNOWN_COMMAND, "unknown"));
         assertParseException("student", String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
@@ -291,28 +281,35 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
+        // Inject LogicManager with a JsonTAssistStorage that throws the IOException e when saving
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)));
 
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw e;
-            }
-        };
-
-        JsonUserPrefsStorage userPrefsStorage =
-                new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-
-        logic = new LogicManager(model, storage);
-
-        // Triggers the saveAddressBook method by executing an add command
+        // Triggers the saveTAssist method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Returns a {@code StorageManager} that keeps TAssist data in {@code tAssistStorage},
+     * and user prefs in a temporary file.
+     */
+    private StorageManager createStorage(JsonTAssistStorage tAssistStorage) {
+        return new StorageManager(tAssistStorage, new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+    }
+
+    /**
+     * Returns a {@code JsonTAssistStorage} that throws {@code e} whenever it is asked to save.
+     */
+    private JsonTAssistStorage createFailingTAssistStorage(IOException e) {
+        return new JsonTAssistStorage(temporaryFolder.resolve("unavailable.json")) {
+            @Override
+            public void saveTAssist(ReadOnlyTAssist tAssist) throws IOException {
+                throw e;
+            }
+        };
     }
 }

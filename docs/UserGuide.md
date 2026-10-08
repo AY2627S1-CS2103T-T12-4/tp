@@ -23,7 +23,7 @@ Tutorial groups, student IDs, attendance, participation, and assignments are **c
 1. Copy the file to the folder you want to use as the _home folder_ for TAssist.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   A GUI similar to the one below should appear in a few seconds. On the first launch, TAssist starts with no data.<br>
    ![TAssist student roster](images/TAssistUi.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the command reference.<br>
@@ -202,17 +202,43 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves contact data after successful commands, except `view`, which only changes the visible screen.
-You do not need to save manually. A failed command does not indicate a successful save; read the feedback.
+TAssist saves your tutorial groups, their students, and the active group after successful commands, except `view`,
+which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
+successful save; read the feedback.
+
+Contacts from the existing contact commands are not saved, so they are cleared when you close TAssist.
 
 ### Editing the data file
 
-Contact data is saved as `data/addressbook.json` relative to the folder from which you launch TAssist.
+TAssist data is saved as `data/tassist.json` relative to the folder from which you launch TAssist.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
+If the file is missing, TAssist starts with no data and creates the file after the first successful command
+other than `view`.
+
+The file looks like this:
+
+```json
+{
+  "activeGroup" : "T01",
+  "groups" : [ {
+    "name" : "T01",
+    "students" : [ {
+      "name" : "Alice Tan",
+      "studentId" : "A0123456X"
+    } ]
+  } ]
+}
+```
+
+* `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
+  the groups, ignoring case.
+* Each group needs a `name`. No two groups may have the same name, ignoring case.
+* Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
+  case.
+* Group names, student names, and student IDs follow the same rules as when you type them in a command.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until a successful command other than `view` saves the contact data. Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `addressbook.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -224,7 +250,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer, then copy `data/tassist.json` from your previous TAssist home folder into the `data` folder of the new home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
