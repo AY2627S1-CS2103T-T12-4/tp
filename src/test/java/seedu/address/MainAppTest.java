@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -46,13 +47,16 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_invalidDataFile_startsEmptyAndKeepsFile() throws Exception {
-        String invalidData = "{ \"activeGroup\" : \"T09\", \"groups\" : [ ] }";
-        Files.writeString(dataFile(), invalidData);
+        String unknownActiveGroup = "{ \"activeGroup\" : \"T09\", \"groups\" : [ ] }";
+        String missingBrackets = "{ \"groups\" : [ { \"name\" : \"T01\" }";
+        for (String invalidData : List.of(unknownActiveGroup, missingBrackets, "null")) {
+            Files.writeString(dataFile(), invalidData);
 
-        Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
+            Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
 
-        assertEquals(new TAssist(), model.getTAssist());
-        assertEquals(invalidData, Files.readString(dataFile()));
+            assertEquals(new TAssist(), model.getTAssist(), invalidData);
+            assertEquals(invalidData, Files.readString(dataFile()));
+        }
     }
 
     private Path dataFile() {
