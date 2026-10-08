@@ -11,15 +11,15 @@
   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
     <VBox styleClass="storage-content" spacing="16">
       <Label text="Your records stay on this computer" styleClass="empty-title" wrapText="true" />
-      <Label text="Successful contact commands save automatically to the local JSON file."
+      <Label text="Successful commands other than view save your tutorial groups and students to the local JSON file."
              wrapText="true" styleClass="muted" />
       <Label text="DATA FILE" styleClass="eyebrow" />
       <Label fx:id="filePath" styleClass="file-path" wrapText="true" maxWidth="Infinity" />
-      <Label text="The file is created after the first successful contact command. A first launch shows sample contacts."
+      <Label text="The file is created after the first successful command other than view. A first launch starts empty."
              wrapText="true" styleClass="muted" />
       <Label text="Close TAssist before editing the file manually. Keep a backup: invalid edits can cause data loss."
              wrapText="true" styleClass="muted" />
-      <Label text="Tutorial groups, attendance, participation and assignment storage are coming soon."
+      <Label text="Attendance, participation and assignment storage are coming soon."
              wrapText="true" styleClass="coming-soon-note" />
     </VBox>
   </ScrollPane>
