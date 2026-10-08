@@ -83,8 +83,8 @@ scrolls in both directions. No contact fields are repurposed as student IDs or t
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
-screens does not change the model or filter. Existing contact commands still save through `Storage` and bring the
-roster into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
+screens does not change the model or filter. Other successful commands save TAssist data through `Storage`, and
+existing contact commands bring the roster into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -157,9 +157,12 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* can save both TAssist data and user preference data in JSON format, and read them back into corresponding objects.
+* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
+* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+
+AddressBook data is no longer read or saved. Its storage classes (`JsonAddressBookStorage` and the classes it uses) remain in the code base until the AddressBook code is removed.
 
 ### Common classes
 
@@ -241,7 +244,7 @@ data file unchanged, using a storage implementation that fails if saving is atte
 
 ### TAssist domain model
 
-TAssist's own data is modelled by the classes below. `ModelManager` holds a `TAssist` beside the AddressBook data while the app moves over to TAssist, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is not saved yet, so the app starts with no tutorial groups.
+TAssist's own data is modelled by the classes below. `ModelManager` holds a `TAssist` beside the AddressBook data while the app moves over to TAssist, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is saved to a JSON data file (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 
 <img src="images/TAssistModelClassDiagram.png" width="300" />
 
@@ -308,6 +311,50 @@ Both views are kept by `ActiveGroupTracker`, a helper class inside the `Model` c
 * **Alternative 3:** Keep one list of all students and filter it by the active group, like AB3's filtered person list.
   * Pros: Reuses the familiar `FilteredList` pattern.
   * Cons: Students belong to a group in our model, and a student ID is only unique within a group. A flat list of all students would have to be rebuilt whenever any group changes.
+
+### Saving and loading TAssist data
+
+TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The file nests the data the same way as the model: the active group's name, then each group with its students.
+
+```json
+{
+  "activeGroup" : "T01",
+  "groups" : [ {
+    "name" : "T01",
+    "students" : [ {
+      "name" : "Alice Tan",
+      "studentId" : "A0123456X"
+    } ]
+  } ]
+}
+```
+
+**Saving.** After a command succeeds, `LogicManager` calls `Storage#saveTAssist(model.getTAssist())`, unless the command only opens a screen (`view`). `JsonSerializableTAssist` copies the groups and the active group's name into Jackson-friendly objects, which `JsonUtil` writes to the file. A failed command throws before this point, so it never saves.
+
+**Loading.** At startup, `MainApp#initModelManager` calls `Storage#readTAssist()`:
+
+* If the file does not exist, the app starts with an empty `TAssist` and no sample data. The file is created by the first save.
+* If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
+* Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
+
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, and unknown fields are ignored.
+
+**Adding records in later features.** Each Jackson-friendly class mirrors one model class and only converts its own fields. A feature that stores more data adds a field to the class that mirrors where its data lives in the model (see [Where per-student records are stored](#where-per-student-records-are-stored)):
+
+* Weekly records sit on each student, so the shared weekly record mechanism adds one field per kind of record to `JsonAdaptedStudent`, e.g. `"attendance" : { "1" : "PRESENT" }`, converted by its own adapter class.
+* Assignments sit on each group, so the assignment feature adds an `assignments` field to `JsonAdaptedGroup`.
+
+A file saved before a feature existed has no field for it, so the feature should read a missing field as "no records". Other features' fields and `JsonSerializableTAssist` do not change.
+
+**Aspect: How TAssist data is laid out in the file**
+
+* **Alternative 1 (current choice):** One file that nests group → students → records, mirroring the model.
+  * Pros: Easy to read and edit by hand, since everything about a student is in one place. Each feature adds its own field without changing the others, and removing a student from the file also removes their records.
+  * Cons: The whole file is rewritten on every save, which is cheap for a TA's few groups of about 20 students.
+
+* **Alternative 2:** One file per feature (e.g. `groups.json`, `attendance.json`), linked by group name and student ID.
+  * Pros: Each feature owns its file.
+  * Cons: A manual edit to one file, such as renaming a group, can leave records in another file that point to nothing. Loading must check every file against the others.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -839,7 +886,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with no data. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -869,11 +916,26 @@ testers are expected to do more *exploratory* testing.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Restoring saved data
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close the app. In the folder of the JAR file, create `data/tassist.json` with the example content from [Saving and loading TAssist data](#saving-and-loading-tassist-data).
 
-1. _{ more test cases …​ }_
+   1. Launch the app, then enter `list`, which is a successful command other than `view`. Close the app.<br>
+      Expected: `data/tassist.json` still holds group `T01`, its student and the active group, laid out by the app.
+
+1. Dealing with a missing data file
+
+   1. Prerequisites: Close the app and delete `data/tassist.json`.
+
+   1. Launch the app.<br>
+      Expected: The app starts with no data and no sample data. The log says the data file was not found.
+
+1. Dealing with an invalid data file
+
+   1. Prerequisites: Close the app. In `data/tassist.json`, change `activeGroup` to a group that is not in the file, or delete a closing brace.
+
+   1. Launch the app.<br>
+      Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
 
 ### Testing the v1.2 workspace
@@ -894,9 +956,10 @@ with unavailable storage.
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
 1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
-   Verify that preview features are explicitly unavailable, and the storage path is the actual contact data path.
+   Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
 2. Use `find Alex`, `view help`, and `view students`. The filter should remain active; `list` should restore all contacts.
-3. Add, edit and delete temporary contacts. Check the displayed row indices, save feedback, and records after restart.
+3. Add, edit and delete temporary contacts. Check the displayed row indices and save feedback. Contacts are not
+   saved, so they are gone after a restart.
 4. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
 5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
    100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
