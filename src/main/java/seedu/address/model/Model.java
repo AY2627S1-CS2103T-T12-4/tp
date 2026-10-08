@@ -1,9 +1,12 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
 
 /**
@@ -76,4 +79,34 @@ public interface Model {
 
     /** Returns the TAssist data. */
     ReadOnlyTAssist getTAssist();
+
+    /**
+     * Returns true if a group named {@code name} exists, ignoring case.
+     */
+    boolean hasGroup(GroupName name);
+
+    /**
+     * Adds the given group.
+     * No existing group may have the same name, ignoring case. Adding a group does not make it active.
+     */
+    void addGroup(Group group);
+
+    /**
+     * Returns the group named {@code name}, ignoring case.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.
+     */
+    Group getGroup(GroupName name);
+
+    /**
+     * Makes the group named {@code name} the active group.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.
+     */
+    void setActiveGroup(GroupName name);
+
+    /**
+     * Returns the active group, or an empty {@code Optional} if no group is active.
+     */
+    Optional<Group> getActiveGroup();
 }

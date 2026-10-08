@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -150,6 +153,31 @@ public class AddCommandTest {
 
         @Override
         public ReadOnlyTAssist getTAssist() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean hasGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addGroup(Group group) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Group getGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setActiveGroup(GroupName name) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Group> getActiveGroup() {
             throw new AssertionError("This method should not be called.");
         }
     }

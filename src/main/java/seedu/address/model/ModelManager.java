@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -10,6 +11,8 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
 
 /**
@@ -131,6 +134,36 @@ public class ModelManager implements Model {
     @Override
     public ReadOnlyTAssist getTAssist() {
         return tAssist;
+    }
+
+    @Override
+    public boolean hasGroup(GroupName name) {
+        requireNonNull(name);
+        return tAssist.hasGroup(name);
+    }
+
+    @Override
+    public void addGroup(Group group) {
+        requireNonNull(group);
+        tAssist.addGroup(group);
+    }
+
+    @Override
+    public Group getGroup(GroupName name) {
+        requireNonNull(name);
+        return tAssist.getGroup(name);
+    }
+
+    @Override
+    public void setActiveGroup(GroupName name) {
+        requireNonNull(name);
+        tAssist.setActiveGroup(name);
+        logger.info("Active group is now " + name);
+    }
+
+    @Override
+    public Optional<Group> getActiveGroup() {
+        return tAssist.getActiveGroup();
     }
 
     @Override
