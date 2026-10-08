@@ -86,7 +86,7 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
-        workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath);
+        workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
 
         resultDisplay = new ResultDisplay();

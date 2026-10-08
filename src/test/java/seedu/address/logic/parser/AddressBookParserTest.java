@@ -21,11 +21,14 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.help.HelpCatalog;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
+import seedu.address.testutil.HelpEntryBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
 
@@ -78,8 +81,21 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_help() throws Exception {
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+        List<HelpEntry> entries = parser.getHelpEntries();
+        assertEquals(new HelpCommand(entries), parser.parseCommand(HelpCommand.COMMAND_WORD));
+        assertEquals(new HelpCommand(entries, "student"), parser.parseCommand(HelpCommand.COMMAND_WORD + " student"));
+        assertThrows(ParseException.class, HelpCommand.MESSAGE_UNKNOWN_TOPIC, () ->
+                parser.parseCommand(HelpCommand.COMMAND_WORD + " 3"));
+    }
+
+    @Test
+    public void getHelpEntries_includesRegisteredFeatureHelp() {
+        HelpEntry groupAdd = new HelpEntryBuilder().withTopic("group").withCommandFormat("group add").build();
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "add", args -> new ListCommand(), groupAdd);
+
+        assertEquals(HelpCatalog.getEntries(List.of(groupAdd)), new AddressBookParser(registry).getHelpEntries());
+        assertEquals(HelpCatalog.getEntries(List.of()), parser.getHelpEntries());
     }
 
     @Test

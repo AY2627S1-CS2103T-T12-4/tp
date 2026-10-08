@@ -7,12 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.testutil.HelpEntryBuilder;
 
 public class CommandRegistryTest {
     private final CommandRegistry registry = new CommandRegistry();
@@ -53,6 +57,44 @@ public class CommandRegistryTest {
         assertThrows(NullPointerException.class, () -> registry.register(null, "list", args -> null));
         assertThrows(NullPointerException.class, () -> registry.register("group", null, args -> null));
         assertThrows(NullPointerException.class, () -> registry.register("group", "list", null));
+        assertThrows(NullPointerException.class, () -> registry.register("group", "list", args -> null, null));
+    }
+
+    @Test
+    public void register_helpEntries_areOrderedAndImmutable() {
+        HelpEntry studentList = helpEntry("student", "student list");
+        HelpEntry studentAdd = helpEntry("student", "student add");
+        HelpEntry groupList = helpEntry("group", "group list");
+        registry.register("student", "list", args -> new ListCommand(), studentList);
+        registry.register("student", "add", args -> new ListCommand(), studentAdd);
+        registry.register("group", "list", args -> new ListCommand(), groupList);
+        registry.register("group", "remove", args -> new ListCommand());
+
+        assertEquals(List.of(groupList, studentAdd, studentList), registry.getHelpEntries());
+        assertThrows(UnsupportedOperationException.class, () -> registry.getHelpEntries().clear());
+    }
+
+    @Test
+    public void register_helpTopicDoesNotMatchFeature_throws() {
+        HelpEntry entry = helpEntry("student", "student list");
+
+        assertThrows(IllegalArgumentException.class, "Help topic must match the feature keyword.", () ->
+                registry.register("group", "list", args -> new ListCommand(), entry));
+        assertFalse(registry.hasFeature("group"));
+        assertTrue(registry.getHelpEntries().isEmpty());
+    }
+
+    @Test
+    public void copyConstructor_copiesParsersAndHelpEntriesIndependently() throws Exception {
+        HelpEntry originalEntry = helpEntry("student", "student list");
+        registry.register("student", "list", args -> new ListCommand(), originalEntry);
+
+        CommandRegistry copy = new CommandRegistry(registry);
+        registry.register("student", "add", args -> new ClearCommand(), helpEntry("student", "student add"));
+
+        assertEquals(List.of(originalEntry), copy.getHelpEntries());
+        assertEquals(2, registry.getHelpEntries().size());
+        assertTrue(copy.parseCommand("student", "list") instanceof ListCommand);
     }
 
     @Test
@@ -106,5 +148,9 @@ public class CommandRegistryTest {
         assertThrows(NullPointerException.class, () -> registry.parseCommand(null, "list"));
         assertThrows(NullPointerException.class, () -> registry.parseCommand("group", null));
         assertThrows(NullPointerException.class, () -> registry.hasFeature(null));
+    }
+
+    private HelpEntry helpEntry(String topic, String commandFormat) {
+        return new HelpEntryBuilder().withTopic(topic).withCommandFormat(commandFormat).build();
     }
 }
