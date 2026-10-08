@@ -1,12 +1,17 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -21,11 +26,14 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.group.Group;
 
 /**
  * Connects the TAssist workspace, command input and feedback to application logic.
  */
 public class MainWindow extends UiPart<Stage> {
+    static final String NO_ACTIVE_GROUP = "None";
+
     private static final String FXML = "MainWindow.fxml";
     private final Logger logger = LogsCenter.getLogger(getClass());
     private final Stage primaryStage;
@@ -41,6 +49,8 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane commandBoxPlaceholder;
     @FXML
     private MenuItem helpMenuItem;
+    @FXML
+    private Label activeGroupLabel;
     @FXML
     private StackPane workspacePlaceholder;
     @FXML
@@ -86,6 +96,8 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
+        showActiveGroup(logic.activeGroupProperty());
+
         workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
 
@@ -98,6 +110,18 @@ public class MainWindow extends UiPart<Stage> {
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         Platform.runLater(commandBox::focus);
+    }
+
+    /**
+     * Keeps the header showing the name of {@code activeGroup}, with a tooltip for names too long to fit.
+     */
+    private void showActiveGroup(ObservableValue<Optional<Group>> activeGroup) {
+        activeGroupLabel.textProperty().bind(Bindings.createStringBinding(() ->
+                activeGroup.getValue().map(group -> group.getName().toString()).orElse(NO_ACTIVE_GROUP),
+                activeGroup));
+        Tooltip fullName = new Tooltip();
+        fullName.textProperty().bind(activeGroupLabel.textProperty());
+        activeGroupLabel.setTooltip(fullName);
     }
 
     private void setWindowDefaultSize(GuiSettings guiSettings) {

@@ -27,7 +27,7 @@
           </MenuBar>
           <Region HBox.hgrow="ALWAYS" />
           <Label text="Active group" styleClass="header-caption" />
-          <Label text="None" styleClass="active-group" />
+          <Label fx:id="activeGroupLabel" styleClass="active-group" maxWidth="240" />
         </HBox>
         <HBox styleClass="group-strip" spacing="12" alignment="CENTER_LEFT">
           <Label text="GROUPS" styleClass="eyebrow" />
