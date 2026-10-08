@@ -32,7 +32,7 @@
         <StackPane fx:id="groupStripPlaceholder" />
         <VBox styleClass="main-content" spacing="12" VBox.vgrow="ALWAYS" minHeight="0">
           <StackPane fx:id="workspacePlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
-          <StackPane fx:id="resultDisplayPlaceholder" minHeight="62" prefHeight="72" maxHeight="90" />
+          <StackPane fx:id="resultDisplayPlaceholder" minHeight="-Infinity" maxHeight="-Infinity" />
           <StackPane fx:id="commandBoxPlaceholder" minHeight="48" prefHeight="48" maxHeight="48" />
         </VBox>
         <StackPane fx:id="statusbarPlaceholder" />

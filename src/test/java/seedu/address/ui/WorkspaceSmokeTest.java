@@ -22,8 +22,10 @@ import org.junit.jupiter.api.io.TempDir;
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.geometry.Orientation;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
@@ -36,6 +38,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
@@ -97,6 +100,13 @@ public class WorkspaceSmokeTest {
             verifyCommands();
             verifyFailure();
             runOnFx(() -> render(root, "error", 853, 440));
+            runOnFx(() -> enter(input, "add"));
+            runOnFx(() -> {
+                render(root, "error-usage", 1280, 680);
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertTrue(feedback.getText().contains(AddCommand.MESSAGE_USAGE));
+                assertFalse(hasVisibleVerticalScrollBar(feedback), "A usage message fits without scrolling");
+            });
             runOnFx(() -> {
                 enter(input, "view storage");
                 Label status = (Label) root.lookup("#saveLocationStatus");
@@ -284,6 +294,11 @@ public class WorkspaceSmokeTest {
             boolean isActive = chip.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active"));
             assertEquals(chip.getText().equals(expectedActiveName), isActive, chip.getText());
         }
+    }
+
+    private static boolean hasVisibleVerticalScrollBar(Parent parent) {
+        return parent.lookupAll(".scroll-bar").stream().anyMatch(node -> node instanceof ScrollBar bar
+                && bar.getOrientation() == Orientation.VERTICAL && bar.isVisible());
     }
 
     private TableView<?> studentTable() {
