@@ -37,6 +37,9 @@ public interface Logic {
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 
+    /** Returns an unmodifiable view of the tutorial groups, in the order they were added. */
+    ObservableList<Group> getGroupList();
+
     /**
      * Returns the active tutorial group, which is empty when no group is active.
      * It changes whenever another group becomes active, but not when the new active group is equal to the old one,

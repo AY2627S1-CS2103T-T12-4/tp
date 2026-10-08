@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<HBox styleClass="group-strip" spacing="12" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <Label text="GROUPS" styleClass="eyebrow" minWidth="-Infinity" />
+  <ScrollPane fitToHeight="true" vbarPolicy="NEVER" hbarPolicy="AS_NEEDED" HBox.hgrow="ALWAYS"
+              styleClass="group-chips-scroll">
+    <HBox fx:id="groupChips" spacing="8" alignment="CENTER_LEFT" />
+  </ScrollPane>
+</HBox>

@@ -41,6 +41,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.Group;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.StudentId;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -190,6 +191,21 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getGroupList_groupAdded_showsGroup() {
+        model.setTAssist(TypicalGroups.getTypicalTAssist());
+        assertEquals(TypicalGroups.getTypicalGroups(), logic.getGroupList());
+
+        model.addGroup(new Group(TypicalGroups.NAME_T04));
+
+        assertTrue(logic.getGroupList().contains(new Group(TypicalGroups.NAME_T04)));
+    }
+
+    @Test
+    public void getGroupList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> logic.getGroupList().add(TypicalGroups.getT01()));
     }
 
     @Test

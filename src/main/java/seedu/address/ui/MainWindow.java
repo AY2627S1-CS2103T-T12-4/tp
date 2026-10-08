@@ -54,6 +54,8 @@ public class MainWindow extends UiPart<Stage> {
     @FXML
     private Label activeGroupLabel;
     @FXML
+    private StackPane groupStripPlaceholder;
+    @FXML
     private StackPane workspacePlaceholder;
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -99,6 +101,8 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         showActiveGroup(logic.activeGroupProperty());
+        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
+        groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
                 dataFilePath, logic.getHelpEntries());
