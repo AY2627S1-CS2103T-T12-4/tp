@@ -68,4 +68,12 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Replaces TAssist data with the data in {@code tAssist}, including which group is active.
+     */
+    void setTAssist(ReadOnlyTAssist tAssist);
+
+    /** Returns the TAssist data. */
+    ReadOnlyTAssist getTAssist();
 }

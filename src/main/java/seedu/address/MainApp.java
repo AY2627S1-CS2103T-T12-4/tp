@@ -18,6 +18,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -83,7 +84,9 @@ public class MainApp extends Application {
             initialData = new AddressBook();
         }
 
-        return new ModelManager(initialData, userPrefs);
+        // TAssist data is not saved yet, so every run starts without tutorial groups.
+        logger.info("Starting with no tutorial groups.");
+        return new ModelManager(initialData, new TAssist(), userPrefs);
     }
 
     /**
