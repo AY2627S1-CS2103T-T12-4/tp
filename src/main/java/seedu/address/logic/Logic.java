@@ -39,7 +39,9 @@ public interface Logic {
 
     /**
      * Returns the active tutorial group, which is empty when no group is active.
-     * It changes whenever another group becomes active.
+     * It changes whenever another group becomes active, but not when the new active group is equal to the old one,
+     * for example after the same group being reloaded. Read the students from
+     * {@code getActiveGroupStudentList()} rather than from a {@code Group} taken from this value earlier.
      */
     ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty();
 
