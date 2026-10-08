@@ -42,6 +42,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Phone;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
@@ -190,6 +191,7 @@ public class WorkspaceSmokeTest {
         model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
         data = temporaryFolder.resolve("contacts.json");
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(data),
+                new JsonTAssistStorage(temporaryFolder.resolve("tassist.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         commandRegistry.register("student", "list", args -> new ListCommand(),
