@@ -3,6 +3,7 @@ package seedu.address.model;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.group.Group;
@@ -124,4 +125,16 @@ public interface Model {
      * The group must exist, and the student must be in it.
      */
     Student removeStudent(GroupName groupName, StudentId studentId);
+
+    /**
+     * Returns the active group as an observable value, which is empty when no group is active.
+     * It changes whenever another group becomes active.
+     */
+    ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty();
+
+    /**
+     * Returns an unmodifiable view of the students in the active group.
+     * It follows the active group, and is empty when no group is active.
+     */
+    ObservableList<Student> getActiveGroupStudentList();
 }

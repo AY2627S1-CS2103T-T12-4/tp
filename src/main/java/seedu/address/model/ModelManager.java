@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
@@ -27,6 +28,7 @@ public class ModelManager implements Model {
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
 
     /**
      * Initializes a ModelManager with copies of the given addressBook, tAssist and userPrefs.
@@ -41,6 +43,7 @@ public class ModelManager implements Model {
         this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        trackActiveGroup();
     }
 
     /**
@@ -131,6 +134,7 @@ public class ModelManager implements Model {
     public void setTAssist(ReadOnlyTAssist tAssist) {
         requireNonNull(tAssist);
         this.tAssist.resetData(tAssist);
+        trackActiveGroup();
     }
 
     @Override
@@ -161,6 +165,7 @@ public class ModelManager implements Model {
         requireNonNull(name);
         tAssist.setActiveGroup(name);
         logger.info("Active group is now " + name);
+        trackActiveGroup();
     }
 
     @Override
@@ -176,6 +181,27 @@ public class ModelManager implements Model {
     @Override
     public Student removeStudent(GroupName groupName, StudentId studentId) {
         return tAssist.removeStudent(groupName, studentId);
+    }
+
+    //=========== Active Group Accessors =====================================================================
+
+    @Override
+    public ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty() {
+        return activeGroupTracker.activeGroupProperty();
+    }
+
+    @Override
+    public ObservableList<Student> getActiveGroupStudentList() {
+        return activeGroupTracker.getStudentList();
+    }
+
+    /**
+     * Points the active group views at the group that is active in {@code tAssist}.
+     */
+    private void trackActiveGroup() {
+        activeGroupTracker.track(tAssist.getActiveGroup());
+        assert activeGroupTracker.activeGroupProperty().get().equals(tAssist.getActiveGroup())
+                : "The active group views must show the active group";
     }
 
     @Override
