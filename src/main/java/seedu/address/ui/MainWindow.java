@@ -159,6 +159,16 @@ public class MainWindow extends UiPart<Stage> {
         commandBox.focus();
     }
 
+    /**
+     * Opens Help if {@code result} asks for it. Other commands keep the current screen, so a contact command
+     * does not jump to the Students screen, where contacts are no longer shown.
+     */
+    private void showHelpIfRequested(CommandResult result) {
+        if (result.isShowHelp()) {
+            workspacePanel.showView(WorkspaceView.HELP);
+        }
+    }
+
     void show() {
         primaryStage.show();
     }
@@ -187,7 +197,7 @@ public class MainWindow extends UiPart<Stage> {
                 statusBarFooter.setStatus("Local data file");
             } else {
                 statusBarFooter.setStatus("Changes saved");
-                workspacePanel.showView(result.isShowHelp() ? WorkspaceView.HELP : WorkspaceView.STUDENTS);
+                showHelpIfRequested(result);
             }
             if (result.isExit()) {
                 handleExit();
