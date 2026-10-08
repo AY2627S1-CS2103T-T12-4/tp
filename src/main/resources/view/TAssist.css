@@ -162,5 +162,4 @@
 .workspace:compact .workspace-tabs > .tab-header-area { -fx-padding: 0 0 6 0; }
 .workspace:compact .workspace-tabs .tab { -fx-padding: 4 10; }
 .workspace:compact .card-heading { -fx-padding: 10 16; }
-.workspace:compact #resultDisplayPlaceholder { -fx-min-height: 44; -fx-pref-height: 44; -fx-max-height: 44; }
 .workspace:compact .status-bar { -fx-padding: 5 16; }
