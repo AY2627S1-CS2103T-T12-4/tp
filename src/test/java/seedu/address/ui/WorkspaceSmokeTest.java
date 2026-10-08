@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
@@ -29,9 +30,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.help.HelpEntry;
+import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Phone;
@@ -130,6 +135,9 @@ public class WorkspaceSmokeTest {
             assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
             assertEquals(1, model.getFilteredPersonList().size());
             enter(input, "view help");
+            VBox commands = (VBox) root.lookup("#commands");
+            assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
+                    && label.getText().equals("Student commands")));
             enter(input, "view students");
             assertEquals(1, model.getFilteredPersonList().size());
             enter(input, "list");
@@ -158,8 +166,11 @@ public class WorkspaceSmokeTest {
         data = temporaryFolder.resolve("contacts.json");
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        CommandRegistry commandRegistry = new CommandRegistry();
+        commandRegistry.register("student", "list", args -> new ListCommand(),
+                new HelpEntry("student", "student list", "Show all students.", List.of("student list")));
         stage = new Stage();
-        MainWindow window = new MainWindow(stage, new LogicManager(model, storage), data);
+        MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();
