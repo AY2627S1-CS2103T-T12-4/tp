@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.StackPane?>
-<StackPane fx:id="feedbackPane" styleClass="feedback-pane" xmlns="http://javafx.com/javafx/17"
-           xmlns:fx="http://javafx.com/fxml/1">
-  <TextArea fx:id="resultDisplay" editable="false" wrapText="true" focusTraversable="false"
+<?import javafx.scene.layout.HBox?>
+<HBox fx:id="feedbackPane" styleClass="feedback-pane" alignment="TOP_LEFT" spacing="10"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="feedbackIcon" text="i" styleClass="feedback-icon" minWidth="-Infinity" />
+  <TextArea fx:id="resultDisplay" HBox.hgrow="ALWAYS" editable="false" wrapText="true" focusTraversable="false"
             text="Ready. Type help to see the available commands." accessibleText="Command feedback" />
-</StackPane>
+</HBox>

@@ -4,9 +4,10 @@ import static java.util.Objects.requireNonNull;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
 /**
@@ -17,6 +18,8 @@ public class ResultDisplay extends UiPart<Region> {
     static final int MAX_VISIBLE_LINES = 6;
 
     private static final String FXML = "ResultDisplay.fxml";
+    private static final String SUCCESS_ICON = "✓";
+    private static final String FAILURE_ICON = "✕";
     /** Width of the text area that text cannot use: its padding and a vertical scroll bar. */
     private static final double NON_TEXT_WIDTH = 30;
 
@@ -26,7 +29,9 @@ public class ResultDisplay extends UiPart<Region> {
     @FXML
     private TextArea resultDisplay;
     @FXML
-    private StackPane feedbackPane;
+    private HBox feedbackPane;
+    @FXML
+    private Label feedbackIcon;
 
     /**
      * Creates the command feedback area.
@@ -49,6 +54,7 @@ public class ResultDisplay extends UiPart<Region> {
     public void setFeedbackToUser(String feedbackToUser, boolean isFailure) {
         requireNonNull(feedbackToUser);
         feedbackPane.pseudoClassStateChanged(PseudoClass.getPseudoClass("failure"), isFailure);
+        feedbackIcon.setText(isFailure ? FAILURE_ICON : SUCCESS_ICON);
         resultDisplay.setText(feedbackToUser);
     }
 
