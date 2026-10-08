@@ -25,6 +25,7 @@ import seedu.address.model.student.Student;
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
     private final HelpPanel helpPanel;
+    private final NavigationBar navigationBar = new NavigationBar(this::showView);
 
     @FXML
     private TabPane tabs;
@@ -51,6 +52,21 @@ public class WorkspacePanel extends UiPart<TabPane> {
         addView(WorkspaceView.HELP, helpPanel.getRoot());
         addView(WorkspaceView.STORAGE, new StoragePanel(dataFilePath).getRoot());
         assert views.size() == WorkspaceView.values().length : "Every workspace screen must be registered";
+        tabs.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) ->
+                navigationBar.showCurrent(findView(newTab)));
+        navigationBar.showCurrent(findView(tabs.getSelectionModel().getSelectedItem()));
+    }
+
+    /**
+     * Returns the bar that opens each screen, for the window to place above the workspace.
+     */
+    public Node getNavigationBar() {
+        return navigationBar.getRoot();
+    }
+
+    private WorkspaceView findView(Tab tab) {
+        return views.entrySet().stream().filter(entry -> entry.getValue() == tab).map(Map.Entry::getKey)
+                .findFirst().orElseThrow();
     }
 
     private void addWeeklyView(WorkspaceView view, String title, String explanation, String column) {
@@ -67,7 +83,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
     }
 
     /**
-     * Selects a screen without changing the current roster filter.
+     * Selects a screen.
      */
     public void showView(WorkspaceView view) {
         tabs.getSelectionModel().select(views.get(requireNonNull(view)));

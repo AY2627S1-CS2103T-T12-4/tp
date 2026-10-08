@@ -40,6 +40,8 @@ public class MainWindow extends UiPart<Stage> {
     @FXML
     private StackPane groupStripPlaceholder;
     @FXML
+    private StackPane navigationPlaceholder;
+    @FXML
     private StackPane workspacePlaceholder;
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -89,6 +91,7 @@ public class MainWindow extends UiPart<Stage> {
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
                 dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
+        navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -114,8 +117,7 @@ public class MainWindow extends UiPart<Stage> {
     /**
      * Shows the inline command reference.
      */
-    @FXML
-    public void handleHelp() {
+    private void handleHelp() {
         workspacePanel.showView(WorkspaceView.HELP);
         commandBox.focus();
     }

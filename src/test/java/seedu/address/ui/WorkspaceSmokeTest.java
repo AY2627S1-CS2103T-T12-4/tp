@@ -24,6 +24,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
@@ -188,6 +189,26 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void navigationBar_clickAndCommand_openScreenAndKeepCommandFocus() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                assertNavigationHighlights("students");
+                Button attendanceButton = (Button) root.lookup("#nav-attendance");
+                attendanceButton.fire();
+                assertEquals("attendance", tabs.getSelectionModel().getSelectedItem().getId());
+                assertNavigationHighlights("attendance");
+                assertEquals(input, stage.getScene().getFocusOwner(), "Clicking a button keeps the command focus");
+
+                enter(input, "view storage");
+                assertNavigationHighlights("storage");
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
     public void exitCommand_savesWindowSettingsAndClosesWindow() throws Exception {
         runOnFx(this::initializeWorkspace);
         try {
@@ -293,6 +314,18 @@ public class WorkspaceSmokeTest {
         for (Label chip : chips) {
             boolean isActive = chip.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active"));
             assertEquals(chip.getText().equals(expectedActiveName), isActive, chip.getText());
+        }
+    }
+
+    /**
+     * Asserts that only the navigation button of the screen with {@code keyword} is highlighted.
+     */
+    private void assertNavigationHighlights(String keyword) {
+        PseudoClass current = PseudoClass.getPseudoClass("current");
+        for (WorkspaceView view : WorkspaceView.values()) {
+            Button button = (Button) root.lookup("#nav-" + view.getKeyword());
+            assertEquals(view.getKeyword().equals(keyword), button.getPseudoClassStates().contains(current),
+                    view.getKeyword());
         }
     }
 
