@@ -134,10 +134,6 @@ public class MainWindow extends UiPart<Stage> {
         primaryStage.hide();
     }
 
-    public PersonListPanel getPersonListPanel() {
-        return workspacePanel.getPersonListPanel();
-    }
-
     /**
      * Executes a command and displays its result without clearing failed input.
      */
