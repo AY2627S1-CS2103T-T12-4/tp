@@ -19,7 +19,7 @@ class WorkspacePanel
 class CommandBox
 class ResultDisplay
 class StatusBarFooter
-class PersonListPanel
+class StudentListPanel
 class FeaturePreview
 class HelpPanel
 class StoragePanel
@@ -31,7 +31,7 @@ MainWindow *--> CommandBox
 MainWindow *--> ResultDisplay
 MainWindow *--> StatusBarFooter
 MainWindow *--> WorkspacePanel
-WorkspacePanel *--> PersonListPanel
+WorkspacePanel *--> StudentListPanel
 WorkspacePanel *--> "4" FeaturePreview
 WorkspacePanel *--> HelpPanel
 WorkspacePanel *--> StoragePanel
@@ -41,7 +41,10 @@ View components inherit from UiPart.
 end note
 
 interface Logic #3333C4
-class Person #9D0012
+class Group #9D0012
+class Student #9D0012
 MainWindow --> Logic
-PersonListPanel ..> Person
+MainWindow ..> Group
+StudentListPanel ..> Group
+StudentListPanel ..> Student
 @enduml
