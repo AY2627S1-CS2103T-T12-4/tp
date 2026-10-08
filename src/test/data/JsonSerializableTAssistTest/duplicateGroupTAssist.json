@@ -1,0 +1,10 @@
+{
+  "activeGroup" : null,
+  "groups" : [ {
+    "name" : "T01",
+    "students" : [ ]
+  }, {
+    "name" : "t01",
+    "students" : [ ]
+  } ]
+}

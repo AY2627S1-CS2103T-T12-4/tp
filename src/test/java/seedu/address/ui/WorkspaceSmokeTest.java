@@ -51,7 +51,7 @@ import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Phone;
 import seedu.address.model.student.Student;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.StudentBuilder;
@@ -96,7 +96,7 @@ public class WorkspaceSmokeTest {
         try {
             verifyScreens();
             verifyKeyboard();
-            assertFalse(Files.exists(data), "Screen navigation must not write contact data");
+            assertFalse(Files.exists(data), "Screen navigation must not write TAssist data");
             verifyCommands();
             verifyFailure();
             runOnFx(() -> render(root, "error", 853, 440));
@@ -308,8 +308,8 @@ public class WorkspaceSmokeTest {
     private void initializeWorkspace() {
         model = new ModelManager(SampleDataUtil.getSampleAddressBook(), TypicalGroups.getTypicalTAssist(),
                 new UserPrefs());
-        data = temporaryFolder.resolve("contacts.json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(data),
+        data = temporaryFolder.resolve("tassist.json");
+        StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         commandRegistry.register("student", "list", args -> new ListCommand(),
