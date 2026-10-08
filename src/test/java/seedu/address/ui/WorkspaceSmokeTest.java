@@ -272,6 +272,9 @@ public class WorkspaceSmokeTest {
      */
     private void assertStudentsShown(String expectedGroup) {
         assertEquals(expectedGroup, ((Label) root.lookup("#activeGroupLabel")).getText());
+        String expectedTitle = expectedGroup.equals(StudentListPanel.NO_ACTIVE_GROUP)
+                ? StudentListPanel.STUDENTS_TITLE : expectedGroup;
+        assertEquals(expectedTitle, ((Label) root.lookup("#groupTitle")).getText());
         assertEquals(model.getActiveGroupStudentList(), studentTable().getItems());
     }
 

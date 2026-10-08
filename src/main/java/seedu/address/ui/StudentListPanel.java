@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -17,6 +18,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 
@@ -25,6 +27,7 @@ import seedu.address.model.student.Student;
  */
 public class StudentListPanel extends UiPart<Region> {
     static final String NO_ACTIVE_GROUP = "No active group";
+    static final String STUDENTS_TITLE = "Students";
     static final String NO_ACTIVE_GROUP_HINT = "Add a tutorial group and make it active to see its students here.";
     static final String EMPTY_GROUP_TITLE_FORMAT = "No students in %s yet";
     static final String EMPTY_GROUP_HINT_FORMAT = "Students you add to %s will appear here.";
@@ -36,7 +39,11 @@ public class StudentListPanel extends UiPart<Region> {
     @FXML
     private TableView<Student> studentTable;
     @FXML
+    private Label groupTitle;
+    @FXML
     private Label studentCount;
+    @FXML
+    private VBox emptyState;
     @FXML
     private Label emptyTitle;
     @FXML
@@ -58,12 +65,28 @@ public class StudentListPanel extends UiPart<Region> {
         // Row numbers depend on positions, which change when another student is removed.
         students.addListener((ListChangeListener<Student>) change -> studentTable.refresh());
 
+        groupTitle.textProperty().bind(Bindings.createStringBinding(() -> describeTitle(activeGroup.getValue()),
+                activeGroup));
+        Tooltip fullTitle = new Tooltip();
+        fullTitle.textProperty().bind(groupTitle.textProperty());
+        groupTitle.setTooltip(fullTitle);
         studentCount.textProperty().bind(Bindings.createStringBinding(() -> describeCount(students.size()),
                 students));
         emptyTitle.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyTitle(activeGroup.getValue()),
                 activeGroup));
         emptyHint.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyHint(activeGroup.getValue()),
                 activeGroup));
+        showEmptyStateInsteadOfTable(students);
+    }
+
+    /**
+     * Shows the explanation in place of the table, without its column headings, while there are no students.
+     */
+    private void showEmptyStateInsteadOfTable(ObservableList<Student> students) {
+        BooleanBinding hasNoStudents = Bindings.isEmpty(students);
+        emptyState.visibleProperty().bind(hasNoStudents);
+        emptyState.managedProperty().bind(hasNoStudents);
+        studentTable.visibleProperty().bind(hasNoStudents.not());
     }
 
     /**
@@ -87,6 +110,13 @@ public class StudentListPanel extends UiPart<Region> {
     static String describeCount(int count) {
         assert count >= 0 : "A group cannot have a negative number of students";
         return count + (count == 1 ? " student" : " students");
+    }
+
+    /**
+     * Returns the card title, which is the name of the active group, or a general title when no group is active.
+     */
+    static String describeTitle(Optional<Group> activeGroup) {
+        return activeGroup.map(group -> group.getName().toString()).orElse(STUDENTS_TITLE);
     }
 
     /**

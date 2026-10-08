@@ -22,6 +22,16 @@ public class StudentListPanelTest {
     }
 
     @Test
+    public void describeTitle_activeGroup_namesGroup() {
+        assertEquals("T03", StudentListPanel.describeTitle(Optional.of(TypicalGroups.getT03())));
+    }
+
+    @Test
+    public void describeTitle_noActiveGroup_usesGeneralTitle() {
+        assertEquals(StudentListPanel.STUDENTS_TITLE, StudentListPanel.describeTitle(Optional.empty()));
+    }
+
+    @Test
     public void describeEmptyState_activeGroup_namesGroup() {
         assertEquals("No students in T03 yet",
                 StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03())));
