@@ -26,6 +26,8 @@ import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -178,6 +180,16 @@ public class AddCommandTest {
 
         @Override
         public Optional<Group> getActiveGroup() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addStudent(GroupName groupName, Student student) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Student removeStudent(GroupName groupName, StudentId studentId) {
             throw new AssertionError("This method should not be called.");
         }
     }
