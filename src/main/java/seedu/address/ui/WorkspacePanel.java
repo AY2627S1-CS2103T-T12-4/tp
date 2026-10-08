@@ -21,7 +21,6 @@ import seedu.address.model.person.Person;
  */
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
-    private final PersonListPanel personListPanel;
 
     @FXML
     private TabPane tabs;
@@ -32,7 +31,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
     public WorkspacePanel(ObservableList<Person> persons, Path dataFilePath, List<HelpEntry> helpEntries) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        personListPanel = new PersonListPanel(persons);
+        PersonListPanel personListPanel = new PersonListPanel(persons);
         addView(WorkspaceView.STUDENTS, personListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
                 "Create and switch between tutorial groups in a future increment.", "#", "GROUP", "STATUS").getRoot());
@@ -66,9 +65,5 @@ public class WorkspacePanel extends UiPart<TabPane> {
      */
     public void showView(WorkspaceView view) {
         tabs.getSelectionModel().select(views.get(requireNonNull(view)));
-    }
-
-    public PersonListPanel getPersonListPanel() {
-        return personListPanel;
     }
 }
