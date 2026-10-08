@@ -204,6 +204,7 @@ public class WorkspaceSmokeTest {
         tabs = (TabPane) root.lookup("#tabs");
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
+        assertEquals(MainWindow.NO_ACTIVE_GROUP, ((Label) root.lookup("#activeGroupLabel")).getText());
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
