@@ -49,19 +49,24 @@ The top row opens **Students**, **Groups**, **Attendance**, **Participation**, *
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
 Press **Escape** to return focus to the command box, or **F1** to open Help.
 
-* **Students** lists the students in the active tutorial group with their names and student IDs. The header at the
-  top right shows the name of the active group, or **None** when no group is active. Both update as soon as the
-  active group or its students change. When there are no students to list, the screen says whether no group is
+The header at the top right shows the name of the active tutorial group, or **No active group**. Below it, the
+**GROUPS** strip shows every tutorial group, with the active one highlighted. Hover over a shortened group name to
+read it in full.
+
+* **Students** lists the students in the active tutorial group with their names and student IDs. It updates as soon
+  as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
   more students.
 * **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
   label. They contain no simulated records. Week controls are unavailable, and their domain commands are not yet
   supported.
-* **Help** provides an offline reference for currently supported commands.
+* **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
-Feedback turns red when a command fails. The failed input stays in the command box so you can correct it.
-Long feedback and screen contents can be scrolled. Smaller windows use a compact layout.
+The feedback box below the screen tells you whether your last command worked. It grows to fit the message, up to six
+lines; only longer messages need scrolling. Feedback turns red when a command fails, and the failed input stays in the
+command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
+`help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
 The footer shows the local file path and reports successful saves or command failures.
 Opening a screen with `view` does not save or change data.
 

@@ -73,21 +73,30 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of `MainWindow`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`.
+The UI consists of `MainWindow`, `GroupStrip`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`.
 `WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
-The Students screen (`StudentListPanel`) and the active group label in the header observe the two views that `Logic`
-provides: `activeGroupProperty()` and `getActiveGroupStudentList()` (see
+The active group label in the header, the `GroupStrip` below it and the Students screen (`StudentListPanel`) observe the
+views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getActiveGroupStudentList()` (see
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
-the active group or its students shows at once. When the table is empty, its placeholder says whether no group is active
+the groups, the active group or its students shows at once. All three use the same words, "No active group", when no
+group is active. When the table is empty, its placeholder says whether no group is active
 or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
-screens does not change the model or filter. Existing contact commands still save through `Storage` and bring the
-Students screen into view. `help` and F1 display the inline reference. Failed commands retain their input and show red feedback.
+screens does not change the model or filter. Other commands keep the current screen, so contact commands, which still
+save through `Storage`, do not jump to the Students screen where contacts are no longer shown.
+
+The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
+confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
+`HelpPanel` to that topic's heading. F1, the Help menu and `view help` open the same screen.
+
+`ResultDisplay` sizes itself to the message: it measures how many lines the text wraps to at the current width and
+shows that many rows, from one up to six. Longer messages scroll. Failed commands retain their input and show red
+feedback.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -890,18 +899,21 @@ Linux CI enables this test under the runner's virtual display (`xvfb-run`) so th
 The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
-the active group label, the Students screen following the active group and its students, both empty states, long
-group and student names, row numbering after a removal, and invalid-input retention. Normal unit tests cover screen
+the active group label, the group strip, the Students screen following the active group and its students, both empty
+states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, contact
+commands keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
 1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
    Verify that preview features are explicitly unavailable, and the storage path is the actual contact data path.
-2. Use `view students`. With no active group, the header shows **None** and the Students screen says that no group
-   is active. Once group and student commands are available, make a group active and add and remove students in it.
+2. Use `view students`. With no active group, the header and the Students screen both say **No active group**, and
+   the group strip says that there are no tutorial groups yet. Once group and student commands are available, make a group active and add and remove students in it.
    The header and the table should update at once.
 3. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
-4. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
+   Enter `add` and verify that the whole usage message is readable without scrolling.
+4. Enter `help student`. Verify that Help opens at the student commands and the feedback box shows one line.
+5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
    100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
    853x440 content pixels, allowing for window decorations at 150% scaling.
