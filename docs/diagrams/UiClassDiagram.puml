@@ -15,6 +15,7 @@ package UI <<Rectangle>> {
 interface Ui
 class UiManager
 class MainWindow
+class GroupStrip
 class WorkspacePanel
 class CommandBox
 class ResultDisplay
@@ -30,6 +31,7 @@ UiManager --> MainWindow
 MainWindow *--> CommandBox
 MainWindow *--> ResultDisplay
 MainWindow *--> StatusBarFooter
+MainWindow *--> GroupStrip
 MainWindow *--> WorkspacePanel
 WorkspacePanel *--> StudentListPanel
 WorkspacePanel *--> "4" FeaturePreview
@@ -46,5 +48,6 @@ class Student #9D0012
 MainWindow --> Logic
 MainWindow ..> Group
 StudentListPanel ..> Group
+GroupStrip ..> Group
 StudentListPanel ..> Student
 @enduml
