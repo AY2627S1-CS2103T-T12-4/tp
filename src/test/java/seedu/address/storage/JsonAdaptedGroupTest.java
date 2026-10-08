@@ -3,7 +3,7 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.storage.JsonAdaptedGroup.MESSAGE_DUPLICATE_STUDENT;
 import static seedu.address.storage.JsonAdaptedGroup.MESSAGE_EMPTY_STUDENT;
-import static seedu.address.storage.JsonAdaptedGroup.MISSING_NAME_MESSAGE;
+import static seedu.address.storage.JsonAdaptedGroup.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
@@ -50,7 +50,8 @@ public class JsonAdaptedGroupTest {
     @Test
     public void toModelType_nullName_throwsIllegalValueException() {
         JsonAdaptedGroup group = new JsonAdaptedGroup(null, VALID_STUDENTS);
-        assertThrows(IllegalValueException.class, MISSING_NAME_MESSAGE, group::toModelType);
+        String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, "name");
+        assertThrows(IllegalValueException.class, expectedMessage, group::toModelType);
     }
 
     @Test
