@@ -45,16 +45,18 @@ Commands for tutorial groups, students, attendance, participation, and assignmen
 
 ## Using the workspace
 
-The top row opens **Students**, **Groups**, **Attendance**, **Participation**, **Assignments**, **Help**, and **Storage**.
+The bar at the top shows the **tutorial groups** next to the TAssist name, with the active group highlighted, and
+the **screens** below it. **Students**, **Attendance**, **Participation**, and **Assignments** are on the left;
+**Groups**, **Help**, and **Storage** are on the right. A small orange dot marks a screen that is still **coming soon**.
+Hover over a screen, or over a shortened group name, to see more. The tooltip of a screen names the command that does
+the same, such as `view attendance`.
+
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
-Press **Escape** to return focus to the command box, or **F1** to open Help.
+Press **Escape** to return focus to the command box, or **F1** to open Help. Clicking a screen keeps your cursor in
+the command box.
 
-The header at the top right shows the name of the active tutorial group, or **No active group**. Below it, the
-**GROUPS** strip shows every tutorial group, with the active one highlighted. Hover over a shortened group name to
-read it in full.
-
-* **Students** lists the students in the active tutorial group with their names and student IDs. It updates as soon
-  as the active group or its students change. When there are no students to list, the screen says whether no group is
+* **Students** is titled with the name of the active tutorial group and the number of students in it, and lists the
+  students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
   more students.
 * **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
@@ -63,11 +65,13 @@ read it in full.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
-The feedback box below the screen tells you whether your last command worked. It grows to fit the message, up to six
-lines; only longer messages need scrolling. Feedback turns red when a command fails, and the failed input stays in the
+The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
+on a red background means it failed. It grows to fit the message, up to six lines; only longer messages need
+scrolling. The failed input stays in the
 command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
 `help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
-The footer shows the local file path and reports successful saves or command failures.
+The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
+Escape shortcuts.
 Opening a screen with `view` does not save or change data.
 
 ## Features

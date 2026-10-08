@@ -16,6 +16,7 @@ interface Ui
 class UiManager
 class MainWindow
 class GroupStrip
+class NavigationBar
 class WorkspacePanel
 class CommandBox
 class ResultDisplay
@@ -33,6 +34,7 @@ MainWindow *--> ResultDisplay
 MainWindow *--> StatusBarFooter
 MainWindow *--> GroupStrip
 MainWindow *--> WorkspacePanel
+WorkspacePanel *--> NavigationBar
 WorkspacePanel *--> StudentListPanel
 WorkspacePanel *--> "4" FeaturePreview
 WorkspacePanel *--> HelpPanel

@@ -73,16 +73,20 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of `MainWindow`, `GroupStrip`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`.
+The UI consists of `MainWindow`, `GroupStrip`, `NavigationBar`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and
+`StatusBarFooter`. `MainWindow` places the `GroupStrip` and the `NavigationBar` in one light bar at the top.
 `WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
+Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar does what
+`view SCREEN` does, shows that command in its tooltip, and does not take keyboard focus away from the command box, so
+the UI stays usable by mouse while the app remains command-first.
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
-The active group label in the header, the `GroupStrip` below it and the Students screen (`StudentListPanel`) observe the
+The `GroupStrip` and the Students screen (`StudentListPanel`) observe the
 views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getActiveGroupStudentList()` (see
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
-the groups, the active group or its students shows at once. All three use the same words, "No active group", when no
-group is active. When the table is empty, its placeholder says whether no group is active
-or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
+group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
+table, and says whether no group is active or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
@@ -93,11 +97,11 @@ longer shown.
 
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
 confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
-`HelpPanel` to that topic's heading. F1, the Help menu and `view help` open the same screen.
+`HelpPanel` to that topic's heading. F1, the Help button of the `NavigationBar` and `view help` open the same screen.
 
 `ResultDisplay` sizes itself to the message: it measures how many lines the text wraps to at the current width and
-shows that many rows, from one up to six. Longer messages scroll. Failed commands retain their input and show red
-feedback.
+shows that many rows, from one up to six. Longer messages scroll. It shows a check mark beside a message, or a cross on
+a red row when the command failed, and failed commands retain their input.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -962,8 +966,8 @@ Linux CI enables this test under the runner's virtual display (`xvfb-run`) so th
 The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
-the active group label, the group strip, the Students screen following the active group and its students, both empty
-states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, contact
+the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
+screen following the active group and its students, both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, contact
 commands keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
 
@@ -971,9 +975,10 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
 
 1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
    Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
-2. Use `view students`. With no active group, the header and the Students screen both say **No active group**, and
-   the group strip says that there are no tutorial groups yet. Once group and student commands are available, make a
-   group active and add and remove students in it. The header, the group strip and the table should update at once.
+2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
+   that there are no tutorial groups yet. Once group and student commands are available, make a group active and add
+   and remove students in it. The group strip and the table should update at once. Click each screen in the
+   navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
    Enter `add` and verify that the whole usage message is readable without scrolling.
 4. Enter `help student`. Verify that Help opens at the student commands and the feedback box shows one line.
