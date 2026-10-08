@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox styleClass="content-card" minHeight="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <HBox styleClass="card-heading" alignment="CENTER_LEFT" spacing="12">
+    <Label text="Student roster" styleClass="section-title" minWidth="-Infinity" />
+    <Region HBox.hgrow="ALWAYS" />
+    <Label fx:id="studentCount" styleClass="muted" minWidth="-Infinity" />
+  </HBox>
+  <Label fx:id="groupCaption" styleClass="card-caption" wrapText="true" />
+  <TableView fx:id="studentTable" VBox.vgrow="ALWAYS" minHeight="0" editable="false">
+    <placeholder>
+      <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+        <Label fx:id="emptyTitle" styleClass="empty-title" wrapText="true" maxWidth="460" />
+        <Label fx:id="emptyHint" styleClass="muted" wrapText="true" maxWidth="460" />
+      </VBox>
+    </placeholder>
+  </TableView>
+</VBox>
