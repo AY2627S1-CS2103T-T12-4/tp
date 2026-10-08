@@ -22,7 +22,7 @@ class JsonSerializableTAssist {
 
     public static final String MESSAGE_EMPTY_GROUP = "The group list has an empty entry.";
     public static final String MESSAGE_DUPLICATE_GROUP = "There is more than one group named %s.";
-    public static final String MESSAGE_UNKNOWN_ACTIVE_GROUP = "The active group %s is not in the group list.";
+    public static final String MESSAGE_UNKNOWN_ACTIVE_GROUP = "The active group \"%s\" is not in the group list.";
 
     private final String activeGroup;
     private final List<JsonAdaptedGroup> groups = new ArrayList<>();
