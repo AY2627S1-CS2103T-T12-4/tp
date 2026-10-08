@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -15,13 +17,12 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.group.UniqueGroupList;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
+import seedu.address.testutil.StudentBuilder;
 
 public class UniqueStudentListTest {
 
-    private static final Student ALICE = new Student(new StudentName("Alice Tan"), new StudentId("A0123456X"));
-    private static final Student BEN = new Student(new StudentName("Ben Lim"), new StudentId("A0234567Y"));
     private static final Student ALICE_SAME_ID =
-            new Student(new StudentName("Alicia Tan"), new StudentId("a0123456x"));
+            new StudentBuilder().withName("Alicia Tan").withStudentId("a0123456x").build();
 
     private final UniqueStudentList uniqueStudentList = new UniqueStudentList();
 
