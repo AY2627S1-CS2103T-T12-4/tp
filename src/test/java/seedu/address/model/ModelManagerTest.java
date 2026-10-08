@@ -5,16 +5,22 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGroups.NAME_T01;
+import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.TAssistBuilder;
+import seedu.address.testutil.TypicalGroups;
 
 public class ModelManagerTest {
 
@@ -25,6 +31,27 @@ public class ModelManagerTest {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
         assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
+    }
+
+    @Test
+    public void constructor_noTAssistGiven_startsWithNoGroups() {
+        assertEquals(new TAssist(), modelManager.getTAssist());
+    }
+
+    @Test
+    public void constructor_nullTAssist_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new ModelManager(new AddressBook(), null, new UserPrefs()));
+    }
+
+    @Test
+    public void constructor_validTAssist_copiesTAssist() {
+        TAssist tAssist = typicalTAssistWithActiveGroup(NAME_T01);
+        modelManager = new ModelManager(new AddressBook(), tAssist, new UserPrefs());
+
+        // Modifying tAssist should not modify modelManager's TAssist data
+        tAssist.setActiveGroup(NAME_T02);
+        tAssist.addStudent(NAME_T01, FIONA);
+        assertEquals(typicalTAssistWithActiveGroup(NAME_T01), modelManager.getTAssist());
     }
 
     @Test
@@ -108,5 +135,44 @@ public class ModelManagerTest {
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(addressBook, differentUserPrefs)));
+    }
+
+    @Test
+    public void setTAssist_nullTAssist_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setTAssist(null));
+    }
+
+    @Test
+    public void setTAssist_newData_replacesData() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.setTAssist(typicalTAssistWithActiveGroup(NAME_T02));
+        assertEquals(typicalTAssistWithActiveGroup(NAME_T02), modelManager.getTAssist());
+    }
+
+    @Test
+    public void equals_differentTAssist_returnsFalse() {
+        AddressBook addressBook = new AddressBook();
+        UserPrefs userPrefs = new UserPrefs();
+        modelManager = new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T01), userPrefs);
+
+        assertTrue(modelManager.equals(
+                new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T01), userPrefs)));
+        assertFalse(modelManager.equals(
+                new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T02), userPrefs)));
+        assertFalse(modelManager.equals(new ModelManager(addressBook, userPrefs)));
+    }
+
+    /**
+     * Returns the typical TAssist data with the group named {@code activeGroupName} active.
+     */
+    private static TAssist typicalTAssistWithActiveGroup(GroupName activeGroupName) {
+        return new TAssistBuilder(TypicalGroups.getTypicalTAssist()).withActiveGroup(activeGroupName).build();
+    }
+
+    /**
+     * Returns a model holding the typical TAssist data with the group named {@code activeGroupName} active.
+     */
+    private static ModelManager modelWithActiveGroup(GroupName activeGroupName) {
+        return new ModelManager(new AddressBook(), typicalTAssistWithActiveGroup(activeGroupName), new UserPrefs());
     }
 }

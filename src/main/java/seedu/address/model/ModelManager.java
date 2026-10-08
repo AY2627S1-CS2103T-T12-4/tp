@@ -13,26 +13,36 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
 
 /**
- * Represents the in-memory model of the address book data.
+ * Represents the in-memory model of the address book data and the TAssist data.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
     private final AddressBook addressBook;
+    private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
 
     /**
-     * Initializes a ModelManager with the given addressBook and userPrefs.
+     * Initializes a ModelManager with copies of the given addressBook, tAssist and userPrefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyTAssist tAssist, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(addressBook, tAssist, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing with address book: " + addressBook + ", TAssist data: " + tAssist
+                + " and user prefs " + userPrefs);
 
         this.addressBook = new AddressBook(addressBook);
+        this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+    }
+
+    /**
+     * Initializes a ModelManager with a copy of the given addressBook and userPrefs, and no TAssist data.
+     */
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
+        this(addressBook, new TAssist(), userPrefs);
     }
 
     public ModelManager() {
@@ -110,6 +120,19 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
+    //=========== TAssist ===================================================================================
+
+    @Override
+    public void setTAssist(ReadOnlyTAssist tAssist) {
+        requireNonNull(tAssist);
+        this.tAssist.resetData(tAssist);
+    }
+
+    @Override
+    public ReadOnlyTAssist getTAssist() {
+        return tAssist;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -122,6 +145,7 @@ public class ModelManager implements Model {
         }
 
         return addressBook.equals(otherModelManager.addressBook)
+                && tAssist.equals(otherModelManager.tAssist)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
