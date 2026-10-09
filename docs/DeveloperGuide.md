@@ -79,9 +79,9 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 The UI consists of `MainWindow`, `GroupStrip`, `NavigationBar`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and
 `StatusBarFooter`. `MainWindow` places the `GroupStrip` and the `NavigationBar` in one light bar at the top.
 `WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
-Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar does what
-`view SCREEN` does, shows that command in its tooltip, and does not take keyboard focus away from the command box, so
-the UI stays usable by mouse while the app remains command-first.
+Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar opens the
+same screen as `view SCREEN` (without its feedback message), names that command in its tooltip, and does not take
+keyboard focus away from the command box, so the UI stays usable by mouse while the app remains command-first.
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
 The `GroupStrip` and the Students screen (`StudentListPanel`) observe the
@@ -222,8 +222,8 @@ implemented.
 * `HelpCommandParser` accepts an optional topic. `HelpCatalog.TOPICS` lists the valid topics, and an unknown topic
   throws a `ParseException` with the message required for unknown topics. A feature's `HelpEntry` topic must equal
   its feature keyword, so a feature appears under `help TOPIC` only if its keyword is listed in `HelpCatalog.TOPICS`.
-* `HelpCommand` formats the entries (or only those of the requested topic) with `HelpCatalog.format` and returns them
-  as the feedback of its `CommandResult`, so `MainWindow` only displays the result and opens the Help screen.
+* `HelpCommand` does not format the entries. It returns `CommandResult.forHelp(...)` with a one-line confirmation and,
+  for `help TOPIC`, the topic, and `MainWindow` asks `WorkspacePanel.showHelp` to open the Help screen at that topic.
 * The Help screen (`HelpPanel`) renders the same entries and uses `HelpCatalog.getTopicHeading` for its headings.
 
 For registered commands, `AddressBookParser` extracts the first keyword and lets `CommandRegistry` extract
@@ -958,7 +958,7 @@ testers are expected to do more *exploratory* testing.
       Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
 
-### Testing the v1.2 workspace
+### Testing the workspace
 
 Run `./gradlew clean test checkstyleMain checkstyleTest` and `sh .github/run-checks.sh` for the standard checks.
 The optional `WorkspaceSmokeTest` needs a desktop and JavaFX. Set the environment variable
