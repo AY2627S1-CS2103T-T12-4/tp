@@ -21,7 +21,7 @@ import seedu.address.commons.core.WorkspaceView;
 /**
  * Lets the user open a workspace screen with the mouse.
  * The screens that hold the group's data come first, and the other screens sit at the right.
- * Every button does what the command {@code view SCREEN} does, and its tooltip says so.
+ * Every button opens the same screen as the command {@code view SCREEN}, and its tooltip names that command.
  */
 public class NavigationBar extends UiPart<HBox> {
     private static final String FXML = "NavigationBar.fxml";

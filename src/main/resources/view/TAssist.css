@@ -43,7 +43,7 @@
 }
 .group-chip:active { -fx-background-color: #0e6b61; -fx-text-fill: white; }
 .eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #5a5d64; }
-.muted, .card-caption { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
+.muted { -fx-text-fill: #5a5d64; -fx-font-size: 12px; }
 .main-content { -fx-padding: 10 20 16 20; }
 /* The tab strip is hidden. The navigation bar in the top chrome opens the screens instead. */
 .workspace-tabs { -fx-tab-min-height: 0; -fx-tab-max-height: 0; }
@@ -90,7 +90,6 @@
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
-.card-caption { -fx-padding: 8 16; }
 .coming-soon {
     -fx-text-fill: #6d5621;
     -fx-background-color: #f6edda;
