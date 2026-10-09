@@ -20,9 +20,9 @@ import seedu.address.model.ModelManager;
 import seedu.address.testutil.HelpEntryBuilder;
 import seedu.address.testutil.StubCommand;
 
-public class AddressBookParserTest {
+public class TAssistParserTest {
 
-    private final AddressBookParser parser = new AddressBookParser();
+    private final TAssistParser parser = new TAssistParser();
 
     @Test
     public void parseCommand_exit() throws Exception {
@@ -45,7 +45,7 @@ public class AddressBookParserTest {
         CommandRegistry registry = new CommandRegistry();
         registry.register("group", "add", args -> new StubCommand(), groupAdd);
 
-        assertEquals(HelpCatalog.getEntries(List.of(groupAdd)), new AddressBookParser(registry).getHelpEntries());
+        assertEquals(HelpCatalog.getEntries(List.of(groupAdd)), new TAssistParser(registry).getHelpEntries());
         assertEquals(HelpCatalog.getEntries(List.of()), parser.getHelpEntries());
     }
 
@@ -68,7 +68,7 @@ public class AddressBookParserTest {
         CommandRegistry registry = new CommandRegistry();
         registry.register("group", "list", args -> groupList);
         registry.register("student", "add", args -> studentAdd);
-        AddressBookParser featureParser = new AddressBookParser(registry);
+        TAssistParser featureParser = new TAssistParser(registry);
 
         assertSame(groupList, featureParser.parseCommand("  group\t list  "));
         assertSame(studentAdd, featureParser.parseCommand("student\n add Alice Tan"));
@@ -83,14 +83,14 @@ public class AddressBookParserTest {
         StubCommand groupAdd = new StubCommand();
         CommandRegistry registry = new CommandRegistry();
         registry.register("group", "list", args -> groupList);
-        AddressBookParser firstParser = new AddressBookParser(registry);
-        AddressBookParser secondParser = new AddressBookParser(registry);
+        TAssistParser firstParser = new TAssistParser(registry);
+        TAssistParser secondParser = new TAssistParser(registry);
         registry.register("group", "add", args -> groupAdd);
 
         assertSame(groupList, firstParser.parseCommand("group list"));
         assertSame(groupList, secondParser.parseCommand("group list"));
         assertThrows(ParseException.class, () -> firstParser.parseCommand("group add"));
-        assertSame(groupAdd, new AddressBookParser(registry).parseCommand("group add"));
+        assertSame(groupAdd, new TAssistParser(registry).parseCommand("group add"));
     }
 
     @Test
@@ -98,13 +98,13 @@ public class AddressBookParserTest {
         for (String legacyKeyword : List.of("view", "help", "exit")) {
             CommandRegistry registry = new CommandRegistry();
             registry.register(legacyKeyword, "student", args -> new StubCommand());
-            assertThrows(IllegalArgumentException.class, () -> new AddressBookParser(registry));
+            assertThrows(IllegalArgumentException.class, () -> new TAssistParser(registry));
         }
     }
 
     @Test
     public void nullInputs_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new AddressBookParser(null));
+        assertThrows(NullPointerException.class, () -> new TAssistParser(null));
         assertThrows(NullPointerException.class, () -> parser.parseCommand(null));
     }
 }

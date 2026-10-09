@@ -12,7 +12,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 
 public class ViewCommandParserTest {
-    private final AddressBookParser parser = new AddressBookParser();
+    private final TAssistParser parser = new TAssistParser();
 
     @Test
     public void parseCommand_allScreens_returnsRequestedView() throws Exception {

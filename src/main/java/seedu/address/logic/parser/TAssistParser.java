@@ -20,16 +20,16 @@ import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
- * Parses user input.
+ * Parses user input into TAssist commands.
  */
-public class AddressBookParser {
+public class TAssistParser {
 
     /**
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT =
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
-    private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
+    private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
     private static final Set<String> LEGACY_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
 
@@ -39,7 +39,7 @@ public class AddressBookParser {
     /**
      * Creates a parser for legacy commands with no feature commands registered.
      */
-    public AddressBookParser() {
+    public TAssistParser() {
         this(new CommandRegistry());
     }
 
@@ -49,10 +49,10 @@ public class AddressBookParser {
      * @param commandRegistry The feature registrations assembled before application startup.
      * @throws IllegalArgumentException if a feature keyword conflicts with a legacy command.
      */
-    public AddressBookParser(CommandRegistry commandRegistry) {
+    public TAssistParser(CommandRegistry commandRegistry) {
         requireNonNull(commandRegistry);
         checkArgument(LEGACY_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
-                "Feature keywords must not conflict with existing AB3 commands.");
+                "Feature keywords must not conflict with the help, view and exit commands.");
         this.commandRegistry = new CommandRegistry(commandRegistry);
         helpEntries = HelpCatalog.getEntries(commandRegistry.getHelpEntries());
     }
