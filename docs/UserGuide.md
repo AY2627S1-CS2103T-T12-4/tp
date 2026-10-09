@@ -18,11 +18,11 @@ Commands for tutorial groups, students, attendance, participation, and assignmen
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download the latest `.jar` file from the [team releases page](https://github.com/AY2627S1-CS2103T-T12-4/tp/releases), when available.
-   If no release is available yet, build the project with `./gradlew shadowJar` and use `build/libs/addressbook.jar`.
+   If no release is available yet, build the project with `./gradlew shadowJar` and use `build/libs/tassist.jar`.
 
 1. Copy the file to the folder you want to use as the _home folder_ for TAssist.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar tassist.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. On the first launch, TAssist starts with no data.<br>
    ![TAssist on the first launch, with no tutorial groups yet](images/TAssistUi.png)
 
@@ -163,7 +163,7 @@ The file looks like this:
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `addressbook.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
+If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `tassist.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
