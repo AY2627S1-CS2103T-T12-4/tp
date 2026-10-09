@@ -55,7 +55,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues a command that changes the TAssist data.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="574" />
 
@@ -95,8 +95,7 @@ and long values are shortened with an ellipsis and shown in full in a tooltip.
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
 screens does not change the model or filter. Other successful commands save TAssist data through `Storage` and keep
-the current screen, so contact commands, which are not saved, do not jump to the Students screen where contacts are no
-longer shown.
+the current screen.
 
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
 confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
@@ -126,18 +125,18 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <img src="images/LogicClassDiagram.png" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("view students")` API call as an example.
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
+![Interactions Inside the Logic Component for the `view students` Command](images/ViewSequenceDiagram.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `ViewCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. When `Logic` is called upon to execute a command, the command is passed to a `TAssistParser` object, which in turn creates a parser that matches the command (e.g., `ViewCommandParser`) and uses it to parse the command.
+1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `ViewCommand`) which is executed by the `LogicManager`.
+1. The command can communicate with the `Model` when it is executed (e.g. to add a student to a group). The `ViewCommand` in the diagram only asks the UI to show a screen, so it leaves the `Model` alone.<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
@@ -146,8 +145,8 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <img src="images/ParserClasses.png" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* When called upon to parse a user command, the `TAssistParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `ViewCommandParser`), or asks the `CommandRegistry` for the parser that a feature registered for a two-word command (see [Command registration and shared validation](#command-registration-and-shared-validation)). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `ViewCommand`). The `TAssistParser` returns that object as a `Command` object.
+* All `XYZCommandParser` classes, such as `ViewCommandParser` and `HelpCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -157,17 +156,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the TAssist data, i.e., the tutorial groups, their students and the active group, in a `TAssist` object (see [TAssist domain model](#tassist-domain-model)). It exposes the active group and the active group's students as observable values that the UI can bind to (see [Observing the active group](#observing-the-active-group)).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<img src="images/BetterModelClassDiagram.png" width="450" />
-
-</div>
 
 
 ### Storage component
@@ -181,8 +172,6 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
 * converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
-
-AddressBook data is no longer read or saved. Its storage classes (`JsonAddressBookStorage` and the classes it uses) remain in the code base until the AddressBook code is removed.
 
 ### Common classes
 
@@ -210,14 +199,14 @@ Logic logic = new LogicManager(model, storage, registry);
 This example shows how future feature parsers and help text are connected; those feature commands are not yet
 implemented.
 
-* `AddressBookParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
+* `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
-* A feature keyword cannot shadow an existing legacy command. Duplicate registrations and invalid registration
+* A feature keyword cannot shadow a built-in command (`help`, `view` or `exit`). Duplicate registrations and invalid registration
   keywords are developer errors and throw `IllegalArgumentException`.
 
 #### In-app help
 
-* Existing AB3 commands and `view` keep their built-in `HelpEntry` objects in `HelpCatalog`. `AddressBookParser` combines
+* The built-in commands `help`, `view` and `exit` keep their `HelpEntry` objects in `HelpCatalog`. `TAssistParser` combines
   them with the registered feature entries, and `Logic#getHelpEntries()` exposes the combined list.
 * `HelpCommandParser` accepts an optional topic. `HelpCatalog.TOPICS` lists the valid topics, and an unknown topic
   throws a `ParseException` with the message required for unknown topics. A feature's `HelpEntry` topic must equal
@@ -226,7 +215,7 @@ implemented.
   for `help TOPIC`, the topic, and `MainWindow` asks `WorkspacePanel.showHelp` to open the Help screen at that topic.
 * The Help screen (`HelpPanel`) renders the same entries and uses `HelpCatalog.getTopicHeading` for its headings.
 
-For registered commands, `AddressBookParser` extracts the first keyword and lets `CommandRegistry` extract
+For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
 produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.
 Unknown feature keywords report an unknown command. Both keywords use lowercase letters; surrounding whitespace
@@ -249,7 +238,7 @@ parameters, and URL schemes such as `https://` are retained as values. Parameter
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
 produce specific errors. Optional parameters may appear at most once. Empty values are retained for the value
 validator to report a value error instead of a missing-parameter error. A command declaring no prefixes rejects
-extra input. These checks do not change the legacy AB3 tokenization or repeated-tag behavior.
+extra input.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names (1–60 characters after whitespace normalization), weeks (whole numbers 1–13),
@@ -264,7 +253,7 @@ data file unchanged, using a storage implementation that fails if saving is atte
 
 ### TAssist domain model
 
-TAssist's own data is modelled by the classes below. `ModelManager` holds a `TAssist` beside the AddressBook data while the app moves over to TAssist, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is saved to a JSON data file (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+TAssist's own data is modelled by the classes below. `ModelManager` holds the `TAssist` data, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is saved to a JSON data file (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 
 <img src="images/TAssistModelClassDiagram.png" width="300" />
 
@@ -328,7 +317,7 @@ Both views are kept by `ActiveGroupTracker`, a helper class inside the `Model` c
   * Pros: No copy of the students is kept.
   * Cons: Every UI part that shows students must repeat the rebinding logic, and the UI must remember to stop listening to the old group.
 
-* **Alternative 3:** Keep one list of all students and filter it by the active group, like AB3's filtered person list.
+* **Alternative 3:** Keep one list of all students and filter it by the active group, with a `FilteredList`.
   * Pros: Reuses the familiar `FilteredList` pattern.
   * Cons: Students belong to a group in our model, and a student ID is only unique within a group. A flat list of all students would have to be rebuilt whenever any group changes.
 
@@ -917,30 +906,13 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
-### Deleting a person
-
-1. Deleting a person while all persons are being shown
-
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
-
 ### Saving data
 
 1. Restoring saved data
 
    1. Prerequisites: Close the app. In the folder of the JAR file, create `data/tassist.json` with the example content from [Saving and loading TAssist data](#saving-and-loading-tassist-data).
 
-   1. Launch the app, then enter `list`, which is a successful command other than `view`. Close the app.<br>
+   1. Launch the app, then enter `help`, which is a successful command other than `view`. Close the app.<br>
       Expected: `data/tassist.json` still holds group `T01`, its student and the active group, laid out by the app.
 
 1. Dealing with a missing data file
@@ -970,8 +942,8 @@ The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
-screen following the active group and its students, both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, contact
-commands keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
+screen following the active group and its students, both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
+do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
@@ -982,8 +954,8 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    that there are no tutorial groups yet. Once group and student commands are available, make a group active and add
    and remove students in it. The group strip and the table should update at once. Click each screen in the
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
-3. Enter `edit 1 p/invalid`. Verify that the command remains editable and the feedback describes the invalid phone.
-   Enter `add` and verify that the whole usage message is readable without scrolling.
+3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
+   Enter `view` and verify that the whole usage message is readable without scrolling.
 4. Enter `help student`. Verify that Help opens at the student commands and the feedback box shows one line.
 5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
    100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
