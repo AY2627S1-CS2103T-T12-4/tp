@@ -20,9 +20,14 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.geometry.Orientation;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -34,22 +39,33 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.model.ModelManager;
+import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.person.Phone;
+import seedu.address.model.student.Student;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.StudentBuilder;
+import seedu.address.testutil.TypicalGroups;
 
 /**
  * Exercises the real JavaFX views on a desktop when tassist.uiTests is enabled.
  */
 @EnabledIfSystemProperty(named = "tassist.uiTests", matches = "true")
 public class WorkspaceSmokeTest {
+    /** Number of repeats that brings a word near the 60-character limit of group and student names. */
+    private static final int LONG_NAME_REPEATS = 6;
+
     @TempDir
     public Path temporaryFolder;
 
@@ -82,22 +98,113 @@ public class WorkspaceSmokeTest {
             verifyScreens();
             verifyKeyboard();
             assertFalse(Files.exists(data), "Screen navigation must not write TAssist data");
-            verifyRoster();
-            runOnFx(() -> render(root, "long-values", 853, 440));
+            verifyCommands();
             verifyFailure();
             runOnFx(() -> render(root, "error", 853, 440));
+            runOnFx(() -> enter(input, "add"));
+            runOnFx(() -> {
+                render(root, "error-usage", 1280, 680);
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertTrue(feedback.getText().contains(AddCommand.MESSAGE_USAGE));
+                assertFalse(hasVisibleVerticalScrollBar(feedback), "A usage message fits without scrolling");
+            });
             runOnFx(() -> {
                 enter(input, "view storage");
                 Label status = (Label) root.lookup("#saveLocationStatus");
                 assertTrue(status.getText().startsWith("Local data file"));
-                enter(input, "find MissingPerson");
-                assertTrue(model.getFilteredPersonList().isEmpty());
+                assertFalse(isFooterShowingFailure(), "A later successful command clears the failure mark");
             });
-            runOnFx(() -> render(root, "empty-roster", 853, 440));
-            runOnFx(() -> enter(input, "list"));
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                enter(input, "view students");
+            });
             runOnFx(() -> render(root, "students-large", 1920, 1040));
             runOnFx(() -> render(root, "students-medium", 1536, 824));
             runOnFx(() -> render(root, "students-laptop", 1280, 680));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentsScreen_activeGroupChanges_showsActiveGroupAndItsStudents() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                assertEmptyTitle(StudentListPanel.NO_ACTIVE_GROUP);
+                assertGroupChips(List.of("T01", "T02", "T03"), "");
+            });
+            runOnFx(() -> render(root, "no-active-group", 853, 440));
+            runOnFx(() -> render(root, "no-active-group-minimum", 640, 420));
+
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                assertStudentsShown("T01");
+                assertGroupChips(List.of("T01", "T02", "T03"), "T01");
+                assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
+            });
+
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T03);
+                assertStudentsShown("T03");
+                assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
+            });
+            runOnFx(() -> render(root, "empty-group", 853, 440));
+
+            runOnFx(() -> {
+                model.addStudent(TypicalGroups.NAME_T03, new StudentBuilder().build());
+                assertStudentsShown("T03");
+                assertEquals(1, studentTable().getItems().size());
+            });
+
+            runOnFx(() -> {
+                model.setTAssist(new TAssist());
+                assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                assertGroupChips(List.of(), "");
+                assertTrue(root.lookupAll(".muted").stream().anyMatch(node -> node instanceof Label label
+                        && label.getText().equals(GroupStrip.NO_GROUPS)));
+            });
+            runOnFx(() -> render(root, "no-groups", 853, 440));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentsScreen_longNames_keepsLayoutUsable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                GroupName longGroupName = new GroupName("Longgroup".repeat(LONG_NAME_REPEATS));
+                model.addGroup(new Group(longGroupName));
+                model.addStudent(longGroupName, new StudentBuilder().withName("Longname".repeat(LONG_NAME_REPEATS))
+                        .withStudentId("A".repeat(19) + "1").build());
+                model.setActiveGroup(longGroupName);
+                Label title = (Label) root.lookup("#groupTitle");
+                assertEquals(longGroupName.toString(), title.getTooltip().getText());
+            });
+            runOnFx(() -> render(root, "long-values", 853, 440));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void navigationBar_clickAndCommand_openScreenAndKeepCommandFocus() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                assertNavigationHighlights("students");
+                Button attendanceButton = (Button) root.lookup("#nav-attendance");
+                attendanceButton.fire();
+                assertEquals("attendance", tabs.getSelectionModel().getSelectedItem().getId());
+                assertNavigationHighlights("attendance");
+                assertEquals(input, stage.getScene().getFocusOwner(), "Clicking a button keeps the command focus");
+
+                enter(input, "view storage");
+                assertNavigationHighlights("storage");
+            });
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -146,48 +253,101 @@ public class WorkspaceSmokeTest {
         });
     }
 
-    private void verifyRoster() throws Exception {
+    private void verifyCommands() throws Exception {
         runOnFx(() -> {
             TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
-            enter(input, "help");
-            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
-            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
-            assertTrue(feedbackArea.getText().contains("view SCREEN"));
+            ScrollPane helpScrollPane = (ScrollPane) root.lookup("#helpScrollPane");
             enter(input, "help student");
-            assertTrue(feedbackArea.getText().contains("Student commands\nstudent list"));
-            assertFalse(feedbackArea.getText().contains("view SCREEN"));
-            enter(input, "find Alex");
-            assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
-            assertEquals(1, model.getFilteredPersonList().size());
+            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+            assertEquals("Showing student commands.", feedbackArea.getText());
+            assertTrue(helpScrollPane.getVvalue() > helpScrollPane.getVmin(), "Help scrolls to the topic");
+            enter(input, "help");
+            assertEquals(HelpCommand.MESSAGE_SHOWING_HELP, feedbackArea.getText());
+            assertEquals(helpScrollPane.getVmin(), helpScrollPane.getVvalue());
             enter(input, "view help");
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
-            enter(input, "view students");
-            assertEquals(1, model.getFilteredPersonList().size());
             enter(input, "list");
-            int originalSize = model.getFilteredPersonList().size();
-            enter(input, "add n/" + "Longname ".repeat(30).trim()
-                    + " p/98765432 e/long@example.com a/" + "Long address ".repeat(40));
-            assertEquals(originalSize + 1, model.getFilteredPersonList().size());
+            assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
+                    "Contact commands keep the current screen");
         });
     }
 
     private void verifyFailure() throws Exception {
         runOnFx(() -> {
-            enter(input, "delete 1");
-            TableView<?> table = (TableView<?>) root.lookup("#personTable");
-            assertEquals("1", table.getColumns().getFirst().getCellObservableValue(0).getValue());
+            model.setActiveGroup(TypicalGroups.NAME_T01);
+            Student firstStudent = model.getActiveGroupStudentList().getFirst();
+            model.removeStudent(TypicalGroups.NAME_T01, firstStudent.getStudentId());
+            assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
             enter(input, "edit 1 p/invalid");
             assertEquals("edit 1 p/invalid", input.getText());
             assertTrue(input.getStyleClass().contains("error"));
             TextArea feedback = (TextArea) root.lookup("#resultDisplay");
             assertEquals(Phone.MESSAGE_CONSTRAINTS, feedback.getText());
+            assertTrue(isFooterShowingFailure(), "The footer marks a failed command");
         });
     }
 
+    /**
+     * Asserts that the Students screen is titled for {@code expectedGroup} and lists the active group's students.
+     */
+    private void assertStudentsShown(String expectedGroup) {
+        String expectedTitle = expectedGroup.equals(StudentListPanel.NO_ACTIVE_GROUP)
+                ? StudentListPanel.STUDENTS_TITLE : expectedGroup;
+        assertEquals(expectedTitle, ((Label) root.lookup("#groupTitle")).getText());
+        assertEquals(model.getActiveGroupStudentList(), studentTable().getItems());
+    }
+
+    /**
+     * Asserts that the empty Students screen explains itself with {@code expectedTitle}.
+     */
+    private void assertEmptyTitle(String expectedTitle) {
+        assertTrue(studentTable().getItems().isEmpty());
+        assertEquals(expectedTitle, ((Label) root.lookup("#emptyTitle")).getText());
+    }
+
+    /**
+     * Asserts that the group strip shows a chip for each of {@code expectedNames}, in order, and that only the
+     * chip named {@code expectedActiveName} is highlighted. An empty {@code expectedActiveName} means none is.
+     */
+    private void assertGroupChips(List<String> expectedNames, String expectedActiveName) {
+        List<Label> chips = root.lookupAll(".group-chip").stream().map(node -> (Label) node).toList();
+        assertEquals(expectedNames, chips.stream().map(Label::getText).toList());
+        for (Label chip : chips) {
+            boolean isActive = chip.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active"));
+            assertEquals(chip.getText().equals(expectedActiveName), isActive, chip.getText());
+        }
+    }
+
+    private boolean isFooterShowingFailure() {
+        return root.lookup(".status-bar").getPseudoClassStates().contains(PseudoClass.getPseudoClass("failure"));
+    }
+
+    /**
+     * Asserts that only the navigation button of the screen with {@code keyword} is highlighted.
+     */
+    private void assertNavigationHighlights(String keyword) {
+        PseudoClass current = PseudoClass.getPseudoClass("current");
+        for (WorkspaceView view : WorkspaceView.values()) {
+            Button button = (Button) root.lookup("#nav-" + view.getKeyword());
+            assertEquals(view.getKeyword().equals(keyword), button.getPseudoClassStates().contains(current),
+                    view.getKeyword());
+        }
+    }
+
+    private static boolean hasVisibleVerticalScrollBar(Parent parent) {
+        return parent.lookupAll(".scroll-bar").stream().anyMatch(node -> node instanceof ScrollBar bar
+                && bar.getOrientation() == Orientation.VERTICAL && bar.isVisible());
+    }
+
+    private TableView<?> studentTable() {
+        return (TableView<?>) root.lookup("#studentTable");
+    }
+
     private void initializeWorkspace() {
-        model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+        model = new ModelManager(SampleDataUtil.getSampleAddressBook(), TypicalGroups.getTypicalTAssist(),
+                new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
@@ -204,6 +364,7 @@ public class WorkspaceSmokeTest {
         tabs = (TabPane) root.lookup("#tabs");
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
+        assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
     }
 
     private void runOnFx(CheckedAction action) throws Exception {

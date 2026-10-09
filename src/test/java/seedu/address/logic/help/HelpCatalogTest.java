@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -75,28 +74,5 @@ public class HelpCatalogTest {
         assertEquals("Current commands", HelpCatalog.getTopicHeading(""));
         assertEquals("Student commands", HelpCatalog.getTopicHeading("student"));
         assertThrows(NullPointerException.class, () -> HelpCatalog.getTopicHeading(null));
-    }
-
-    @Test
-    public void format_groupsLegacyAndFeatureCommandsWithExamples() {
-        HelpEntry featureEntry = new HelpEntryBuilder().build();
-
-        String formatted = HelpCatalog.format(List.of(new HelpEntryBuilder().withTopic("")
-                .withCommandFormat("help").build(), featureEntry));
-
-        assertTrue(formatted.contains("Current commands\nhelp"));
-        assertTrue(formatted.contains("Student commands\nstudent list"));
-        assertTrue(formatted.contains("Example: student list"));
-    }
-
-    @Test
-    public void format_emptyEntriesReturnsHeading() {
-        assertEquals("Command reference", HelpCatalog.format(List.of()));
-    }
-
-    @Test
-    public void format_nullThrowsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> HelpCatalog.format(null));
-        assertThrows(NullPointerException.class, () -> HelpCatalog.format(Collections.singletonList(null)));
     }
 }

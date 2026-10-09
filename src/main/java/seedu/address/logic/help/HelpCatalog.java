@@ -81,30 +81,4 @@ public final class HelpCatalog {
         }
         return Character.toUpperCase(topic.charAt(0)) + topic.substring(1) + " commands";
     }
-
-    /**
-     * Formats command entries as readable help text.
-     *
-     * @param entries The help entries to format.
-     * @return A multi-line command reference.
-     */
-    public static String format(List<HelpEntry> entries) {
-        requireNonNull(entries);
-        StringBuilder output = new StringBuilder("Command reference");
-        String previousTopic = null;
-        for (HelpEntry entry : entries) {
-            requireNonNull(entry);
-            String topic = entry.getTopic();
-            if (!topic.equals(previousTopic)) {
-                output.append("\n\n").append(getTopicHeading(topic));
-                previousTopic = topic;
-            }
-            output.append("\n").append(entry.getCommandFormat())
-                    .append("\n  ").append(entry.getDescription());
-            for (String example : entry.getExamples()) {
-                output.append("\n  Example: ").append(example);
-            }
-        }
-        return output.toString();
-    }
 }

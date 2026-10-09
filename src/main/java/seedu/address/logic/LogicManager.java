@@ -94,6 +94,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Group> getGroupList() {
+        return model.getTAssist().getGroupList();
+    }
+
+    @Override
     public ReadOnlyObjectProperty<Optional<Group>> activeGroupProperty() {
         return model.activeGroupProperty();
     }

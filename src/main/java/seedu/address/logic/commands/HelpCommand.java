@@ -11,7 +11,7 @@ import seedu.address.logic.help.HelpEntry;
 import seedu.address.model.Model;
 
 /**
- * Shows the in-app command reference, either for every command or for one topic.
+ * Opens the in-app command reference, either from the top or at the commands of one topic.
  */
 public class HelpCommand extends Command {
 
@@ -26,6 +26,8 @@ public class HelpCommand extends Command {
     public static final String MESSAGE_UNKNOWN_TOPIC =
             "Unknown help topic. Available topics: " + String.join(", ", HelpCatalog.TOPICS) + ".";
     public static final String MESSAGE_NO_COMMANDS_FOR_TOPIC = "No %1$s commands are available yet.";
+    public static final String MESSAGE_SHOWING_HELP = "Showing the command reference.";
+    public static final String MESSAGE_SHOWING_TOPIC = "Showing %1$s commands.";
 
     private final List<HelpEntry> entries;
     private final String topic;
@@ -49,14 +51,13 @@ public class HelpCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         if (topic.isEmpty()) {
-            return new CommandResult(HelpCatalog.format(entries), true, false);
+            return CommandResult.forHelp(MESSAGE_SHOWING_HELP, "");
         }
 
-        List<HelpEntry> topicEntries = HelpCatalog.filterByTopic(entries, topic);
-        if (topicEntries.isEmpty()) {
-            return new CommandResult(String.format(MESSAGE_NO_COMMANDS_FOR_TOPIC, topic), true, false);
+        if (HelpCatalog.filterByTopic(entries, topic).isEmpty()) {
+            return CommandResult.forHelp(String.format(MESSAGE_NO_COMMANDS_FOR_TOPIC, topic), "");
         }
-        return new CommandResult(HelpCatalog.format(topicEntries), true, false);
+        return CommandResult.forHelp(String.format(MESSAGE_SHOWING_TOPIC, topic), topic);
     }
 
     @Override
