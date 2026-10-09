@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Combines legacy command help with entries registered by TAssist features.
+ * Combines built-in command help with entries registered by TAssist features.
  */
 public final class HelpCatalog {
     /** Topics accepted by {@code help TOPIC}, in the order they are shown to the user. */
     public static final List<String> TOPICS = List.of("group", "student", "attendance", "participation",
             "assignment");
 
-    private static final List<HelpEntry> LEGACY_ENTRIES = List.of(
+    private static final List<HelpEntry> BUILT_IN_ENTRIES = List.of(
             new HelpEntry("", "view SCREEN",
                     "Open students, groups, attendance, participation, assignments, help, or storage.",
                     List.of("view attendance")),
@@ -27,14 +27,14 @@ public final class HelpCatalog {
     }
 
     /**
-     * Returns the legacy commands followed by commands registered by features.
+     * Returns the built-in commands followed by commands registered by features.
      *
      * @param featureEntries The help entries registered with feature command parsers.
      * @return An immutable list of all help entries.
      */
     public static List<HelpEntry> getEntries(List<HelpEntry> featureEntries) {
         requireNonNull(featureEntries);
-        List<HelpEntry> entries = new ArrayList<>(LEGACY_ENTRIES);
+        List<HelpEntry> entries = new ArrayList<>(BUILT_IN_ENTRIES);
         entries.addAll(featureEntries);
         return List.copyOf(entries);
     }

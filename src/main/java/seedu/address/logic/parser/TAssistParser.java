@@ -30,35 +30,35 @@ public class TAssistParser {
     private static final Pattern BASIC_COMMAND_FORMAT =
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
-    private static final Set<String> LEGACY_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
+    private static final Set<String> BUILT_IN_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
 
     private final CommandRegistry commandRegistry;
     private final List<HelpEntry> helpEntries;
 
     /**
-     * Creates a parser for legacy commands with no feature commands registered.
+     * Creates a parser for the built-in commands with no feature commands registered.
      */
     public TAssistParser() {
         this(new CommandRegistry());
     }
 
     /**
-     * Creates a parser with a snapshot of feature registrations alongside legacy commands.
+     * Creates a parser with a snapshot of feature registrations alongside the built-in commands.
      *
      * @param commandRegistry The feature registrations assembled before application startup.
-     * @throws IllegalArgumentException if a feature keyword conflicts with a legacy command.
+     * @throws IllegalArgumentException if a feature keyword conflicts with a built-in command.
      */
     public TAssistParser(CommandRegistry commandRegistry) {
         requireNonNull(commandRegistry);
-        checkArgument(LEGACY_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
+        checkArgument(BUILT_IN_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
                 "Feature keywords must not conflict with the help, view and exit commands.");
         this.commandRegistry = new CommandRegistry(commandRegistry);
         helpEntries = HelpCatalog.getEntries(commandRegistry.getHelpEntries());
     }
 
     /**
-     * Returns the help entries of legacy commands followed by the registered feature commands.
+     * Returns the help entries of the built-in commands followed by the registered feature commands.
      *
      * @return An immutable list of command help entries.
      */

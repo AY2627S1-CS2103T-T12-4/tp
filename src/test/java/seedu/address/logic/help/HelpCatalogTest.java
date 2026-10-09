@@ -11,23 +11,23 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.HelpEntryBuilder;
 
-/** Tests how legacy and feature command help is combined, filtered and formatted. */
+/** Tests how built-in and feature command help is combined, filtered and formatted. */
 public class HelpCatalogTest {
     @Test
     public void getEntries_appendsFeatureEntriesAndReturnsImmutableList() {
         HelpEntry featureEntry = new HelpEntryBuilder().build();
-        int legacyCount = HelpCatalog.getEntries(List.of()).size();
+        int builtInCount = HelpCatalog.getEntries(List.of()).size();
 
         List<HelpEntry> entries = HelpCatalog.getEntries(List.of(featureEntry));
 
-        assertEquals(legacyCount + 1, entries.size());
+        assertEquals(builtInCount + 1, entries.size());
         assertEquals("", entries.getFirst().getTopic());
         assertEquals(featureEntry, entries.getLast());
         assertThrows(UnsupportedOperationException.class, entries::clear);
     }
 
     @Test
-    public void getEntries_legacyEntriesHaveNoTopicAndCoverEveryCommandWord() {
+    public void getEntries_builtInEntriesHaveNoTopicAndCoverEveryCommandWord() {
         List<HelpEntry> entries = HelpCatalog.getEntries(List.of());
 
         assertTrue(entries.stream().allMatch(entry -> entry.getTopic().isEmpty()));
