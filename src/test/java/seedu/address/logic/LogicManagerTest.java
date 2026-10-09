@@ -3,14 +3,8 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
-import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
-import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
-import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
-import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
@@ -25,10 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.WorkspaceView;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.CommandRegistry;
@@ -43,13 +35,12 @@ import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
-import seedu.address.model.person.Person;
 import seedu.address.model.student.StudentId;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.HelpEntryBuilder;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.StubCommand;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -76,14 +67,23 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        String failureMessage = "The command failed.";
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("student", "fail", args -> StubCommand.failingWith(failureMessage));
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("fail.json"))),
+                registry);
+
+        assertCommandException("student fail", failureMessage);
     }
 
     @Test
     public void execute_validCommand_success() throws Exception {
-        String listCommand = ListCommand.COMMAND_WORD;
-        assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("student", "list", args -> new StubCommand());
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("ok.json"))),
+                registry);
+
+        assertCommandSuccess("student list", StubCommand.MESSAGE_SUCCESS, model);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class LogicManagerTest {
     @Test
     public void execute_help_opensHelpWithShortConfirmation() throws Exception {
         CommandRegistry registry = new CommandRegistry();
-        registry.register("student", "list", args -> new ListCommand(),
+        registry.register("student", "list", args -> new StubCommand(),
                 new HelpEntryBuilder().withCommandFormat("student list").build());
         logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("help.json"))),
                 registry);
@@ -126,17 +126,14 @@ public class LogicManagerTest {
         StorageManager storage = createStorage(new JsonTAssistStorage(temporaryFolder.resolve("feature.json")));
         logic = new LogicManager(model, storage, createFeatureRegistry());
 
-        Person expectedPerson = new PersonBuilder().withName("Alice Tan").build();
         Model expectedModel = new ModelManager(new AddressBook(), tAssist, new UserPrefs());
-        expectedModel.addPerson(expectedPerson);
-        assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ",
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)), expectedModel);
-        assertEquals(tAssist, new TAssist(storage.readTAssist().orElseThrow()));
+        expectedModel.addStudent(TypicalGroups.NAME_T02, FIONA);
+        assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ", StubCommand.MESSAGE_SUCCESS, expectedModel);
+        assertEquals(new TAssist(expectedModel.getTAssist()), new TAssist(storage.readTAssist().orElseThrow()));
     }
 
     @Test
     public void execute_invalidFeatureCommands_doesNotExecuteOrSave() throws Exception {
-        model.addPerson(AMY);
         Path dataFile = temporaryFolder.resolve("unchanged.json");
         String existingData = "Existing file contents must not be overwritten.";
         Files.writeString(dataFile, existingData);
@@ -243,7 +240,7 @@ public class LogicManagerTest {
             ArgumentMultimap values = argumentParser.parse(args);
             String name = TAssistParserUtil.parseStudentName(values.getValue(namePrefix).orElseThrow()).fullName;
             TAssistParserUtil.parseStudentId(values.getValue(idPrefix).orElseThrow());
-            return new AddCommand(new PersonBuilder().withName(name).build());
+            return new StubCommand(model -> model.addStudent(TypicalGroups.NAME_T02, FIONA));
         });
         return registry;
     }
@@ -294,16 +291,12 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        // Inject LogicManager with a JsonTAssistStorage that throws the IOException e when saving
-        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)));
-
-        // Triggers the saveTAssist method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        // Inject LogicManager with a JsonTAssistStorage that throws the IOException e when saving,
+        // and trigger saveTAssist by executing a command that does not change the view
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("student", "list", args -> new StubCommand());
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)), registry);
+        assertCommandFailure("student list", CommandException.class, expectedMessage, new ModelManager());
     }
 
     /**

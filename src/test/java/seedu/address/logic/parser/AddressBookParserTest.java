@@ -1,82 +1,33 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.ClearCommand;
-import seedu.address.logic.commands.DeleteCommand;
-import seedu.address.logic.commands.EditCommand;
-import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
-import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.person.Person;
-import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.HelpEntryBuilder;
-import seedu.address.testutil.PersonBuilder;
-import seedu.address.testutil.PersonUtil;
+import seedu.address.testutil.StubCommand;
 
 public class AddressBookParserTest {
 
     private final AddressBookParser parser = new AddressBookParser();
 
     @Test
-    public void parseCommand_add() throws Exception {
-        Person person = new PersonBuilder().build();
-        AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
-        assertEquals(new AddCommand(person), command);
-    }
-
-    @Test
-    public void parseCommand_clear() throws Exception {
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
-    }
-
-    @Test
-    public void parseCommand_delete() throws Exception {
-        DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
-    }
-
-    @Test
-    public void parseCommand_edit() throws Exception {
-        Person person = new PersonBuilder().build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
-        EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
-                + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
-    }
-
-    @Test
     public void parseCommand_exit() throws Exception {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
-    }
-
-    @Test
-    public void parseCommand_find() throws Exception {
-        List<String> keywords = List.of("foo", "bar", "baz");
-        FindCommand command = (FindCommand) parser.parseCommand(
-                FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
     }
 
     @Test
@@ -92,16 +43,10 @@ public class AddressBookParserTest {
     public void getHelpEntries_includesRegisteredFeatureHelp() {
         HelpEntry groupAdd = new HelpEntryBuilder().withTopic("group").withCommandFormat("group add").build();
         CommandRegistry registry = new CommandRegistry();
-        registry.register("group", "add", args -> new ListCommand(), groupAdd);
+        registry.register("group", "add", args -> new StubCommand(), groupAdd);
 
         assertEquals(HelpCatalog.getEntries(List.of(groupAdd)), new AddressBookParser(registry).getHelpEntries());
         assertEquals(HelpCatalog.getEntries(List.of()), parser.getHelpEntries());
-    }
-
-    @Test
-    public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
     }
 
     @Test
@@ -118,38 +63,43 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_registeredFeatures_dispatchesWithoutChangingLegacyCommands() throws Exception {
+        StubCommand groupList = new StubCommand();
+        StubCommand studentAdd = new StubCommand();
         CommandRegistry registry = new CommandRegistry();
-        registry.register("group", "list", args -> new ListCommand());
-        registry.register("student", "add", args -> new AddCommand(new PersonBuilder().withName(args).build()));
+        registry.register("group", "list", args -> groupList);
+        registry.register("student", "add", args -> studentAdd);
         AddressBookParser featureParser = new AddressBookParser(registry);
 
-        assertTrue(featureParser.parseCommand("  group\t list  ") instanceof ListCommand);
-        assertEquals(new AddCommand(new PersonBuilder().withName("Alice Tan").build()),
-                featureParser.parseCommand("student\n add Alice Tan"));
-        assertTrue(featureParser.parseCommand("list extra") instanceof ListCommand);
+        assertSame(groupList, featureParser.parseCommand("  group\t list  "));
+        assertSame(studentAdd, featureParser.parseCommand("student\n add Alice Tan"));
+        assertTrue(featureParser.parseCommand("exit extra") instanceof ExitCommand);
         assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
                 featureParser.parseCommand("view attendance").execute(new ModelManager()));
     }
 
     @Test
     public void constructor_snapshotOfRegistrations_canBeReusedAndDoesNotChange() throws Exception {
+        StubCommand groupList = new StubCommand();
+        StubCommand groupAdd = new StubCommand();
         CommandRegistry registry = new CommandRegistry();
-        registry.register("group", "list", args -> new ListCommand());
+        registry.register("group", "list", args -> groupList);
         AddressBookParser firstParser = new AddressBookParser(registry);
         AddressBookParser secondParser = new AddressBookParser(registry);
-        registry.register("group", "add", args -> new ClearCommand());
+        registry.register("group", "add", args -> groupAdd);
 
-        assertTrue(firstParser.parseCommand("group list") instanceof ListCommand);
-        assertTrue(secondParser.parseCommand("group list") instanceof ListCommand);
+        assertSame(groupList, firstParser.parseCommand("group list"));
+        assertSame(groupList, secondParser.parseCommand("group list"));
         assertThrows(ParseException.class, () -> firstParser.parseCommand("group add"));
-        assertTrue(new AddressBookParser(registry).parseCommand("group add") instanceof ClearCommand);
+        assertSame(groupAdd, new AddressBookParser(registry).parseCommand("group add"));
     }
 
     @Test
     public void constructor_legacyKeywordConflict_throwsIllegalArgumentException() {
-        CommandRegistry registry = new CommandRegistry();
-        registry.register("add", "student", args -> new ListCommand());
-        assertThrows(IllegalArgumentException.class, () -> new AddressBookParser(registry));
+        for (String legacyKeyword : List.of("view", "help", "exit")) {
+            CommandRegistry registry = new CommandRegistry();
+            registry.register(legacyKeyword, "student", args -> new StubCommand());
+            assertThrows(IllegalArgumentException.class, () -> new AddressBookParser(registry));
+        }
     }
 
     @Test

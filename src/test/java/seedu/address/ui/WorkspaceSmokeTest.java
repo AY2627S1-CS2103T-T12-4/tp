@@ -39,9 +39,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.model.ModelManager;
@@ -49,12 +48,12 @@ import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
-import seedu.address.model.person.Phone;
 import seedu.address.model.student.Student;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.StubCommand;
 import seedu.address.testutil.StudentBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -101,11 +100,11 @@ public class WorkspaceSmokeTest {
             verifyCommands();
             verifyFailure();
             runOnFx(() -> render(root, "error", 853, 440));
-            runOnFx(() -> enter(input, "add"));
+            runOnFx(() -> enter(input, "view"));
             runOnFx(() -> {
                 render(root, "error-usage", 1280, 680);
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
-                assertTrue(feedback.getText().contains(AddCommand.MESSAGE_USAGE));
+                assertTrue(feedback.getText().contains(ViewCommand.MESSAGE_USAGE));
                 assertFalse(hasVisibleVerticalScrollBar(feedback), "A usage message fits without scrolling");
             });
             runOnFx(() -> {
@@ -243,10 +242,10 @@ public class WorkspaceSmokeTest {
 
     private void verifyKeyboard() throws Exception {
         runOnFx(() -> {
-            input.setText("find Alex");
+            input.setText("view students");
             input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1, false, false, false, false));
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
-            assertEquals("find Alex", input.getText());
+            assertEquals("view students", input.getText());
             tabs.requestFocus();
             tabs.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false));
             assertEquals(input, stage.getScene().getFocusOwner());
@@ -268,9 +267,9 @@ public class WorkspaceSmokeTest {
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
-            enter(input, "list");
+            enter(input, "student list");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
-                    "Contact commands keep the current screen");
+                    "Commands that do not open a screen keep the current screen");
         });
     }
 
@@ -280,11 +279,11 @@ public class WorkspaceSmokeTest {
             Student firstStudent = model.getActiveGroupStudentList().getFirst();
             model.removeStudent(TypicalGroups.NAME_T01, firstStudent.getStudentId());
             assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
-            enter(input, "edit 1 p/invalid");
-            assertEquals("edit 1 p/invalid", input.getText());
+            enter(input, "view nowhere");
+            assertEquals("view nowhere", input.getText());
             assertTrue(input.getStyleClass().contains("error"));
             TextArea feedback = (TextArea) root.lookup("#resultDisplay");
-            assertEquals(Phone.MESSAGE_CONSTRAINTS, feedback.getText());
+            assertEquals(String.format(ViewCommand.MESSAGE_UNKNOWN_SCREEN, "nowhere"), feedback.getText());
             assertTrue(isFooterShowingFailure(), "The footer marks a failed command");
         });
     }
@@ -352,7 +351,7 @@ public class WorkspaceSmokeTest {
         StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
-        commandRegistry.register("student", "list", args -> new ListCommand(),
+        commandRegistry.register("student", "list", args -> new StubCommand(),
                 new HelpEntry("student", "student list", "Show all students.", List.of("student list")));
         stage = new Stage();
         MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);

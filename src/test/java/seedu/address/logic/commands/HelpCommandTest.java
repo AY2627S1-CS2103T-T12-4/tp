@@ -60,7 +60,7 @@ public class HelpCommandTest {
         assertEquals(command.hashCode(), new HelpCommand(entries, "student").hashCode());
         assertEquals(new HelpCommand(entries), new HelpCommand(entries, ""));
         assertFalse(command.equals(null));
-        assertFalse(command.equals(new ClearCommand()));
+        assertFalse(command.equals(new ExitCommand()));
         assertFalse(command.equals(new HelpCommand(entries, "group")));
         assertFalse(command.equals(new HelpCommand(List.of(studentList), "student")));
     }
