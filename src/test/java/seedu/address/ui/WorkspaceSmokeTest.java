@@ -49,7 +49,6 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
-import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -345,8 +344,7 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace() {
-        model = new ModelManager(SampleDataUtil.getSampleAddressBook(), TypicalGroups.getTypicalTAssist(),
-                new UserPrefs());
+        model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
