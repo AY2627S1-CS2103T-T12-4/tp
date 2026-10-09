@@ -4,57 +4,45 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
-import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
 /**
- * Represents the in-memory model of the address book data and the TAssist data.
+ * Represents the in-memory model of the TAssist data and the user prefs.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
-    private final FilteredList<Person> filteredPersons;
     private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
 
     /**
-     * Initializes a ModelManager with copies of the given addressBook, tAssist and userPrefs.
+     * Initializes a ModelManager with copies of the given tAssist and userPrefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyTAssist tAssist, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, tAssist, userPrefs);
+    public ModelManager(ReadOnlyTAssist tAssist, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(tAssist, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + ", TAssist data: " + tAssist
-                + " and user prefs " + userPrefs);
+        logger.fine("Initializing with TAssist data: " + tAssist + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
         this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         trackActiveGroup();
     }
 
     /**
-     * Initializes a ModelManager with a copy of the given addressBook and userPrefs, and no TAssist data.
+     * Initializes a ModelManager with empty TAssist data and default user prefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        this(addressBook, new TAssist(), userPrefs);
-    }
-
     public ModelManager() {
-        this(new AddressBook(), new UserPrefs());
+        this(new TAssist(), new UserPrefs());
     }
 
     //=========== UserPrefs ==================================================================================
@@ -73,59 +61,6 @@ public class ModelManager implements Model {
     public void setGuiSettings(GuiSettings guiSettings) {
         requireNonNull(guiSettings);
         userPrefs.setGuiSettings(guiSettings);
-    }
-
-    //=========== AddressBook ================================================================================
-
-    @Override
-    public void setAddressBook(ReadOnlyAddressBook addressBook) {
-        this.addressBook.resetData(addressBook);
-    }
-
-    @Override
-    public ReadOnlyAddressBook getAddressBook() {
-        return addressBook;
-    }
-
-    @Override
-    public boolean hasPerson(Person person) {
-        requireNonNull(person);
-        return addressBook.hasPerson(person);
-    }
-
-    @Override
-    public void deletePerson(Person target) {
-        addressBook.removePerson(target);
-    }
-
-    @Override
-    public void addPerson(Person person) {
-        addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-    }
-
-    @Override
-    public void setPerson(Person target, Person editedPerson) {
-        requireAllNonNull(target, editedPerson);
-
-        addressBook.setPerson(target, editedPerson);
-    }
-
-    //=========== Filtered Person List Accessors =============================================================
-
-    /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
-     * {@code addressBook}
-     */
-    @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
-    }
-
-    @Override
-    public void updateFilteredPersonList(Predicate<Person> predicate) {
-        requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
     }
 
     //=========== TAssist ===================================================================================
@@ -217,10 +152,8 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return addressBook.equals(otherModelManager.addressBook)
-                && tAssist.equals(otherModelManager.tAssist)
-                && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+        return tAssist.equals(otherModelManager.tAssist)
+                && userPrefs.equals(otherModelManager.userPrefs);
     }
 
 }

@@ -6,7 +6,7 @@ import seedu.address.commons.core.WorkspaceView;
 import seedu.address.model.Model;
 
 /**
- * Shows a workspace screen without changing stored records or the current filter.
+ * Shows a workspace screen without changing stored records.
  */
 public class ViewCommand extends Command {
     public static final String COMMAND_WORD = "view";
