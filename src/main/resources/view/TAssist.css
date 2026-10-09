@@ -211,5 +211,6 @@
 .workspace:compact .top-bar { -fx-min-height: 44; -fx-pref-height: 44; -fx-padding: 0 16; }
 .workspace:compact .main-content { -fx-padding: 6 16 8 16; -fx-spacing: 8; }
 .workspace:compact .nav-button { -fx-padding: 6 8 5 8; }
+.status-bar:failure .status-dot { -fx-text-fill: #a12c2c; }
 .workspace:compact .card-heading { -fx-padding: 10 16; }
 .workspace:compact .status-bar { -fx-padding: 5 16; }

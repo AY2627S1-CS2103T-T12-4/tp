@@ -169,7 +169,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("Command failed: " + e.getMessage());
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
-            statusBarFooter.setStatus("Command failed — see feedback");
+            statusBarFooter.setStatus("Command failed — see feedback", true);
             throw e;
         }
     }

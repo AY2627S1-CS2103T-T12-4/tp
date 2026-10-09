@@ -112,6 +112,7 @@ public class WorkspaceSmokeTest {
                 enter(input, "view storage");
                 Label status = (Label) root.lookup("#saveLocationStatus");
                 assertTrue(status.getText().startsWith("Local data file"));
+                assertFalse(isFooterShowingFailure(), "A later successful command clears the failure mark");
             });
             runOnFx(() -> {
                 model.setActiveGroup(TypicalGroups.NAME_T01);
@@ -284,6 +285,7 @@ public class WorkspaceSmokeTest {
             assertTrue(input.getStyleClass().contains("error"));
             TextArea feedback = (TextArea) root.lookup("#resultDisplay");
             assertEquals(Phone.MESSAGE_CONSTRAINTS, feedback.getText());
+            assertTrue(isFooterShowingFailure(), "The footer marks a failed command");
         });
     }
 
@@ -316,6 +318,10 @@ public class WorkspaceSmokeTest {
             boolean isActive = chip.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active"));
             assertEquals(chip.getText().equals(expectedActiveName), isActive, chip.getText());
         }
+    }
+
+    private boolean isFooterShowingFailure() {
+        return root.lookup(".status-bar").getPseudoClassStates().contains(PseudoClass.getPseudoClass("failure"));
     }
 
     /**
