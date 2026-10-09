@@ -26,31 +26,21 @@ public class HelpCommandTest {
     private Model expectedModel = new ModelManager();
 
     @Test
-    public void execute_noTopic_showsEveryEntryInResultAndOpensHelp() {
-        CommandResult expectedCommandResult = new CommandResult(HelpCatalog.format(entries), true, false);
+    public void execute_noTopic_opensHelpFromTopWithShortConfirmation() {
+        CommandResult expectedCommandResult = CommandResult.forHelp("Showing the command reference.", "");
         assertCommandSuccess(new HelpCommand(entries), model, expectedCommandResult, expectedModel);
-
-        String feedback = new HelpCommand(entries).execute(model).getFeedbackToUser();
-        assertTrue(feedback.contains("Current commands"));
-        assertTrue(feedback.contains("Group commands\ngroup add"));
-        assertTrue(feedback.contains("Student commands\nstudent list"));
     }
 
     @Test
-    public void execute_topic_showsOnlyThatTopic() {
-        CommandResult expectedCommandResult = new CommandResult(HelpCatalog.format(List.of(studentList)),
-                true, false);
+    public void execute_topic_opensHelpAtThatTopic() {
+        CommandResult expectedCommandResult = CommandResult.forHelp("Showing student commands.", "student");
         assertCommandSuccess(new HelpCommand(entries, "student"), model, expectedCommandResult, expectedModel);
-
-        String feedback = new HelpCommand(entries, "student").execute(model).getFeedbackToUser();
-        assertFalse(feedback.contains("Current commands"));
-        assertFalse(feedback.contains("group add"));
     }
 
     @Test
     public void execute_topicWithoutRegisteredCommands_explainsNothingIsAvailable() {
-        CommandResult expectedCommandResult = new CommandResult("No attendance commands are available yet.",
-                true, false);
+        CommandResult expectedCommandResult = CommandResult.forHelp("No attendance commands are available yet.",
+                "");
         assertCommandSuccess(new HelpCommand(entries, "attendance"), model, expectedCommandResult, expectedModel);
     }
 

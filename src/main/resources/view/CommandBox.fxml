@@ -7,5 +7,4 @@
   <Label text="&gt;_" styleClass="command-prompt" />
   <TextField fx:id="commandTextField" HBox.hgrow="ALWAYS" onAction="#handleCommandEntered"
              promptText="Enter command, e.g. help" accessibleText="Command" />
-  <Label text="Enter ↵" styleClass="key-hint" />
 </HBox>

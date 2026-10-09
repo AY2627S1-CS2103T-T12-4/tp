@@ -6,9 +6,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -40,7 +38,9 @@ public class MainWindow extends UiPart<Stage> {
     @FXML
     private StackPane commandBoxPlaceholder;
     @FXML
-    private MenuItem helpMenuItem;
+    private StackPane groupStripPlaceholder;
+    @FXML
+    private StackPane navigationPlaceholder;
     @FXML
     private StackPane workspacePlaceholder;
     @FXML
@@ -70,7 +70,6 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void setAccelerators() {
-        helpMenuItem.setAccelerator(KeyCombination.valueOf("F1"));
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.F1) {
                 handleHelp();
@@ -86,8 +85,13 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
-        workspacePanel = new WorkspacePanel(logic.getFilteredPersonList(), dataFilePath, logic.getHelpEntries());
+        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
+        groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
+
+        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+                dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
+        navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -113,10 +117,19 @@ public class MainWindow extends UiPart<Stage> {
     /**
      * Shows the inline command reference.
      */
-    @FXML
-    public void handleHelp() {
+    private void handleHelp() {
         workspacePanel.showView(WorkspaceView.HELP);
         commandBox.focus();
+    }
+
+    /**
+     * Opens Help, at the requested topic, if {@code result} asks for it. Other commands keep the current screen,
+     * so a contact command does not jump to the Students screen, where contacts are no longer shown.
+     */
+    private void showHelpIfRequested(CommandResult result) {
+        if (result.isShowHelp()) {
+            workspacePanel.showHelp(result.getHelpTopic());
+        }
     }
 
     void show() {
@@ -147,7 +160,7 @@ public class MainWindow extends UiPart<Stage> {
                 statusBarFooter.setStatus("Local data file");
             } else {
                 statusBarFooter.setStatus("Changes saved");
-                workspacePanel.showView(result.isShowHelp() ? WorkspaceView.HELP : WorkspaceView.STUDENTS);
+                showHelpIfRequested(result);
             }
             if (result.isExit()) {
                 handleExit();
@@ -156,7 +169,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("Command failed: " + e.getMessage());
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
-            statusBarFooter.setStatus("Command failed — see feedback");
+            statusBarFooter.setStatus("Command failed — see feedback", true);
             throw e;
         }
     }

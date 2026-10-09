@@ -2,9 +2,6 @@
 <?import java.net.URL?>
 <?import javafx.scene.Scene?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -15,27 +12,17 @@
     <Scene>
       <stylesheets><URL value="@TAssist.css" /></stylesheets>
       <VBox styleClass="workspace">
-        <HBox styleClass="app-header" alignment="CENTER_LEFT" spacing="20">
-          <Label text="TAssist" styleClass="brand" />
-          <MenuBar>
-            <Menu text="File" mnemonicParsing="false">
-              <MenuItem text="Exit" onAction="#handleExit" mnemonicParsing="false" />
-            </Menu>
-            <Menu text="Help" mnemonicParsing="false">
-              <MenuItem fx:id="helpMenuItem" text="Command reference" onAction="#handleHelp" />
-            </Menu>
-          </MenuBar>
-          <Region HBox.hgrow="ALWAYS" />
-          <Label text="Active group" styleClass="header-caption" />
-          <Label text="None" styleClass="active-group" />
-        </HBox>
-        <HBox styleClass="group-strip" spacing="12" alignment="CENTER_LEFT">
-          <Label text="GROUPS" styleClass="eyebrow" />
-          <Label text="Tutorial groups coming soon" styleClass="muted" />
-        </HBox>
+        <VBox styleClass="chrome">
+          <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
+            <Label text="TAssist" styleClass="brand" minWidth="-Infinity" />
+            <Region styleClass="top-bar-divider" />
+            <StackPane fx:id="groupStripPlaceholder" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" minWidth="0" />
+          </HBox>
+          <StackPane fx:id="navigationPlaceholder" />
+        </VBox>
         <VBox styleClass="main-content" spacing="12" VBox.vgrow="ALWAYS" minHeight="0">
           <StackPane fx:id="workspacePlaceholder" VBox.vgrow="ALWAYS" minHeight="0" />
-          <StackPane fx:id="resultDisplayPlaceholder" minHeight="62" prefHeight="72" maxHeight="90" />
+          <StackPane fx:id="resultDisplayPlaceholder" minHeight="-Infinity" maxHeight="-Infinity" />
           <StackPane fx:id="commandBoxPlaceholder" minHeight="48" prefHeight="48" maxHeight="48" />
         </VBox>
         <StackPane fx:id="statusbarPlaceholder" />

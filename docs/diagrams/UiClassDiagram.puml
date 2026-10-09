@@ -15,11 +15,13 @@ package UI <<Rectangle>> {
 interface Ui
 class UiManager
 class MainWindow
+class GroupStrip
+class NavigationBar
 class WorkspacePanel
 class CommandBox
 class ResultDisplay
 class StatusBarFooter
-class PersonListPanel
+class StudentListPanel
 class FeaturePreview
 class HelpPanel
 class StoragePanel
@@ -30,8 +32,10 @@ UiManager --> MainWindow
 MainWindow *--> CommandBox
 MainWindow *--> ResultDisplay
 MainWindow *--> StatusBarFooter
+MainWindow *--> GroupStrip
 MainWindow *--> WorkspacePanel
-WorkspacePanel *--> PersonListPanel
+WorkspacePanel *--> NavigationBar
+WorkspacePanel *--> StudentListPanel
 WorkspacePanel *--> "4" FeaturePreview
 WorkspacePanel *--> HelpPanel
 WorkspacePanel *--> StoragePanel
@@ -41,7 +45,11 @@ View components inherit from UiPart.
 end note
 
 interface Logic #3333C4
-class Person #9D0012
+class Group #9D0012
+class Student #9D0012
 MainWindow --> Logic
-PersonListPanel ..> Person
+MainWindow ..> Group
+StudentListPanel ..> Group
+GroupStrip ..> Group
+StudentListPanel ..> Student
 @enduml

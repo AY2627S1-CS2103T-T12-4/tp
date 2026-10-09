@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="8" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <HBox fx:id="mainButtons" alignment="CENTER_LEFT" spacing="2" />
+  <Region HBox.hgrow="ALWAYS" />
+  <HBox fx:id="sideButtons" alignment="CENTER_LEFT" spacing="2" />
+</HBox>

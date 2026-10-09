@@ -4,8 +4,8 @@ title: User Guide
 ---
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
-This v1.2 increment introduces the TAssist interface while retaining the existing contact commands.
-Tutorial groups, student IDs, attendance, participation, and assignments are **coming soon**.
+The Students screen shows the students in your active tutorial group.
+Commands for tutorial groups, students, attendance, participation, and assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -24,7 +24,7 @@ Tutorial groups, student IDs, attendance, participation, and assignments are **c
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. On the first launch, TAssist starts with no data.<br>
-   ![TAssist student roster](images/TAssistUi.png)
+   ![TAssist on the first launch, with no tutorial groups yet](images/TAssistUi.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the command reference.<br>
    Some example commands you can try:
@@ -45,23 +45,33 @@ Tutorial groups, student IDs, attendance, participation, and assignments are **c
 
 ## Using the workspace
 
-The top row opens **Students**, **Groups**, **Attendance**, **Participation**, **Assignments**, **Help**, and **Storage**.
-Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
-Press **Escape** to return focus to the command box, or **F1** to open Help.
+The bar at the top shows the **tutorial groups** next to the TAssist name, with the active group highlighted, and
+the **screens** below it. **Students**, **Attendance**, **Participation**, and **Assignments** are on the left;
+**Groups**, **Help**, and **Storage** are on the right. A small orange dot marks a screen that is still **coming soon**.
+Hover over a screen, or over a shortened group name, to see more. The tooltip of a screen names the command that does
+the same, such as `view attendance`.
 
-* **Students** displays live contact records. The row numbers match the indices used by `edit` and `delete`.
-  `find` filters the roster; `list` restores all contacts. Changing screens preserves the filter.
-  Scroll the table horizontally to see all fields and vertically to see more contacts. Hover over a shortened value
-  to read its full text. Sorting is disabled to preserve command indices.
+Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
+Press **Escape** to return focus to the command box, or **F1** to open Help. Clicking a screen keeps your cursor in
+the command box.
+
+* **Students** is titled with the name of the active tutorial group and the number of students in it, and lists the
+  students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
+  active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
+  more students.
 * **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
   label. They contain no simulated records. Week controls are unavailable, and their domain commands are not yet
-  supported. Existing tags are not tutorial groups; phone numbers are not student IDs.
-* **Help** provides an offline reference for currently supported commands.
+  supported.
+* **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
-Feedback turns red when a command fails. The failed input stays in the command box so you can correct it.
-Long feedback and screen contents can be scrolled. Smaller windows use a compact layout.
-The footer shows the local file path and reports successful saves or command failures.
+The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
+on a red background means it failed. It grows to fit the message, up to six lines; only longer messages need
+scrolling. The failed input stays in the
+command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
+`help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
+The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
+Escape shortcuts.
 Opening a screen with `view` does not save or change data.
 
 ## Features
@@ -89,19 +99,22 @@ Opening a screen with `view` does not save or change data.
   and suggest entering `help`. They do not change or save your data. Tutorial-group, student, attendance,
   participation, and assignment commands remain **Coming soon**.
 
+* The contact commands (`add`, `list`, `edit`, `find`, `delete`, and `clear`) are left over from AddressBook and will
+  be removed soon. They still run, but contacts are no longer shown in the workspace and are not saved.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
 ### Viewing help: `help`
 
-Typing `help` shows the formats and examples of available commands in the result panel and opens the offline command
-reference.
+Opens the **Help** screen, which lists the format and examples of every available command.
+The feedback box confirms with `Showing the command reference.`
 
 Format: `help [TOPIC]`
 
 * `TOPIC` is one of `group`, `student`, `attendance`, `participation`, or `assignment`. It is not case-sensitive.
-* With a `TOPIC`, only the commands of that topic are shown in the result panel. If no command of that topic exists
-  yet, TAssist says so. The Help screen that opens alongside always lists every command.
+* With a `TOPIC`, the Help screen opens at that topic's commands, for example `Showing student commands.`
+  If no command of that topic exists yet, TAssist says so and opens the Help screen from the top.
 * An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
   and does not change any data.
 
@@ -115,7 +128,7 @@ Examples:
 Format: `view SCREEN`
 
 `SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
-Screen names ignore case. Specify exactly one screen name. This command preserves the current roster filter.
+Screen names ignore case. Specify exactly one screen name. Opening a screen does not change any data.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
 an invalid command format and show the expected syntax.
 
