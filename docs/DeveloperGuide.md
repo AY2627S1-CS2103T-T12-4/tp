@@ -9,8 +9,10 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* The v1.2 GUI follows the team-supplied **TAssist UI Mockups.html** design reference. It is implemented with
-  native JavaFX controls; no HTML runtime, web fonts, or additional libraries are bundled.
+* The GUI is based on the team-supplied **TAssist UI Mockups.html** design reference: its colors, cards and
+  command-first layout. A single light top bar and a navigation bar replace the dark header and the tab strip of the
+  mockup. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or additional libraries are
+  bundled.
 
 --------------------------------------------------------------------------------------------------------------------
 
