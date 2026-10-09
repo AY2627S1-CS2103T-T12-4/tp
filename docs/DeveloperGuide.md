@@ -94,7 +94,7 @@ and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
-screens does not change the model or filter. Other successful commands save TAssist data through `Storage` and keep
+screens does not change the model. Other successful commands save TAssist data through `Storage` and keep
 the current screen.
 
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
@@ -187,7 +187,7 @@ This section describes some noteworthy details on how certain features are imple
 
 `CommandRegistry` maps a feature keyword and subcommand to a `Parser<? extends Command>` and its `HelpEntry`.
 Each feature owns its parser, format, description, and examples, so adding a command does not require editing another
-feature's help content or adding a case to the legacy command switch. Register commands before creating `LogicManager`:
+feature's help content or adding a case to the command switch in `TAssistParser`. Register commands before creating `LogicManager`:
 
 ```java
 CommandRegistry registry = new CommandRegistry();

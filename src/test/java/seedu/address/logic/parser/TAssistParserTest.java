@@ -62,7 +62,7 @@ public class TAssistParserTest {
     }
 
     @Test
-    public void parseCommand_registeredFeatures_dispatchesWithoutChangingLegacyCommands() throws Exception {
+    public void parseCommand_registeredFeatures_dispatchesWithoutChangingBuiltInCommands() throws Exception {
         StubCommand groupList = new StubCommand();
         StubCommand studentAdd = new StubCommand();
         CommandRegistry registry = new CommandRegistry();
@@ -94,10 +94,10 @@ public class TAssistParserTest {
     }
 
     @Test
-    public void constructor_legacyKeywordConflict_throwsIllegalArgumentException() {
-        for (String legacyKeyword : List.of("view", "help", "exit")) {
+    public void constructor_builtInKeywordConflict_throwsIllegalArgumentException() {
+        for (String builtInKeyword : List.of("view", "help", "exit")) {
             CommandRegistry registry = new CommandRegistry();
-            registry.register(legacyKeyword, "student", args -> new StubCommand());
+            registry.register(builtInKeyword, "student", args -> new StubCommand());
             assertThrows(IllegalArgumentException.class, () -> new TAssistParser(registry));
         }
     }
