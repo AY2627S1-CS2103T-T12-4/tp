@@ -178,7 +178,7 @@
     -fx-background-radius: 8;
     -fx-border-color: #dedcd5;
     -fx-border-radius: 8;
-    -fx-padding: 7 12;
+    -fx-padding: 10 12 4 12;
 }
 .feedback-pane:failure { -fx-background-color: #fdf3f1; -fx-border-color: #ebc2bb; }
 .feedback-icon {
@@ -193,24 +193,29 @@
     -fx-min-height: 20;
     -fx-pref-height: 20;
 }
-.feedback-pane:failure .feedback-icon { -fx-background-color: #f7d9d4; -fx-text-fill: #a12c2c; }
+.feedback-pane:failure .feedback-icon {
+    -fx-background-color: #f7d9d4;
+    -fx-text-fill: #a12c2c;
+    -fx-font-size: 13px;
+}
 .feedback-pane .text-area, .feedback-pane .text-area .content {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-text-fill: #1c1d1f;
 }
 .feedback-pane .text-area { -fx-font-size: 13px; -fx-padding: 0; }
+.feedback-pane .text-area .content { -fx-padding: 0 0 0 0; }
 .status-bar {
     -fx-padding: 7 20;
     -fx-border-color: #dedcd5 transparent transparent transparent;
 }
 .status-bar .label { -fx-text-fill: #5a5d64; -fx-font-size: 11px; }
 .status-bar .status-dot { -fx-text-fill: #0e6b61; }
+.status-bar:failure .status-dot { -fx-text-fill: #a12c2c; }
 .tooltip { -fx-font-size: 12px; -fx-background-color: #1c1d1f; -fx-text-fill: white; }
 
 .workspace:compact .top-bar { -fx-min-height: 44; -fx-pref-height: 44; -fx-padding: 0 16; }
 .workspace:compact .main-content { -fx-padding: 6 16 8 16; -fx-spacing: 8; }
 .workspace:compact .nav-button { -fx-padding: 6 8 5 8; }
-.status-bar:failure .status-dot { -fx-text-fill: #a12c2c; }
 .workspace:compact .card-heading { -fx-padding: 10 16; }
 .workspace:compact .status-bar { -fx-padding: 5 16; }
