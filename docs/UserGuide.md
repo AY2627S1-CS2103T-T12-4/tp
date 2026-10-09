@@ -24,7 +24,7 @@ Commands for tutorial groups, students, attendance, participation, and assignmen
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. On the first launch, TAssist starts with no data.<br>
-   ![TAssist student roster](images/TAssistUi.png)
+   ![TAssist on the first launch, with no tutorial groups yet](images/TAssistUi.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the command reference.<br>
    Some example commands you can try:
