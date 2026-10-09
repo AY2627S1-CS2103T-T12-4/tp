@@ -34,7 +34,9 @@ import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
+import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -126,7 +128,8 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage, createFeatureRegistry());
 
         Model expectedModel = new ModelManager(tAssist, new UserPrefs());
-        expectedModel.addStudent(TypicalGroups.NAME_T02, FIONA);
+        expectedModel.addStudent(TypicalGroups.NAME_T02,
+                new Student(new StudentName("Alice Tan"), new StudentId("a1")));
         assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ", StubCommand.MESSAGE_SUCCESS, expectedModel);
         assertEquals(new TAssist(expectedModel.getTAssist()), new TAssist(storage.readTAssist().orElseThrow()));
     }
@@ -232,9 +235,10 @@ public class LogicManagerTest {
         CommandRegistry registry = new CommandRegistry();
         registry.register("student", "add", args -> {
             ArgumentMultimap values = argumentParser.parse(args);
-            String name = TAssistParserUtil.parseStudentName(values.getValue(namePrefix).orElseThrow()).fullName;
-            TAssistParserUtil.parseStudentId(values.getValue(idPrefix).orElseThrow());
-            return new StubCommand(model -> model.addStudent(TypicalGroups.NAME_T02, FIONA));
+            Student student = new Student(
+                    TAssistParserUtil.parseStudentName(values.getValue(namePrefix).orElseThrow()),
+                    TAssistParserUtil.parseStudentId(values.getValue(idPrefix).orElseThrow()));
+            return new StubCommand(model -> model.addStudent(TypicalGroups.NAME_T02, student));
         });
         return registry;
     }
