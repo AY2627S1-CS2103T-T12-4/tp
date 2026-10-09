@@ -31,7 +31,7 @@ public class HelpCatalogTest {
         List<HelpEntry> entries = HelpCatalog.getEntries(List.of());
 
         assertTrue(entries.stream().allMatch(entry -> entry.getTopic().isEmpty()));
-        for (String commandWord : List.of("view", "add", "list", "find", "edit", "delete", "clear", "help", "exit")) {
+        for (String commandWord : List.of("view", "help", "exit")) {
             assertTrue(entries.stream().anyMatch(entry -> entry.getCommandFormat().startsWith(commandWord)),
                     "Missing help for " + commandWord);
         }
