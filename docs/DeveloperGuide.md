@@ -9,10 +9,11 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* The GUI is based on the team-supplied **TAssist UI Mockups.html** design reference: its colors, cards and
-  command-first layout. A single light top bar and a navigation bar replace the dark header and the tab strip of the
-  mockup. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or additional libraries are
-  bundled.
+* The GUI is based on the team-supplied **TAssist UI Mockups.html** design reference
+  ([image of the mock-up](images/UiMockup.png)): its colors, cards and command-first layout. A single light top bar
+  with the group chips, and a navigation bar that opens the screens, replace the mock-up's dark header with a menu bar
+  and its separate group strip. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or
+  additional libraries are bundled.
 
 --------------------------------------------------------------------------------------------------------------------
 
