@@ -28,7 +28,6 @@ import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.TAssistArgumentParser;
 import seedu.address.logic.parser.TAssistParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
@@ -126,7 +125,7 @@ public class LogicManagerTest {
         StorageManager storage = createStorage(new JsonTAssistStorage(temporaryFolder.resolve("feature.json")));
         logic = new LogicManager(model, storage, createFeatureRegistry());
 
-        Model expectedModel = new ModelManager(new AddressBook(), tAssist, new UserPrefs());
+        Model expectedModel = new ModelManager(tAssist, new UserPrefs());
         expectedModel.addStudent(TypicalGroups.NAME_T02, FIONA);
         assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ", StubCommand.MESSAGE_SUCCESS, expectedModel);
         assertEquals(new TAssist(expectedModel.getTAssist()), new TAssist(storage.readTAssist().orElseThrow()));
@@ -170,11 +169,6 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
-    }
-
-    @Test
-    public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
 
     @Test
@@ -267,7 +261,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getTAssist(), new UserPrefs());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 

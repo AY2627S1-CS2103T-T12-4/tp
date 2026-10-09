@@ -21,7 +21,6 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.group.Group;
-import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
@@ -86,11 +85,6 @@ public class LogicManager implements Logic {
     @Override
     public List<HelpEntry> getHelpEntries() {
         return addressBookParser.getHelpEntries();
-    }
-
-    @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return model.getFilteredPersonList();
     }
 
     @Override

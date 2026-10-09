@@ -29,7 +29,6 @@ public class MainAppTest {
     public void initModelManager_missingDataFile_startsEmpty() {
         Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
         assertEquals(new TAssist(), model.getTAssist());
-        assertEquals(0, model.getAddressBook().getPersonList().size());
     }
 
     @Test
