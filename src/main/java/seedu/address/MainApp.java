@@ -1,5 +1,7 @@
 package seedu.address;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,14 +44,35 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    private final Path userPrefsFilePath;
+    private final Path tAssistFilePath;
+
+    /**
+     * Creates a TAssist application that uses the default preference and data file paths.
+     */
+    public MainApp() {
+        this(USER_PREFS_FILE_PATH, TASSIST_FILE_PATH);
+    }
+
+    /**
+     * Creates a TAssist application that reads preferences from {@code userPrefsFilePath}
+     * and TAssist data from {@code tAssistFilePath}.
+     */
+    MainApp(Path userPrefsFilePath, Path tAssistFilePath) {
+        requireNonNull(userPrefsFilePath);
+        requireNonNull(tAssistFilePath);
+        this.userPrefsFilePath = userPrefsFilePath;
+        this.tAssistFilePath = tAssistFilePath;
+    }
+
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing TAssist ]===============================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(userPrefsFilePath);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(TASSIST_FILE_PATH);
+        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(tAssistFilePath);
         storage = new StorageManager(tAssistStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
