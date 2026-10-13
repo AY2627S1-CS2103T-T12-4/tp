@@ -3,14 +3,11 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
 import static seedu.address.testutil.TypicalGroups.NAME_T04;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.util.ArrayList;
@@ -24,10 +21,8 @@ import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.exceptions.DuplicateGroupException;
 import seedu.address.model.group.exceptions.GroupNotFoundException;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
-import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -39,7 +34,7 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
-        assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
+        assertEquals(new TAssist(), modelManager.getTAssist());
     }
 
     @Test
@@ -54,7 +49,7 @@ public class ModelManagerTest {
 
     @Test
     public void constructor_nullTAssist_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new ModelManager(new AddressBook(), null, new UserPrefs()));
+        assertThrows(NullPointerException.class, () -> new ModelManager(null, new UserPrefs()));
     }
 
     @Test
@@ -67,7 +62,7 @@ public class ModelManagerTest {
     @Test
     public void constructor_validTAssist_copiesTAssist() {
         TAssist tAssist = typicalTAssistWithActiveGroup(NAME_T01);
-        modelManager = new ModelManager(new AddressBook(), tAssist, new UserPrefs());
+        modelManager = new ModelManager(tAssist, new UserPrefs());
 
         // Modifying tAssist should not modify modelManager's TAssist data
         tAssist.setActiveGroup(NAME_T02);
@@ -79,7 +74,7 @@ public class ModelManagerTest {
     public void constructor_validUserPrefs_copiesUserPrefs() {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
-        modelManager = new ModelManager(new AddressBook(), userPrefs);
+        modelManager = new ModelManager(new TAssist(), userPrefs);
         assertEquals(userPrefs, modelManager.getUserPrefs());
 
         // Modifying userPrefs should not modify modelManager's userPrefs
@@ -101,35 +96,14 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> modelManager.hasPerson(null));
-    }
-
-    @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
-        assertFalse(modelManager.hasPerson(ALICE));
-    }
-
-    @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
-        modelManager.addPerson(ALICE);
-        assertTrue(modelManager.hasPerson(ALICE));
-    }
-
-    @Test
-    public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
-    }
-
-    @Test
     public void equals() {
-        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
-        AddressBook differentAddressBook = new AddressBook();
+        TAssist tAssist = typicalTAssistWithActiveGroup(NAME_T01);
+        TAssist differentTAssist = new TAssist();
         UserPrefs userPrefs = new UserPrefs();
 
         // same values -> returns true
-        modelManager = new ModelManager(addressBook, userPrefs);
-        ModelManager modelManagerCopy = new ModelManager(addressBook, userPrefs);
+        modelManager = new ModelManager(tAssist, userPrefs);
+        ModelManager modelManagerCopy = new ModelManager(tAssist, userPrefs);
         assertTrue(modelManager.equals(modelManagerCopy));
 
         // same object -> returns true
@@ -141,21 +115,13 @@ public class ModelManagerTest {
         // different types -> returns false
         assertFalse(modelManager.equals(5));
 
-        // different addressBook -> returns false
-        assertFalse(modelManager.equals(new ModelManager(differentAddressBook, userPrefs)));
-
-        // different filteredList -> returns false
-        String[] keywords = ALICE.getName().fullName.split("\\s+");
-        modelManager.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(keywords)));
-        assertFalse(modelManager.equals(new ModelManager(addressBook, userPrefs)));
-
-        // resets modelManager to initial state for upcoming tests
-        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        // different TAssist -> returns false
+        assertFalse(modelManager.equals(new ModelManager(differentTAssist, userPrefs)));
 
         // different userPrefs -> returns false
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
-        assertFalse(modelManager.equals(new ModelManager(addressBook, differentUserPrefs)));
+        assertFalse(modelManager.equals(new ModelManager(tAssist, differentUserPrefs)));
     }
 
     @Test
@@ -387,16 +353,12 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void equals_differentTAssist_returnsFalse() {
-        AddressBook addressBook = new AddressBook();
+    public void equals_differentActiveGroup_returnsFalse() {
         UserPrefs userPrefs = new UserPrefs();
-        modelManager = new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T01), userPrefs);
+        modelManager = new ModelManager(typicalTAssistWithActiveGroup(NAME_T01), userPrefs);
 
-        assertTrue(modelManager.equals(
-                new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T01), userPrefs)));
-        assertFalse(modelManager.equals(
-                new ModelManager(addressBook, typicalTAssistWithActiveGroup(NAME_T02), userPrefs)));
-        assertFalse(modelManager.equals(new ModelManager(addressBook, userPrefs)));
+        assertTrue(modelManager.equals(new ModelManager(typicalTAssistWithActiveGroup(NAME_T01), userPrefs)));
+        assertFalse(modelManager.equals(new ModelManager(typicalTAssistWithActiveGroup(NAME_T02), userPrefs)));
     }
 
     /**
@@ -410,7 +372,7 @@ public class ModelManagerTest {
      * Returns a model holding the typical TAssist data with the group named {@code activeGroupName} active.
      */
     private static ModelManager modelWithActiveGroup(GroupName activeGroupName) {
-        return new ModelManager(new AddressBook(), typicalTAssistWithActiveGroup(activeGroupName), new UserPrefs());
+        return new ModelManager(typicalTAssistWithActiveGroup(activeGroupName), new UserPrefs());
     }
 
     /**

@@ -14,20 +14,19 @@ import java.util.TreeMap;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
-import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.testutil.HelpEntryBuilder;
+import seedu.address.testutil.StubCommand;
 
 public class CommandRegistryTest {
     private final CommandRegistry registry = new CommandRegistry();
 
     @Test
     public void register_independentFeatures_dispatchesToOwnParsers() throws Exception {
-        Command groupCommand = new ListCommand();
-        Command studentCommand = new ClearCommand();
+        Command groupCommand = new StubCommand();
+        Command studentCommand = new StubCommand();
         registry.register("group", "list", args -> groupCommand);
         registry.register("student", "list", args -> studentCommand);
 
@@ -39,10 +38,10 @@ public class CommandRegistryTest {
 
     @Test
     public void register_duplicate_throwsAndKeepsFirstParser() throws Exception {
-        Command originalCommand = new ListCommand();
+        Command originalCommand = new StubCommand();
         registry.register("group", "list", args -> originalCommand);
         assertThrows(IllegalArgumentException.class, "Command already registered: group list", () ->
-                registry.register("group", "list", args -> new ClearCommand()));
+                registry.register("group", "list", args -> new StubCommand()));
         assertSame(originalCommand, registry.parseCommand("group", "list"));
     }
 
@@ -79,10 +78,10 @@ public class CommandRegistryTest {
         HelpEntry studentList = helpEntry("student", "student list");
         HelpEntry studentAdd = helpEntry("student", "student add");
         HelpEntry groupList = helpEntry("group", "group list");
-        registry.register("student", "list", args -> new ListCommand(), studentList);
-        registry.register("student", "add", args -> new ListCommand(), studentAdd);
-        registry.register("group", "list", args -> new ListCommand(), groupList);
-        registry.register("group", "remove", args -> new ListCommand());
+        registry.register("student", "list", args -> new StubCommand(), studentList);
+        registry.register("student", "add", args -> new StubCommand(), studentAdd);
+        registry.register("group", "list", args -> new StubCommand(), groupList);
+        registry.register("group", "remove", args -> new StubCommand());
 
         assertEquals(List.of(groupList, studentAdd, studentList), registry.getHelpEntries());
         assertThrows(UnsupportedOperationException.class, () -> registry.getHelpEntries().clear());
@@ -93,7 +92,7 @@ public class CommandRegistryTest {
         HelpEntry entry = helpEntry("student", "student list");
 
         assertThrows(IllegalArgumentException.class, "Help topic must match the feature keyword.", () ->
-                registry.register("group", "list", args -> new ListCommand(), entry));
+                registry.register("group", "list", args -> new StubCommand(), entry));
         assertFalse(registry.hasFeature("group"));
         assertTrue(registry.getHelpEntries().isEmpty());
     }
@@ -101,21 +100,21 @@ public class CommandRegistryTest {
     @Test
     public void copyConstructor_copiesParsersAndHelpEntriesIndependently() throws Exception {
         HelpEntry originalEntry = helpEntry("student", "student list");
-        registry.register("student", "list", args -> new ListCommand(), originalEntry);
+        registry.register("student", "list", args -> new StubCommand(), originalEntry);
 
         CommandRegistry copy = new CommandRegistry(registry);
-        registry.register("student", "add", args -> new ClearCommand(), helpEntry("student", "student add"));
+        registry.register("student", "add", args -> new StubCommand(), helpEntry("student", "student add"));
 
         assertEquals(List.of(originalEntry), copy.getHelpEntries());
         assertEquals(2, registry.getHelpEntries().size());
-        assertTrue(copy.parseCommand("student", "list") instanceof ListCommand);
+        assertTrue(copy.parseCommand("student", "list") instanceof StubCommand);
     }
 
     @Test
     public void parseCommand_whitespace_preservesArgumentValues() throws Exception {
         registry.register("student", "add", args -> {
             assertEquals("n/Alice   Tan\t id/a123", args);
-            return new ListCommand();
+            return new StubCommand();
         });
         registry.parseCommand("student", " \tadd \n n/Alice   Tan\t id/a123  ");
     }
@@ -124,7 +123,7 @@ public class CommandRegistryTest {
     public void parseCommand_noArguments_passesEmptyString() throws Exception {
         registry.register("group", "list", args -> {
             assertEquals("", args);
-            return new ListCommand();
+            return new StubCommand();
         });
         registry.parseCommand("group", "list");
     }
@@ -137,8 +136,8 @@ public class CommandRegistryTest {
 
     @Test
     public void parseCommand_missingOrUnknownSubcommand_listsValidSubcommands() {
-        registry.register("group", "list", args -> new ListCommand());
-        registry.register("group", "add", args -> new ClearCommand());
+        registry.register("group", "list", args -> new StubCommand());
+        registry.register("group", "add", args -> new StubCommand());
         String missingMessage = String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
                 "group", "add, list", "group");
         assertThrows(ParseException.class, missingMessage, () -> registry.parseCommand("group", " \t "));
