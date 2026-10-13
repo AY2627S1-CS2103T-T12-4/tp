@@ -43,6 +43,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
+import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
@@ -164,6 +165,46 @@ public class WorkspaceSmokeTest {
                         && label.getText().equals(GroupStrip.NO_GROUPS)));
             });
             runOnFx(() -> render(root, "no-groups", 853, 440));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void groupCommands_updateChipsStudentsAndFeedback() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/t01");
+                assertStudentsShown("T01");
+                assertGroupChips(List.of("T01", "T02", "T03"), "T01");
+                assertEquals(TypicalGroups.getT01().getStudentList(), studentTable().getItems());
+                enter(input, "group use g/T02");
+                assertStudentsShown("T02");
+                assertEquals(TypicalGroups.getT02().getStudentList(), studentTable().getItems());
+                enter(input, "group add g/ Thursday   1 ");
+                assertStudentsShown("Thursday 1");
+                assertTrue(studentTable().getItems().isEmpty());
+                assertGroupChips(List.of("T01", "T02", "T03", "Thursday 1"), "Thursday 1");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertEquals("Created tutorial group: Thursday 1.\nActive group is now Thursday 1.",
+                        feedback.getText());
+                enter(input, "group list");
+                assertEquals("1. T01\n2. T02\n3. T03\n4. Thursday 1\nActive group: Thursday 1", feedback.getText());
+            });
+            runOnFx(() -> render(root, "group-commands", 853, 440));
+            runOnFx(() -> {
+                enter(input, "group add g/t01");
+                assertEquals("group add g/t01", input.getText());
+                assertTrue(isFooterShowingFailure());
+                assertStudentsShown("Thursday 1");
+                enter(input, "group use g/T01");
+                assertEquals(TypicalGroups.getT01().getStudentList(), studentTable().getItems());
+                enter(input, "help group");
+                assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("Showing group commands.", ((TextArea) root.lookup("#resultDisplay")).getText());
+            });
+            runOnFx(() -> render(root, "group-help", 1280, 680));
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -349,6 +390,7 @@ public class WorkspaceSmokeTest {
         StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
+        GroupCommandRegistration.registerCommands(commandRegistry);
         commandRegistry.register("student", "list", args -> new StubCommand(),
                 new HelpEntry("student", "student list", "Show all students.", List.of("student list")));
         stage = new Stage();

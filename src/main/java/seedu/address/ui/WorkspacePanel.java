@@ -40,7 +40,8 @@ public class WorkspacePanel extends UiPart<TabPane> {
         StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
-                "Create and switch between tutorial groups in a future increment.", "#", "GROUP", "STATUS").getRoot());
+                "Use group add, group list, and group use to manage tutorial groups. This table is coming soon.",
+                "#", "GROUP", "STATUS").getRoot());
         addWeeklyView(WorkspaceView.ATTENDANCE, "Weekly attendance",
                 "Present and absent records will appear here once attendance is implemented.", "ATTENDANCE");
         addWeeklyView(WorkspaceView.PARTICIPATION, "Weekly participation",

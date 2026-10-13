@@ -5,7 +5,8 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-Commands for tutorial groups, students, attendance, participation, and assignments are **coming soon**.
+You can create, list, and switch tutorial groups. Commands for students, attendance, participation, and assignments
+are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -31,6 +32,8 @@ Commands for tutorial groups, students, attendance, participation, and assignmen
 
    * `help` : Opens the command reference.
 
+   * `group add g/T01` : Creates tutorial group T01 and makes it active.
+
    * `view attendance` : Opens the Attendance screen.
 
    * `exit` : Exits the app.
@@ -55,9 +58,10 @@ the command box.
   students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
   more students.
-* **Groups**, **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon**
-  label. They contain no simulated records. Week controls are unavailable, and their domain commands are not yet
-  supported.
+* **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
+  box, and `group add` or `group use` to change the active group shown in the top bar.
+* **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon** label.
+  They contain no simulated records. Week controls are unavailable, and their domain commands are not yet supported.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -82,12 +86,14 @@ Opening a screen with `view` does not save or change data.
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* Extraneous parameters for commands that take no parameters, such as `exit`, are ignored.<br>
-  For example, `exit 123` is interpreted as `exit`.
+* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` rejects extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Tutorial-group, student, attendance,
-  participation, and assignment commands remain **Coming soon**.
+  and suggest entering `help`. They do not change or save your data. Student, attendance, participation, and
+  assignment commands remain **Coming soon**.
+
+* Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
+  Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -120,6 +126,67 @@ An unknown screen name reports `Unknown screen` and lists the valid names. Missi
 an invalid command format and show the expected syntax.
 
 Examples: `view students`, `view attendance`, `view storage`.
+
+### Creating a tutorial group: `group add`
+
+Creates an empty tutorial group and makes it active, including when another group is already active.
+Existing groups and their students remain unchanged.
+
+Format: `group add g/GROUP_NAME`
+
+* Group names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
+  The length limit applies after this normalization.
+* Names ignore case when matching, but keep the capitalization entered for display. `T01` and `t01` are duplicates;
+  `Tutorial 1` and ` tutorial   1 ` are also duplicates.
+
+Example: `group add g/T01`
+
+```text
+Created tutorial group: T01.
+Active group is now T01.
+```
+
+### Listing tutorial groups: `group list`
+
+Lists all tutorial groups in creation order, with numbering and the active group's name.
+It does not change which group is active or any students.
+
+Format: `group list`
+
+For example, after creating T01 and T02:
+
+```text
+1. T01
+2. T02
+Active group: T02
+```
+
+With no groups, the feedback is `No tutorial groups exist. Create one using: group add g/GROUP_NAME`.
+If groups were loaded from a file without an active selection, the final line is `Active group: None`.
+Extra input, such as `group list g/T01`, is rejected. Long lists can be scrolled in the feedback box.
+
+### Switching tutorial groups: `group use`
+
+Makes an existing tutorial group active. The highlighted group in the top bar and the Students screen update
+immediately. Each group's students and records stay separate. Selecting the already active group also succeeds.
+
+Format: `group use g/GROUP_NAME`
+
+Example: `group use g/t01` switches to a group saved as T01 and shows `Switched active group to T01.`
+
+#### Tutorial-group command errors
+
+Rejected group commands do not change the groups, the active selection, or the saved data file.
+
+Problem | Feedback and correction
+--------|------------------------
+Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`.
+Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`.
+Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
+Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
 
 ### Exiting the program: `exit`
 
@@ -191,4 +258,7 @@ Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
+**Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
+**List groups** | `group list`
+**Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
 **Exit** | `exit`
