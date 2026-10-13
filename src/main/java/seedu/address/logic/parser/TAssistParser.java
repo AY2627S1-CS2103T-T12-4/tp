@@ -11,61 +11,54 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
-import seedu.address.logic.commands.DeleteCommand;
-import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
-import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
- * Parses user input.
+ * Parses user input into TAssist commands.
  */
-public class AddressBookParser {
+public class TAssistParser {
 
     /**
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT =
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
-    private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
-    private static final Set<String> LEGACY_COMMAND_WORDS = Set.of(AddCommand.COMMAND_WORD, EditCommand.COMMAND_WORD,
-            DeleteCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD, FindCommand.COMMAND_WORD, ListCommand.COMMAND_WORD,
-            ExitCommand.COMMAND_WORD, HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
+    private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
+    private static final Set<String> BUILT_IN_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
+            HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
 
     private final CommandRegistry commandRegistry;
     private final List<HelpEntry> helpEntries;
 
     /**
-     * Creates a parser for legacy commands with no feature commands registered.
+     * Creates a parser for the built-in commands with no feature commands registered.
      */
-    public AddressBookParser() {
+    public TAssistParser() {
         this(new CommandRegistry());
     }
 
     /**
-     * Creates a parser with a snapshot of feature registrations alongside legacy commands.
+     * Creates a parser with a snapshot of feature registrations alongside the built-in commands.
      *
      * @param commandRegistry The feature registrations assembled before application startup.
-     * @throws IllegalArgumentException if a feature keyword conflicts with a legacy command.
+     * @throws IllegalArgumentException if a feature keyword conflicts with a built-in command.
      */
-    public AddressBookParser(CommandRegistry commandRegistry) {
+    public TAssistParser(CommandRegistry commandRegistry) {
         requireNonNull(commandRegistry);
-        checkArgument(LEGACY_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
-                "Feature keywords must not conflict with existing AB3 commands.");
+        checkArgument(BUILT_IN_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
+                "Feature keywords must not conflict with the help, view and exit commands.");
         this.commandRegistry = new CommandRegistry(commandRegistry);
         helpEntries = HelpCatalog.getEntries(commandRegistry.getHelpEntries());
     }
 
     /**
-     * Returns the help entries of legacy commands followed by the registered feature commands.
+     * Returns the help entries of the built-in commands followed by the registered feature commands.
      *
      * @return An immutable list of command help entries.
      */
@@ -96,12 +89,6 @@ public class AddressBookParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
-            case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
-            case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
-            case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
-            case ClearCommand.COMMAND_WORD -> new ClearCommand();
-            case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
-            case ListCommand.COMMAND_WORD -> new ListCommand();
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);

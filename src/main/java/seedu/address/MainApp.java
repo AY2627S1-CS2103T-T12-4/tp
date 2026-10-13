@@ -1,5 +1,7 @@
 package seedu.address;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +15,6 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
@@ -43,14 +44,35 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    private final Path userPrefsFilePath;
+    private final Path tAssistFilePath;
+
+    /**
+     * Creates a TAssist application that uses the default preference and data file paths.
+     */
+    public MainApp() {
+        this(USER_PREFS_FILE_PATH, TASSIST_FILE_PATH);
+    }
+
+    /**
+     * Creates a TAssist application that reads preferences from {@code userPrefsFilePath}
+     * and TAssist data from {@code tAssistFilePath}.
+     */
+    MainApp(Path userPrefsFilePath, Path tAssistFilePath) {
+        requireNonNull(userPrefsFilePath);
+        requireNonNull(tAssistFilePath);
+        this.userPrefsFilePath = userPrefsFilePath;
+        this.tAssistFilePath = tAssistFilePath;
+    }
+
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("=============================[ Initializing TAssist ]===============================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(userPrefsFilePath);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(TASSIST_FILE_PATH);
+        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(tAssistFilePath);
         storage = new StorageManager(tAssistStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
@@ -82,7 +104,7 @@ public class MainApp extends Application {
             initialData = new TAssist();
         }
 
-        return new ModelManager(new AddressBook(), initialData, userPrefs);
+        return new ModelManager(initialData, userPrefs);
     }
 
     /**
@@ -119,13 +141,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting TAssist " + MainApp.VERSION);
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("============================ [ Stopping TAssist ] =================================");
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {

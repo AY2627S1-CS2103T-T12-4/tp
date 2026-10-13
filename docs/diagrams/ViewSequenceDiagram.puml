@@ -1,0 +1,60 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":TAssistParser" as TAssistParser LOGIC_COLOR
+participant ":ViewCommandParser" as ViewCommandParser LOGIC_COLOR
+participant "v:ViewCommand" as ViewCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+[-> LogicManager : execute("view students")
+activate LogicManager
+
+LogicManager -> TAssistParser : parseCommand("view students")
+activate TAssistParser
+
+create ViewCommandParser
+TAssistParser -> ViewCommandParser
+activate ViewCommandParser
+
+ViewCommandParser --> TAssistParser
+deactivate ViewCommandParser
+
+TAssistParser -> ViewCommandParser : parse("students")
+activate ViewCommandParser
+
+create ViewCommand
+ViewCommandParser -> ViewCommand
+activate ViewCommand
+
+ViewCommand --> ViewCommandParser :
+deactivate ViewCommand
+
+ViewCommandParser --> TAssistParser : v
+deactivate ViewCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+ViewCommandParser -[hidden]-> TAssistParser
+destroy ViewCommandParser
+
+TAssistParser --> LogicManager : v
+deactivate TAssistParser
+
+LogicManager -> ViewCommand : execute(m)
+activate ViewCommand
+
+create CommandResult
+ViewCommand -> CommandResult
+activate CommandResult
+
+CommandResult --> ViewCommand
+deactivate CommandResult
+
+ViewCommand --> LogicManager : r
+deactivate ViewCommand
+
+[<--LogicManager
+deactivate LogicManager
+@enduml

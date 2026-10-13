@@ -1,15 +1,23 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.stage.Stage;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.storage.JsonTAssistStorage;
@@ -17,6 +25,7 @@ import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
+import seedu.address.ui.Ui;
 
 public class MainAppTest {
 
@@ -26,10 +35,74 @@ public class MainAppTest {
     private final MainApp mainApp = new MainApp();
 
     @Test
+    public void constructor_nullPath_throwsNullPointerException() {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        assertThrows(NullPointerException.class, () -> new MainApp(null, dataFile));
+        assertThrows(NullPointerException.class, () -> new MainApp(prefsFile, null));
+    }
+
+    @Test
+    public void init_missingDataFile_startsEmptyAndSavesPrefs() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        MainApp app = new MainApp(prefsFile, temporaryFolder.resolve("tassist.json"));
+
+        app.init();
+
+        assertEquals(new TAssist(), app.model.getTAssist());
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
+        assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
+    }
+
+    @Test
+    public void init_savedFiles_restoresDataAndPrefs() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        TAssist saved = new TAssistBuilder(TypicalGroups.getTypicalTAssist())
+                .withActiveGroup(TypicalGroups.NAME_T02).build();
+        UserPrefs userPrefs = new UserPrefs();
+        userPrefs.setGuiSettings(new GuiSettings(800, 600, 1, 2));
+        StorageManager storage = new StorageManager(new JsonTAssistStorage(dataFile),
+                new JsonUserPrefsStorage(prefsFile));
+        storage.saveTAssist(saved);
+        storage.saveUserPrefs(userPrefs);
+
+        MainApp app = new MainApp(prefsFile, dataFile);
+        app.init();
+
+        assertEquals(saved, app.model.getTAssist());
+        assertEquals(userPrefs, app.model.getUserPrefs());
+        assertEquals(TypicalGroups.getT02().getStudentList(), app.model.getActiveGroupStudentList());
+    }
+
+    @Test
+    public void start_delegatesToUi() {
+        RecordingUi recordingUi = new RecordingUi();
+        mainApp.ui = recordingUi;
+
+        mainApp.start(null);
+
+        assertTrue(recordingUi.isStarted());
+        assertNull(recordingUi.getStartedStage());
+    }
+
+    @Test
+    public void stop_savesUserPrefs() throws Exception {
+        UserPrefs userPrefs = new UserPrefs();
+        userPrefs.setGuiSettings(new GuiSettings(800, 600, 1, 2));
+        mainApp.model = new ModelManager(new TAssist(), userPrefs);
+        mainApp.storage = createStorage();
+
+        mainApp.stop();
+
+        assertEquals(Optional.of(userPrefs), mainApp.storage.readUserPrefs());
+    }
+
+    @Test
     public void initModelManager_missingDataFile_startsEmpty() {
         Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
         assertEquals(new TAssist(), model.getTAssist());
-        assertEquals(0, model.getAddressBook().getPersonList().size());
     }
 
     @Test
@@ -66,5 +139,33 @@ public class MainAppTest {
     private StorageManager createStorage() {
         return new StorageManager(new JsonTAssistStorage(dataFile()),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+    }
+
+    /**
+     * Records the stage passed to {@link Ui#start(Stage)}.
+     */
+    private static class RecordingUi implements Ui {
+        private boolean hasStarted;
+        private Stage startedStage;
+
+        @Override
+        public void start(Stage primaryStage) {
+            hasStarted = true;
+            startedStage = primaryStage;
+        }
+
+        /**
+         * Returns true if {@link #start(Stage)} has been called.
+         */
+        public boolean isStarted() {
+            return hasStarted;
+        }
+
+        /**
+         * Returns the stage passed to {@link #start(Stage)}.
+         */
+        public Stage getStartedStage() {
+            return startedStage;
+        }
     }
 }

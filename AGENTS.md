@@ -40,7 +40,7 @@ this file. When it is silent, follow the surrounding code. Course site:
 ./gradlew clean test                    # run all tests
 ./gradlew checkstyleMain checkstyleTest # coding standard check
 ./gradlew check coverage                # what CI runs (plus .github/run-checks.sh)
-./gradlew shadowJar                     # build the JAR (build/libs/addressbook.jar)
+./gradlew shadowJar                     # build the JAR (build/libs/tassist.jar)
 sh .github/run-checks.sh                # EOF newline, LF line endings, trailing whitespace
 ```
 

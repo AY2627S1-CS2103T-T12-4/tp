@@ -123,8 +123,7 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens Help, at the requested topic, if {@code result} asks for it. Other commands keep the current screen,
-     * so a contact command does not jump to the Students screen, where contacts are no longer shown.
+     * Opens Help, at the requested topic, if {@code result} asks for it. Other commands keep the current screen.
      */
     private void showHelpIfRequested(CommandResult result) {
         if (result.isShowHelp()) {
