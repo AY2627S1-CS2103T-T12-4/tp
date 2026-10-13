@@ -57,6 +57,29 @@ public class MainAppTest {
     }
 
     @Test
+    public void init_afterGroupCommandsAndRestart_restoresGroupsAndActiveSelection() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        MainApp app = new MainApp(prefsFile, dataFile);
+        app.init();
+        app.logic.execute("group add g/ Tutorial   1-Thu ");
+        app.logic.execute("group add g/T02");
+        assertEquals("T02", new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getActiveGroup().orElseThrow().getName().toString());
+        app.logic.execute("group use g/tutorial 1-thu");
+        TAssist expected = new TAssist(app.model.getTAssist());
+        app.stop();
+
+        MainApp reopened = new MainApp(prefsFile, dataFile);
+        reopened.init();
+
+        assertEquals(expected, reopened.model.getTAssist());
+        assertEquals("1. Tutorial 1-Thu\n2. T02\nActive group: Tutorial 1-Thu",
+                reopened.logic.execute("group list").getFeedbackToUser());
+        assertEquals("Tutorial 1-Thu", reopened.logic.activeGroupProperty().get().orElseThrow().getName().toString());
+    }
+
+    @Test
     public void constructor_nullPath_throwsNullPointerException() {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
         Path dataFile = temporaryFolder.resolve("tassist.json");
