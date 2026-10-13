@@ -16,6 +16,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.help.HelpCatalog;
+import seedu.address.logic.help.HelpEntry;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
@@ -33,6 +36,25 @@ public class MainAppTest {
     public Path temporaryFolder;
 
     private final MainApp mainApp = new MainApp();
+
+    @Test
+    public void init_groupCommandsAndHelp_areRegistered() throws Exception {
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"),
+                temporaryFolder.resolve("tassist.json"));
+        app.init();
+
+        assertEquals("No tutorial groups exist. Create one using: group add g/GROUP_NAME",
+                app.logic.execute("group list").getFeedbackToUser());
+        assertEquals("Created tutorial group: T01.\nActive group is now T01.",
+                app.logic.execute("group add g/T01").getFeedbackToUser());
+        app.logic.execute("group add g/T02");
+        assertEquals("Switched active group to T01.", app.logic.execute("group use g/t01").getFeedbackToUser());
+        assertEquals("1. T01\n2. T02\nActive group: T01", app.logic.execute("group list").getFeedbackToUser());
+        assertEquals(CommandResult.forHelp("Showing group commands.", "group"), app.logic.execute("help group"));
+        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME"),
+                HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "group").stream()
+                        .map(HelpEntry::getCommandFormat).toList());
+    }
 
     @Test
     public void constructor_nullPath_throwsNullPointerException() {
