@@ -191,13 +191,12 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 
 ```java
 CommandRegistry registry = new CommandRegistry();
-registry.register("group", "add", new GroupAddCommandParser(),
-        new HelpEntry("group", "group add n/NAME", "Add a student group.", List.of("group add n/Tutorial 1")));
+GroupCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
-This example shows how future feature parsers and help text are connected; those feature commands are not yet
-implemented.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `list`,
+and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
@@ -250,6 +249,36 @@ Parsers only validate and construct commands. `LogicManager` executes and saves 
 parsing failures neither execute a command nor call storage. Registry, argument, and value-validator unit tests
 cover these rules. `LogicManagerTest` also verifies that rejected feature input leaves the model and existing
 data file unchanged, using a storage implementation that fails if saving is attempted.
+
+### Tutorial-group commands
+
+`GroupAddCommandParser`, `GroupListCommandParser`, and `GroupUseCommandParser` construct the commands for
+`group add g/GROUP_NAME`, `group list`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects all three
+parsers and their `HelpEntry` objects to `CommandRegistry`, making them available through `help group`.
+
+Creation and switching share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
+duplicates, and unexpected text, then `TAssistParserUtil.parseGroupName` to apply the existing domain rules.
+It declares `g/` optional to the argument parser so absent and blank values can both report
+`Missing group name. Usage: ...` with the relevant command's syntax. The feature still requires a nonblank name.
+The listing parser declares no parameters and rejects extra input.
+
+* `GroupAddCommand` checks `Model.hasGroup` before changing data, calls `Model.addGroup` with an empty group, and
+  then calls `Model.setActiveGroup`. Creating any group therefore activates it, without modifying existing groups.
+  A duplicate name throws `CommandException` with the existing group's display name.
+* `GroupListCommand` reads `Model.getTAssist().getGroupList()` and `Model.getActiveGroup()`. It returns numbered
+  names in creation order and an active-group line, or a creation hint when no groups exist. If groups exist without
+  an active selection, it shows `Active group: None`.
+* `GroupUseCommand` checks that the group exists before calling `Model.setActiveGroup`. Feedback uses the stored
+  capitalization, even if the input uses another case. A missing group throws `CommandException` before mutation.
+
+These commands return feedback without a screen-navigation request. `LogicManager` therefore saves the resulting
+groups and active selection through the existing JSON storage. The observable group strip and Students screen
+update through the model views, while the current screen stays selected. The separate Groups table remains a preview.
+
+Command and parser tests cover successful operations, exact feedback, name boundaries, case and space normalization,
+and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
+observable student list, active group, and file contents, and never call storage. `MainAppTest` exercises actual startup
+registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the commands through the JavaFX command box.
 
 ### TAssist domain model
 
@@ -563,7 +592,7 @@ The following extensions apply to every use case that changes or views records o
 
       Use case resumes at step 1.
 
-* 1b. A group with the same name (case-insensitive) already exists.
+* 1b. A group with the same name (ignoring case and extra spaces) already exists.
     * 1b1. TAssist shows an error message stating that the group already exists.
 
       Use case ends.
@@ -930,6 +959,30 @@ testers are expected to do more *exploratory* testing.
       Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
 
+### Managing tutorial groups
+
+1. Creating and listing groups
+
+   1. Prerequisites: Launch the JAR in an empty writable folder.
+   1. Enter `group list`. Expected: The feedback says no tutorial groups exist and shows the creation command.
+   1. Enter `group add g/T01`, then `group add g/T02`. Expected: Each group is created and becomes active.
+      The top bar highlights T02 and the Students screen shows that T02 has no students yet.
+   1. Enter `group list`. Expected: Numbered T01 and T02, followed by `Active group: T02`.
+
+1. Switching and persistence
+
+   1. Enter `group use g/t01`. Expected: `Switched active group to T01.` and T01 is highlighted.
+   1. Close and reopen the app. Expected: Both groups remain and T01 is active.
+      If groups contain students loaded from JSON, switching shows only the selected group's roster.
+
+1. Rejected commands
+
+   1. Enter `group add g/t01`, `group use g/T03`, `group add`, `group use g/`, and `group add g/T_01`.
+      Expected: Specific duplicate, unknown-group, missing-name, or invalid-name feedback, respectively.
+   1. Enter `group add g/T03 g/T04`, `group use n/T01`, and `group list g/T01`.
+      Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
+   1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
+
 ### Testing the workspace
 
 Run `./gradlew clean test checkstyleMain checkstyleTest` and `sh .github/run-checks.sh` for the standard checks.
@@ -942,7 +995,8 @@ The macOS and Windows CI jobs run the standard suite.
 
 The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
-screen following the active group and its students, both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
+screen following the active group and its students, group creation/listing/switching through the command box,
+both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
 do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
 
@@ -951,12 +1005,13 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
 1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
    Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
 2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
-   that there are no tutorial groups yet. Once group and student commands are available, make a group active and add
-   and remove students in it. The group strip and the table should update at once. Click each screen in the
+   that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
+   Once student commands are available, add and remove students in it. The group strip and the table should update
+   at once. Click each screen in the
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
-4. Enter `help student`. Verify that Help opens at the student commands and the feedback box shows one line.
+4. Enter `help group`. Verify that Help opens at the group commands and the feedback box shows one line.
 5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
    100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
    853x440 content pixels, allowing for window decorations at 150% scaling.
