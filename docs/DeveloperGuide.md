@@ -288,8 +288,19 @@ TAssist's own data is modelled by the classes below. `ModelManager` holds the `T
 
 * `TAssist` is the root object. It holds the tutorial groups in a `UniqueGroupList` and remembers which group is active, if any. Other components see it through the read-only `ReadOnlyTAssist` interface.
 * A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList`.
-* A `Student` has a `StudentName` and a `StudentId`, and is immutable.
+* A `Student` has a `StudentName`, a `StudentId`, weekly attendance and participation records, and is immutable.
 * `UniqueGroupList` and `UniqueStudentList` share the uniqueness logic of the generic `UniqueList`, which also exposes the items as an unmodifiable `ObservableList` that the UI can bind to.
+
+#### Shared weekly record mechanism
+
+`WeeklyRecord<T>` stores values in a week-keyed map and accepts weeks 1 through 13. Its `withRecord` method returns a
+copy, replacing the value when that week already exists. A `Student` owns separate attendance and participation
+records; `withAttendanceRecord` and `withParticipationRecord` return updated student copies. `Model#setStudent`
+replaces that copy in its group while preserving the student's position.
+
+`Group#getWeeklyRecordEntries` creates one row for each student, in group order, and selects the requested record
+kind. Each `WeeklyRecordEntry` holds an optional value and formats a missing value as `Not recorded`. Attendance and
+participation commands are implemented separately and can share this model behavior without duplicating record code.
 
 These classes follow the rules in our feature specification:
 
@@ -301,11 +312,14 @@ These classes follow the rules in our feature specification:
 
 #### Where per-student records are stored
 
-Attendance, participation scores and assignment results are not implemented yet. When they are, they will be stored **on the `Student` object, inside the group the student belongs to**:
+Attendance and participation records are stored **on the `Student` object, inside the group the student belongs to**.
+The shared `WeeklyRecord<T>` supports week-keyed values for both features; assignments are not implemented yet:
 
-* **Weekly records** (attendance and participation): each `Student` will hold one week-keyed record per kind, e.g. a mapping from `Week` to `AttendanceStatus`. Both kinds will use one shared weekly record mechanism, so the attendance and participation features only add their own value types and messages.
+* **Weekly records** (attendance and participation): each `Student` holds one record per kind, using the shared
+  mechanism. Attendance values are stored as strings and participation values as integers; feature commands validate
+  their own values before updating a student.
 * **Assignments:** a `Group` will hold the list of assignments created for it, since assignment names are unique within a group. Each `Student` will hold their own submission status and grade for each assignment, keyed by assignment name.
-* As `Student` is immutable, recording or updating a value will replace the student in its group with an updated copy.
+* As `Student` is immutable, recording or updating a value replaces the student in its group with an updated copy.
 
 **Aspect: Where per-student records are stored**
 
@@ -361,7 +375,9 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
     "name" : "T01",
     "students" : [ {
       "name" : "Alice Tan",
-      "studentId" : "A0123456X"
+      "studentId" : "A0123456X",
+      "attendance" : { "1" : "PRESENT" },
+      "participation" : { "1" : 4 }
     } ]
   } ]
 }
@@ -375,14 +391,15 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 * If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, and unknown fields are ignored.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
 
 **Adding records in later features.** Each Jackson-friendly class mirrors one model class and only converts its own fields. A feature that stores more data adds a field to the class that mirrors where its data lives in the model (see [Where per-student records are stored](#where-per-student-records-are-stored)):
 
-* Weekly records sit on each student, so the shared weekly record mechanism adds one field per kind of record to `JsonAdaptedStudent`, e.g. `"attendance" : { "1" : "PRESENT" }`, converted by its own adapter class.
 * Assignments sit on each group, so the assignment feature adds an `assignments` field to `JsonAdaptedGroup`.
 
-A file saved before a feature existed has no field for it, so the feature should read a missing field as "no records". Other features' fields and `JsonSerializableTAssist` do not change.
+Older files omit the attendance and participation maps, which `JsonAdaptedStudent` reads as empty records. Later
+features should do the same for any new record field; `JsonSerializableTAssist` and other feature adapters do not
+change.
 
 **Aspect: How TAssist data is laid out in the file**
 
