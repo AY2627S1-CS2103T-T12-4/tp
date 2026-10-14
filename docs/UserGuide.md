@@ -281,7 +281,8 @@ The file looks like this:
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
-  Use weeks 1–13 and scores 0–5. An omitted map means no scores have been recorded.
+  Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A week or score outside that range makes the
+  file invalid. An omitted map means no scores have been recorded.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
