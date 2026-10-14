@@ -1073,6 +1073,8 @@ screen following the active group and its students, group creation/listing/switc
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
 do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
+It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
+and retaining an invalid attendance command for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
