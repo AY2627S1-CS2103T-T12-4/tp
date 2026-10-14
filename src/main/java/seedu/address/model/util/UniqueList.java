@@ -63,6 +63,21 @@ public abstract class UniqueList<T> implements Iterable<T> {
     }
 
     /**
+     * Replaces the item with the same identity as {@code toSet}.
+     * The item must already exist in the list.
+     */
+    public void set(T toSet) {
+        requireNonNull(toSet);
+        for (int i = 0; i < internalList.size(); i++) {
+            if (isSameItem(internalList.get(i), toSet)) {
+                internalList.set(i, toSet);
+                return;
+            }
+        }
+        throw createNotFoundException();
+    }
+
+    /**
      * Removes the item that is equal to {@code toRemove} from the list.
      * The item must exist in the list.
      */
