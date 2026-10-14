@@ -42,8 +42,8 @@ public class GroupWeeklyRecordTest {
         Group group = new Group(TypicalGroups.NAME_T01);
         group.addStudent(TypicalStudents.ALICE);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> group.getWeeklyRecordEntries(14, Student::getAttendanceRecords));
+        assertThrows(IllegalArgumentException.class, () ->
+                group.getWeeklyRecordEntries(14, Student::getAttendanceRecords));
         assertThrows(NullPointerException.class, () -> group.getWeeklyRecordEntries(1, null));
         assertThrows(NullPointerException.class, () -> group.getWeeklyRecordEntries(1, student -> null));
     }
