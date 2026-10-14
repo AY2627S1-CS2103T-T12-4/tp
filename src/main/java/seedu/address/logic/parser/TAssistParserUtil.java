@@ -14,8 +14,9 @@ import seedu.address.model.student.StudentName;
 public class TAssistParserUtil {
     public static final int NAME_MAX_LENGTH = 60;
     public static final String MESSAGE_ASSIGNMENT_NAME = "Assignment names must contain 1-60 characters.";
-    public static final String MESSAGE_WEEK = "Week must be a whole number from 1 to 13.";
-    public static final String MESSAGE_PARTICIPATION_SCORE = "Participation score must be a whole number from 0 to 5.";
+    public static final String MESSAGE_WEEK = "Invalid week. Enter a number from 1 to 13.";
+    public static final String MESSAGE_PARTICIPATION_SCORE =
+            "Invalid participation score. Enter a whole number from 0 to 5.";
     public static final String MESSAGE_GRADE = "Grade must be a whole number from 0 to 100.";
 
     private TAssistParserUtil() {}

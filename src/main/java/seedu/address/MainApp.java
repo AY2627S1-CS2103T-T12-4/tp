@@ -17,6 +17,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
+import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -82,6 +83,7 @@ public class MainApp extends Application {
 
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
+        ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         logic = new LogicManager(model, storage, commandRegistry);
 
