@@ -44,6 +44,7 @@ import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
+import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
@@ -205,6 +206,35 @@ public class WorkspaceSmokeTest {
                 assertEquals("Showing group commands.", ((TextArea) root.lookup("#resultDisplay")).getText());
             });
             runOnFx(() -> render(root, "group-help", 1280, 680));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void participationCommands_showScoresAndKeepRejectedInput() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                enter(input, "view participation");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                enter(input, "participation set id/a0123456x w/3 s/0");
+                assertEquals("Recorded participation score 0 for Alice Tan in Week 3.", feedback.getText());
+                enter(input, "participation list w/3");
+                assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 0"
+                        + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
+                        feedback.getText());
+                enter(input, "participation set id/A0123456X w/3 s/6");
+                assertEquals("Invalid participation score. Enter a whole number from 0 to 5.", feedback.getText());
+                assertEquals("participation set id/A0123456X w/3 s/6", input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+                enter(input, "participation set id/A0123456X w/3 s/4");
+                assertEquals("Updated Alice Tan's participation score for Week 3 to 4.", feedback.getText());
+                assertTrue(input.getText().isEmpty());
+                assertEquals("participation", tabs.getSelectionModel().getSelectedItem().getId());
+            });
+            runOnFx(() -> render(root, "participation-commands", 853, 440));
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -391,6 +421,7 @@ public class WorkspaceSmokeTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
+        ParticipationCommandRegistration.registerCommands(commandRegistry);
         commandRegistry.register("student", "list", args -> new StubCommand(),
                 new HelpEntry("student", "student list", "Show all students.", List.of("student list")));
         stage = new Stage();
