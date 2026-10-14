@@ -2,14 +2,18 @@ package seedu.address.model.group;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.UniqueStudentList;
+import seedu.address.model.student.WeeklyRecord;
+import seedu.address.model.student.WeeklyRecordEntry;
 
 /**
  * Represents a tutorial group and the students in it.
@@ -48,6 +52,24 @@ public class Group {
     }
 
     /**
+     * Returns a row for every student and the student's record for {@code week}.
+     *
+     * @param week The teaching week to list.
+     * @param recordSelector Selects the record kind from a student.
+     * @param <T> The type of value held by the selected record.
+     * @return An immutable list in the group's student order.
+     */
+    public <T> List<WeeklyRecordEntry<T>> getWeeklyRecordEntries(int week,
+            Function<Student, WeeklyRecord<T>> recordSelector) {
+        WeeklyRecord.validateWeek(week);
+        requireNonNull(recordSelector);
+        return students.asUnmodifiableObservableList().stream()
+                .map(student -> new WeeklyRecordEntry<>(student,
+                        requireNonNull(recordSelector.apply(student)).getRecord(week)))
+                .toList();
+    }
+
+    /**
      * Returns true if a student with {@code studentId} is in this group.
      */
     public boolean hasStudent(StudentId studentId) {
@@ -75,6 +97,15 @@ public class Group {
      */
     public Student removeStudent(StudentId studentId) {
         return students.remove(studentId);
+    }
+
+    /**
+     * Replaces an existing student with the same ID, preserving that student's position in the group.
+     *
+     * @param student The updated student.
+     */
+    public void setStudent(Student student) {
+        students.setStudent(requireNonNull(student));
     }
 
     /**

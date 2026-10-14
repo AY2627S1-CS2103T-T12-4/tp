@@ -14,6 +14,7 @@ Class UniqueStudentList
 Class Student
 Class StudentName
 Class StudentId
+Class "WeeklyRecord<T>" as WeeklyRecord
 }
 
 TAssist .up.|> ReadOnlyTAssist
@@ -25,4 +26,5 @@ Group *--> "1" UniqueStudentList
 UniqueStudentList --> "~* all" Student
 Student *--> "1" StudentName
 Student *--> "1" StudentId
+Student *--> "2" WeeklyRecord : records
 @enduml

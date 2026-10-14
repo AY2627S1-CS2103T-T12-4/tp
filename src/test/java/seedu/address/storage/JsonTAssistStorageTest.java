@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
@@ -19,6 +20,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.group.GroupName;
+import seedu.address.model.student.Student;
 import seedu.address.testutil.GroupBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -93,6 +95,9 @@ public class JsonTAssistStorageTest {
     public void readAndSaveTAssist_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("data").resolve("TempTAssist.json");
         TAssist original = TypicalGroups.getTypicalTAssist();
+        Student alice = original.getGroup(TypicalGroups.NAME_T01).getStudentList().getFirst();
+        original.setStudent(TypicalGroups.NAME_T01,
+                alice.withAttendanceRecord(1, "PRESENT").withParticipationRecord(1, 4));
         JsonTAssistStorage jsonTAssistStorage = new JsonTAssistStorage(filePath);
 
         // Save in a new file and folder, and read back
@@ -112,6 +117,22 @@ public class JsonTAssistStorageTest {
         jsonTAssistStorage.saveTAssist(original);
         readBack = jsonTAssistStorage.readTAssist().orElseThrow();
         assertEquals(original, new TAssist(readBack));
+    }
+
+    @Test
+    public void read_legacyDataWithoutWeeklyRecords_defaultsToEmptyRecords() throws Exception {
+        Path filePath = testFolder.resolve("legacy.json");
+        String legacyData = """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[
+                  {"name":"Alice Tan","studentId":"A0123456X"}]}]}
+                """;
+        Files.writeString(filePath, legacyData);
+
+        Student loaded = new TAssist(new JsonTAssistStorage(filePath).readTAssist().orElseThrow())
+                .getGroup(TypicalGroups.NAME_T01).getStudentList().getFirst();
+
+        assertTrue(loaded.getAttendanceRecords().getRecords().isEmpty());
+        assertTrue(loaded.getParticipationRecords().getRecords().isEmpty());
     }
 
     @Test

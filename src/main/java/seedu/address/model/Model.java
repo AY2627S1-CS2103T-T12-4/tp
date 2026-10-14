@@ -74,6 +74,12 @@ public interface Model {
     void addStudent(GroupName groupName, Student student);
 
     /**
+     * Replaces the student with the same ID in the named group.
+     * The group and student must already exist.
+     */
+    void setStudent(GroupName groupName, Student student);
+
+    /**
      * Removes the student with {@code studentId} from the group named {@code groupName},
      * and returns the removed student.
      * The group must exist, and the student must be in it.

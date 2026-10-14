@@ -115,6 +115,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void setStudent(GroupName groupName, Student student) {
+        requireAllNonNull(groupName, student);
+        tAssist.setStudent(groupName, student);
+    }
+
+    @Override
     public Student removeStudent(GroupName groupName, StudentId studentId) {
         requireAllNonNull(groupName, studentId);
         return tAssist.removeStudent(groupName, studentId);
