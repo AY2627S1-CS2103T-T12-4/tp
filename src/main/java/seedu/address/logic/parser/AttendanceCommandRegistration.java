@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
+import seedu.address.logic.commands.AttendanceListCommand;
 import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.help.HelpEntry;
 
@@ -24,5 +25,9 @@ public final class AttendanceCommandRegistration {
                 new HelpEntry("attendance", AttendanceMarkCommand.MESSAGE_USAGE,
                         "Mark a student in the active group present or absent for week 1-13. Re-mark to correct it.",
                         List.of("attendance mark id/A0123456X w/3 s/present")));
+        registry.register("attendance", "list", new AttendanceListCommandParser(),
+                new HelpEntry("attendance", AttendanceListCommand.MESSAGE_USAGE,
+                        "List the active group's attendance for week 1-13, including students without a record.",
+                        List.of("attendance list w/3")));
     }
 }
