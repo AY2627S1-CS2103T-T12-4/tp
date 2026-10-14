@@ -261,7 +261,8 @@ The file looks like this:
     "name" : "T01",
     "students" : [ {
       "name" : "Alice Tan",
-      "studentId" : "A0123456X"
+      "studentId" : "A0123456X",
+      "attendance" : { "3" : "PRESENT" }
     } ]
   } ]
 }
@@ -273,6 +274,9 @@ The file looks like this:
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
+* `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
+  Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance
+  records for that student. Invalid weeks or statuses make the file invalid.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `tassist.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
