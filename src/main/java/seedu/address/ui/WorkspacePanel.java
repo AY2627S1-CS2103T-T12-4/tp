@@ -43,7 +43,8 @@ public class WorkspacePanel extends UiPart<TabPane> {
                 "Use group add, group list, and group use to manage tutorial groups. This table is coming soon.",
                 "#", "GROUP", "STATUS").getRoot());
         addWeeklyView(WorkspaceView.ATTENDANCE, "Weekly attendance",
-                "Present and absent records will appear here once attendance is implemented.", "ATTENDANCE");
+                "Use attendance mark and attendance list for records in the feedback box. This table is coming soon.",
+                "ATTENDANCE");
         addWeeklyView(WorkspaceView.PARTICIPATION, "Weekly participation",
                 "Use participation set and participation list to manage scores. This table is coming soon.", "SCORE");
         addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",

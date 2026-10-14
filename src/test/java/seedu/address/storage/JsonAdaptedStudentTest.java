@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.student.AttendanceStatus;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -48,6 +49,23 @@ public class JsonAdaptedStudentTest {
         JsonAdaptedStudent adapted = JsonUtil.fromJsonString(json, JsonAdaptedStudent.class);
 
         assertEquals(BEN, adapted.toModelType());
+    }
+
+    @Test
+    public void toModelType_attendanceWithDifferentCase_returnsCanonicalStatus() throws Exception {
+        JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID,
+                Map.of(1, " present ", 13, "Absent"), Map.of());
+        assertEquals(BEN.withAttendanceRecord(1, "PRESENT").withAttendanceRecord(13, "ABSENT"),
+                adapted.toModelType());
+    }
+
+    @Test
+    public void toModelType_invalidAttendanceStatus_throwsIllegalValueException() {
+        for (String status : new String[] {"", "late", "present absent"}) {
+            JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID,
+                    Map.of(3, status), Map.of());
+            assertThrows(IllegalValueException.class, AttendanceStatus.MESSAGE_CONSTRAINTS, adapted::toModelType);
+        }
     }
 
     @Test

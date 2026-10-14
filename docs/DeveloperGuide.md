@@ -207,6 +207,7 @@ CommandRegistry registry = new CommandRegistry();
 GroupCommandRegistration.registerCommands(registry);
 StudentCommandRegistration.registerCommands(registry);
 ParticipationCommandRegistration.registerCommands(registry);
+AttendanceCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
@@ -367,6 +368,24 @@ These classes follow the rules in our feature specification:
 * **Active group:** the active group, if any, is always one of the groups held. Adding a group does not make it active by itself; commands decide when to switch.
 * **Copies:** `new TAssist(data)` copies every group, so changing the copy never changes the original.
 
+#### Recording attendance
+
+`AttendanceCommandRegistration` registers the attendance parsers and their offline help in `MainApp`.
+`AttendanceMarkCommandParser` uses `TAssistArgumentParser` to require `id/`, `w/`, and `s/` exactly once.
+`AttendanceCommandParserUtil` reuses the shared week parser with the attendance error message;
+`AttendanceStatus` accepts present or absent, ignoring case and surrounding spaces.
+
+`AttendanceMarkCommand` checks the active group and finds the student in that group before changing data.
+It checks whether a record already exists for the week, creates an updated student through
+`withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`;
+the confirmation distinguishes a first mark from an update. Existing `LogicManager` persistence saves the result.
+
+`AttendanceListCommandParser` requires only `w/` and uses the same week validation. `AttendanceListCommand`
+selects attendance through `Group#getWeeklyRecordEntries`. If no student has a record for that week, it returns
+the no-records message. Otherwise, it formats each row with the student's name, ID, and capitalized status,
+using `WeeklyRecordEntry#formatValueOrNotRecorded` for missing values. The rows appear in the scrollable
+command feedback box; the Attendance workspace screen remains a preview.
+
 #### Where per-student records are stored
 
 Attendance and participation records are stored **on the `Student` object, inside the group the student belongs to**.
@@ -448,11 +467,15 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 * If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
 
 **Adding records in later features.** Each Jackson-friendly class mirrors one model class and only converts its own fields. A feature that stores more data adds a field to the class that mirrors where its data lives in the model (see [Where per-student records are stored](#where-per-student-records-are-stored)):
 
 * Assignments sit on each group, so the assignment feature adds an `assignments` field to `JsonAdaptedGroup`.
+
+`JsonAdaptedStudent` also validates attendance statuses with `AttendanceStatus`, accepting case and surrounding
+spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
+so the existing storage error handling reports the invalid file before commands use its records.
 
 Older files omit the attendance and participation maps, which `JsonAdaptedStudent` reads as empty records. Later
 features should do the same for any new record field; `JsonSerializableTAssist` and other feature adapters do not
@@ -1087,6 +1110,41 @@ testers are expected to do more *exploratory* testing.
       Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
    1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
 
+### Recording and viewing attendance
+
+1. Prerequisites: Close the app and load the JSON example from the User Guide's
+   [Editing the data file](UserGuide.html#editing-the-data-file) section. T01 must contain Alice Tan
+   (`A0123456X`) and be active. Remove its attendance map to start with no marks.
+
+1. Marking and correcting
+
+   1. Enter `attendance mark id/A0123456X w/3 s/present`.
+      Expected: `Recorded Alice Tan as present for Week 3.`
+   1. Enter `attendance mark id/A0123456X w/3 s/absent`.
+      Expected: `Updated Alice Tan's attendance for Week 3 to absent.`
+   1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:` and
+      `Alice Tan | A0123456X | Absent`. Other students, if present, show `Not recorded`.
+   1. Enter `attendance list w/13`. Expected: `No attendance records have been recorded for Week 13.`
+   1. Close and reopen the app. Enter `attendance list w/3`. Expected: Alice is still absent.
+
+1. Rejected commands
+
+   1. Enter `attendance mark id/A0123456X w/0 s/present`, then `attendance list w/14`.
+      Expected: `Invalid week. Enter a number from 1 to 13.`
+   1. Enter `attendance mark id/A0123456X w/3 s/late`.
+      Expected: `Invalid attendance status. Use present or absent.`
+   1. Use a valid student ID absent from T01 in a mark command.
+      Expected: `Student does not exist in the active group.`
+   1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
+   1. Verify that records and the saved file remain unchanged after each rejection.
+   1. Close the app, set `activeGroup` to `null` in the file, and reopen it. Both attendance commands must
+      report no active group and suggest `group add` or `group use`, without changing data.
+
+Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSON storage. It covers correction,
+save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
+and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
+parameter errors, empty groups, week boundaries, and display formatting.
+
 ### Testing the workspace
 
 Run `./gradlew clean test checkstyleMain checkstyleTest` and `sh .github/run-checks.sh` for the standard checks.
@@ -1103,6 +1161,8 @@ screen following the active group and its students, group creation/listing/switc
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
 do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
+It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
+and retaining an invalid attendance command for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 

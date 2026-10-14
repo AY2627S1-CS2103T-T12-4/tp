@@ -5,8 +5,8 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups, add, list, and delete their students, and record and list weekly
-participation scores. Commands for attendance and assignments are **coming soon**.
+You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
+and record and list weekly participation scores. Commands for assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -66,10 +66,12 @@ the command box.
   more students.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
-* **Attendance** and **Assignments** show planned layouts with a **Coming soon** label.
-  They contain no simulated records, and their domain commands are not yet supported.
+* **Attendance** shows a planned table with a **Coming soon** label and unavailable week controls.
+  Use `attendance mark` and `attendance list`; the Attendance screen remains a preview.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
+* **Assignments** shows a planned layout with a **Coming soon** label.
+  It contains no simulated records, and assignment commands are not yet supported.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -97,8 +99,8 @@ Opening a screen with `view` does not save or change data.
 * `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Attendance and
-  assignment commands remain **Coming soon**.
+  and suggest entering `help`. They do not change or save your data. Assignment
+  commands remain **Coming soon**.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
@@ -195,6 +197,49 @@ Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or 
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
+
+### Recording or correcting attendance: `attendance mark`
+
+Records whether a student in the active tutorial group attended a teaching week.
+The student must already be in that group. Add one with `student add` if needed.
+
+Format: `attendance mark id/STUDENT_ID w/WEEK s/STATUS`
+
+* `WEEK` is a whole number from 1 to 13. `STATUS` is `present` or `absent`, ignoring case.
+* Student IDs ignore case. Supply each prefix exactly once, in any order, separated by spaces.
+* Repeating a mark for the same student and week replaces the earlier mark, even if the status is the same.
+  Other students, weeks, and participation records are preserved.
+
+For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` shows
+`Recorded Alice Tan as present for Week 3.` Re-entering it with `s/absent` shows
+`Updated Alice Tan's attendance for Week 3 to absent.`
+
+Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
+an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
+`Student does not exist in the active group.` With no active group, use `group add g/GROUP_NAME` or
+`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
+
+### Listing weekly attendance: `attendance list`
+
+Lists attendance for the active tutorial group in student order, without changing any records.
+
+Format: `attendance list w/WEEK`
+
+For example, `attendance list w/3` shows the following in the scrollable feedback box:
+
+```text
+Attendance for T01, Week 3:
+Alice Tan | A0123456X | Present
+Ben Lim | A0234567Y | Not recorded
+```
+
+Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
+week, including when the group has no students, the feedback is
+`No attendance records have been recorded for Week 3.` Records in other groups or weeks are not included.
+Use `group use g/GROUP_NAME` to choose another group before listing it.
+
+Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
+invalid weeks and no active group have the same errors as `attendance mark`.
 
 ### Recording participation: `participation set`
 
@@ -307,7 +352,7 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves your tutorial groups, their students and weekly scores, and the active group after successful commands, except `view`,
+TAssist saves your tutorial groups, their students, attendance, and participation scores, and the active group after successful commands, except `view`,
 which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
 successful save; read the feedback.
 
@@ -328,6 +373,7 @@ The file looks like this:
     "students" : [ {
       "name" : "Alice Tan",
       "studentId" : "A0123456X",
+      "attendance" : { "3" : "PRESENT" },
       "participation" : { "3" : 2 }
     } ]
   } ]
@@ -343,6 +389,9 @@ The file looks like this:
   Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A week or score outside that range makes the
   file invalid. An omitted map means no scores have been recorded.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
+* `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
+  Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance
+  records for that student. Invalid weeks or statuses make the file invalid.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `tassist.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
@@ -379,6 +428,8 @@ Action | Format, Examples
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
 **Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`
+**Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
+**List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Exit** | `exit`
