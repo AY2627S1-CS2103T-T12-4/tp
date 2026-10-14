@@ -88,8 +88,11 @@ public class StudentTest {
         // different student ID -> returns false
         assertFalse(ALICE.equals(new Student(NAME_ALICE, ID_BEN)));
 
-        // different weekly records -> returns false
+        // different attendance records -> returns false
         assertFalse(ALICE.equals(ALICE.withAttendanceRecord(1, "PRESENT")));
+
+        // different participation records -> returns false
+        assertFalse(ALICE.equals(ALICE.withParticipationRecord(1, 4)));
     }
 
     @Test

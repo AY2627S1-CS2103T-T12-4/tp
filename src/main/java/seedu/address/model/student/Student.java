@@ -96,7 +96,8 @@ public class Student {
     }
 
     /**
-     * Returns true if both students have the same name and student ID.
+     * Returns true if both students have the same name, student ID, attendance records,
+     * and participation records.
      * This defines a stronger notion of equality between two students.
      */
     @Override
