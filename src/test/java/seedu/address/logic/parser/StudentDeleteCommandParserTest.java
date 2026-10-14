@@ -1,0 +1,44 @@
+package seedu.address.logic.parser;
+
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+
+import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.Messages;
+import seedu.address.logic.commands.StudentDeleteCommand;
+import seedu.address.model.student.StudentId;
+
+public class StudentDeleteCommandParserTest {
+    private final StudentDeleteCommandParser parser = new StudentDeleteCommandParser();
+
+    @Test
+    public void parse_validId_normalizesCaseAndSpaces() {
+        assertParseSuccess(parser, " id/ a0123456x ", new StudentDeleteCommand(ALICE.getStudentId()));
+    }
+
+    @Test
+    public void parse_missingOrInvalidId_reportsSpecificError() {
+        assertParseFailure(parser, "", "Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);
+        for (String id : new String[] {"", "ABC", "A 1", "A1!", "1".repeat(21)}) {
+            assertParseFailure(parser, "id/" + id, StudentId.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_malformedParameters_reportsSpecificError() {
+        assertParseFailure(parser, "id/A1 id/A2",
+                Messages.getErrorMessageForDuplicatePrefixes(new Prefix("id/")));
+        assertParseFailure(parser, "id/A1 n/Alice",
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "id/"));
+        assertParseFailure(parser, "A1",
+                String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "A1", "id/"));
+    }
+
+    @Test
+    public void parse_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+}

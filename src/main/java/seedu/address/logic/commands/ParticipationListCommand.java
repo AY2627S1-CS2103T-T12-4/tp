@@ -1,0 +1,59 @@
+package seedu.address.logic.commands;
+
+import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
+
+import java.util.List;
+
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.Model;
+import seedu.address.model.group.Group;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.WeeklyRecord;
+import seedu.address.model.student.WeeklyRecordEntry;
+
+/**
+ * Lists participation scores, including missing records, for the active group in one week.
+ */
+public class ParticipationListCommand extends Command {
+    public static final String MESSAGE_USAGE = "participation list w/WEEK";
+    public static final String MESSAGE_NO_STUDENTS = "No students in %s.";
+
+    private final int week;
+
+    /**
+     * Creates a listing command for a week from 1 to 13.
+     */
+    public ParticipationListCommand(int week) {
+        WeeklyRecord.validateWeek(week);
+        this.week = week;
+    }
+
+    @Override
+    public CommandResult execute(Model model) throws CommandException {
+        requireNonNull(model);
+        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        List<WeeklyRecordEntry<Integer>> entries = group.getWeeklyRecordEntries(week, Student::getParticipationRecords);
+        if (entries.isEmpty()) {
+            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
+        }
+
+        StringBuilder feedback = new StringBuilder("Participation for " + group.getName() + ", Week " + week + ":");
+        for (WeeklyRecordEntry<Integer> entry : entries) {
+            feedback.append('\n').append(entry.getStudent().getName()).append(" | ")
+                    .append(entry.getStudent().getStudentId()).append(" | ")
+                    .append(entry.formatValueOrNotRecorded(String::valueOf));
+        }
+        return new CommandResult(feedback.toString());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof ParticipationListCommand otherCommand && week == otherCommand.week;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(week);
+    }
+}

@@ -85,6 +85,21 @@ public class JsonAdaptedStudentTest {
     }
 
     @Test
+    public void toModelType_invalidParticipationScore_throwsIllegalValueException() throws Exception {
+        String aboveRange = "{\"name\":\"Ben Lim\",\"studentId\":\"A0234567Y\","
+                + "\"participation\":{\"3\":6}}";
+        JsonAdaptedStudent adaptedAboveRange = JsonUtil.fromJsonString(aboveRange, JsonAdaptedStudent.class);
+        assertThrows(IllegalValueException.class,
+                "Participation score must be a whole number from 0 to 5.", adaptedAboveRange::toModelType);
+
+        String belowRange = "{\"name\":\"Ben Lim\",\"studentId\":\"A0234567Y\","
+                + "\"participation\":{\"1\":-1}}";
+        JsonAdaptedStudent adaptedBelowRange = JsonUtil.fromJsonString(belowRange, JsonAdaptedStudent.class);
+        assertThrows(IllegalValueException.class,
+                "Participation score must be a whole number from 0 to 5.", adaptedBelowRange::toModelType);
+    }
+
+    @Test
     public void toModelType_unnormalizedDetails_returnsNormalizedStudent() throws Exception {
         JsonAdaptedStudent student = new JsonAdaptedStudent("  Ben   Lim ", " a0234567y ");
         assertEquals(BEN, student.toModelType());

@@ -192,6 +192,9 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 ```java
 CommandRegistry registry = new CommandRegistry();
 GroupCommandRegistration.registerCommands(registry);
+StudentCommandRegistration.registerCommands(registry);
+ParticipationCommandRegistration.registerCommands(registry);
+AttendanceCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
@@ -279,6 +282,48 @@ Command and parser tests cover successful operations, exact feedback, name bound
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
 observable student list, active group, and file contents, and never call storage. `MainAppTest` exercises actual startup
 registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the commands through the JavaFX command box.
+
+### Participation commands
+
+`ParticipationCommandRegistration` registers `participation set` and `participation list` and their help entries
+before `LogicManager` is created. Their parsers use `TAssistArgumentParser` for prefix validation and
+`TAssistParserUtil` for IDs, weeks 1–13, and whole-number scores 0–5. Command constructors also reject invalid weeks
+or scores defensively, even when called without a parser.
+
+`ParticipationSetCommand` finds the student in the active group before changing anything. It checks whether that
+week already has a value, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
+`Model.setStudent`. Feedback distinguishes a first entry from a replacement. The replacement preserves roster
+order, attendance, and scores for other weeks; students in other groups are untouched.
+`ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
+the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
+
+Both commands use the standard feedback box and keep the current screen selected. The Participation table remains
+a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+feature adds no new file format. Loading rejects a participation score outside 0–5 the same way it rejects a week
+outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
+restart persistence, and rejected commands preserving existing records and the file. Command and parser unit tests
+cover boundaries, corrections, group isolation, missing values, and malformed input. `WorkspaceSmokeTest` checks
+participation feedback and failed-input retention through the JavaFX command box.
+
+### Student commands
+
+`StudentCommandRegistration` registers `student add`, `student list`, and `student delete`, including their help
+formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
+The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
+prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
+name or ID reports its value constraints. Listing accepts no parameters.
+
+Each command obtains the active group at execution time and throws `CommandException` if none is selected.
+`StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
+`StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
+student also removes their owned weekly records. Neither command changes another group, even if it contains the
+same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
+
+Mutations pass through the existing model and observable roster, so the Students screen updates without navigating
+away from the current screen. Successful commands use the existing JSON persistence in `LogicManager`.
+Parser and command tests cover validation, normalization, feedback, uniqueness, group isolation, and empty states.
+`StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
+across restarts, and rejected commands preserving both the model and the saved file.
 
 ### TAssist domain model
 
@@ -409,7 +454,7 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 * If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
 
 **Adding records in later features.** Each Jackson-friendly class mirrors one model class and only converts its own fields. A feature that stores more data adds a field to the class that mirrors where its data lives in the model (see [Where per-student records are stored](#where-per-student-records-are-stored)):
 
@@ -998,6 +1043,36 @@ testers are expected to do more *exploratory* testing.
       Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
 
+### Recording and listing participation
+
+1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
+   Select T01 with `group use g/T01`. Enter `participation list w/3`; both rows should say `Not recorded`.
+2. Enter `participation set id/a0123456x w/3 s/0`. Expect a first-entry confirmation and Alice's Week 3 score of zero.
+   Set it again with `s/4`. Expect the update message, with Ben still `Not recorded` when listing Week 3.
+3. Set Alice's Week 13 score to 5. Close and reopen, then list Weeks 3 and 13. Expect 4 and 5 respectively.
+   List Week 1; Alice and Ben should still be `Not recorded`.
+4. Try `participation set id/A0123456X w/0 s/2`, `participation set id/A0123456X w/3 s/6`,
+   `participation set id/A0123456X w/3 s/2.5`, `participation set id/A999 w/3 s/2`,
+   `participation set id/A0123456X w/3`, and `participation list w/3 w/4`.
+   Expect specific week, score, student, missing-prefix, and duplicate-prefix errors without changing any record or file.
+5. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
+   With no active group, both commands must ask you to create or select a group first.
+
+### Managing students
+
+1. With no active group, enter `student list`, `student add n/Alice Tan id/A0123456X`, and
+   `student delete id/A0123456X`. Each should ask you to create or select a group, without changing data.
+2. Create T01 with `group add g/T01`. Add Alice using the command above, then enter
+   `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows.
+3. Enter `student list`. Expect numbered rows with both IDs. Close and reopen the app; both students remain.
+4. Try `student add n/Other Name id/a0123456x`, `student add n/Alice`, `student add n/Alice id/ABC`,
+   `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
+   the roster and saved file.
+5. Create T02, add Alice with ID A0123456X there, then switch back using `group use g/T01`.
+   Enter `student delete id/a0123456x`. Expect `Removed Alice Tan from T01.` and A2 becomes row 1.
+6. Delete A2, then list students. Expect an empty-roster hint. Try deleting A2 again; expect an unknown-ID error.
+   Close and reopen; T01 stays empty and T02 still contains Alice.
+
 ### Managing tutorial groups
 
 1. Creating and listing groups
@@ -1082,7 +1157,7 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
 2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
-   Once student commands are available, add and remove students in it. The group strip and the table should update
+   Add and remove students with `student add` and `student delete`. The group strip and the table should update
    at once. Click each screen in the
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
