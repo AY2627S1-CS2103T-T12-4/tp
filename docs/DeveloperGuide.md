@@ -302,6 +302,18 @@ replaces that copy in its group while preserving the student's position.
 kind. Each `WeeklyRecordEntry` holds an optional value and formats a missing value as `Not recorded`. Attendance and
 participation commands are implemented separately and can share this model behavior without duplicating record code.
 
+#### Recording attendance
+
+`AttendanceCommandRegistration` registers the attendance parser and its offline help in `MainApp`.
+`AttendanceMarkCommandParser` uses `TAssistArgumentParser` to require `id/`, `w/`, and `s/` exactly once.
+`AttendanceCommandParserUtil` reuses the shared week parser with the attendance error message;
+`AttendanceStatus` accepts present or absent, ignoring case and surrounding spaces.
+
+`AttendanceMarkCommand` checks the active group and finds the student in that group before changing data.
+It checks whether a record already exists for the week, creates an updated student through
+`withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`;
+the confirmation distinguishes a first mark from an update. Existing `LogicManager` persistence saves the result.
+
 These classes follow the rules in our feature specification:
 
 * **Group names** are compared case-insensitively, so `T01` and `t01` are the same group. The name is shown with the capitalization the TA typed.

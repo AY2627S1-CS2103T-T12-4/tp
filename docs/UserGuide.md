@@ -5,7 +5,7 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups. Commands for students, attendance, participation, and assignments
+You can create, list, and switch tutorial groups, and record weekly attendance. Commands for students, participation, and assignments
 are **coming soon**.
 
 * Table of Contents
@@ -61,7 +61,8 @@ the command box.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
 * **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon** label.
-  They contain no simulated records. Week controls are unavailable, and their domain commands are not yet supported.
+  They contain no simulated records and week controls are unavailable. Use `attendance mark` to record attendance;
+  the Attendance screen remains a preview. Participation and assignment commands are not yet supported.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -89,7 +90,7 @@ Opening a screen with `view` does not save or change data.
 * `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` rejects extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Student, attendance, participation, and
+  and suggest entering `help`. They do not change or save your data. Student, participation, and
   assignment commands remain **Coming soon**.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
@@ -188,6 +189,28 @@ Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
 
+### Recording or correcting attendance: `attendance mark`
+
+Records whether a student in the active tutorial group attended a teaching week.
+The student must already be in that group. Student commands are coming soon; existing students can be loaded
+from the [data file](#editing-the-data-file).
+
+Format: `attendance mark id/STUDENT_ID w/WEEK s/STATUS`
+
+* `WEEK` is a whole number from 1 to 13. `STATUS` is `present` or `absent`, ignoring case.
+* Student IDs ignore case. Supply each prefix exactly once, in any order, separated by spaces.
+* Repeating a mark for the same student and week replaces the earlier mark, even if the status is the same.
+  Other students, weeks, and participation records are preserved.
+
+For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` shows
+`Recorded Alice Tan as present for Week 3.` Re-entering it with `s/absent` shows
+`Updated Alice Tan's attendance for Week 3 to absent.`
+
+Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
+an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
+`Student does not exist in the active group.` With no active group, use `group add g/GROUP_NAME` or
+`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -196,7 +219,7 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves your tutorial groups, their students, and the active group after successful commands, except `view`,
+TAssist saves your tutorial groups, their students and attendance records, and the active group after successful commands, except `view`,
 which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
 successful save; read the feedback.
 
@@ -261,4 +284,5 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
+**Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **Exit** | `exit`
