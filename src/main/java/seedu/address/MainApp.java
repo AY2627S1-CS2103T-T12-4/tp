@@ -18,6 +18,7 @@ import seedu.address.logic.LogicManager;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
+import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
@@ -83,6 +84,7 @@ public class MainApp extends Application {
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
+        StudentCommandRegistration.registerCommands(commandRegistry);
         logic = new LogicManager(model, storage, commandRegistry);
 
         ui = new UiManager(logic, storage.getTAssistFilePath());

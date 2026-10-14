@@ -1,0 +1,57 @@
+package seedu.address.logic.commands;
+
+import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
+
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.Model;
+import seedu.address.model.group.Group;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
+
+/**
+ * Removes a student and their records from the active tutorial group.
+ */
+public class StudentDeleteCommand extends Command {
+    public static final String MESSAGE_USAGE = "student delete id/STUDENT_ID";
+    public static final String MESSAGE_SUCCESS = "Removed %s from %s.";
+    public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
+
+    private static final Logger logger = LogsCenter.getLogger(StudentDeleteCommand.class);
+    private final StudentId studentId;
+
+    /**
+     * Creates a command to delete the student with the given ID.
+     */
+    public StudentDeleteCommand(StudentId studentId) {
+        this.studentId = requireNonNull(studentId);
+    }
+
+    @Override
+    public CommandResult execute(Model model) throws CommandException {
+        requireNonNull(model);
+        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        if (!group.hasStudent(studentId)) {
+            throw new CommandException(String.format(MESSAGE_UNKNOWN_STUDENT, studentId, group.getName()));
+        }
+
+        Student removed = model.removeStudent(group.getName(), studentId);
+        assert !group.hasStudent(studentId) : "The deleted student must no longer belong to the active group";
+        logger.fine("Removed a student from " + group.getName());
+        return new CommandResult(String.format(MESSAGE_SUCCESS, removed.getName(), group.getName()));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof StudentDeleteCommand otherCommand
+                && studentId.equals(otherCommand.studentId);
+    }
+
+    @Override
+    public int hashCode() {
+        return studentId.hashCode();
+    }
+}
