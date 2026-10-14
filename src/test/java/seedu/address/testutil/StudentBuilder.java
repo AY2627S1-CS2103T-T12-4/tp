@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.WeeklyRecord;
 
 /**
  * A utility class to help with building Student objects.
@@ -14,6 +15,8 @@ public class StudentBuilder {
 
     private StudentName name;
     private StudentId studentId;
+    private WeeklyRecord<String> attendanceRecords;
+    private WeeklyRecord<Integer> participationRecords;
 
     /**
      * Creates a {@code StudentBuilder} with the default details.
@@ -21,6 +24,8 @@ public class StudentBuilder {
     public StudentBuilder() {
         name = new StudentName(DEFAULT_NAME);
         studentId = new StudentId(DEFAULT_STUDENT_ID);
+        attendanceRecords = new WeeklyRecord<>();
+        participationRecords = new WeeklyRecord<>();
     }
 
     /**
@@ -29,6 +34,8 @@ public class StudentBuilder {
     public StudentBuilder(Student studentToCopy) {
         name = studentToCopy.getName();
         studentId = studentToCopy.getStudentId();
+        attendanceRecords = studentToCopy.getAttendanceRecords();
+        participationRecords = studentToCopy.getParticipationRecords();
     }
 
     /**
@@ -48,7 +55,7 @@ public class StudentBuilder {
     }
 
     public Student build() {
-        return new Student(name, studentId);
+        return new Student(name, studentId, attendanceRecords, participationRecords);
     }
 
 }
