@@ -45,7 +45,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
         addWeeklyView(WorkspaceView.ATTENDANCE, "Weekly attendance",
                 "Present and absent records will appear here once attendance is implemented.", "ATTENDANCE");
         addWeeklyView(WorkspaceView.PARTICIPATION, "Weekly participation",
-                "Weekly participation scores will appear here once participation is implemented.", "SCORE");
+                "Use participation set and participation list to manage scores. This table is coming soon.", "SCORE");
         addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",
                 "Assignment selection, submissions and grades are coming soon.",
                 "NAME", "STUDENT ID", "SUBMISSION", "GRADE").getRoot());

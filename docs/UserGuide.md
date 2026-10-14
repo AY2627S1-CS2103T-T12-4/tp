@@ -5,8 +5,8 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups, and add, list, and delete their students.
-Commands for attendance, participation, and assignments are **coming soon**.
+You can create, list, and switch tutorial groups, add, list, and delete their students, and record and list weekly
+participation scores. Commands for attendance and assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -66,8 +66,10 @@ the command box.
   more students.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
-* **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon** label.
-  They contain no simulated records. Week controls are unavailable, and their domain commands are not yet supported.
+* **Attendance** and **Assignments** show planned layouts with a **Coming soon** label.
+  They contain no simulated records, and their domain commands are not yet supported.
+* **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
+  Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -95,7 +97,7 @@ Opening a screen with `view` does not save or change data.
 * `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Attendance, participation, and
+  and suggest entering `help`. They do not change or save your data. Attendance and
   assignment commands remain **Coming soon**.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
@@ -194,6 +196,55 @@ Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
 
+### Recording participation: `participation set`
+
+Records a score for one student in the active tutorial group. Select a group with `group use` first.
+
+Format: `participation set id/STUDENT_ID w/WEEK s/SCORE`
+
+* `WEEK` is a whole number from 1 to 13. `SCORE` is a whole number from 0 to 5, including zero.
+* Student IDs ignore case. The ID must belong to the active group.
+* Supply each prefix exactly once, in any order, with spaces between parameters.
+* Setting the same student and week again replaces the score, including when the value is unchanged.
+  Other weeks, other students, and other groups are unaffected.
+
+Example: `participation set id/A0123456X w/3 s/2` shows
+`Recorded participation score 2 for Alice Tan in Week 3.`
+Then `participation set id/A0123456X w/3 s/4` shows
+`Updated Alice Tan's participation score for Week 3 to 4.`
+
+### Listing participation: `participation list`
+
+Lists every student in the active group in roster order, with their score for the requested week.
+Scores appear in the feedback box; scroll it for long lists. The Participation table remains a preview.
+
+Format: `participation list w/WEEK`
+
+Example: `participation list w/3`
+
+```text
+Participation for T01, Week 3:
+Alice Tan | A0123456X | 2
+Ben Lim | A0234567Y | Not recorded
+```
+
+Students without a score show `Not recorded`, even if no scores have been entered that week.
+A recorded zero shows `0`. An empty group shows `No students in T01.`
+Listing does not change scores. Successful score changes are saved automatically and restored when you reopen TAssist.
+
+#### Participation command errors
+
+Rejected input leaves the existing scores and saved data file unchanged.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digits only, without a sign or decimal point.
+Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
+Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
+Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
+
 ### Adding a student: `student add`
 
 Adds a student to the active group and updates the Students screen immediately.
@@ -256,7 +307,7 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves your tutorial groups, their students, and the active group after successful commands, except `view`,
+TAssist saves your tutorial groups, their students and weekly scores, and the active group after successful commands, except `view`,
 which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
 successful save; read the feedback.
 
@@ -276,7 +327,8 @@ The file looks like this:
     "name" : "T01",
     "students" : [ {
       "name" : "Alice Tan",
-      "studentId" : "A0123456X"
+      "studentId" : "A0123456X",
+      "participation" : { "3" : 2 }
     } ]
   } ]
 }
@@ -287,6 +339,9 @@ The file looks like this:
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
+* A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
+  Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A week or score outside that range makes the
+  file invalid. An omitted map means no scores have been recorded.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
@@ -324,4 +379,6 @@ Action | Format, Examples
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
 **Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`
+**Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
+**List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Exit** | `exit`
