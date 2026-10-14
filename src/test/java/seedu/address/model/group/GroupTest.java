@@ -86,6 +86,17 @@ public class GroupTest {
     }
 
     @Test
+    public void setStudent_laterStudent_replacesStudentInPlace() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        Student updatedBen = BEN.withParticipationRecord(2, 3);
+
+        group.setStudent(updatedBen);
+
+        assertEquals(List.of(ALICE, updatedBen), group.getStudentList());
+    }
+
+    @Test
     public void setStudent_missingIdOrNull_throwsException() {
         assertThrows(StudentNotFoundException.class, () -> group.setStudent(ALICE));
         assertThrows(NullPointerException.class, () -> group.setStudent(null));
