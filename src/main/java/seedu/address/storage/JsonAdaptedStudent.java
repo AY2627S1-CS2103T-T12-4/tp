@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static seedu.address.commons.util.AppUtil.checkArgument;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -78,8 +80,7 @@ class JsonAdaptedStudent {
         final StudentId modelStudentId = new StudentId(studentId);
 
         try {
-            return new Student(modelName, modelStudentId, toAttendanceRecords(),
-                    new WeeklyRecord<>(participation));
+            return new Student(modelName, modelStudentId, toAttendanceRecords(), toParticipationRecords());
         } catch (IllegalArgumentException exception) {
             throw new IllegalValueException(exception.getMessage(), exception);
         }
@@ -91,6 +92,19 @@ class JsonAdaptedStudent {
         validatedRecords.getRecords().forEach((week, status) ->
                 normalizedRecords.put(week, AttendanceStatus.fromValue(status).name()));
         return new WeeklyRecord<>(normalizedRecords);
+    }
+
+    /**
+     * Returns participation records, rejecting a score outside 0 to 5.
+     * Invalid weeks are still rejected by {@code WeeklyRecord}.
+     */
+    private WeeklyRecord<Integer> toParticipationRecords() {
+        WeeklyRecord<Integer> records = new WeeklyRecord<>(participation);
+        for (int score : records.getRecords().values()) {
+            checkArgument(score >= 0 && score <= 5,
+                    "Participation score must be a whole number from 0 to 5.");
+        }
+        return records;
     }
 
 }
