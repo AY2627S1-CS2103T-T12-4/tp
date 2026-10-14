@@ -2,6 +2,7 @@ package seedu.address.model.student;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -30,5 +31,21 @@ public final class WeeklyRecordEntry<T> {
     public String formatValueOrNotRecorded(Function<? super T, String> formatter) {
         requireNonNull(formatter);
         return record.map(value -> requireNonNull(formatter.apply(value))).orElse(MESSAGE_NOT_RECORDED);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof WeeklyRecordEntry<?> otherEntry)) {
+            return false;
+        }
+        return student.equals(otherEntry.student) && record.equals(otherEntry.record);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(student, record);
     }
 }
