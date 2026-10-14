@@ -80,7 +80,7 @@ class JsonAdaptedStudent {
             return new Student(modelName, modelStudentId, new WeeklyRecord<>(attendance),
                     new WeeklyRecord<>(participation));
         } catch (IllegalArgumentException exception) {
-            throw new IllegalValueException("Student's weekly record fields are invalid.", exception);
+            throw new IllegalValueException(exception.getMessage(), exception);
         }
     }
 

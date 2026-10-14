@@ -56,14 +56,13 @@ public class JsonAdaptedStudentTest {
                 + "\"attendance\":{\"14\":\"PRESENT\"}}";
         JsonAdaptedStudent adapted = JsonUtil.fromJsonString(json, JsonAdaptedStudent.class);
 
-        assertThrows(IllegalValueException.class, "Student's weekly record fields are invalid.",
-                adapted::toModelType);
+        assertThrows(IllegalValueException.class, "Week must be a whole number from 1 to 13.", adapted::toModelType);
 
         Map<Integer, String> attendanceWithNullValue = new HashMap<>();
         attendanceWithNullValue.put(1, null);
         JsonAdaptedStudent adaptedWithNullValue = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID,
                 attendanceWithNullValue, Map.of());
-        assertThrows(IllegalValueException.class, "Student's weekly record fields are invalid.",
+        assertThrows(IllegalValueException.class, "Weekly record value must not be null.",
                 adaptedWithNullValue::toModelType);
     }
 
