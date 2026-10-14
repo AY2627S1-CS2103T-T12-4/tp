@@ -38,6 +38,16 @@ public class AttendanceListCommandTest {
     }
 
     @Test
+    public void execute_invalidStoredStatus_showsStoredText() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "late"));
+
+        assertListingUnchanged(3, "Attendance for T01, Week 3:\n"
+                + "Alice Tan | A0123456X | late\n"
+                + "Ben Lim | A0234567Y | Not recorded\n"
+                + "Carl Goh | A0345678Z | Not recorded");
+    }
+
+    @Test
     public void execute_noRecordsForSelectedWeek_showsNoRecordsMessage() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
         for (int week : new int[] {1, 13}) {
