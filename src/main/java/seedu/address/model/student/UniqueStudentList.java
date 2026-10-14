@@ -63,4 +63,12 @@ public class UniqueStudentList extends UniqueList<Student> {
     public void setStudents(List<Student> students) {
         setAll(students);
     }
+
+    /**
+     * Replaces the student with the same ID as {@code student}.
+     * The student must already exist in the list.
+     */
+    public void setStudent(Student student) {
+        set(student);
+    }
 }

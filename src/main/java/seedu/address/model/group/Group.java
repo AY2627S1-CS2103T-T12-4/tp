@@ -100,6 +100,15 @@ public class Group {
     }
 
     /**
+     * Replaces an existing student with the same ID, preserving that student's position in the group.
+     *
+     * @param student The updated student.
+     */
+    public void setStudent(Student student) {
+        students.setStudent(requireNonNull(student));
+    }
+
+    /**
      * Returns true if both groups have the same name, ignoring case.
      * This defines a weaker notion of equality between two groups.
      */

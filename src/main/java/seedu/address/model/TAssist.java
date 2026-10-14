@@ -110,6 +110,15 @@ public class TAssist implements ReadOnlyTAssist {
     }
 
     /**
+     * Replaces the student with the same ID in the group named {@code groupName}.
+     * The group and student must already exist.
+     */
+    public void setStudent(GroupName groupName, Student student) {
+        requireAllNonNull(groupName, student);
+        getGroup(groupName).setStudent(student);
+    }
+
+    /**
      * Removes the student with {@code studentId} from the group named {@code groupName},
      * and returns the removed student.
      * The group must exist, and the student must be in it.
