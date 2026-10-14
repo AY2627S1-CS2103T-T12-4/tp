@@ -22,10 +22,10 @@ public class StudentTest {
     public void constructor_nullField_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Student(null, ID_ALICE));
         assertThrows(NullPointerException.class, () -> new Student(NAME_ALICE, null));
-        assertThrows(NullPointerException.class,
-                () -> new Student(NAME_ALICE, ID_ALICE, null, new WeeklyRecord<>()));
-        assertThrows(NullPointerException.class,
-                () -> new Student(NAME_ALICE, ID_ALICE, new WeeklyRecord<>(), null));
+        assertThrows(NullPointerException.class, () -> new Student(
+                NAME_ALICE, ID_ALICE, null, new WeeklyRecord<>()));
+        assertThrows(NullPointerException.class, () -> new Student(
+                NAME_ALICE, ID_ALICE, new WeeklyRecord<>(), null));
     }
 
     @Test
