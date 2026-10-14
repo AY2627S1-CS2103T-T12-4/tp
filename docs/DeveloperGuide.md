@@ -302,6 +302,14 @@ replaces that copy in its group while preserving the student's position.
 kind. Each `WeeklyRecordEntry` holds an optional value and formats a missing value as `Not recorded`. Attendance and
 participation commands are implemented separately and can share this model behavior without duplicating record code.
 
+These classes follow the rules in our feature specification:
+
+* **Group names** are compared case-insensitively, so `T01` and `t01` are the same group. The name is shown with the capitalization the TA typed.
+* **Student IDs** are stored in uppercase, so they are compared case-insensitively. A student ID is unique *within a group* only, so the same student can be in two groups (e.g. for a make-up session). Two students may share a name if their IDs differ.
+* **Spaces:** leading and trailing spaces are ignored, and repeated spaces inside group names and student names count as one space.
+* **Active group:** the active group, if any, is always one of the groups held. Adding a group does not make it active by itself; commands decide when to switch.
+* **Copies:** `new TAssist(data)` copies every group, so changing the copy never changes the original.
+
 #### Recording attendance
 
 `AttendanceCommandRegistration` registers the attendance parsers and their offline help in `MainApp`.
@@ -319,14 +327,6 @@ selects attendance through `Group#getWeeklyRecordEntries`. If no student has a r
 the no-records message. Otherwise, it formats each row with the student's name, ID, and capitalized status,
 using `WeeklyRecordEntry#formatValueOrNotRecorded` for missing values. The rows appear in the scrollable
 command feedback box; the Attendance workspace screen remains a preview.
-
-These classes follow the rules in our feature specification:
-
-* **Group names** are compared case-insensitively, so `T01` and `t01` are the same group. The name is shown with the capitalization the TA typed.
-* **Student IDs** are stored in uppercase, so they are compared case-insensitively. A student ID is unique *within a group* only, so the same student can be in two groups (e.g. for a make-up session). Two students may share a name if their IDs differ.
-* **Spaces:** leading and trailing spaces are ignored, and repeated spaces inside group names and student names count as one space.
-* **Active group:** the active group, if any, is always one of the groups held. Adding a group does not make it active by itself; commands decide when to switch.
-* **Copies:** `new TAssist(data)` copies every group, so changing the copy never changes the original.
 
 #### Where per-student records are stored
 
