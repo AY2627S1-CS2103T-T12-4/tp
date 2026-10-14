@@ -1022,6 +1022,41 @@ testers are expected to do more *exploratory* testing.
       Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
    1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
 
+### Recording and viewing attendance
+
+1. Prerequisites: Close the app and load the JSON example from the User Guide's
+   [Editing the data file](UserGuide.html#editing-the-data-file) section. T01 must contain Alice Tan
+   (`A0123456X`) and be active. Remove its attendance map to start with no marks.
+
+1. Marking and correcting
+
+   1. Enter `attendance mark id/A0123456X w/3 s/present`.
+      Expected: `Recorded Alice Tan as present for Week 3.`
+   1. Enter `attendance mark id/A0123456X w/3 s/absent`.
+      Expected: `Updated Alice Tan's attendance for Week 3 to absent.`
+   1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:` and
+      `Alice Tan | A0123456X | Absent`. Other students, if present, show `Not recorded`.
+   1. Enter `attendance list w/13`. Expected: `No attendance records have been recorded for Week 13.`
+   1. Close and reopen the app. Enter `attendance list w/3`. Expected: Alice is still absent.
+
+1. Rejected commands
+
+   1. Enter `attendance mark id/A0123456X w/0 s/present`, then `attendance list w/14`.
+      Expected: `Invalid week. Enter a number from 1 to 13.`
+   1. Enter `attendance mark id/A0123456X w/3 s/late`.
+      Expected: `Invalid attendance status. Use present or absent.`
+   1. Use a valid student ID absent from T01 in a mark command.
+      Expected: `Student does not exist in the active group.`
+   1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
+   1. Verify that records and the saved file remain unchanged after each rejection.
+   1. Close the app, set `activeGroup` to `null` in the file, and reopen it. Both attendance commands must
+      report no active group and suggest `group add` or `group use`, without changing data.
+
+Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSON storage. It covers correction,
+save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
+and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
+parameter errors, empty groups, week boundaries, and display formatting.
+
 ### Testing the workspace
 
 Run `./gradlew clean test checkstyleMain checkstyleTest` and `sh .github/run-checks.sh` for the standard checks.
