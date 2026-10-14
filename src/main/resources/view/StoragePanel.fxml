@@ -19,7 +19,7 @@
              wrapText="true" styleClass="muted" />
       <Label text="Close TAssist before editing the file manually. Keep a backup: invalid edits can cause data loss."
              wrapText="true" styleClass="muted" />
-      <Label text="Attendance, participation and assignment storage are coming soon."
+      <Label text="Attendance and assignment storage are coming soon."
              wrapText="true" styleClass="coming-soon-note" />
     </VBox>
   </ScrollPane>
