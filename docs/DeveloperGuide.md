@@ -118,8 +118,8 @@ The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The 
 
 * The mock-up's dark menu header and separate group strip are replaced by a light group bar and a screen-navigation row.
 * The app uses native JavaFX controls rather than rendering the mock-up as an HTML page.
-* The mock-up depicts completed attendance and participation screens. In the current app, only Students is connected to
-  live data; Groups, Attendance, Participation and Assignments are marked **Coming soon**.
+* The mock-up shows only the Attendance screen. Students, Help, Storage, and the group bar use live data.
+  Groups, Attendance, Participation, and Assignments are **Coming soon** previews.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
