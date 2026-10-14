@@ -321,6 +321,24 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setStudent_activeStudent_updatesGroupAndObservableList() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        Student student = modelManager.getGroup(NAME_T01).getStudentList().getFirst();
+        Student updatedStudent = student.withParticipationRecord(3, 2);
+
+        modelManager.setStudent(NAME_T01, updatedStudent);
+
+        assertEquals(updatedStudent, modelManager.getGroup(NAME_T01).getStudentList().getFirst());
+        assertEquals(updatedStudent, modelManager.getActiveGroupStudentList().getFirst());
+    }
+
+    @Test
+    public void setStudent_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setStudent(null, FIONA));
+        assertThrows(NullPointerException.class, () -> modelManager.setStudent(NAME_T01, null));
+    }
+
+    @Test
     public void addStudent_toInactiveGroup_studentListUnchanged() {
         modelManager = modelWithActiveGroup(NAME_T01);
         modelManager.addStudent(NAME_T02, FIONA);

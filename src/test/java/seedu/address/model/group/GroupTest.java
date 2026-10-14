@@ -75,6 +75,34 @@ public class GroupTest {
     }
 
     @Test
+    public void setStudent_existingId_replacesStudentInPlace() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        Student updatedAlice = ALICE.withAttendanceRecord(1, "PRESENT");
+
+        group.setStudent(updatedAlice);
+
+        assertEquals(List.of(updatedAlice, BEN), group.getStudentList());
+    }
+
+    @Test
+    public void setStudent_laterStudent_replacesStudentInPlace() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        Student updatedBen = BEN.withParticipationRecord(2, 3);
+
+        group.setStudent(updatedBen);
+
+        assertEquals(List.of(ALICE, updatedBen), group.getStudentList());
+    }
+
+    @Test
+    public void setStudent_missingIdOrNull_throwsException() {
+        assertThrows(StudentNotFoundException.class, () -> group.setStudent(ALICE));
+        assertThrows(NullPointerException.class, () -> group.setStudent(null));
+    }
+
+    @Test
     public void getStudentList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> group.getStudentList().add(ALICE));
     }
