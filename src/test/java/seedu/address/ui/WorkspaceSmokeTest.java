@@ -41,6 +41,7 @@ import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
+import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
@@ -325,6 +326,40 @@ public class WorkspaceSmokeTest {
         }
     }
 
+    @Test
+    public void attendanceCommands_largeGroup_showsScrollableFeedbackAndRetainsInvalidInput() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                for (int i = 0; i < 17; i++) {
+                    model.addStudent(TypicalGroups.NAME_T01, new StudentBuilder().withName("Student")
+                            .withStudentId("A" + (100 + i)).build());
+                }
+                enter(input, "attendance mark id/A0123456X w/3 s/present");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertEquals("Recorded Alice Tan as present for Week 3.", feedback.getText());
+                enter(input, "attendance list w/3");
+                assertEquals(21, feedback.getText().lines().count());
+                assertTrue(feedback.getText().contains("Alice Tan | A0123456X | Present"));
+                assertTrue(feedback.getText().contains("Student | A116 | Not recorded"));
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+            });
+            runOnFx(() -> render(root, "attendance-list", 853, 440));
+            runOnFx(() -> {
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertTrue(hasVisibleVerticalScrollBar(feedback), "A full tutorial group's attendance can scroll");
+                enter(input, "attendance mark id/A0123456X w/3 s/late");
+                assertEquals("attendance mark id/A0123456X w/3 s/late", input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+                assertEquals("Invalid attendance status. Use present or absent.", feedback.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
             runOnFx(() -> {
@@ -448,6 +483,7 @@ public class WorkspaceSmokeTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
+        AttendanceCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();

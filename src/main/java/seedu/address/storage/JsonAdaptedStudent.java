@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.student.AttendanceStatus;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -79,11 +80,18 @@ class JsonAdaptedStudent {
         final StudentId modelStudentId = new StudentId(studentId);
 
         try {
-            return new Student(modelName, modelStudentId, new WeeklyRecord<>(attendance),
-                    toParticipationRecords());
+            return new Student(modelName, modelStudentId, toAttendanceRecords(), toParticipationRecords());
         } catch (IllegalArgumentException exception) {
             throw new IllegalValueException(exception.getMessage(), exception);
         }
+    }
+
+    private WeeklyRecord<String> toAttendanceRecords() {
+        WeeklyRecord<String> validatedRecords = new WeeklyRecord<>(attendance);
+        Map<Integer, String> normalizedRecords = new TreeMap<>();
+        validatedRecords.getRecords().forEach((week, status) ->
+                normalizedRecords.put(week, AttendanceStatus.fromValue(status).name()));
+        return new WeeklyRecord<>(normalizedRecords);
     }
 
     /**
