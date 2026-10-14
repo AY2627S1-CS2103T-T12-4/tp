@@ -41,10 +41,10 @@ import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
-import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
+import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
@@ -54,7 +54,6 @@ import seedu.address.model.student.Student;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
-import seedu.address.testutil.StubCommand;
 import seedu.address.testutil.StudentBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -235,6 +234,34 @@ public class WorkspaceSmokeTest {
                 assertEquals("participation", tabs.getSelectionModel().getSelectedItem().getId());
             });
             runOnFx(() -> render(root, "participation-commands", 853, 440));
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentCommands_updateRosterAndKeepFailedInput() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T03");
+                enter(input, "student add n/Alice Tan id/A1");
+                enter(input, "student add n/Ben Lim id/A2");
+                assertEquals(2, studentTable().getItems().size());
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                enter(input, "student list");
+                assertEquals("Students in T03:\n1. Alice Tan | A1\n2. Ben Lim | A2", feedback.getText());
+                enter(input, "student add n/Alice Tan id/a1");
+                assertEquals("Student ID A1 already exists in T03.", feedback.getText());
+                assertEquals("student add n/Alice Tan id/a1", input.getText());
+                assertEquals(2, studentTable().getItems().size());
+                enter(input, "student delete id/a1");
+                assertEquals("Removed Alice Tan from T03.", feedback.getText());
+                assertEquals(1, studentTable().getItems().size());
+                assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
+                enter(input, "student delete id/A2");
+                assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
+            });
         } finally {
             runOnFx(() -> stage.hide());
         }
@@ -422,8 +449,7 @@ public class WorkspaceSmokeTest {
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
-        commandRegistry.register("student", "list", args -> new StubCommand(),
-                new HelpEntry("student", "student list", "Show all students.", List.of("student list")));
+        StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
         MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);
         window.fillInnerParts();
