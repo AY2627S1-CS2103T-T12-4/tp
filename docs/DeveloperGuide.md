@@ -304,7 +304,7 @@ participation commands are implemented separately and can share this model behav
 
 #### Recording attendance
 
-`AttendanceCommandRegistration` registers the attendance parser and its offline help in `MainApp`.
+`AttendanceCommandRegistration` registers the attendance parsers and their offline help in `MainApp`.
 `AttendanceMarkCommandParser` uses `TAssistArgumentParser` to require `id/`, `w/`, and `s/` exactly once.
 `AttendanceCommandParserUtil` reuses the shared week parser with the attendance error message;
 `AttendanceStatus` accepts present or absent, ignoring case and surrounding spaces.
@@ -313,6 +313,12 @@ participation commands are implemented separately and can share this model behav
 It checks whether a record already exists for the week, creates an updated student through
 `withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`;
 the confirmation distinguishes a first mark from an update. Existing `LogicManager` persistence saves the result.
+
+`AttendanceListCommandParser` requires only `w/` and uses the same week validation. `AttendanceListCommand`
+selects attendance through `Group#getWeeklyRecordEntries`. If no student has a record for that week, it returns
+the no-records message. Otherwise, it formats each row with the student's name, ID, and capitalized status,
+using `WeeklyRecordEntry#formatValueOrNotRecorded` for missing values. The rows appear in the scrollable
+command feedback box; the Attendance workspace screen remains a preview.
 
 These classes follow the rules in our feature specification:
 

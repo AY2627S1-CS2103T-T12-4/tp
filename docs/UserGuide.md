@@ -61,7 +61,7 @@ the command box.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
 * **Attendance**, **Participation**, and **Assignments** show the planned layouts with a **Coming soon** label.
-  They contain no simulated records and week controls are unavailable. Use `attendance mark` to record attendance;
+  They contain no simulated records and week controls are unavailable. Use `attendance mark` and `attendance list`;
   the Attendance screen remains a preview. Participation and assignment commands are not yet supported.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
@@ -211,6 +211,28 @@ an invalid status shows `Invalid attendance status. Use present or absent.` An u
 `Student does not exist in the active group.` With no active group, use `group add g/GROUP_NAME` or
 `group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
 
+### Listing weekly attendance: `attendance list`
+
+Lists attendance for the active tutorial group in student order, without changing any records.
+
+Format: `attendance list w/WEEK`
+
+For example, `attendance list w/3` shows the following in the scrollable feedback box:
+
+```text
+Attendance for T01, Week 3:
+Alice Tan | A0123456X | Present
+Ben Lim | A0234567Y | Not recorded
+```
+
+Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
+week, including when the group has no students, the feedback is
+`No attendance records have been recorded for Week 3.` Records in other groups or weeks are not included.
+Use `group use g/GROUP_NAME` to choose another group before listing it.
+
+Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
+invalid weeks and no active group have the same errors as `attendance mark`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -285,4 +307,5 @@ Action | Format, Examples
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
+**List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Exit** | `exit`
