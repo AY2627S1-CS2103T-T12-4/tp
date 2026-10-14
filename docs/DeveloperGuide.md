@@ -415,6 +415,10 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 
 * Assignments sit on each group, so the assignment feature adds an `assignments` field to `JsonAdaptedGroup`.
 
+`JsonAdaptedStudent` also validates attendance statuses with `AttendanceStatus`, accepting case and surrounding
+spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
+so the existing storage error handling reports the invalid file before commands use its records.
+
 Older files omit the attendance and participation maps, which `JsonAdaptedStudent` reads as empty records. Later
 features should do the same for any new record field; `JsonSerializableTAssist` and other feature adapters do not
 change.
