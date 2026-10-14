@@ -108,6 +108,19 @@ a red row when the command failed, and failed commands retain their input.
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
 
+The screenshot below shows the implemented Students screen with an active group and its roster.
+
+![Implemented TAssist UI showing the T01 student roster](images/Ui.png)
+
+#### Differences from the supplied mock-up
+
+The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The implemented UI differs in these ways:
+
+* The mock-up's dark menu header and separate group strip are replaced by a light group bar and a screen-navigation row.
+* The app uses native JavaFX controls rather than rendering the mock-up as an HTML page.
+* The mock-up shows only the Attendance screen. Students, Help, Storage, and the group bar use live data.
+  Groups, Attendance, Participation, and Assignments are **Coming soon** previews.
+
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,

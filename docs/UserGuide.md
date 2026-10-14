@@ -50,6 +50,12 @@ the **screens** below it. **Students**, **Attendance**, **Participation**, and *
 Hover over a screen, or over a shortened group name, to see more. The tooltip of a screen names the command that does
 the same, such as `view attendance`.
 
+The implemented UI keeps the mock-up's command-first workspace, but uses a light group bar and a separate screen
+navigation row in place of the mock-up's dark header and separate group strip. The [original UI mock-up](images/UiMockup.png)
+is included for reference.
+
+![TAssist displaying the Students screen for tutorial group T01](images/Ui.png)
+
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
 Press **Escape** to return focus to the command box, or **F1** to open Help. Clicking a screen keeps your cursor in
 the command box.
