@@ -192,6 +192,7 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 ```java
 CommandRegistry registry = new CommandRegistry();
 GroupCommandRegistration.registerCommands(registry);
+StudentCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
@@ -279,6 +280,26 @@ Command and parser tests cover successful operations, exact feedback, name bound
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
 observable student list, active group, and file contents, and never call storage. `MainAppTest` exercises actual startup
 registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the commands through the JavaFX command box.
+
+### Student commands
+
+`StudentCommandRegistration` registers `student add`, `student list`, and `student delete`, including their help
+formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
+The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
+prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
+name or ID reports its value constraints. Listing accepts no parameters.
+
+Each command obtains the active group at execution time and throws `CommandException` if none is selected.
+`StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
+`StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
+student also removes their owned weekly records. Neither command changes another group, even if it contains the
+same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
+
+Mutations pass through the existing model and observable roster, so the Students screen updates without navigating
+away from the current screen. Successful commands use the existing JSON persistence in `LogicManager`.
+Parser and command tests cover validation, normalization, feedback, uniqueness, group isolation, and empty states.
+`StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
+across restarts, and rejected commands preserving both the model and the saved file.
 
 ### TAssist domain model
 
@@ -976,6 +997,21 @@ testers are expected to do more *exploratory* testing.
       Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
 
+### Managing students
+
+1. With no active group, enter `student list`, `student add n/Alice Tan id/A0123456X`, and
+   `student delete id/A0123456X`. Each should ask you to create or select a group, without changing data.
+2. Create T01 with `group add g/T01`. Add Alice using the command above, then enter
+   `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows.
+3. Enter `student list`. Expect numbered rows with both IDs. Close and reopen the app; both students remain.
+4. Try `student add n/Other Name id/a0123456x`, `student add n/Alice`, `student add n/Alice id/ABC`,
+   `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
+   the roster and saved file.
+5. Create T02, add Alice with ID A0123456X there, then switch back using `group use g/T01`.
+   Enter `student delete id/a0123456x`. Expect `Removed Alice Tan from T01.` and A2 becomes row 1.
+6. Delete A2, then list students. Expect an empty-roster hint. Try deleting A2 again; expect an unknown-ID error.
+   Close and reopen; T01 stays empty and T02 still contains Alice.
+
 ### Managing tutorial groups
 
 1. Creating and listing groups
@@ -1023,7 +1059,7 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
 2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
-   Once student commands are available, add and remove students in it. The group strip and the table should update
+   Add and remove students with `student add` and `student delete`. The group strip and the table should update
    at once. Click each screen in the
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
