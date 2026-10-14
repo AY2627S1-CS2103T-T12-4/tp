@@ -5,8 +5,8 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups. Commands for students, attendance, participation, and assignments
-are **coming soon**.
+You can create, list, and switch tutorial groups, and add, list, and delete their students.
+Commands for attendance, participation, and assignments are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -86,10 +86,10 @@ Opening a screen with `view` does not save or change data.
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` rejects extra input.
+* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Student, attendance, participation, and
+  and suggest entering `help`. They do not change or save your data. Attendance, participation, and
   assignment commands remain **Coming soon**.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
@@ -188,6 +188,60 @@ Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
 
+### Adding a student: `student add`
+
+Adds a student to the active group and updates the Students screen immediately.
+Create or select a group first with `group add` or `group use`.
+
+Format: `student add n/NAME id/STUDENT_ID`
+
+* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
+  Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
+* IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
+* An ID must be unique within the active group. The same ID may occur in another group.
+  Students with the same name and different IDs are allowed.
+* Supply each prefix exactly once, in either order, with a space before each parameter.
+
+Example: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
+
+### Listing students: `student list`
+
+Lists the active group's students in roster order in the feedback box. It takes no parameters.
+
+Format: `student list`
+
+```text
+Students in T01:
+1. Alice Tan | A0123456X
+2. Ben Lim | A0234567Y
+```
+
+An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
+Long rosters can be scrolled in the feedback box or viewed on the Students screen with `view students`.
+
+### Deleting a student: `student delete`
+
+Removes the student and their weekly records from the active group immediately.
+The same student in another group is unaffected. Remaining students are renumbered without changing their order.
+
+Format: `student delete id/STUDENT_ID`
+
+Example: `student delete id/a0123456x` shows `Removed Alice Tan from T01.`
+
+#### Student command errors
+
+Rejected input leaves the roster and saved file unchanged.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
+Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
+Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
+Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
+Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -261,4 +315,7 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
+**Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
+**List students** | `student list`
+**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`
 **Exit** | `exit`
