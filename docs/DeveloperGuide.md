@@ -192,6 +192,7 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 ```java
 CommandRegistry registry = new CommandRegistry();
 GroupCommandRegistration.registerCommands(registry);
+ParticipationCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
@@ -279,6 +280,27 @@ Command and parser tests cover successful operations, exact feedback, name bound
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
 observable student list, active group, and file contents, and never call storage. `MainAppTest` exercises actual startup
 registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the commands through the JavaFX command box.
+
+### Participation commands
+
+`ParticipationCommandRegistration` registers `participation set` and `participation list` and their help entries
+before `LogicManager` is created. Their parsers use `TAssistArgumentParser` for prefix validation and
+`TAssistParserUtil` for IDs, weeks 1–13, and whole-number scores 0–5. Command constructors also reject invalid weeks
+or scores defensively, even when called without a parser.
+
+`ParticipationSetCommand` finds the student in the active group before changing anything. It checks whether that
+week already has a value, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
+`Model.setStudent`. Feedback distinguishes a first entry from a replacement. The replacement preserves roster
+order, attendance, and scores for other weeks; students in other groups are untouched.
+`ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
+the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
+
+Both commands use the standard feedback box and keep the current screen selected. The Participation table remains
+a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+feature adds no new file format. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
+restart persistence, and rejected commands preserving existing records and the file. Command and parser unit tests
+cover boundaries, corrections, group isolation, missing values, and malformed input. `WorkspaceSmokeTest` checks
+participation feedback and failed-input retention through the JavaFX command box.
 
 ### TAssist domain model
 
@@ -975,6 +997,21 @@ testers are expected to do more *exploratory* testing.
    1. Launch the app.<br>
       Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
 
+
+### Recording and listing participation
+
+1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
+   Select T01 with `group use g/T01`. Enter `participation list w/3`; both rows should say `Not recorded`.
+2. Enter `participation set id/a0123456x w/3 s/0`. Expect a first-entry confirmation and Alice's Week 3 score of zero.
+   Set it again with `s/4`. Expect the update message, with Ben still `Not recorded` when listing Week 3.
+3. Set Alice's Week 13 score to 5. Close and reopen, then list Weeks 3 and 13. Expect 4 and 5 respectively.
+   List Week 1; Alice and Ben should still be `Not recorded`.
+4. Try `participation set id/A0123456X w/0 s/2`, `participation set id/A0123456X w/3 s/6`,
+   `participation set id/A0123456X w/3 s/2.5`, `participation set id/A999 w/3 s/2`,
+   `participation set id/A0123456X w/3`, and `participation list w/3 w/4`.
+   Expect specific week, score, student, missing-prefix, and duplicate-prefix errors without changing any record or file.
+5. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
+   With no active group, both commands must ask you to create or select a group first.
 
 ### Managing tutorial groups
 
