@@ -43,7 +43,7 @@ public class HelpPanel extends UiPart<Region> {
             }
             addCommand(entry);
         }
-        Label planned = new Label("Coming soon: student commands, attendance, participation and assignments.");
+        Label planned = new Label("Coming soon: student commands, attendance and assignments.");
         planned.setWrapText(true);
         planned.getStyleClass().add("coming-soon-note");
         commands.getChildren().add(planned);
