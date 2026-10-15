@@ -4,12 +4,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import seedu.address.commons.core.AppHome;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
@@ -41,8 +41,8 @@ public class MainApp extends Application {
     public static final String VERSION = "V0.5.1";
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
-    private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path TASSIST_FILE_PATH = Paths.get("data", "tassist.json");
+    private static final Path USER_PREFS_FILE_PATH = AppHome.getHomeDirectory().resolve("preferences.json");
+    private static final Path TASSIST_FILE_PATH = AppHome.getHomeDirectory().resolve(Path.of("data", "tassist.json"));
 
     protected Ui ui;
     protected Logic logic;
