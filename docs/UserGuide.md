@@ -358,7 +358,9 @@ successful save; read the feedback.
 
 ### Editing the data file
 
-TAssist data is saved as `data/tassist.json` relative to the folder from which you launch TAssist.
+TAssist data is saved as `data/tassist.json` in the home folder, which is the folder containing the JAR file.
+Preferences (`preferences.json`) and the log file are saved in that same folder. TAssist does not read or write
+files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
 If the file is missing, TAssist starts with no data and creates the file after the first successful command
 other than `view`.
@@ -396,10 +398,6 @@ The file looks like this:
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `tassist.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
 </div>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
