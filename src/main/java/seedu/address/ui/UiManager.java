@@ -43,6 +43,7 @@ public class UiManager implements Ui {
 
         // Set the application icon. The platform picks the size that suits the window and the task bar.
         primaryStage.getIcons().addAll(getImage(ICON_APPLICATION), getImage(ICON_APPLICATION_LARGE));
+        TaskbarIcon.show(ICON_APPLICATION_LARGE);
 
         try {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
