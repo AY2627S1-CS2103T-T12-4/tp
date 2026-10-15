@@ -5,6 +5,7 @@ import java.util.Optional;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -85,6 +86,12 @@ public interface Model {
      * The group must exist, and the student must be in it.
      */
     Student removeStudent(GroupName groupName, StudentId studentId);
+
+    /**
+     * Adds {@code assignment} to the group named {@code groupName}.
+     * The group must exist, and no assignment in it may have the same name, ignoring case.
+     */
+    void addAssignment(GroupName groupName, Assignment assignment);
 
     /**
      * Returns the active group as an observable value, which is empty when no group is active.
