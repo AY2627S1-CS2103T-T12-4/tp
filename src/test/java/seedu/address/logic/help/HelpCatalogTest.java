@@ -27,6 +27,22 @@ public class HelpCatalogTest {
     }
 
     @Test
+    public void getEntries_featureEntriesInTopicOrder_keepsOrderWithinTopic() {
+        HelpEntry attendanceMark = entry("attendance", "attendance mark");
+        HelpEntry groupAdd = entry("group", "group add");
+        HelpEntry studentAdd = entry("student", "student add");
+        HelpEntry studentList = entry("student", "student list");
+        HelpEntry unlistedTopic = entry("other", "other list");
+
+        List<HelpEntry> entries = HelpCatalog.getEntries(
+                List.of(unlistedTopic, attendanceMark, studentAdd, groupAdd, studentList));
+
+        int builtInCount = HelpCatalog.getEntries(List.of()).size();
+        assertEquals(List.of(groupAdd, studentAdd, studentList, attendanceMark, unlistedTopic),
+                entries.subList(builtInCount, entries.size()));
+    }
+
+    @Test
     public void getEntries_builtInEntriesHaveNoTopicAndCoverEveryCommandWord() {
         List<HelpEntry> entries = HelpCatalog.getEntries(List.of());
 
@@ -74,5 +90,9 @@ public class HelpCatalogTest {
         assertEquals("Current commands", HelpCatalog.getTopicHeading(""));
         assertEquals("Student commands", HelpCatalog.getTopicHeading("student"));
         assertThrows(NullPointerException.class, () -> HelpCatalog.getTopicHeading(null));
+    }
+
+    private static HelpEntry entry(String topic, String commandFormat) {
+        return new HelpEntryBuilder().withTopic(topic).withCommandFormat(commandFormat).build();
     }
 }

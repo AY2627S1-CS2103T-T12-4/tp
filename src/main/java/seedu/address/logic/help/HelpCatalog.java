@@ -3,6 +3,7 @@ package seedu.address.logic.help;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,6 +29,8 @@ public final class HelpCatalog {
 
     /**
      * Returns the built-in commands followed by commands registered by features.
+     * Feature commands are grouped by topic, in the order of {@link #TOPICS}, so that the reference reads in the
+     * same order as the topics that {@code help TOPIC} accepts. Commands keep their given order within a topic.
      *
      * @param featureEntries The help entries registered with feature command parsers.
      * @return An immutable list of all help entries.
@@ -35,8 +38,18 @@ public final class HelpCatalog {
     public static List<HelpEntry> getEntries(List<HelpEntry> featureEntries) {
         requireNonNull(featureEntries);
         List<HelpEntry> entries = new ArrayList<>(BUILT_IN_ENTRIES);
-        entries.addAll(featureEntries);
+        featureEntries.stream()
+                .sorted(Comparator.comparingInt(entry -> getTopicOrder(entry.getTopic())))
+                .forEachOrdered(entries::add);
         return List.copyOf(entries);
+    }
+
+    /**
+     * Returns the position of {@code topic} in {@link #TOPICS}. Topics that are not listed come after all others.
+     */
+    private static int getTopicOrder(String topic) {
+        int position = TOPICS.indexOf(topic.toLowerCase(Locale.ROOT));
+        return position < 0 ? TOPICS.size() : position;
     }
 
     /**
