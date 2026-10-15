@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +22,8 @@ import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
 
 /**
- * Checks the help of the running app: that it covers every command, and that its examples work when typed.
+ * Checks the help of the running app: that it covers every command, that its examples work when typed, and that
+ * the User Guide shows the same formats and examples.
  */
 public class HelpIntegrationTest {
     /** Every command format, in the order the Help screen shows them. */
@@ -31,6 +33,8 @@ public class HelpIntegrationTest {
             "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK");
+
+    private static final Path USER_GUIDE = Path.of("docs", "UserGuide.md");
 
     @TempDir
     public Path temporaryFolder;
@@ -74,6 +78,18 @@ public class HelpIntegrationTest {
         assertEquals(t01, app.model.getActiveGroup().orElseThrow());
         assertTrue(t01.hasStudent(new StudentId("A0123456X")));
         assertFalse(t01.hasStudent(new StudentId("A0234567Y")));
+    }
+
+    @Test
+    public void userGuide_showsEveryHelpFormatAndExample() throws Exception {
+        String userGuide = Files.readString(USER_GUIDE);
+        for (HelpEntry entry : app.logic.getHelpEntries()) {
+            assertTrue(userGuide.contains("`" + entry.getCommandFormat() + "`"),
+                    "The User Guide does not show the format " + entry.getCommandFormat());
+            for (String example : entry.getExamples()) {
+                assertTrue(userGuide.contains("`" + example + "`"), "The User Guide does not show " + example);
+            }
+        }
     }
 
     /**
