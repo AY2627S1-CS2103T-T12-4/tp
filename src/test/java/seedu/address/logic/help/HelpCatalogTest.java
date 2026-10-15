@@ -87,7 +87,7 @@ public class HelpCatalogTest {
 
     @Test
     public void getTopicHeading() {
-        assertEquals("Current commands", HelpCatalog.getTopicHeading(""));
+        assertEquals("General commands", HelpCatalog.getTopicHeading(""));
         assertEquals("Student commands", HelpCatalog.getTopicHeading("student"));
         assertThrows(NullPointerException.class, () -> HelpCatalog.getTopicHeading(null));
     }

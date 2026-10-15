@@ -17,12 +17,15 @@ public final class HelpCatalog {
 
     private static final List<HelpEntry> BUILT_IN_ENTRIES = List.of(
             new HelpEntry("", "view SCREEN",
-                    "Open students, groups, attendance, participation, assignments, help, or storage.",
+                    "Open a screen: students, groups, attendance, participation, assignments, help, or storage. "
+                            + "Screen names ignore case. Opening a screen does not change any data.",
                     List.of("view attendance")),
             new HelpEntry("", "help [TOPIC]",
-                    "Show this reference, or only one topic. F1 also opens Help; Escape focuses the command box.",
+                    "Open this reference, or open it at the commands of one topic: "
+                            + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
-            new HelpEntry("", "exit", "Close TAssist.", List.of("exit")));
+            new HelpEntry("", "exit", "Close TAssist. Your data is already saved after each change.",
+                    List.of("exit")));
 
     private HelpCatalog() {
     }
@@ -78,7 +81,7 @@ public final class HelpCatalog {
     public static String getTopicHeading(String topic) {
         requireNonNull(topic);
         if (topic.isEmpty()) {
-            return "Current commands";
+            return "General commands";
         }
         return Character.toUpperCase(topic.charAt(0)) + topic.substring(1) + " commands";
     }
