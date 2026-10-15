@@ -21,14 +21,14 @@ public final class ParticipationCommandRegistration {
      */
     public static void registerCommands(CommandRegistry registry) {
         requireNonNull(registry);
-        registry.register("participation", "list", new ParticipationListCommandParser(),
-                new HelpEntry("participation", ParticipationListCommand.MESSAGE_USAGE,
-                        "List the active group's scores for a week from 1 to 13. Missing scores show Not recorded.",
-                        List.of("participation list w/3")));
         registry.register("participation", "set", new ParticipationSetCommandParser(),
                 new HelpEntry("participation", ParticipationSetCommand.MESSAGE_USAGE,
                         "Set a whole-number score from 0 to 5 for a week from 1 to 13 in the active group. "
                                 + "IDs ignore case. Setting the same week again replaces its score.",
                         List.of("participation set id/A0123456X w/3 s/2")));
+        registry.register("participation", "list", new ParticipationListCommandParser(),
+                new HelpEntry("participation", ParticipationListCommand.MESSAGE_USAGE,
+                        "List the active group's scores for a week from 1 to 13. Missing scores show Not recorded.",
+                        List.of("participation list w/3")));
     }
 }

@@ -27,13 +27,13 @@ public final class StudentCommandRegistration {
                         "Add to the active group. Names: 1-60 letters, spaces, apostrophes or hyphens. "
                                 + "IDs: 1-20 letters and digits, at least one digit; unique per group, ignoring case.",
                         List.of("student add n/Alice Tan id/A0123456X")));
-        registry.register("student", "delete", new StudentDeleteCommandParser(),
-                new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
-                        "Remove a student and their records from the active group. IDs ignore case.",
-                        List.of("student delete id/A0123456X")));
         registry.register("student", "list", new StudentListCommandParser(),
                 new HelpEntry("student", StudentListCommand.MESSAGE_USAGE,
                         "List the active group's students in roster order. Takes no parameters.",
                         List.of("student list")));
+        registry.register("student", "delete", new StudentDeleteCommandParser(),
+                new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
+                        "Remove a student and their records from the active group. IDs ignore case.",
+                        List.of("student delete id/A0123456X")));
     }
 }

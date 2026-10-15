@@ -75,7 +75,7 @@ public class StudentCommandsIntegrationTest {
     @Test
     public void init_studentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "student");
-        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student delete id/STUDENT_ID", "student list"),
+        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing student commands.", "student"), app.logic.execute("help student"));
         for (HelpEntry entry : entries) {
