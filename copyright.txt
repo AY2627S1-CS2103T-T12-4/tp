@@ -1,8 +1,9 @@
 ﻿Some code adapted from http://code.makery.ch/library/javafx-8-tutorial/ by Marco Jakob
 
-Copyright by Susumu Yoshida - http://www.mcdodesign.com/
-- address_book_32.png
-- AddressApp.ico
+The TAssist team (AY2627S1-CS2103T-T12-4) drew these icons for TAssist. They are released under the
+project's MIT License (see LICENSE).
+- tassist_32.png
+- tassist_256.png
 
 Copyright by Jan Jan Kovařík - http://glyphicons.com/
 - calendar.png
