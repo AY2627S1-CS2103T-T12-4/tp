@@ -1,0 +1,30 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor LOGIC_COLOR_T4
+skinparam classBackgroundColor LOGIC_COLOR
+
+package Logic as LogicPackage {
+Class XYZCommandRegistration
+Class CommandRegistry
+Class TAssistParser
+Class HelpCatalog
+Class HelpEntry
+Class HelpCommandParser
+Class HelpCommand
+}
+
+package UI as UiPackage {
+Class HelpPanel UI_COLOR
+}
+
+XYZCommandRegistration ..> CommandRegistry : registers commands\nand their help >
+CommandRegistry --> "*" HelpEntry : feature help
+HelpCatalog --> "*" HelpEntry : built-in help
+TAssistParser --> "1" CommandRegistry
+TAssistParser ..> HelpCatalog : combines and\norders entries >
+TAssistParser --> "*" HelpEntry : all help
+TAssistParser ..> HelpCommandParser : creates >
+HelpCommandParser ..> HelpCommand : creates >
+HelpPanel ..> HelpEntry : shows >
+@enduml
