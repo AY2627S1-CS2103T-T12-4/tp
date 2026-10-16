@@ -1,0 +1,96 @@
+package seedu.address.logic.commands;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
+import static seedu.address.testutil.TypicalAssignments.NAME_PS2;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalGroups.NAME_T01;
+import static seedu.address.testutil.TypicalGroups.NAME_T02;
+import static seedu.address.testutil.TypicalGroups.NAME_T03;
+
+import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.Messages;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.group.GroupName;
+import seedu.address.testutil.TypicalGroups;
+
+public class AssignmentListCommandTest {
+
+    private Model modelWithActiveGroup(GroupName activeGroup) {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        model.addAssignment(NAME_T01, PS1);
+        model.setActiveGroup(activeGroup);
+        return model;
+    }
+
+    @Test
+    public void execute_existingAssignment_listsEveryStudentAsNotSubmittedWithoutChangingData() {
+        Model model = modelWithActiveGroup(NAME_T01);
+        Model expected = modelWithActiveGroup(NAME_T01);
+        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model,
+                "PS1 records for T01:\nAlice Tan | A0123456X | Not submitted | -"
+                        + "\nBen Lim | A0234567Y | Not submitted | -"
+                        + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
+    }
+
+    @Test
+    public void execute_nameInDifferentCase_showsStoredNameAndFindsAssignment() {
+        Model model = modelWithActiveGroup(NAME_T01);
+        Model expected = modelWithActiveGroup(NAME_T01);
+        assertCommandSuccess(new AssignmentListCommand(new AssignmentName("ps1")), model,
+                "PS1 records for T01:\nAlice Tan | A0123456X | Not submitted | -"
+                        + "\nBen Lim | A0234567Y | Not submitted | -"
+                        + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
+    }
+
+    @Test
+    public void execute_assignmentWithNoStudents_reportsNoStudents() {
+        Model model = modelWithActiveGroup(NAME_T03);
+        model.addAssignment(NAME_T03, PS1);
+        Model expected = modelWithActiveGroup(NAME_T03);
+        expected.addAssignment(NAME_T03, PS1);
+        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model, "No students in T03.", expected);
+    }
+
+    @Test
+    public void execute_unknownAssignment_reportsSpecificError() {
+        assertCommandFailure(new AssignmentListCommand(NAME_PS2), modelWithActiveGroup(NAME_T01),
+                "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
+    }
+
+    @Test
+    public void execute_assignmentOnlyInAnotherGroup_reportsUnknownAssignment() {
+        assertCommandFailure(new AssignmentListCommand(NAME_PS1), modelWithActiveGroup(NAME_T02),
+                "Assignment PS1 does not exist in T02. Check the name, or create it with: assignment add a/PS1");
+    }
+
+    @Test
+    public void execute_noActiveGroup_reportsError() {
+        assertCommandFailure(new AssignmentListCommand(NAME_PS1), new ModelManager(), Messages.MESSAGE_NO_ACTIVE_GROUP);
+    }
+
+    @Test
+    public void nullInputs_throwNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new AssignmentListCommand(null));
+        assertThrows(NullPointerException.class, () -> new AssignmentListCommand(NAME_PS1).execute(null));
+    }
+
+    @Test
+    public void equals_comparesAssignmentNameIgnoringCase() {
+        AssignmentListCommand command = new AssignmentListCommand(NAME_PS1);
+        assertEquals(command, command);
+        assertEquals(command, new AssignmentListCommand(new AssignmentName("ps1")));
+        assertEquals(command.hashCode(), new AssignmentListCommand(new AssignmentName("ps1")).hashCode());
+        assertNotEquals(command, new AssignmentListCommand(NAME_PS2));
+        assertNotEquals(command, new AssignmentAddCommand(NAME_PS1));
+        assertNotEquals(command, null);
+    }
+}
