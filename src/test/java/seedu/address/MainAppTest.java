@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.help.HelpCatalog;
@@ -98,6 +99,7 @@ public class MainAppTest {
         assertEquals(new UserPrefs(), app.model.getUserPrefs());
         assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
         assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
+        assertEquals(DataLoadStatus.MISSING, app.getDataLoadStatus());
     }
 
     @Test
@@ -117,6 +119,7 @@ public class MainAppTest {
         app.init();
 
         assertEquals(saved, app.model.getTAssist());
+        assertEquals(DataLoadStatus.LOADED, app.getDataLoadStatus());
         assertEquals(userPrefs, app.model.getUserPrefs());
         assertEquals(TypicalGroups.getT02().getStudentList(), app.model.getActiveGroupStudentList());
     }
@@ -174,6 +177,7 @@ public class MainAppTest {
 
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
+            assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
         }
     }
 

@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
@@ -12,6 +14,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.WorkspaceView;
@@ -29,6 +32,7 @@ public class MainWindow extends UiPart<Stage> {
     private final Stage primaryStage;
     private final Logic logic;
     private final Path dataFilePath;
+    private final DataLoadStatus dataLoadStatus;
 
     private WorkspacePanel workspacePanel;
     private ResultDisplay resultDisplay;
@@ -52,10 +56,18 @@ public class MainWindow extends UiPart<Stage> {
      * Creates the main window with its logic and configured data path.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
+        this(primaryStage, logic, dataFilePath, DataLoadStatus.LOADED);
+    }
+
+    /**
+     * Creates the main window with the startup data-loading outcome.
+     */
+    public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus) {
         super(FXML, primaryStage);
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.dataLoadStatus = requireNonNull(dataLoadStatus);
 
         setWindowDefaultSize(logic.getGuiSettings());
         setAccelerators();
@@ -98,6 +110,10 @@ public class MainWindow extends UiPart<Stage> {
 
         statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
+        if (dataLoadStatus != DataLoadStatus.LOADED) {
+            resultDisplay.setFeedbackToUser(dataLoadStatus.getMessage(), dataLoadStatus.isFailure());
+            statusBarFooter.setStatus(dataLoadStatus.getMessage(), dataLoadStatus.isFailure());
+        }
 
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());

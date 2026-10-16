@@ -37,6 +37,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
@@ -89,6 +90,23 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void startup_missingOrUnreadableData_showsLoadOutcome() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.MISSING, DataLoadStatus.FAILED)) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    assertEquals(status.getMessage(), ((TextArea) root.lookup("#resultDisplay")).getText());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.getMessage()));
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
     }
 
     @Test
@@ -480,6 +498,10 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace() {
+        initializeWorkspace(DataLoadStatus.LOADED);
+    }
+
+    private void initializeWorkspace(DataLoadStatus dataLoadStatus) {
         model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
@@ -490,7 +512,8 @@ public class WorkspaceSmokeTest {
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
-        MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);
+        MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data,
+                dataLoadStatus);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();
