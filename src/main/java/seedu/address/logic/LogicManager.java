@@ -20,6 +20,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.TAssistParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
@@ -63,11 +64,11 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = tAssistParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        TAssist previousData = new TAssist(model.getTAssist());
+        CommandResult commandResult = command.execute(model);
 
-        if (commandResult.getView().isPresent()) {
+        if (previousData.equals(model.getTAssist())) {
             return commandResult;
         }
 
