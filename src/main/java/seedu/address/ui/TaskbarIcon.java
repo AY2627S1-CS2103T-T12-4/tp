@@ -49,8 +49,10 @@ final class TaskbarIcon {
             Taskbar.getTaskbar().setIconImage(image);
             logger.fine("Set the task bar icon to " + imagePath);
             return true;
-        } catch (IOException | UnsupportedOperationException | SecurityException e) {
-            logger.warning("Could not set the task bar icon: " + e.getMessage());
+        } catch (IOException | RuntimeException e) {
+            // macOS wraps a failure to set the Dock icon in a RuntimeException. The icon is not essential,
+            // so log it and let the app start anyway.
+            logger.warning("Could not set the task bar icon: " + e);
             return false;
         }
     }
@@ -62,7 +64,7 @@ final class TaskbarIcon {
     private static boolean isIconImageSupported() {
         try {
             return Taskbar.isTaskbarSupported() && Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE);
-        } catch (AWTError | UnsupportedOperationException e) {
+        } catch (AWTError | RuntimeException e) {
             return false;
         }
     }
