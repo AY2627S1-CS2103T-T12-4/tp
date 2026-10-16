@@ -24,7 +24,8 @@ public final class ParticipationCommandRegistration {
         registry.register("participation", "set", new ParticipationSetCommandParser(),
                 new HelpEntry("participation", ParticipationSetCommand.MESSAGE_USAGE,
                         "Set a whole-number score from 0 to 5 for a student in the active group, for a week from "
-                                + "1 to 13. IDs ignore case. Setting the same week again replaces the score.",
+                                + "1 to 13. IDs ignore case. "
+                                + "Setting the same student and week again replaces the score.",
                         List.of("participation set id/A0123456X w/3 s/2")));
         registry.register("participation", "list", new ParticipationListCommandParser(),
                 new HelpEntry("participation", ParticipationListCommand.MESSAGE_USAGE,

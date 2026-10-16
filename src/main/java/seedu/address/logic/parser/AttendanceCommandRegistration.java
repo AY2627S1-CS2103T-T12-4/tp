@@ -25,7 +25,7 @@ public final class AttendanceCommandRegistration {
                 new HelpEntry("attendance", AttendanceMarkCommand.MESSAGE_USAGE,
                         "Mark a student in the active group present or absent for a week from 1 to 13. "
                                 + "IDs and statuses ignore case. "
-                                + "Marking the same week again replaces the earlier mark.",
+                                + "Marking the same student and week again replaces the earlier mark.",
                         List.of("attendance mark id/A0123456X w/3 s/present")));
         registry.register("attendance", "list", new AttendanceListCommandParser(),
                 new HelpEntry("attendance", AttendanceListCommand.MESSAGE_USAGE,
