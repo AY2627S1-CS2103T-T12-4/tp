@@ -89,7 +89,7 @@ public class MainApp extends Application {
         AttendanceCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
-        logic = new LogicManager(model, storage, commandRegistry);
+        logic = new LogicManager(model, storage, commandRegistry, dataLoadStatus);
 
         ui = new UiManager(logic, storage.getTAssistFilePath(), dataLoadStatus);
     }

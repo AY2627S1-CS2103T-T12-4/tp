@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
@@ -35,11 +36,15 @@ public class LogicManager implements Logic {
     public static final String MESSAGE_SAVE_PERMISSION_FAILURE = MESSAGE_SAVE_FAILURE
             + " Please check that the application has permission to write to its data folder.";
 
+    public static final String MESSAGE_DATA_PROTECTED = DataLoadStatus.FAILED.getMessage()
+            + " Close TAssist, repair or move the unreadable data file, and restart before making changes.";
+
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
     private final Model model;
     private final Storage storage;
     private final TAssistParser tAssistParser;
+    private final DataLoadStatus dataLoadStatus;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -56,8 +61,21 @@ public class LogicManager implements Logic {
      * @param commandRegistry The feature command registrations.
      */
     public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry) {
+        this(model, storage, commandRegistry, DataLoadStatus.LOADED);
+    }
+
+    /**
+     * Constructs a logic manager that protects saved data if startup loading failed.
+     *
+     * @param model The application model.
+     * @param storage The local persistence component.
+     * @param commandRegistry The feature command registrations.
+     * @param dataLoadStatus The startup data-loading outcome.
+     */
+    public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry, DataLoadStatus dataLoadStatus) {
         this.model = requireNonNull(model);
         this.storage = requireNonNull(storage);
+        this.dataLoadStatus = requireNonNull(dataLoadStatus);
         tAssistParser = new TAssistParser(commandRegistry);
     }
 
@@ -71,6 +89,11 @@ public class LogicManager implements Logic {
 
         if (previousData.equals(model.getTAssist())) {
             return commandResult;
+        }
+
+        if (dataLoadStatus.isFailure()) {
+            model.setTAssist(previousData);
+            throw new CommandException(MESSAGE_DATA_PROTECTED);
         }
 
         try {
