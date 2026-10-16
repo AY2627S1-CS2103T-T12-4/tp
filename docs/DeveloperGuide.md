@@ -169,7 +169,7 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the TAssist data, i.e., the tutorial groups, their students and the active group, in a `TAssist` object (see [TAssist domain model](#tassist-domain-model)). It exposes the active group and the active group's students as observable values that the UI can bind to (see [Observing the active group](#observing-the-active-group)).
+* stores the TAssist data, i.e., the tutorial groups, their students and assignments, and the active group, in a `TAssist` object (see [TAssist domain model](#tassist-domain-model)). It exposes the active group and the active group's students as observable values that the UI can bind to (see [Observing the active group](#observing-the-active-group)).
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -208,6 +208,7 @@ GroupCommandRegistration.registerCommands(registry);
 StudentCommandRegistration.registerCommands(registry);
 ParticipationCommandRegistration.registerCommands(registry);
 AttendanceCommandRegistration.registerCommands(registry);
+AssignmentCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
@@ -256,9 +257,10 @@ validator to report a value error instead of a missing-parameter error. A comman
 extra input.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
-It also validates assignment names (1–60 characters after whitespace normalization), weeks (whole numbers 1–13),
-participation scores (whole numbers 0–5), and grades (whole numbers 0–100). Assignment names retain capitalization
-and have no additional character restrictions. Numeric input is trimmed, accepts digits including leading zeros,
+It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and
+grades (whole numbers 0–100). Assignment names follow the same rules as group names: 1–60 letters, digits, spaces
+or hyphens after whitespace normalization, with at least one letter or digit. They retain the entered capitalization
+and are compared ignoring case. Numeric input is trimmed, accepts digits including leading zeros,
 and rejects signs, decimals, out-of-range values, and integer overflow with a field-specific `ParseException`.
 
 Parsers only validate and construct commands. `LogicManager` executes and saves after parsing succeeds;
@@ -338,6 +340,34 @@ Parser and command tests cover validation, normalization, feedback, uniqueness, 
 `StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
 across restarts, and rejected commands preserving both the model and the saved file.
 
+### Assignment commands
+
+`AssignmentCommandRegistration` registers `assignment add` and `assignment list` and their help entries, and
+`MainApp.init` installs it before constructing `LogicManager`. Both parsers require `a/` exactly once with
+`TAssistArgumentParser`, and `TAssistParserUtil#parseAssignmentName` turns its value into an `AssignmentName`.
+A blank or invalid value therefore reports the name constraints instead of a missing-parameter error.
+
+`AssignmentName` mirrors `GroupName`: it normalizes spaces, keeps the entered capitalization for display, and
+compares ignoring case, so `PS1` and `ps1` are the same assignment. An `Assignment` is identified by its name, and
+a `Group` holds its assignments in a `UniqueAssignmentList` in creation order. Assignment names are only unique
+within one group.
+
+`AssignmentAddCommand` finds the active group and rejects a name that the group already holds, then calls
+`Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
+capitalization that is stored. `AssignmentListCommand` looks the assignment up in the active group, reports an
+unknown one, and otherwise returns one row per student in roster order: name, student ID, submission status and
+grade. Both commands show the same errors for a missing active group as the other commands, and a failed command
+changes nothing, because each check comes before the model is changed.
+
+Students do not hold assignment records yet, so every row of `assignment list` shows the defaults `Not submitted`
+and `-` (`AssignmentListCommand#STATUS_NOT_SUBMITTED` and `GRADE_NOT_RECORDED`). Recording submissions and grades is
+a later increment, which will keep each student's record keyed by assignment name (see
+[Where per-student records are stored](#where-per-student-records-are-stored)) and replace these defaults.
+
+`AssignmentCommandsIntegrationTest` exercises startup registration, help, persistence across restarts, and rejected
+commands preserving the model and the saved file. The model, storage, command and parser tests cover name
+validation, case-insensitive duplicates, group isolation, and malformed input.
+
 ### TAssist domain model
 
 TAssist's own data is modelled by the classes below. `ModelManager` holds the `TAssist` data, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is saved to a JSON data file (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
@@ -345,9 +375,10 @@ TAssist's own data is modelled by the classes below. `ModelManager` holds the `T
 <img src="images/TAssistModelClassDiagram.png" width="600" />
 
 * `TAssist` is the root object. It holds the tutorial groups in a `UniqueGroupList` and remembers which group is active, if any. Other components see it through the read-only `ReadOnlyTAssist` interface.
-* A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList`.
+* A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList` and its own assignments in a `UniqueAssignmentList`.
+* An `Assignment` has an `AssignmentName`, which is unique within its group, ignoring case.
 * A `Student` has a `StudentName`, a `StudentId`, weekly attendance and participation records, and is immutable.
-* `UniqueGroupList` and `UniqueStudentList` share the uniqueness logic of the generic `UniqueList`, which also exposes the items as an unmodifiable `ObservableList` that the UI can bind to.
+* `UniqueGroupList`, `UniqueStudentList` and `UniqueAssignmentList` share the uniqueness logic of the generic `UniqueList`, which also exposes the items as an unmodifiable `ObservableList` that the UI can bind to.
 
 #### Shared weekly record mechanism
 
@@ -389,12 +420,12 @@ command feedback box; the Attendance workspace screen remains a preview.
 #### Where per-student records are stored
 
 Attendance and participation records are stored **on the `Student` object, inside the group the student belongs to**.
-The shared `WeeklyRecord<T>` supports week-keyed values for both features; assignments are not implemented yet:
+The shared `WeeklyRecord<T>` supports week-keyed values for both features; assignments are partly implemented:
 
 * **Weekly records** (attendance and participation): each `Student` holds one record per kind, using the shared
   mechanism. Attendance values are stored as strings and participation values as integers; feature commands validate
   their own values before updating a student.
-* **Assignments:** a `Group` will hold the list of assignments created for it, since assignment names are unique within a group. Each `Student` will hold their own submission status and grade for each assignment, keyed by assignment name.
+* **Assignments:** a `Group` holds the list of assignments created for it, since assignment names are unique within a group. Each `Student` will hold their own submission status and grade for each assignment, keyed by assignment name, once recording them is implemented.
 * As `Student` is immutable, recording or updating a value replaces the student in its group with an updated copy.
 
 **Aspect: Where per-student records are stored**
@@ -442,7 +473,7 @@ Both views are kept by `ActiveGroupTracker`, a helper class inside the `Model` c
 
 ### Saving and loading TAssist data
 
-TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The file nests the data the same way as the model: the active group's name, then each group with its students.
+TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The file nests the data the same way as the model: the active group's name, then each group with its students and assignments.
 
 ```json
 {
@@ -454,7 +485,8 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
       "studentId" : "A0123456X",
       "attendance" : { "1" : "PRESENT" },
       "participation" : { "1" : 4 }
-    } ]
+    } ],
+    "assignments" : [ "PS1" ]
   } ]
 }
 ```
@@ -467,11 +499,11 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 * If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups` or `students` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, and an invalid, empty or repeated (ignoring case) assignment name in a group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups`, `students` or `assignments` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
 
 **Adding records in later features.** Each Jackson-friendly class mirrors one model class and only converts its own fields. A feature that stores more data adds a field to the class that mirrors where its data lives in the model (see [Where per-student records are stored](#where-per-student-records-are-stored)):
 
-* Assignments sit on each group, so the assignment feature adds an `assignments` field to `JsonAdaptedGroup`.
+* Assignments sit on each group, so `JsonAdaptedGroup` holds an `assignments` list of names. Each name is checked and normalized with `AssignmentName`, as if the TA had typed it. Per-student submissions and grades will be added to `JsonAdaptedStudent`, since they belong to the student.
 
 `JsonAdaptedStudent` also validates attendance statuses with `AttendanceStatus`, accepting case and surrounding
 spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
@@ -1069,6 +1101,22 @@ testers are expected to do more *exploratory* testing.
    `participation set id/A0123456X w/3`, and `participation list w/3 w/4`.
    Expect specific week, score, student, missing-prefix, and duplicate-prefix errors without changing any record or file.
 5. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
+   With no active group, both commands must ask you to create or select a group first.
+
+### Creating assignments and listing their records
+
+1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
+   Select T01 with `group use g/T01`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
+2. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
+   and `Ben Lim | A0234567Y | Not submitted | -`.
+3. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both times.
+   Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
+4. Close and reopen the app, select T01 and list `PS1` again. Expect the same rows. Open `data/tassist.json` while the app is closed;
+   the group should have `"assignments" : [ "PS1", "Mid-term 1" ]`.
+5. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list`,
+   `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
+   missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file.
+6. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments belong to one group.
    With no active group, both commands must ask you to create or select a group first.
 
 ### Managing students
