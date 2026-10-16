@@ -56,7 +56,7 @@ public class JsonUtil {
             Path filePath, Class<T> classOfObjectToDeserialize) throws DataLoadingException {
         requireNonNull(filePath);
 
-        if (!Files.exists(filePath)) {
+        if (Files.notExists(filePath)) {
             return Optional.empty();
         }
         logger.info("JSON file " + filePath + " found.");

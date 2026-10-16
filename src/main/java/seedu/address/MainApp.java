@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.address.commons.core.AppHome;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
@@ -51,6 +52,7 @@ public class MainApp extends Application {
 
     private final Path userPrefsFilePath;
     private final Path tAssistFilePath;
+    private DataLoadStatus dataLoadStatus = DataLoadStatus.LOADED;
 
     /**
      * Creates a TAssist application that uses the default preference and data file paths.
@@ -87,9 +89,9 @@ public class MainApp extends Application {
         AttendanceCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
-        logic = new LogicManager(model, storage, commandRegistry);
+        logic = new LogicManager(model, storage, commandRegistry, dataLoadStatus);
 
-        ui = new UiManager(logic, storage.getTAssistFilePath());
+        ui = new UiManager(logic, storage.getTAssistFilePath(), dataLoadStatus);
     }
 
     /**
@@ -104,17 +106,23 @@ public class MainApp extends Application {
         ReadOnlyTAssist initialData;
         try {
             Optional<ReadOnlyTAssist> tAssistOptional = storage.readTAssist();
+            dataLoadStatus = tAssistOptional.isPresent() ? DataLoadStatus.LOADED : DataLoadStatus.MISSING;
             if (tAssistOptional.isEmpty()) {
                 logger.info("Data file " + dataFilePath + " not found. Starting with an empty TAssist.");
             }
             initialData = tAssistOptional.orElseGet(TAssist::new);
         } catch (DataLoadingException e) {
+            dataLoadStatus = DataLoadStatus.FAILED;
             logger.warning("Data file at " + dataFilePath + " could not be loaded: " + e.getCause().getMessage()
                     + " Starting with an empty TAssist.");
             initialData = new TAssist();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    DataLoadStatus getDataLoadStatus() {
+        return dataLoadStatus;
     }
 
     /**

@@ -7,10 +7,13 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -133,6 +136,46 @@ public class JsonTAssistStorageTest {
 
         assertTrue(loaded.getAttendanceRecords().getRecords().isEmpty());
         assertTrue(loaded.getParticipationRecords().getRecords().isEmpty());
+    }
+
+    @Test
+    public void saveTAssist_partialWriteFailure_preservesSavedFile() throws Exception {
+        JsonTAssistStorage storage = new JsonTAssistStorage(testFolder.resolve("tassist.json")) {
+            @Override
+            void writeTemporaryFile(Path temporaryFile, String json) throws IOException {
+                Files.writeString(temporaryFile, "partial JSON");
+                throw new IOException("Writing was interrupted.");
+            }
+        };
+        assertFailedSavePreservesFile(storage);
+    }
+
+    @Test
+    public void saveTAssist_atomicMoveUnsupported_preservesSavedFile() throws Exception {
+        JsonTAssistStorage storage = new JsonTAssistStorage(testFolder.resolve("tassist.json")) {
+            @Override
+            void replaceDataFile(Path temporaryFile, Path target) throws IOException {
+                throw new AtomicMoveNotSupportedException(temporaryFile.toString(), target.toString(),
+                        "Atomic replacement is unavailable.");
+            }
+        };
+        assertFailedSavePreservesFile(storage);
+    }
+
+    private void assertFailedSavePreservesFile(JsonTAssistStorage storage) throws Exception {
+        Path filePath = storage.getTAssistFilePath();
+        assertThrows(IOException.class, () -> storage.saveTAssist(TypicalGroups.getTypicalTAssist()));
+        assertFalse(Files.exists(filePath), "A failed first save must not create the data file.");
+
+        JsonTAssistStorage workingStorage = new JsonTAssistStorage(filePath);
+        workingStorage.saveTAssist(TypicalGroups.getTypicalTAssist());
+        String previousContents = Files.readString(filePath);
+        assertThrows(IOException.class, () -> storage.saveTAssist(new TAssist()));
+        assertEquals(previousContents, Files.readString(filePath));
+        assertEquals(TypicalGroups.getTypicalTAssist(), workingStorage.readTAssist().orElseThrow());
+        try (Stream<Path> files = Files.list(testFolder)) {
+            assertEquals(List.of(filePath), files.toList(), "Temporary files must be removed.");
+        }
     }
 
     @Test

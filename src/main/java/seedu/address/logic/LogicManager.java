@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
@@ -20,6 +21,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.TAssistParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
@@ -28,16 +30,21 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
+    public static final String MESSAGE_SAVE_FAILURE =
+            "Unable to save changes. Your previous saved data is unchanged.";
 
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_SAVE_PERMISSION_FAILURE = MESSAGE_SAVE_FAILURE
+            + " Please check that the application has permission to write to its data folder.";
+
+    public static final String MESSAGE_DATA_PROTECTED = DataLoadStatus.FAILED.getMessage()
+            + " Close TAssist, repair or move the unreadable data file, and restart before making changes.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
     private final Model model;
     private final Storage storage;
     private final TAssistParser tAssistParser;
+    private final DataLoadStatus dataLoadStatus;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -54,8 +61,21 @@ public class LogicManager implements Logic {
      * @param commandRegistry The feature command registrations.
      */
     public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry) {
+        this(model, storage, commandRegistry, DataLoadStatus.LOADED);
+    }
+
+    /**
+     * Constructs a logic manager that protects saved data if startup loading failed.
+     *
+     * @param model The application model.
+     * @param storage The local persistence component.
+     * @param commandRegistry The feature command registrations.
+     * @param dataLoadStatus The startup data-loading outcome.
+     */
+    public LogicManager(Model model, Storage storage, CommandRegistry commandRegistry, DataLoadStatus dataLoadStatus) {
         this.model = requireNonNull(model);
         this.storage = requireNonNull(storage);
+        this.dataLoadStatus = requireNonNull(dataLoadStatus);
         tAssistParser = new TAssistParser(commandRegistry);
     }
 
@@ -63,23 +83,43 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = tAssistParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        TAssist previousData = new TAssist(model.getTAssist());
+        try {
+            return executeAndSave(command, previousData);
+        } catch (CommandException e) {
+            model.setTAssist(previousData);
+            assert previousData.equals(model.getTAssist()) : "A failed command must leave data unchanged";
+            throw e;
+        }
+    }
 
-        if (commandResult.getView().isPresent()) {
+    private CommandResult executeAndSave(Command command, TAssist previousData) throws CommandException {
+        CommandResult commandResult = command.execute(model);
+
+        if (previousData.equals(model.getTAssist())) {
             return commandResult;
         }
 
+        if (dataLoadStatus.isFailure()) {
+            throw new CommandException(MESSAGE_DATA_PROTECTED);
+        }
+
+        saveData();
+        return commandResult.withSavedChanges();
+    }
+
+    private void saveData() throws CommandException {
         try {
             storage.saveTAssist(model.getTAssist());
         } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+            logger.warning("Saving data was denied: " + e);
+            throw new CommandException(MESSAGE_SAVE_PERMISSION_FAILURE, e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            logger.warning("Saving data failed: " + ioe);
+            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
 
-        return commandResult;
     }
 
     @Override

@@ -360,9 +360,17 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves your tutorial groups, their students, attendance, and participation scores, and the active group after successful commands, except `view`,
-which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
-successful save; read the feedback.
+TAssist automatically saves your tutorial groups, their students, attendance, participation scores, and the active
+group after a successful command changes data. The footer shows `Changes saved.` only after the save succeeds.
+Closing and reopening TAssist restores the last successfully saved state.
+
+Help, listing, navigation, and exit commands do not save data. Commands that leave the data unchanged, such as
+selecting the already active group or entering the same attendance mark again, do not save either.
+
+If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
+The command's changes are rolled back, including the active selection and roster. For a permission problem, the
+feedback also says `Please check that the application has permission to write to its data folder.`
+Resolve the disk or permission problem and enter the command again. Failed commands never show a save confirmation.
 
 ### Editing the data file
 
@@ -370,8 +378,8 @@ TAssist data is saved as `data/tassist.json` in the home folder, which is the fo
 Preferences (`preferences.json`) and the log file are saved in that same folder. TAssist does not read or write
 files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
-If the file is missing, TAssist starts with no data and creates the file after the first successful command
-other than `view`.
+If the file is missing, TAssist shows `No saved data found. Starting with an empty database.`
+It creates the file after the first successful command that changes data.
 
 The file looks like this:
 
@@ -404,7 +412,12 @@ The file looks like this:
   records for that student. Invalid weeks or statuses make the file invalid.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, TAssist starts with no data at the next run, and the terminal and the log file `tassist.log.0` say why the file could not be read. The invalid file remains on disk until a successful command other than `view` saves over it, so close TAssist and fix the file before entering such a command. We recommend backing up the file before editing it.
+If the data file is unreadable or invalid, TAssist shows
+`Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
+and exit remain available. The log file `tassist.log.0` records the reason loading failed.
+Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
+location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>
 
 --------------------------------------------------------------------------------------------------------------------
