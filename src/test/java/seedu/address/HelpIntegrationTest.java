@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +37,9 @@ public class HelpIntegrationTest {
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK");
 
     private static final Path USER_GUIDE = Path.of("docs", "UserGuide.md");
+    private static final String COMMAND_SUMMARY_HEADING = "## Command summary";
+    /** An example in the command summary table, such as {@code e.g., `group add g/T01`}. */
+    private static final Pattern SUMMARY_EXAMPLE = Pattern.compile("e\\.g\\., `([^`]+)`");
 
     @TempDir
     public Path temporaryFolder;
@@ -90,6 +95,23 @@ public class HelpIntegrationTest {
                 assertTrue(userGuide.contains("`" + example + "`"), "The User Guide does not show " + example);
             }
         }
+    }
+
+    @Test
+    public void userGuideCommandSummary_usesOnlyHelpExamples() throws Exception {
+        String userGuide = Files.readString(USER_GUIDE);
+        String commandSummary = userGuide.substring(userGuide.indexOf(COMMAND_SUMMARY_HEADING));
+        List<String> helpExamples = app.logic.getHelpEntries().stream()
+                .flatMap(entry -> entry.getExamples().stream()).toList();
+
+        Matcher summaryExamples = SUMMARY_EXAMPLE.matcher(commandSummary);
+        int exampleCount = 0;
+        while (summaryExamples.find()) {
+            exampleCount++;
+            assertTrue(helpExamples.contains(summaryExamples.group(1)),
+                    "The command summary example is not a help example: " + summaryExamples.group(1));
+        }
+        assertTrue(exampleCount > 0, "The command summary has no examples");
     }
 
     /**

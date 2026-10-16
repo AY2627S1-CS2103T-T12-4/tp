@@ -288,12 +288,12 @@ Lists attendance for the active tutorial group in student order, without changin
 
 Format: `attendance list w/WEEK`
 
-For example, `attendance list w/3` shows the following in the scrollable feedback box:
+For example, after the examples in this guide, which leave only Alice Tan in T01 and mark her present for week 3,
+`attendance list w/3` shows the following in the scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
 Alice Tan | A0123456X | Present
-Ben Lim | A0234567Y | Not recorded
 ```
 
 Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
@@ -328,12 +328,11 @@ Scores appear in the feedback box; scroll it for long lists. The Participation t
 
 Format: `participation list w/WEEK`
 
-Example: `participation list w/3`
+Example: after `participation set id/A0123456X w/3 s/2`, with only Alice Tan in T01, `participation list w/3` shows
 
 ```text
 Participation for T01, Week 3:
 Alice Tan | A0123456X | 2
-Ben Lim | A0234567Y | Not recorded
 ```
 
 Students without a score show `Not recorded`, even if no scores have been entered that week.
@@ -431,10 +430,10 @@ Action | Format, Examples
 **View** | `view SCREEN`<br> e.g., `view attendance`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
-**Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
+**Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
-**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`
+**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`

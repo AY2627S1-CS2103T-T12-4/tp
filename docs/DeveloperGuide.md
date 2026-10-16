@@ -250,7 +250,8 @@ T01, and the attendance and participation examples record data for a student who
 
 `HelpIntegrationTest` enforces these rules on the running app. It checks that help lists every command in the
 expected order, that each example runs its own command, that typing every example in order into a new TAssist
-succeeds, and that the User Guide shows every help format and example. A new command therefore needs a help entry,
+succeeds, that the User Guide shows every help format and example, and that every example in the User Guide's
+command summary is one of the help examples. A new command therefore needs a help entry,
 an example that continues the session, and matching User Guide text before its tests pass.
 
 For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
