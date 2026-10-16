@@ -79,6 +79,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_commandThrowsAfterMutation_restoresModel() {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "fail", args -> new StubCommand(model -> {
+            model.addGroup(TypicalGroups.getT01());
+            model.setActiveGroup(TypicalGroups.NAME_T01);
+            throw new CommandException("The command failed after changing data.");
+        }));
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_IO_EXCEPTION)), registry);
+
+        assertCommandFailure("group fail", CommandException.class,
+                "The command failed after changing data.", new ModelManager());
+        assertTrue(logic.activeGroupProperty().get().isEmpty());
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+    }
+
+    @Test
     public void execute_validCommand_success() throws Exception {
         CommandRegistry registry = new CommandRegistry();
         registry.register("student", "list", args -> new StubCommand());
@@ -323,8 +339,12 @@ public class LogicManagerTest {
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
         model.setTAssist(new TAssistBuilder(TypicalGroups.getTypicalTAssist())
                 .withActiveGroup(TypicalGroups.NAME_T02).build());
+        TAssist previousData = new TAssist(model.getTAssist());
         logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)), createFeatureRegistry());
         assertThrows(CommandException.class, expectedMessage, () -> logic.execute("student add id/A1 n/Alice"));
+        assertEquals(previousData, model.getTAssist());
+        assertEquals(TypicalGroups.getT02(), logic.activeGroupProperty().get().orElseThrow());
+        assertEquals(TypicalGroups.getT02().getStudentList(), logic.getActiveGroupStudentList());
     }
 
     /**

@@ -85,6 +85,16 @@ public class LogicManager implements Logic {
 
         Command command = tAssistParser.parseCommand(commandText);
         TAssist previousData = new TAssist(model.getTAssist());
+        try {
+            return executeAndSave(command, previousData);
+        } catch (CommandException e) {
+            model.setTAssist(previousData);
+            assert previousData.equals(model.getTAssist()) : "A failed command must leave data unchanged";
+            throw e;
+        }
+    }
+
+    private CommandResult executeAndSave(Command command, TAssist previousData) throws CommandException {
         CommandResult commandResult = command.execute(model);
 
         if (previousData.equals(model.getTAssist())) {
@@ -92,10 +102,14 @@ public class LogicManager implements Logic {
         }
 
         if (dataLoadStatus.isFailure()) {
-            model.setTAssist(previousData);
             throw new CommandException(MESSAGE_DATA_PROTECTED);
         }
 
+        saveData();
+        return commandResult.withSavedChanges();
+    }
+
+    private void saveData() throws CommandException {
         try {
             storage.saveTAssist(model.getTAssist());
         } catch (AccessDeniedException e) {
@@ -106,7 +120,6 @@ public class LogicManager implements Logic {
             throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
 
-        return commandResult.withSavedChanges();
     }
 
     @Override
