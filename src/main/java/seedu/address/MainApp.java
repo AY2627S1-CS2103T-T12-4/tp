@@ -15,6 +15,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -84,6 +85,7 @@ public class MainApp extends Application {
 
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
+        AssignmentCommandRegistration.registerCommands(commandRegistry);
         AttendanceCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
