@@ -73,7 +73,8 @@ the command box.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
   It contains no simulated records. Use `assignment add` and `assignment list`; the Assignments screen remains a preview.
-* **Help** provides an offline reference for currently supported commands. The `help` command opens it.
+* **Help** provides an offline reference for every available command, with its format, rules, and examples.
+  The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
@@ -111,8 +112,13 @@ Opening a screen with `view` does not save or change data.
 
 ### Viewing help: `help`
 
-Opens the **Help** screen, which lists the format and examples of every available command.
+Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
+
+The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
+attendance, and participation commands, in the same order as their sections in this guide. Within a topic, commands appear in the order
+you would use them. The examples are written to follow on from each other: in a new TAssist, you can type the
+group, student, attendance, and participation examples in order, and each one works.
 
 Format: `help [TOPIC]`
 
@@ -151,7 +157,7 @@ Format: `group add g/GROUP_NAME`
 * Names ignore case when matching, but keep the capitalization entered for display. `T01` and `t01` are duplicates;
   `Tutorial 1` and ` tutorial   1 ` are also duplicates.
 
-Example: `group add g/T01`
+Examples: `group add g/T01`, `group add g/T02`
 
 ```text
 Created tutorial group: T01.
@@ -184,7 +190,8 @@ immediately. Each group's students and records stay separate. Selecting the alre
 
 Format: `group use g/GROUP_NAME`
 
-Example: `group use g/t01` switches to a group saved as T01 and shows `Switched active group to T01.`
+Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
+`group use g/t01` does the same.
 
 #### Tutorial-group command errors
 
@@ -198,6 +205,62 @@ Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or 
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
+
+### Adding a student: `student add`
+
+Adds a student to the active group and updates the Students screen immediately.
+Create or select a group first with `group add` or `group use`.
+
+Format: `student add n/NAME id/STUDENT_ID`
+
+* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
+  Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
+* IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
+* An ID must be unique within the active group. The same ID may occur in another group.
+  Students with the same name and different IDs are allowed.
+* Supply each prefix exactly once, in either order, with a space before each parameter.
+
+Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
+`student add n/Ben Lim id/A0234567Y` then adds a second student.
+
+### Listing students: `student list`
+
+Lists the active group's students in roster order in the feedback box. It takes no parameters.
+
+Format: `student list`
+
+```text
+Students in T01:
+1. Alice Tan | A0123456X
+2. Ben Lim | A0234567Y
+```
+
+An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
+Long rosters can be scrolled in the feedback box or viewed on the Students screen with `view students`.
+
+### Deleting a student: `student delete`
+
+Removes the student and their weekly records from the active group immediately.
+The same student in another group is unaffected. Remaining students are renumbered without changing their order.
+
+Format: `student delete id/STUDENT_ID`
+
+Example: `student delete id/A0234567Y` shows `Removed Ben Lim from T01.` IDs ignore case, so
+`student delete id/a0234567y` does the same.
+
+#### Student command errors
+
+Rejected input leaves the roster and saved file unchanged.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
+Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
+Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
+Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
+Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
 
@@ -226,12 +289,12 @@ Lists attendance for the active tutorial group in student order, without changin
 
 Format: `attendance list w/WEEK`
 
-For example, `attendance list w/3` shows the following in the scrollable feedback box:
+For example, after the examples in this guide, which leave only Alice Tan in T01 and mark her present for week 3,
+`attendance list w/3` shows the following in the scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
 Alice Tan | A0123456X | Present
-Ben Lim | A0234567Y | Not recorded
 ```
 
 Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
@@ -266,12 +329,11 @@ Scores appear in the feedback box; scroll it for long lists. The Participation t
 
 Format: `participation list w/WEEK`
 
-Example: `participation list w/3`
+Example: after `participation set id/A0123456X w/3 s/2`, with only Alice Tan in T01, `participation list w/3` shows
 
 ```text
 Participation for T01, Week 3:
 Alice Tan | A0123456X | 2
-Ben Lim | A0234567Y | Not recorded
 ```
 
 Students without a score show `Not recorded`, even if no scores have been entered that week.
@@ -340,60 +402,6 @@ Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spac
 Missing parameter | `Missing required parameter(s): a/. Include each exactly once.` Supply `a/` followed by a name.
 Repeated or unknown prefix | The feedback names the prefix. Use only `a/`, once.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add` and `list`.
-
-### Adding a student: `student add`
-
-Adds a student to the active group and updates the Students screen immediately.
-Create or select a group first with `group add` or `group use`.
-
-Format: `student add n/NAME id/STUDENT_ID`
-
-* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
-  Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
-* IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
-* An ID must be unique within the active group. The same ID may occur in another group.
-  Students with the same name and different IDs are allowed.
-* Supply each prefix exactly once, in either order, with a space before each parameter.
-
-Example: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
-
-### Listing students: `student list`
-
-Lists the active group's students in roster order in the feedback box. It takes no parameters.
-
-Format: `student list`
-
-```text
-Students in T01:
-1. Alice Tan | A0123456X
-2. Ben Lim | A0234567Y
-```
-
-An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
-Long rosters can be scrolled in the feedback box or viewed on the Students screen with `view students`.
-
-### Deleting a student: `student delete`
-
-Removes the student and their weekly records from the active group immediately.
-The same student in another group is unaffected. Remaining students are renumbered without changing their order.
-
-Format: `student delete id/STUDENT_ID`
-
-Example: `student delete id/a0123456x` shows `Removed Alice Tan from T01.`
-
-#### Student command errors
-
-Rejected input leaves the roster and saved file unchanged.
-
-Problem | Feedback and correction
---------|------------------------
-No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
-Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
-Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
-Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
-Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
-Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Exiting the program: `exit`
 
@@ -477,10 +485,10 @@ Action | Format, Examples
 **View** | `view SCREEN`<br> e.g., `view attendance`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
-**Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
+**Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
-**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`
+**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`

@@ -3,6 +3,7 @@ package seedu.address.logic.help;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,18 +17,23 @@ public final class HelpCatalog {
 
     private static final List<HelpEntry> BUILT_IN_ENTRIES = List.of(
             new HelpEntry("", "view SCREEN",
-                    "Open students, groups, attendance, participation, assignments, help, or storage.",
+                    "Open a screen: students, groups, attendance, participation, assignments, help, or storage. "
+                            + "Screen names ignore case. Opening a screen does not change any data.",
                     List.of("view attendance")),
             new HelpEntry("", "help [TOPIC]",
-                    "Show this reference, or only one topic. F1 also opens Help; Escape focuses the command box.",
+                    "Open this reference, or open it at the commands of one topic: "
+                            + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
-            new HelpEntry("", "exit", "Close TAssist.", List.of("exit")));
+            new HelpEntry("", "exit", "Close TAssist. Your data is already saved after each change.",
+                    List.of("exit")));
 
     private HelpCatalog() {
     }
 
     /**
      * Returns the built-in commands followed by commands registered by features.
+     * Feature commands are grouped by topic, in the order of {@link #TOPICS}, so that the reference reads in the
+     * same order as the topics that {@code help TOPIC} accepts. Commands keep their given order within a topic.
      *
      * @param featureEntries The help entries registered with feature command parsers.
      * @return An immutable list of all help entries.
@@ -35,8 +41,18 @@ public final class HelpCatalog {
     public static List<HelpEntry> getEntries(List<HelpEntry> featureEntries) {
         requireNonNull(featureEntries);
         List<HelpEntry> entries = new ArrayList<>(BUILT_IN_ENTRIES);
-        entries.addAll(featureEntries);
+        featureEntries.stream()
+                .sorted(Comparator.comparingInt(entry -> getTopicOrder(entry.getTopic())))
+                .forEachOrdered(entries::add);
         return List.copyOf(entries);
+    }
+
+    /**
+     * Returns the position of {@code topic} in {@link #TOPICS}. Topics that are not listed come after all others.
+     */
+    private static int getTopicOrder(String topic) {
+        int position = TOPICS.indexOf(topic.toLowerCase(Locale.ROOT));
+        return position < 0 ? TOPICS.size() : position;
     }
 
     /**
@@ -65,7 +81,7 @@ public final class HelpCatalog {
     public static String getTopicHeading(String topic) {
         requireNonNull(topic);
         if (topic.isEmpty()) {
-            return "Current commands";
+            return "General commands";
         }
         return Character.toUpperCase(topic.charAt(0)) + topic.substring(1) + " commands";
     }

@@ -8,8 +8,9 @@ import org.junit.jupiter.api.Test;
 public class AppUtilTest {
 
     @Test
-    public void getImage_exitingImage() {
-        assertNotNull(AppUtil.getImage("/images/address_book_32.png"));
+    public void getImage_existingImage() {
+        assertNotNull(AppUtil.getImage("/images/tassist_32.png"));
+        assertNotNull(AppUtil.getImage("/images/tassist_256.png"));
     }
 
     @Test

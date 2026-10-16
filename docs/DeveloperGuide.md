@@ -231,6 +231,30 @@ and `use` with their parsers and help entries. Future features can register thei
   for `help TOPIC`, the topic, and `MainWindow` asks `WorkspacePanel.showHelp` to open the Help screen at that topic.
 * The Help screen (`HelpPanel`) renders the same entries and uses `HelpCatalog.getTopicHeading` for its headings.
 
+The class diagram below shows how help entries reach the Help screen.
+
+<img src="images/HelpClassDiagram.png" width="650" />
+
+**Order of the reference.** `HelpCatalog.getEntries` puts the built-in commands first, under "General commands", and
+then the feature commands grouped by topic in the order of `HelpCatalog.TOPICS` (group, student, attendance,
+participation, assignment). This is the order `help TOPIC` lists the topics in, and the order of the User Guide's
+sections. Within a topic, `CommandRegistry` keeps the order in which the commands were registered, so each
+`XYZCommandRegistration` registers its commands in the order a TA uses them: create or record first, then list, then
+delete.
+
+**Rules for help text.** Each `HelpEntry` uses the command's `MESSAGE_USAGE` as its format, so the format in help and
+in error messages cannot drift apart. Its description states the rules a user needs (value ranges, case
+insensitivity, what replaces what), in the same words as the User Guide. Its examples must work when typed: taken
+in the order of the reference, the examples of all topics form one session that starts from a new TAssist. For
+example, the group examples create T01 and T02 and switch back to T01, so that the student examples add students to
+T01, and the attendance and participation examples record data for a student who is still there.
+
+`HelpIntegrationTest` enforces these rules on the running app. It checks that help lists every command in the
+expected order, that each example runs its own command, that typing every example in order into a new TAssist
+succeeds, that the User Guide shows every help format and example, and that every example in the User Guide's
+command summary is one of the help examples. A new command therefore needs a help entry,
+an example that continues the session, and matching User Guide text before its tests pass.
+
 For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
 produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.

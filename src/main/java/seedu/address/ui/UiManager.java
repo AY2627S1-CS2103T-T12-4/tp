@@ -21,7 +21,8 @@ public class UiManager implements Ui {
     public static final String ALERT_DIALOG_PANE_FIELD_ID = "alertDialogPane";
 
     private static final Logger logger = LogsCenter.getLogger(UiManager.class);
-    private static final String ICON_APPLICATION = "/images/address_book_32.png";
+    private static final String ICON_APPLICATION = "/images/tassist_32.png";
+    private static final String ICON_APPLICATION_LARGE = "/images/tassist_256.png";
 
     private Logic logic;
     private Path dataFilePath;
@@ -40,8 +41,9 @@ public class UiManager implements Ui {
     public void start(Stage primaryStage) {
         logger.info("Starting UI...");
 
-        //Set the application icon.
-        primaryStage.getIcons().add(getImage(ICON_APPLICATION));
+        // Set the application icon. The platform picks the size that suits the window and the task bar.
+        primaryStage.getIcons().addAll(getImage(ICON_APPLICATION), getImage(ICON_APPLICATION_LARGE));
+        TaskbarIcon.show(ICON_APPLICATION_LARGE);
 
         try {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
