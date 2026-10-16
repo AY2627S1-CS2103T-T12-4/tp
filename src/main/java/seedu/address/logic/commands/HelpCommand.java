@@ -17,8 +17,8 @@ public class HelpCommand extends Command {
 
     public static final String COMMAND_WORD = "help";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows command formats and examples. "
-            + "Add a topic to see only that area.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Opens the command reference. "
+            + "Add a topic to open it at that topic's commands.\n"
             + "Parameters: [TOPIC]\n"
             + "Topics: " + String.join(", ", HelpCatalog.TOPICS) + "\n"
             + "Example: " + COMMAND_WORD + " student";

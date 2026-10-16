@@ -24,16 +24,16 @@ public final class StudentCommandRegistration {
         requireNonNull(registry);
         registry.register("student", "add", new StudentAddCommandParser(),
                 new HelpEntry("student", StudentAddCommand.MESSAGE_USAGE,
-                        "Add to the active group. Names: 1-60 letters, spaces, apostrophes or hyphens. "
+                        "Add a student to the active group. Names: 1-60 letters, spaces, apostrophes or hyphens. "
                                 + "IDs: 1-20 letters and digits, at least one digit; unique per group, ignoring case.",
-                        List.of("student add n/Alice Tan id/A0123456X")));
-        registry.register("student", "delete", new StudentDeleteCommandParser(),
-                new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
-                        "Remove a student and their records from the active group. IDs ignore case.",
-                        List.of("student delete id/A0123456X")));
+                        List.of("student add n/Alice Tan id/A0123456X", "student add n/Ben Lim id/A0234567Y")));
         registry.register("student", "list", new StudentListCommandParser(),
                 new HelpEntry("student", StudentListCommand.MESSAGE_USAGE,
                         "List the active group's students in roster order. Takes no parameters.",
                         List.of("student list")));
+        registry.register("student", "delete", new StudentDeleteCommandParser(),
+                new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
+                        "Remove a student and their records from the active group. IDs ignore case.",
+                        List.of("student delete id/A0234567Y")));
     }
 }

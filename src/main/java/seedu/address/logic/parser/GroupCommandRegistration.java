@@ -24,14 +24,17 @@ public final class GroupCommandRegistration {
         requireNonNull(registry);
         registry.register("group", "add", new GroupAddCommandParser(),
                 new HelpEntry("group", GroupAddCommand.MESSAGE_USAGE,
-                        "Create an empty tutorial group and make it active. Names ignore case and extra spaces.",
-                        List.of("group add g/T01", "group add g/Thursday 1")));
+                        "Create an empty tutorial group and make it active. Names have 1-60 letters, digits, "
+                                + "spaces or hyphens, and ignore case and extra spaces.",
+                        List.of("group add g/T01", "group add g/T02")));
         registry.register("group", "list", new GroupListCommandParser(),
                 new HelpEntry("group", GroupListCommand.MESSAGE_USAGE,
-                        "List tutorial groups in creation order and show the active group.", List.of("group list")));
+                        "List tutorial groups in creation order and name the active group. Takes no parameters.",
+                        List.of("group list")));
         registry.register("group", "use", new GroupUseCommandParser(),
                 new HelpEntry("group", GroupUseCommand.MESSAGE_USAGE,
-                        "Switch to an existing tutorial group. Its students and records stay separate.",
-                        List.of("group use g/T02")));
+                        "Make an existing tutorial group active. Names ignore case. "
+                                + "Each group keeps its own students and records.",
+                        List.of("group use g/T01")));
     }
 }

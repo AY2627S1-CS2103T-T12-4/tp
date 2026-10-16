@@ -74,7 +74,7 @@ public class CommandRegistryTest {
     }
 
     @Test
-    public void register_helpEntries_areOrderedAndImmutable() {
+    public void register_helpEntries_orderedByFeatureThenRegistrationAndImmutable() {
         HelpEntry studentList = helpEntry("student", "student list");
         HelpEntry studentAdd = helpEntry("student", "student add");
         HelpEntry groupList = helpEntry("group", "group list");
@@ -83,7 +83,7 @@ public class CommandRegistryTest {
         registry.register("group", "list", args -> new StubCommand(), groupList);
         registry.register("group", "remove", args -> new StubCommand());
 
-        assertEquals(List.of(groupList, studentAdd, studentList), registry.getHelpEntries());
+        assertEquals(List.of(groupList, studentList, studentAdd), registry.getHelpEntries());
         assertThrows(UnsupportedOperationException.class, () -> registry.getHelpEntries().clear());
     }
 

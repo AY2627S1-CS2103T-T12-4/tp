@@ -5,6 +5,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,6 +28,7 @@ public class CommandRegistry {
     private static final Logger logger = LogsCenter.getLogger(CommandRegistry.class);
 
     private final Map<String, Map<String, Parser<? extends Command>>> featureParsers = new TreeMap<>();
+    /** Help entries of each feature, in the order their commands were registered. */
     private final Map<String, Map<String, HelpEntry>> featureHelpEntries = new TreeMap<>();
 
     /**
@@ -41,7 +43,7 @@ public class CommandRegistry {
         requireNonNull(source);
         source.featureParsers.forEach((feature, parsers) -> featureParsers.put(feature, new TreeMap<>(parsers)));
         source.featureHelpEntries.forEach((feature, entries) ->
-                featureHelpEntries.put(feature, new TreeMap<>(entries)));
+                featureHelpEntries.put(feature, new LinkedHashMap<>(entries)));
     }
 
     /**
@@ -85,7 +87,7 @@ public class CommandRegistry {
         checkArgument(!parsers.containsKey(subcommand), "Command already registered: " + feature + " " + subcommand);
         parsers.put(subcommand, parser);
         if (helpEntry != null) {
-            featureHelpEntries.computeIfAbsent(feature, unused -> new TreeMap<>()).put(subcommand, helpEntry);
+            featureHelpEntries.computeIfAbsent(feature, unused -> new LinkedHashMap<>()).put(subcommand, helpEntry);
         }
         logger.fine("Registered command: " + feature + " " + subcommand);
     }
@@ -99,7 +101,8 @@ public class CommandRegistry {
     }
 
     /**
-     * Returns help entries registered with feature commands, ordered by feature and subcommand.
+     * Returns help entries registered with feature commands, ordered by feature and, within a feature, in the order
+     * the commands were registered. Features register their commands in the order a user would use them.
      *
      * @return An immutable list of registered feature help entries.
      */
