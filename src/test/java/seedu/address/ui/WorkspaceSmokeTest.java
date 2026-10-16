@@ -184,6 +184,8 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown("T02");
                 assertEquals(TypicalGroups.getT02().getStudentList(), studentTable().getItems());
                 enter(input, "group add g/ Thursday   1 ");
+                Label status = (Label) root.lookup("#saveLocationStatus");
+                assertTrue(status.getText().startsWith("Changes saved."));
                 assertStudentsShown("Thursday 1");
                 assertTrue(studentTable().getItems().isEmpty());
                 assertGroupChips(List.of("T01", "T02", "T03", "Thursday 1"), "Thursday 1");
@@ -191,6 +193,7 @@ public class WorkspaceSmokeTest {
                 assertEquals("Created tutorial group: Thursday 1.\nActive group is now Thursday 1.",
                         feedback.getText());
                 enter(input, "group list");
+                assertTrue(status.getText().startsWith("Local data file"));
                 assertEquals("1. T01\n2. T02\n3. T03\n4. Thursday 1\nActive group: Thursday 1", feedback.getText());
             });
             runOnFx(() -> render(root, "group-commands", 853, 440));

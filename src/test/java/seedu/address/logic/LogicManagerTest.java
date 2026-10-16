@@ -114,7 +114,7 @@ public class LogicManagerTest {
         logic = new LogicManager(model, createStorage(storage), registry);
 
         for (String command : List.of("help", "group list", "student list", "view students", "exit")) {
-            logic.execute(command);
+            assertFalse(logic.execute(command).hasSavedChanges());
         }
         assertFalse(Files.exists(storage.getTAssistFilePath()));
     }
@@ -161,7 +161,10 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager(tAssist, new UserPrefs());
         expectedModel.addStudent(TypicalGroups.NAME_T02,
                 new Student(new StudentName("Alice Tan"), new StudentId("a1")));
-        assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ", StubCommand.MESSAGE_SUCCESS, expectedModel);
+        CommandResult result = logic.execute(" student   add id/a1 n/ Alice   Tan ");
+        assertEquals(StubCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertTrue(result.hasSavedChanges());
+        assertEquals(expectedModel, model);
         assertEquals(new TAssist(expectedModel.getTAssist()), new TAssist(storage.readTAssist().orElseThrow()));
     }
 
@@ -195,14 +198,12 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_PERMISSION_FAILURE);
     }
 
     @Test

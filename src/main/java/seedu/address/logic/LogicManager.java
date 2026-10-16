@@ -29,10 +29,11 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
+    public static final String MESSAGE_SAVE_FAILURE =
+            "Unable to save changes. Your previous saved data is unchanged.";
 
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_SAVE_PERMISSION_FAILURE = MESSAGE_SAVE_FAILURE
+            + " Please check that the application has permission to write to its data folder.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -75,12 +76,14 @@ public class LogicManager implements Logic {
         try {
             storage.saveTAssist(model.getTAssist());
         } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+            logger.warning("Saving data was denied: " + e);
+            throw new CommandException(MESSAGE_SAVE_PERMISSION_FAILURE, e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            logger.warning("Saving data failed: " + ioe);
+            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
 
-        return commandResult;
+        return commandResult.withSavedChanges();
     }
 
     @Override
