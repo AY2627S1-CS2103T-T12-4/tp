@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -87,17 +88,18 @@ public class TAssistParserUtilTest {
     }
 
     @Test
-    public void parseAssignmentName_valid_normalizesWithoutExtraCharacterRestrictions() throws Exception {
-        assertEquals("Problem Set 1", TAssistParserUtil.parseAssignmentName(" Problem   Set\t1 "));
-        assertEquals("PS1/PS2: Trees & Graphs", TAssistParserUtil.parseAssignmentName("PS1/PS2: Trees & Graphs"));
-        assertEquals("A", TAssistParserUtil.parseAssignmentName("A"));
-        assertEquals("a".repeat(60), TAssistParserUtil.parseAssignmentName(" " + "a".repeat(60) + " "));
+    public void parseAssignmentName_valid_normalizesSpacesAndPreservesCapitalization() throws Exception {
+        assertEquals(new AssignmentName("Problem Set 1"), TAssistParserUtil.parseAssignmentName(" Problem   Set\t1 "));
+        assertEquals("Problem Set 1", TAssistParserUtil.parseAssignmentName(" Problem   Set\t1 ").fullName);
+        assertEquals("Mid-term", TAssistParserUtil.parseAssignmentName("Mid-term").fullName);
+        assertEquals("A", TAssistParserUtil.parseAssignmentName("A").fullName);
+        assertEquals("a".repeat(60), TAssistParserUtil.parseAssignmentName(" " + "a".repeat(60) + " ").fullName);
     }
 
     @Test
     public void parseAssignmentName_invalid_throwsConstraintMessage() {
-        for (String name : new String[] {"", "  ", "a".repeat(61)}) {
-            assertThrows(ParseException.class, TAssistParserUtil.MESSAGE_ASSIGNMENT_NAME, () ->
+        for (String name : new String[] {"", "  ", "--", "PS1/PS2", "PS1: Trees & Graphs", "a".repeat(61)}) {
+            assertThrows(ParseException.class, AssignmentName.MESSAGE_CONSTRAINTS, () ->
                     TAssistParserUtil.parseAssignmentName(name));
         }
         assertThrows(NullPointerException.class, () -> TAssistParserUtil.parseAssignmentName(null));
