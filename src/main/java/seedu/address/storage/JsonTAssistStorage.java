@@ -3,14 +3,16 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.ReadOnlyTAssist;
 
@@ -88,8 +90,41 @@ public class JsonTAssistStorage {
         requireNonNull(tAssist);
         requireNonNull(filePath);
 
-        FileUtil.createIfMissing(filePath);
-        JsonUtil.saveJsonFile(new JsonSerializableTAssist(tAssist), filePath);
+        String json = JsonUtil.toJsonString(new JsonSerializableTAssist(tAssist));
+        Path target = filePath.toAbsolutePath();
+        if (Files.exists(target) && !Files.isWritable(target)) {
+            throw new AccessDeniedException(target.toString());
+        }
+        Files.createDirectories(target.getParent());
+        Path temporaryFile = Files.createTempFile(target.getParent(), ".tassist-", ".tmp");
+        try {
+            writeTemporaryFile(temporaryFile, json);
+            replaceDataFile(temporaryFile, target);
+        } finally {
+            deleteTemporaryFile(temporaryFile);
+        }
+    }
+
+    /**
+     * Writes the complete JSON to a temporary file before the saved file is touched.
+     */
+    void writeTemporaryFile(Path temporaryFile, String json) throws IOException {
+        Files.writeString(temporaryFile, json);
+    }
+
+    /**
+     * Atomically replaces the saved file, failing safely if atomic moves are unsupported.
+     */
+    void replaceDataFile(Path temporaryFile, Path target) throws IOException {
+        Files.move(temporaryFile, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private void deleteTemporaryFile(Path temporaryFile) {
+        try {
+            Files.deleteIfExists(temporaryFile);
+        } catch (IOException e) {
+            logger.warning("Could not remove temporary data file " + temporaryFile + ": " + e);
+        }
     }
 
 }
