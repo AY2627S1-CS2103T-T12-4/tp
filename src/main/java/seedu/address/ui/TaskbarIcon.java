@@ -7,6 +7,7 @@ import java.awt.Taskbar;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
@@ -25,35 +26,53 @@ final class TaskbarIcon {
 
     /**
      * Shows the image at {@code imagePath}, a resource path, as the task bar or Dock icon if the platform supports it.
-     * A missing image or an unsupported platform is logged and otherwise ignored, as the icon is not essential.
+     * A missing or unreadable image, an unsupported platform, or a failure to set the icon is logged and otherwise
+     * ignored, as the icon is not essential and must never stop TAssist from starting.
      *
      * @return true if the icon was set.
      */
     static boolean show(String imagePath) {
         requireNonNull(imagePath);
+        Optional<BufferedImage> image = readImage(imagePath);
+        if (image.isEmpty()) {
+            return false;
+        }
         if (!isIconImageSupported()) {
             logger.fine("The platform takes the task bar icon from the window.");
             return false;
         }
 
-        try (InputStream imageStream = MainApp.class.getResourceAsStream(imagePath)) {
-            if (imageStream == null) {
-                logger.warning("Task bar icon not found: " + imagePath);
-                return false;
-            }
-            BufferedImage image = ImageIO.read(imageStream);
-            if (image == null) {
-                logger.warning("Task bar icon is not a readable image: " + imagePath);
-                return false;
-            }
-            Taskbar.getTaskbar().setIconImage(image);
+        try {
+            Taskbar.getTaskbar().setIconImage(image.get());
             logger.fine("Set the task bar icon to " + imagePath);
             return true;
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             // macOS wraps a failure to set the Dock icon in a RuntimeException. The icon is not essential,
             // so log it and let the app start anyway.
             logger.warning("Could not set the task bar icon: " + e);
             return false;
+        }
+    }
+
+    /**
+     * Returns the image at {@code imagePath}, a resource path, or an empty {@code Optional} if it is missing or is
+     * not an image. Either problem is logged.
+     */
+    static Optional<BufferedImage> readImage(String imagePath) {
+        requireNonNull(imagePath);
+        try (InputStream imageStream = MainApp.class.getResourceAsStream(imagePath)) {
+            if (imageStream == null) {
+                logger.warning("Task bar icon not found: " + imagePath);
+                return Optional.empty();
+            }
+            Optional<BufferedImage> image = Optional.ofNullable(ImageIO.read(imageStream));
+            if (image.isEmpty()) {
+                logger.warning("Task bar icon is not a readable image: " + imagePath);
+            }
+            return image;
+        } catch (IOException e) {
+            logger.warning("Could not read the task bar icon " + imagePath + ": " + e.getMessage());
+            return Optional.empty();
         }
     }
 
