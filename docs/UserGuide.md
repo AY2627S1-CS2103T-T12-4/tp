@@ -6,7 +6,8 @@ title: User Guide
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
 You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
-and record and list weekly participation scores. Commands for assignments are **coming soon**.
+record and list weekly participation scores, and create assignments and list their records. Commands to record
+submissions and grades are **coming soon**.
 
 * Table of Contents
 {:toc}
@@ -71,7 +72,7 @@ the command box.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
-  It contains no simulated records, and assignment commands are not yet supported.
+  It contains no simulated records. Use `assignment add` and `assignment list`; the Assignments screen remains a preview.
 * **Help** provides an offline reference for currently supported commands. The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
@@ -99,8 +100,8 @@ Opening a screen with `view` does not save or change data.
 * `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Assignment
-  commands remain **Coming soon**.
+  and suggest entering `help`. They do not change or save your data. Commands to record
+  assignment submissions and grades remain **Coming soon**.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
@@ -290,6 +291,56 @@ Invalid or blank score | `Invalid participation score. Enter a whole number from
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
 
+### Creating an assignment: `assignment add`
+
+Creates an assignment in the active tutorial group. Create or select a group first with `group add` or `group use`.
+
+Format: `assignment add a/ASSIGNMENT_NAME`
+
+* Assignment names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
+  The length limit applies after this normalization.
+* Names ignore case when matching, but keep the capitalization entered for display. `PS1` and `ps1` are duplicates,
+  and so are `Problem Set 1` and ` problem   set 1 `.
+* An assignment belongs to one group. Another group may have an assignment with the same name.
+* Supply `a/` exactly once.
+
+Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01 is active.
+
+### Listing assignment records: `assignment list`
+
+Lists every student in the active group, in roster order, with their status and grade for one assignment.
+Listing does not change any data.
+
+Format: `assignment list a/ASSIGNMENT_NAME`
+
+Example: `assignment list a/PS1`
+
+```text
+PS1 records for T01:
+Alice Tan | A0123456X | Not submitted | -
+Ben Lim | A0234567Y | Not submitted | -
+```
+
+Each row shows the student's name, ID, submission status, and grade. Every student shows `Not submitted` and `-`
+for now, because commands to record submissions and grades are **coming soon**. The name ignores case, and the
+heading shows the name as it was created. An empty group shows `No students in T01.`
+Created assignments are saved automatically and restored when you reopen TAssist.
+
+#### Assignment command errors
+
+Rejected input leaves the assignments and saved data file unchanged.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
+Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Missing parameter | `Missing required parameter(s): a/. Include each exactly once.` Supply `a/` followed by a name.
+Repeated or unknown prefix | The feedback names the prefix. Use only `a/`, once.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add` and `list`.
+
 ### Adding a student: `student add`
 
 Adds a student to the active group and updates the Students screen immediately.
@@ -352,7 +403,7 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist saves your tutorial groups, their students, attendance, and participation scores, and the active group after successful commands, except `view`,
+TAssist saves your tutorial groups, their students, assignments, attendance, and participation scores, and the active group after successful commands, except `view`,
 which only changes the visible screen. You do not need to save manually. A failed command does not indicate a
 successful save; read the feedback.
 
@@ -377,7 +428,8 @@ The file looks like this:
       "studentId" : "A0123456X",
       "attendance" : { "3" : "PRESENT" },
       "participation" : { "3" : 2 }
-    } ]
+    } ],
+    "assignments" : [ "PS1", "Mid-term 1" ]
   } ]
 }
 ```
@@ -385,6 +437,9 @@ The file looks like this:
 * `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
   the groups, ignoring case.
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
+* A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
+  the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,
+  empty, or repeated name makes the file invalid. An omitted list means the group has no assignments.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
@@ -430,4 +485,6 @@ Action | Format, Examples
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
+**Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
+**List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
 **Exit** | `exit`
