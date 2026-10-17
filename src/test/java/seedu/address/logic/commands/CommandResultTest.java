@@ -76,11 +76,25 @@ public class CommandResultTest {
     }
 
     @Test
+    public void withSavedChanges_preservesFeedbackAndNavigation() {
+        CommandResult original = CommandResult.forHelp("feedback", "student");
+        CommandResult saved = original.withSavedChanges();
+        assertFalse(original.hasSavedChanges());
+        assertTrue(saved.hasSavedChanges());
+        assertEquals(original.getFeedbackToUser(), saved.getFeedbackToUser());
+        assertEquals(original.getHelpTopic(), saved.getHelpTopic());
+        assertTrue(saved.isShowHelp());
+        assertNotEquals(original, saved);
+        assertEquals(saved, original.withSavedChanges());
+        assertEquals(saved.hashCode(), original.withSavedChanges().hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=}";
+                + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=, hasSavedChanges=false}";
         assertEquals(expected, commandResult.toString());
     }
 }

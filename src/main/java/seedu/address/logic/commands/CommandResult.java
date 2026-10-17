@@ -26,6 +26,8 @@ public class CommandResult {
     /** Help topic to show first, or an empty string to show Help from the top. */
     private final String helpTopic;
 
+    private final boolean hasSavedChanges;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
@@ -35,11 +37,17 @@ public class CommandResult {
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
             String helpTopic) {
+        this(feedbackToUser, showHelp, exit, view, helpTopic, false);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
+            String helpTopic, boolean hasSavedChanges) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.view = view;
         this.helpTopic = requireNonNull(helpTopic);
+        this.hasSavedChanges = hasSavedChanges;
     }
 
     /**
@@ -85,6 +93,17 @@ public class CommandResult {
         return helpTopic;
     }
 
+    public boolean hasSavedChanges() {
+        return hasSavedChanges;
+    }
+
+    /**
+     * Returns a copy confirming that this command's data changes have been saved.
+     */
+    public CommandResult withSavedChanges() {
+        return new CommandResult(feedbackToUser, showHelp, exit, view, helpTopic, true);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -100,12 +119,13 @@ public class CommandResult {
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
                 && view == otherCommandResult.view
-                && helpTopic.equals(otherCommandResult.helpTopic);
+                && helpTopic.equals(otherCommandResult.helpTopic)
+                && hasSavedChanges == otherCommandResult.hasSavedChanges;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic);
+        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges);
     }
 
     @Override
@@ -116,6 +136,7 @@ public class CommandResult {
                 .add("exit", exit)
                 .add("view", view)
                 .add("helpTopic", helpTopic)
+                .add("hasSavedChanges", hasSavedChanges)
                 .toString();
     }
 

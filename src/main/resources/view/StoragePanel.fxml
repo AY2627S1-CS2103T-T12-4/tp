@@ -11,15 +11,15 @@
   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
     <VBox styleClass="storage-content" spacing="16">
       <Label text="Your records stay on this computer" styleClass="empty-title" wrapText="true" />
-      <Label text="Successful commands other than view save your tutorial groups, students and active group to the local JSON file."
+      <Label text="Commands that change data save your groups, students, weekly records and active group. The footer confirms each successful save."
              wrapText="true" styleClass="muted" />
       <Label text="DATA FILE" styleClass="eyebrow" />
       <Label fx:id="filePath" styleClass="file-path" wrapText="true" maxWidth="Infinity" />
-      <Label text="The file is created after the first successful command other than view. A first launch starts empty."
+      <Label text="The file is created after the first successful data change. A first launch starts empty."
              wrapText="true" styleClass="muted" />
-      <Label text="Close TAssist before editing the file manually. Keep a backup: invalid edits can cause data loss."
+      <Label text="Close TAssist before editing the file manually. If loading fails, the file is protected. Repair or move it, then restart."
              wrapText="true" styleClass="muted" />
-      <Label text="Attendance and assignment storage are coming soon."
+      <Label text="Assignment storage is coming soon."
              wrapText="true" styleClass="coming-soon-note" />
     </VBox>
   </ScrollPane>

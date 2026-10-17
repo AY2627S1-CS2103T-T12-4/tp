@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -37,6 +39,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
@@ -47,6 +50,7 @@ import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
@@ -89,6 +93,52 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void startup_missingOrUnreadableData_showsLoadOutcome() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.MISSING, DataLoadStatus.FAILED)) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    assertEquals(status.getMessage(), ((TextArea) root.lookup("#resultDisplay")).getText());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.getMessage()));
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
+    }
+
+    @Test
+    public void saveFailure_showsErrorWithoutSuccessAndRestoresWorkspace() throws Exception {
+        for (IOException failure : List.of(new IOException("Disk full"), new AccessDeniedException("Data folder"))) {
+            runOnFx(() -> initializeWorkspace(DataLoadStatus.LOADED, failure));
+            try {
+                runOnFx(() -> {
+                    TAssist previousData = new TAssist(model.getTAssist());
+                    enter(input, "group add g/T04");
+                    String expected = failure instanceof AccessDeniedException
+                            ? LogicManager.MESSAGE_SAVE_PERMISSION_FAILURE : LogicManager.MESSAGE_SAVE_FAILURE;
+                    TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                    assertEquals(expected, feedback.getText());
+                    assertEquals("group add g/T04", input.getText());
+                    assertTrue(isFooterShowingFailure());
+                    assertFalse(((Label) root.lookup("#saveLocationStatus")).getText().contains("Changes saved."));
+                    assertEquals(previousData, model.getTAssist());
+                    assertGroupChips(List.of("T01", "T02", "T03"), "");
+                    assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                    enter(input, "help");
+                    assertEquals(HelpCommand.MESSAGE_SHOWING_HELP, feedback.getText());
+                    assertFalse(isFooterShowingFailure());
+                });
+                assertFalse(Files.exists(data));
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
     }
 
     @Test
@@ -184,6 +234,8 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown("T02");
                 assertEquals(TypicalGroups.getT02().getStudentList(), studentTable().getItems());
                 enter(input, "group add g/ Thursday   1 ");
+                Label status = (Label) root.lookup("#saveLocationStatus");
+                assertTrue(status.getText().startsWith("Changes saved."));
                 assertStudentsShown("Thursday 1");
                 assertTrue(studentTable().getItems().isEmpty());
                 assertGroupChips(List.of("T01", "T02", "T03", "Thursday 1"), "Thursday 1");
@@ -191,6 +243,7 @@ public class WorkspaceSmokeTest {
                 assertEquals("Created tutorial group: Thursday 1.\nActive group is now Thursday 1.",
                         feedback.getText());
                 enter(input, "group list");
+                assertTrue(status.getText().startsWith("Local data file"));
                 assertEquals("1. T01\n2. T02\n3. T03\n4. Thursday 1\nActive group: Thursday 1", feedback.getText());
             });
             runOnFx(() -> render(root, "group-commands", 853, 440));
@@ -477,9 +530,26 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace() {
+        initializeWorkspace(DataLoadStatus.LOADED);
+    }
+
+    private void initializeWorkspace(DataLoadStatus dataLoadStatus) {
+        initializeWorkspace(dataLoadStatus, null);
+    }
+
+    private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
         model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
-        StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
+        JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
+            @Override
+            public void saveTAssist(ReadOnlyTAssist tAssist) throws IOException {
+                if (saveFailure != null) {
+                    throw saveFailure;
+                }
+                super.saveTAssist(tAssist);
+            }
+        };
+        StorageManager storage = new StorageManager(dataStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
@@ -487,7 +557,8 @@ public class WorkspaceSmokeTest {
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
-        MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);
+        MainWindow window = new MainWindow(stage,
+                new LogicManager(model, storage, commandRegistry, dataLoadStatus), data, dataLoadStatus);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();

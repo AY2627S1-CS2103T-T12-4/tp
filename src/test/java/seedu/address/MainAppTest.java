@@ -15,8 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.model.Model;
@@ -80,6 +83,47 @@ public class MainAppTest {
     }
 
     @Test
+    public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        for (String invalidData : List.of("{", "null", "{\"activeGroup\":\"unknown\"}")) {
+            Files.writeString(dataFile(), invalidData);
+            MainApp app = new MainApp(prefsFile, dataFile());
+            app.init();
+
+            for (String command : List.of("help", "view storage", "group list")) {
+                assertFalse(app.logic.execute(command).hasSavedChanges());
+            }
+            assertThrows(CommandException.class,
+                    LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
+            assertEquals(new TAssist(), app.model.getTAssist());
+            app.logic.execute("exit");
+            app.stop();
+            assertEquals(invalidData, Files.readString(dataFile()));
+
+            MainApp reopened = new MainApp(prefsFile, dataFile());
+            reopened.init();
+            assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
+            assertEquals(invalidData, Files.readString(dataFile()));
+        }
+    }
+
+    @Test
+    public void init_unreadableDataPath_protectsExistingContents() throws Exception {
+        Path directory = Files.createDirectory(dataFile());
+        Path existingFile = directory.resolve("keep.txt");
+        Files.writeString(existingFile, "Keep existing contents.");
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), directory);
+        app.init();
+
+        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertThrows(CommandException.class,
+                LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
+        app.stop();
+        assertEquals("Keep existing contents.", Files.readString(existingFile));
+        assertTrue(Files.isDirectory(directory));
+    }
+
+    @Test
     public void constructor_nullPath_throwsNullPointerException() {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
         Path dataFile = temporaryFolder.resolve("tassist.json");
@@ -98,6 +142,7 @@ public class MainAppTest {
         assertEquals(new UserPrefs(), app.model.getUserPrefs());
         assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
         assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
+        assertEquals(DataLoadStatus.MISSING, app.getDataLoadStatus());
     }
 
     @Test
@@ -117,6 +162,7 @@ public class MainAppTest {
         app.init();
 
         assertEquals(saved, app.model.getTAssist());
+        assertEquals(DataLoadStatus.LOADED, app.getDataLoadStatus());
         assertEquals(userPrefs, app.model.getUserPrefs());
         assertEquals(TypicalGroups.getT02().getStudentList(), app.model.getActiveGroupStudentList());
     }
@@ -174,6 +220,7 @@ public class MainAppTest {
 
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
+            assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
         }
     }
 

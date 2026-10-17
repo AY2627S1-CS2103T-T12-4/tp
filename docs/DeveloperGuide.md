@@ -93,9 +93,9 @@ table, and says whether no group is active or the active group has no students y
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
-`MainWindow` selects the corresponding screen. `LogicManager` skips persistence for navigation results; switching
-screens does not change the model. Other successful commands save TAssist data through `Storage` and keep
-the current screen.
+`MainWindow` selects the corresponding screen. `LogicManager` saves only when the persisted model changes, so
+navigation and other read-only commands do not write data. `CommandResult.hasSavedChanges()` tells the UI whether
+to show `Changes saved.` in the footer. Commands keep the current screen unless they request navigation or help.
 
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
 confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
@@ -287,7 +287,7 @@ or hyphens after whitespace normalization, with at least one letter or digit. Th
 and are compared ignoring case. Numeric input is trimmed, accepts digits including leading zeros,
 and rejects signs, decimals, out-of-range values, and integer overflow with a field-specific `ParseException`.
 
-Parsers only validate and construct commands. `LogicManager` executes and saves after parsing succeeds;
+Parsers only validate and construct commands. `LogicManager` executes after parsing succeeds and saves data changes;
 parsing failures neither execute a command nor call storage. Registry, argument, and value-validator unit tests
 cover these rules. `LogicManagerTest` also verifies that rejected feature input leaves the model and existing
 data file unchanged, using a storage implementation that fails if saving is attempted.
@@ -313,9 +313,10 @@ The listing parser declares no parameters and rejects extra input.
 * `GroupUseCommand` checks that the group exists before calling `Model.setActiveGroup`. Feedback uses the stored
   capitalization, even if the input uses another case. A missing group throws `CommandException` before mutation.
 
-These commands return feedback without a screen-navigation request. `LogicManager` therefore saves the resulting
-groups and active selection through the existing JSON storage. The observable group strip and Students screen
-update through the model views, while the current screen stays selected. The separate Groups table remains a preview.
+These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
+active selection through JSON storage; listing or selecting the already active group does not save. The group strip
+and Students screen update through the model views, while the current screen stays selected. The separate Groups
+table remains a preview.
 
 Command and parser tests cover successful operations, exact feedback, name boundaries, case and space normalization,
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
@@ -515,13 +516,43 @@ TAssist data is kept in one human-editable JSON file, `data/tassist.json`. The f
 }
 ```
 
-**Saving.** After a command succeeds, `LogicManager` calls `Storage#saveTAssist(model.getTAssist())`, unless the command only opens a screen (`view`). `JsonSerializableTAssist` copies the groups and the active group's name into Jackson-friendly objects, which `JsonUtil` writes to the file. A failed command throws before this point, so it never saves.
+**Saving.** `LogicManager` takes a defensive `TAssist` snapshot before executing a parsed command. If execution
+leaves the persisted model unchanged, it returns without calling storage. This covers help, listing, navigation,
+exit, and repeated commands that make no change. Otherwise, it calls `Storage#saveTAssist(model.getTAssist())`.
+Only a successful save produces a result with `hasSavedChanges()` set to true; `MainWindow` then shows
+`Changes saved.` alongside the file path without replacing the command's own feedback.
+
+`JsonTAssistStorage` serializes the complete model through `JsonSerializableTAssist` and `JsonUtil`, writes it to
+a temporary file in the target directory, and atomically replaces the data file. If writing or atomic replacement
+fails, the previous saved file is preserved. There is no non-atomic fallback. Temporary files are removed after
+each attempt; a cleanup failure is logged without masking the save outcome.
+
+**Save failures.** `LogicManager` maps an `IOException` to
+`Unable to save changes. Your previous saved data is unchanged.` An `AccessDeniedException` additionally asks the
+user to check write permission for the data folder. It restores the snapshot on a `CommandException`, including
+one caused by saving, so groups, students, weekly records, the active selection, and observable rosters return to
+their previous state. The UI shows the error and retains the rejected input. A subsequent command can retry saving.
 
 **Loading.** At startup, `MainApp#initModelManager` calls `Storage#readTAssist()`:
 
-* If the file does not exist, the app starts with an empty `TAssist` and no sample data. The file is created by the first save.
-* If the file cannot be read, is not valid JSON, or holds invalid data, `JsonTAssistStorage` throws a `DataLoadingException`. `MainApp` logs the reason as a warning and starts with an empty `TAssist`, so a wrong manual edit never crashes the app.
+* If the file does not exist, the app starts with an empty `TAssist` and shows
+  `No saved data found. Starting with an empty database.` The first successful data change creates the file.
+* If the file cannot be read, is not valid JSON, or holds invalid data, loading throws a `DataLoadingException`.
+  `MainApp` logs the reason and starts with an empty model. The UI shows
+  `Saved data could not be read. No changes were made to the saved file.`
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
+
+`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
+change data and restores the snapshot without attempting a save. Read-only commands remain available. This
+protection lasts until restart, including if the user repairs the file while the app is running. The user must
+close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
+protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
+permission errors are reported rather than treated as missing data.
+
+`JsonTAssistStorageTest` injects partial-write and atomic-replacement failures to check file preservation and
+temporary-file cleanup. `SaveFailureIntegrationTest` checks rollback across all implemented mutations, retry,
+and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data and protection through shutdown.
+`WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
 `toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, and an invalid, empty or repeated (ignoring case) assignment name in a group, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups`, `students` or `assignments` list is read as an empty list, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored.
 
@@ -1094,22 +1125,44 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Close the app. In the folder of the JAR file, create `data/tassist.json` with the example content from [Saving and loading TAssist data](#saving-and-loading-tassist-data).
 
-   1. Launch the app, then enter `help`, which is a successful command other than `view`. Close the app.<br>
-      Expected: `data/tassist.json` still holds group `T01`, its student and the active group, laid out by the app.
+   1. Launch the app, then enter `help` and `group list`. Close the app.<br>
+      Expected: The original groups, students, records, and active selection are restored. The file stays unchanged,
+      and read-only commands do not show `Changes saved.`
+
+   1. Reopen, enter `group add g/SaveTest`, close, and reopen again.<br>
+      Expected: The command shows `Changes saved.` in the footer, and `SaveTest` remains the active group on restart.
 
 1. Dealing with a missing data file
 
    1. Prerequisites: Close the app and delete `data/tassist.json`.
 
    1. Launch the app.<br>
-      Expected: The app starts with no data and no sample data. The log says the data file was not found.
+      Expected: The app starts empty and shows `No saved data found. Starting with an empty database.`
+      `help` does not create the file. `group add g/T01` creates it and shows `Changes saved.`
 
 1. Dealing with an invalid data file
 
    1. Prerequisites: Close the app. In `data/tassist.json`, change `activeGroup` to a group that is not in the file, or delete a closing brace.
 
    1. Launch the app.<br>
-      Expected: The app starts with no data and does not crash. The log has a warning saying why the data file could not be loaded.
+      Expected: The app starts empty and shows
+      `Saved data could not be read. No changes were made to the saved file.` The log records the cause.
+
+   1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
+      Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
+      Repair the file while the app is closed and restart; normal saving should resume.
+
+1. Dealing with a save failure
+
+   1. Prerequisites: Use a disposable copy of the app with valid saved data. Remove write permission from its data
+      file or folder using your operating system's file permissions.
+
+   1. Enter `group add g/SaveFailure`.<br>
+      Expected: The feedback reports that saving failed and the previous saved data is unchanged, with permission
+      guidance. No save confirmation appears, and `SaveFailure` is absent from the model and saved file.
+
+   1. Restore write permission and enter the command again, then close and reopen.<br>
+      Expected: Saving succeeds and `SaveFailure` is restored as the active group.
 
 
 ### Recording and listing participation
