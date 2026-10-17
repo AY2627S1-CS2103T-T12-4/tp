@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
@@ -136,6 +138,49 @@ public class JsonTAssistStorageTest {
 
         assertTrue(loaded.getAttendanceRecords().getRecords().isEmpty());
         assertTrue(loaded.getParticipationRecords().getRecords().isEmpty());
+    }
+
+    @Test
+    public void readAndSaveTAssist_withAssignments_assignmentsSurviveReload() throws Exception {
+        Path filePath = testFolder.resolve("assignments.json");
+        TAssist original = TypicalGroups.getTypicalTAssist();
+        original.addAssignment(TypicalGroups.NAME_T01, PS2);
+        original.addAssignment(TypicalGroups.NAME_T01, PS1);
+        original.addAssignment(TypicalGroups.NAME_T02, PS1);
+        JsonTAssistStorage jsonTAssistStorage = new JsonTAssistStorage(filePath);
+
+        jsonTAssistStorage.saveTAssist(original, filePath);
+        TAssist readBack = new TAssist(jsonTAssistStorage.readTAssist(filePath).orElseThrow());
+
+        assertEquals(original, readBack);
+        assertEquals(List.of(PS2, PS1), readBack.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
+        assertTrue(readBack.getGroup(TypicalGroups.NAME_T03).getAssignmentList().isEmpty());
+    }
+
+    @Test
+    public void read_handEditedAssignments_loadsAssignmentsInFileOrder() throws Exception {
+        Path filePath = testFolder.resolve("handEdited.json");
+        Files.writeString(filePath, """
+                {"activeGroup":"T01","groups":[{"name":"T01","assignments":["PS1", " ps2 "]}]}
+                """);
+
+        TAssist loaded = new TAssist(new JsonTAssistStorage(filePath).readTAssist().orElseThrow());
+
+        assertEquals(List.of(PS1, PS2), loaded.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
+    }
+
+    @Test
+    public void read_duplicateAssignmentsInFile_exceptionThrown() throws Exception {
+        Path filePath = testFolder.resolve("duplicateAssignments.json");
+        Files.writeString(filePath, """
+                {"groups":[{"name":"T01","assignments":["PS1","Ps1"]}]}
+                """);
+
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                new JsonTAssistStorage(filePath).readTAssist());
+
+        assertEquals(String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT, "T01", "Ps1"),
+                e.getCause().getMessage());
     }
 
     @Test
