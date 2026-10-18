@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
@@ -283,6 +284,21 @@ public class ModelManagerTest {
         modelManager = modelWithActiveGroup(NAME_T01);
         assertThrows(NullPointerException.class, () -> modelManager.addStudent(null, FIONA));
         assertThrows(NullPointerException.class, () -> modelManager.addStudent(NAME_T01, null));
+    }
+
+    @Test
+    public void addAssignment_validArguments_assignmentAddedToGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addAssignment(NAME_T01, PS1);
+        assertEquals(List.of(PS1), modelManager.getGroup(NAME_T01).getAssignmentList());
+        assertEquals(List.of(PS1), modelManager.getActiveGroup().orElseThrow().getAssignmentList());
+    }
+
+    @Test
+    public void addAssignment_nullArguments_throwsNullPointerException() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(NullPointerException.class, () -> modelManager.addAssignment(null, PS1));
+        assertThrows(NullPointerException.class, () -> modelManager.addAssignment(NAME_T01, null));
     }
 
     @Test

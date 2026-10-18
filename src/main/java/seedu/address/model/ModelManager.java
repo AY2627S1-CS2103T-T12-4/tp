@@ -10,6 +10,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -124,6 +125,12 @@ public class ModelManager implements Model {
     public Student removeStudent(GroupName groupName, StudentId studentId) {
         requireAllNonNull(groupName, studentId);
         return tAssist.removeStudent(groupName, studentId);
+    }
+
+    @Override
+    public void addAssignment(GroupName groupName, Assignment assignment) {
+        requireAllNonNull(groupName, assignment);
+        tAssist.addAssignment(groupName, assignment);
     }
 
     //=========== Active Group Accessors =====================================================================

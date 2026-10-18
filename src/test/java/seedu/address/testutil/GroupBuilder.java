@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import java.util.ArrayList;
 import java.util.List;
 
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -18,13 +19,15 @@ public class GroupBuilder {
 
     private GroupName name;
     private List<Student> students;
+    private List<Assignment> assignments;
 
     /**
-     * Creates a {@code GroupBuilder} with the default name and no students.
+     * Creates a {@code GroupBuilder} with the default name, no students and no assignments.
      */
     public GroupBuilder() {
         name = new GroupName(DEFAULT_NAME);
         students = new ArrayList<>();
+        assignments = new ArrayList<>();
     }
 
     /**
@@ -33,6 +36,7 @@ public class GroupBuilder {
     public GroupBuilder(Group groupToCopy) {
         name = groupToCopy.getName();
         students = new ArrayList<>(groupToCopy.getStudentList());
+        assignments = new ArrayList<>(groupToCopy.getAssignmentList());
     }
 
     /**
@@ -61,11 +65,21 @@ public class GroupBuilder {
     }
 
     /**
+     * Adds {@code assignments} to the {@code Group} that we are building, after any assignments added earlier.
+     * Their names must be unique, or {@link #build()} will fail.
+     */
+    public GroupBuilder withAssignments(Assignment... assignments) {
+        this.assignments.addAll(List.of(assignments));
+        return this;
+    }
+
+    /**
      * Returns a new {@code Group} each time, so that tests never share a mutable group.
      */
     public Group build() {
         Group group = new Group(name);
         students.forEach(group::addStudent);
+        assignments.forEach(group::addAssignment);
         return group;
     }
 
