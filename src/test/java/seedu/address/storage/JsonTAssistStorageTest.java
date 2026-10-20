@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalAssignments.PS1;
 import static seedu.address.testutil.TypicalAssignments.PS2;
+import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
 import seedu.address.testutil.GroupBuilder;
@@ -147,13 +149,16 @@ public class JsonTAssistStorageTest {
         original.addAssignment(TypicalGroups.NAME_T01, PS2);
         original.addAssignment(TypicalGroups.NAME_T01, PS1);
         original.addAssignment(TypicalGroups.NAME_T02, PS1);
+        Assignment gradedPs1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withGrade(ALICE.getStudentId(), 87);
+        original.setAssignment(TypicalGroups.NAME_T01, gradedPs1);
         JsonTAssistStorage jsonTAssistStorage = new JsonTAssistStorage(filePath);
 
         jsonTAssistStorage.saveTAssist(original, filePath);
         TAssist readBack = new TAssist(jsonTAssistStorage.readTAssist(filePath).orElseThrow());
 
         assertEquals(original, readBack);
-        assertEquals(List.of(PS2, PS1), readBack.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
+        assertEquals(List.of(PS2, gradedPs1), readBack.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
         assertTrue(readBack.getGroup(TypicalGroups.NAME_T03).getAssignmentList().isEmpty());
     }
 
