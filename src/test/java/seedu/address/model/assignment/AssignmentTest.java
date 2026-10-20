@@ -81,11 +81,12 @@ public class AssignmentTest {
         assertEquals(new AssignmentRecord(true, Optional.empty()), submitted.getStudentRecord(aliceId));
         assertEquals(Optional.of(87), graded.getStudentRecord(aliceId).getGrade());
         assertEquals(Optional.of(90), graded.withGrade(aliceId, 90).getStudentRecord(aliceId).getGrade());
-        assertEquals(submitted, graded.withoutStudentRecord(aliceId));
+        assertEquals(original, graded.withoutStudentRecord(aliceId));
         assertEquals(original, original.withoutStudentRecord(aliceId));
         assertEquals(AssignmentRecord.notSubmitted(), graded.withSubmissionStatus(aliceId, false)
                 .getStudentRecord(aliceId));
         assertThrows(NullPointerException.class, () -> original.getStudentRecord(null));
+        assertThrows(NullPointerException.class, () -> original.withoutStudentRecord(null));
         assertThrows(IllegalArgumentException.class, () -> original.withGrade(aliceId, 87));
     }
 
