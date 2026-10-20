@@ -35,7 +35,8 @@ public class HelpIntegrationTest {
             "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
-            "assignment add a/ASSIGNMENT_NAME", "assignment list a/ASSIGNMENT_NAME");
+            "assignment add a/ASSIGNMENT_NAME", "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
+            "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID g/GRADE", "assignment list a/ASSIGNMENT_NAME");
 
     private static final Path USER_GUIDE = Path.of("docs", "UserGuide.md");
     private static final String COMMAND_SUMMARY_HEADING = "## Command summary";

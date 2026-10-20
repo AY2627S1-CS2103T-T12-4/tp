@@ -80,7 +80,7 @@ public class AssignmentTest {
         assertEquals(AssignmentRecord.notSubmitted(), original.getStudentRecord(aliceId));
         assertEquals(new AssignmentRecord(true, Optional.empty()), submitted.getStudentRecord(aliceId));
         assertEquals(Optional.of(87), graded.getStudentRecord(aliceId).getGrade());
-        assertEquals(Optional.of(87), graded.withGrade(aliceId, 90).getStudentRecord(aliceId).getGrade());
+        assertEquals(Optional.of(90), graded.withGrade(aliceId, 90).getStudentRecord(aliceId).getGrade());
         assertEquals(submitted, graded.withoutStudentRecord(aliceId));
         assertEquals(original, original.withoutStudentRecord(aliceId));
         assertEquals(AssignmentRecord.notSubmitted(), graded.withSubmissionStatus(aliceId, false)
