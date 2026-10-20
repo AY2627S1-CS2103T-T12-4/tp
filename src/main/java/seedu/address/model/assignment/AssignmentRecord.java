@@ -12,7 +12,7 @@ import seedu.address.commons.util.ToStringBuilder;
  * Stores one student's submission status and optional grade for an assignment.
  */
 public final class AssignmentRecord {
-    public static final String MESSAGE_INVALID_GRADE = "Grade must be a whole number from 0 to 100.";
+    public static final String MESSAGE_INVALID_GRADE = "Invalid grade. Enter a whole number from 0 to 100.";
 
     private final boolean submitted;
     private final Optional<Integer> grade;
