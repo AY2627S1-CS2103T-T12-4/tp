@@ -73,6 +73,17 @@ public class Assignment {
         return new Assignment(name, updatedRecords);
     }
 
+    /** Returns a copy without the student's record, or this assignment when no record exists. */
+    public Assignment withoutStudentRecord(StudentId studentId) {
+        requireNonNull(studentId);
+        if (!studentRecords.containsKey(studentId)) {
+            return this;
+        }
+        Map<StudentId, AssignmentRecord> updatedRecords = new HashMap<>(studentRecords);
+        updatedRecords.remove(studentId);
+        return new Assignment(name, updatedRecords);
+    }
+
     /**
      * Returns true if both assignments have the same name, ignoring case.
      * This check is used to enforce unique assignment names within a group.

@@ -108,7 +108,13 @@ public class Group {
      * The student must be in this group.
      */
     public Student removeStudent(StudentId studentId) {
-        return students.remove(studentId);
+        Student removedStudent = students.remove(studentId);
+        for (Assignment assignment : List.copyOf(getAssignmentList())) {
+            if (assignment.getStudentRecords().containsKey(removedStudent.getStudentId())) {
+                setAssignment(assignment.withoutStudentRecord(removedStudent.getStudentId()));
+            }
+        }
+        return removedStudent;
     }
 
     /**

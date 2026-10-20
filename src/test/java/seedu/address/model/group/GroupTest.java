@@ -88,6 +88,16 @@ public class GroupTest {
     }
 
     @Test
+    public void removeStudent_existingStudent_removesAssignmentRecordsToo() {
+        group.addStudent(ALICE);
+        group.addAssignment(PS1.withSubmissionStatus(ALICE.getStudentId(), true));
+
+        group.removeStudent(ALICE.getStudentId());
+
+        assertTrue(group.getAssignmentList().getFirst().getStudentRecords().isEmpty());
+    }
+
+    @Test
     public void removeStudent_missingStudent_throwsStudentNotFoundException() {
         assertThrows(StudentNotFoundException.class, () -> group.removeStudent(ALICE.getStudentId()));
     }
