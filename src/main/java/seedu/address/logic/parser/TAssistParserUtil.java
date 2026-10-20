@@ -122,9 +122,9 @@ public class TAssistParserUtil {
     public static boolean parseSubmissionStatus(String status) throws ParseException {
         requireNonNull(status);
         return switch (status.trim().toLowerCase(Locale.ROOT)) {
-        case "yes" -> true;
-        case "no" -> false;
-        default -> throw new ParseException(MESSAGE_SUBMISSION_STATUS);
+            case "yes" -> true;
+            case "no" -> false;
+            default -> throw new ParseException(MESSAGE_SUBMISSION_STATUS);
         };
     }
 

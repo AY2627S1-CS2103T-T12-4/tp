@@ -99,8 +99,7 @@ public class AssignmentTest {
         source.clear();
 
         assertTrue(assignment.getStudentRecords().containsKey(aliceId));
-        assertThrows(UnsupportedOperationException.class,
-                () -> assignment.getStudentRecords().clear());
+        assertThrows(UnsupportedOperationException.class, () -> assignment.getStudentRecords().clear());
         assertThrows(NullPointerException.class, () -> new Assignment(NAME_PS1, null));
         Map<StudentId, AssignmentRecord> invalidRecords = new HashMap<>();
         invalidRecords.put(null, AssignmentRecord.notSubmitted());

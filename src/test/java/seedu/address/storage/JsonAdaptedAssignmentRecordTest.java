@@ -18,10 +18,10 @@ public class JsonAdaptedAssignmentRecordTest {
         assertEquals(new AssignmentName("PS1"),
                 new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, null).getAssignmentName());
         assertThrows(IllegalValueException.class,
-                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "assignmentName"),
-                () -> new JsonAdaptedAssignmentRecord(null, "A0123456X", true, null).getAssignmentName());
-        assertThrows(IllegalValueException.class, AssignmentName.MESSAGE_CONSTRAINTS,
-                () -> new JsonAdaptedAssignmentRecord("PS1!", "A0123456X", true, null).getAssignmentName());
+                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "assignmentName"), () ->
+                        new JsonAdaptedAssignmentRecord(null, "A0123456X", true, null).getAssignmentName());
+        assertThrows(IllegalValueException.class, AssignmentName.MESSAGE_CONSTRAINTS, () ->
+                new JsonAdaptedAssignmentRecord("PS1!", "A0123456X", true, null).getAssignmentName());
     }
 
     @Test
@@ -29,10 +29,10 @@ public class JsonAdaptedAssignmentRecordTest {
         assertEquals(new StudentId("A0123456X"),
                 new JsonAdaptedAssignmentRecord("PS1", "a0123456x", true, null).getStudentId());
         assertThrows(IllegalValueException.class,
-                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "studentId"),
-                () -> new JsonAdaptedAssignmentRecord("PS1", null, true, null).getStudentId());
-        assertThrows(IllegalValueException.class, StudentId.MESSAGE_CONSTRAINTS,
-                () -> new JsonAdaptedAssignmentRecord("PS1", "ID!", true, null).getStudentId());
+                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "studentId"), () ->
+                        new JsonAdaptedAssignmentRecord("PS1", null, true, null).getStudentId());
+        assertThrows(IllegalValueException.class, StudentId.MESSAGE_CONSTRAINTS, () ->
+                new JsonAdaptedAssignmentRecord("PS1", "ID!", true, null).getStudentId());
     }
 
     @Test
@@ -46,11 +46,11 @@ public class JsonAdaptedAssignmentRecordTest {
     @Test
     public void toModelType_missingStatusOrInvalidGrade_throwsIllegalValueException() {
         assertThrows(IllegalValueException.class,
-                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "submitted"),
-                () -> new JsonAdaptedAssignmentRecord("PS1", "A0123456X", null, null).toModelType());
-        assertThrows(IllegalValueException.class, AssignmentRecord.MESSAGE_INVALID_GRADE,
-                () -> new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 101).toModelType());
-        assertThrows(IllegalValueException.class, "An unsubmitted assignment cannot have a grade.",
-                () -> new JsonAdaptedAssignmentRecord("PS1", "A0123456X", false, 87).toModelType());
+                String.format(JsonAdaptedAssignmentRecord.MISSING_FIELD_MESSAGE_FORMAT, "submitted"), () ->
+                        new JsonAdaptedAssignmentRecord("PS1", "A0123456X", null, null).toModelType());
+        assertThrows(IllegalValueException.class, AssignmentRecord.MESSAGE_INVALID_GRADE, () ->
+                new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 101).toModelType());
+        assertThrows(IllegalValueException.class, "An unsubmitted assignment cannot have a grade.", () ->
+                new JsonAdaptedAssignmentRecord("PS1", "A0123456X", false, 87).toModelType());
     }
 }

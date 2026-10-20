@@ -80,8 +80,8 @@ public class AssignmentSubmitCommandTest {
     public void constructorAndExecute_nullInputs_throwNullPointerException() {
         assertThrows(NullPointerException.class, () -> new AssignmentSubmitCommand(null, ALICE_ID, true));
         assertThrows(NullPointerException.class, () -> new AssignmentSubmitCommand(NAME_PS1, null, true));
-        assertThrows(NullPointerException.class,
-                () -> new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, true).execute(null));
+        assertThrows(NullPointerException.class, () ->
+                new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, true).execute(null));
     }
 
     @Test

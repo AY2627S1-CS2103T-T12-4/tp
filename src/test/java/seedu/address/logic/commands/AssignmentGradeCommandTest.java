@@ -80,10 +80,10 @@ public class AssignmentGradeCommandTest {
     public void constructorAndExecute_invalidInputs_reportErrors() {
         assertThrows(NullPointerException.class, () -> new AssignmentGradeCommand(null, ALICE_ID, 87));
         assertThrows(NullPointerException.class, () -> new AssignmentGradeCommand(NAME_PS1, null, 87));
-        assertThrows(IllegalArgumentException.class, AssignmentRecord.MESSAGE_INVALID_GRADE,
-                () -> new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 101));
-        assertThrows(NullPointerException.class,
-                () -> new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87).execute(null));
+        assertThrows(IllegalArgumentException.class, AssignmentRecord.MESSAGE_INVALID_GRADE, () ->
+                new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 101));
+        assertThrows(NullPointerException.class, () ->
+                new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87).execute(null));
     }
 
     @Test
