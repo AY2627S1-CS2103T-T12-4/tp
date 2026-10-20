@@ -144,6 +144,13 @@ public class Group {
     }
 
     /**
+     * Replaces an existing assignment with the same name.
+     */
+    public void setAssignment(Assignment assignment) {
+        assignments.setAssignment(requireNonNull(assignment));
+    }
+
+    /**
      * Returns true if both groups have the same name, ignoring case.
      * This defines a weaker notion of equality between two groups.
      */
