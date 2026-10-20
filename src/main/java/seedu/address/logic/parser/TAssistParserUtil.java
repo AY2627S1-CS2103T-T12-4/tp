@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Locale;
+
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.GroupName;
@@ -15,7 +17,8 @@ public class TAssistParserUtil {
     public static final String MESSAGE_WEEK = "Invalid week. Enter a number from 1 to 13.";
     public static final String MESSAGE_PARTICIPATION_SCORE =
             "Invalid participation score. Enter a whole number from 0 to 5.";
-    public static final String MESSAGE_GRADE = "Grade must be a whole number from 0 to 100.";
+    public static final String MESSAGE_GRADE = "Invalid grade. Enter a whole number from 0 to 100.";
+    public static final String MESSAGE_SUBMISSION_STATUS = "Invalid submission status. Use yes or no.";
 
     private TAssistParserUtil() {}
 
@@ -113,6 +116,16 @@ public class TAssistParserUtil {
      */
     public static int parseGrade(String grade) throws ParseException {
         return parseWholeNumber(grade, 0, 100, MESSAGE_GRADE);
+    }
+
+    /** Parses yes or no as a submission status, ignoring case and surrounding whitespace. */
+    public static boolean parseSubmissionStatus(String status) throws ParseException {
+        requireNonNull(status);
+        return switch (status.trim().toLowerCase(Locale.ROOT)) {
+        case "yes" -> true;
+        case "no" -> false;
+        default -> throw new ParseException(MESSAGE_SUBMISSION_STATUS);
+        };
     }
 
     private static int parseWholeNumber(String value, int minimum, int maximum, String message) throws ParseException {

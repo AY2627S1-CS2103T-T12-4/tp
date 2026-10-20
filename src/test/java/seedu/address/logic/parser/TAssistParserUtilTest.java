@@ -144,4 +144,19 @@ public class TAssistParserUtilTest {
         assertThrows(NullPointerException.class, () -> TAssistParserUtil.parseParticipationScore(null));
         assertThrows(NullPointerException.class, () -> TAssistParserUtil.parseGrade(null));
     }
+
+    @Test
+    public void parseSubmissionStatus_yesAndNo_success() throws Exception {
+        assertTrue(TAssistParserUtil.parseSubmissionStatus("yes"));
+        assertFalse(TAssistParserUtil.parseSubmissionStatus(" NO "));
+    }
+
+    @Test
+    public void parseSubmissionStatus_invalid_throwsSpecificError() {
+        for (String status : new String[] {"", "true", "y", "submitted"}) {
+            assertThrows(ParseException.class, TAssistParserUtil.MESSAGE_SUBMISSION_STATUS, () ->
+                    TAssistParserUtil.parseSubmissionStatus(status));
+        }
+        assertThrows(NullPointerException.class, () -> TAssistParserUtil.parseSubmissionStatus(null));
+    }
 }
