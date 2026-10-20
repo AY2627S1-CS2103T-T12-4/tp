@@ -386,10 +386,10 @@ across restarts, and rejected commands preserving both the model and the saved f
 
 ### Assignment commands
 
-`AssignmentCommandRegistration` registers `assignment add` and `assignment list` and their help entries, and
-`MainApp.init` installs it before constructing `LogicManager`. Both parsers require `a/` exactly once with
-`TAssistArgumentParser`, and `TAssistParserUtil#parseAssignmentName` turns its value into an `AssignmentName`.
-A blank or invalid value therefore reports the name constraints instead of a missing-parameter error.
+`AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`, and
+`assignment list` with offline help entries, and `MainApp.init` installs it before constructing `LogicManager`.
+The submit and grade parsers require `a/`, `id/`, and their status or grade prefix exactly once with
+`TAssistArgumentParser`. `TAssistParserUtil` validates the assignment name, student ID, yes/no status, and grade.
 
 `AssignmentName` mirrors `GroupName`: it normalizes spaces, keeps the entered capitalization for display, and
 compares ignoring case, so `PS1` and `ps1` are the same assignment. An `Assignment` is identified by its name, and
@@ -398,19 +398,25 @@ within one group.
 
 `AssignmentAddCommand` finds the active group and rejects a name that the group already holds, then calls
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
-capitalization that is stored. `AssignmentListCommand` looks the assignment up in the active group, reports an
-unknown one, and otherwise returns one row per student in roster order: name, student ID, submission status and
-grade. Both commands show the same errors for a missing active group as the other commands, and a failed command
-changes nothing, because each check comes before the model is changed.
+capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
+assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
+checks that the record is submitted. Each failed command leaves the model unchanged. `AssignmentListCommand` returns
+one row per student in roster order: name, student ID, submission status, and grade; missing records show
+`Not submitted` and `-`.
 
-Students do not hold assignment records yet, so every row of `assignment list` shows the defaults `Not submitted`
-and `-` (`AssignmentListCommand#STATUS_NOT_SUBMITTED` and `GRADE_NOT_RECORDED`). Recording submissions and grades is
-a later increment, which will keep each student's record keyed by assignment name (see
-[Where per-student records are stored](#where-per-student-records-are-stored)) and replace these defaults.
+`Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
+flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears its
+grade. Removing a student removes that student's assignment records from the group's assignments.
+
+`JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
+`assignmentRecords` list. The list can be absent in older data files. During loading, records must refer to an
+existing assignment and student, duplicate assignment/student pairs are rejected, and status/grade invariants are
+validated before the group is returned.
 
 `AssignmentCommandsIntegrationTest` exercises startup registration, help, persistence across restarts, and rejected
-commands preserving the model and the saved file. The model, storage, command and parser tests cover name
-validation, case-insensitive duplicates, group isolation, and malformed input.
+commands preserving the model and the saved file, including persistence of submission and grade updates after restart.
+The model, storage, command and parser tests cover validation, replacement, group isolation, legacy JSON files, and
+malformed input.
 
 ### TAssist domain model
 
@@ -420,7 +426,8 @@ TAssist's own data is modelled by the classes below. `ModelManager` holds the `T
 
 * `TAssist` is the root object. It holds the tutorial groups in a `UniqueGroupList` and remembers which group is active, if any. Other components see it through the read-only `ReadOnlyTAssist` interface.
 * A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList` and its own assignments in a `UniqueAssignmentList`.
-* An `Assignment` has an `AssignmentName`, which is unique within its group, ignoring case.
+* An `Assignment` has an `AssignmentName`, which is unique within its group, ignoring case, and stores student records
+  by ID. `AssignmentRecord` combines a submitted flag with an optional grade from 0 to 100.
 * A `Student` has a `StudentName`, a `StudentId`, weekly attendance and participation records, and is immutable.
 * `UniqueGroupList`, `UniqueStudentList` and `UniqueAssignmentList` share the uniqueness logic of the generic `UniqueList`, which also exposes the items as an unmodifiable `ObservableList` that the UI can bind to.
 
@@ -464,25 +471,29 @@ command feedback box; the Attendance workspace screen remains a preview.
 #### Where per-student records are stored
 
 Attendance and participation records are stored **on the `Student` object, inside the group the student belongs to**.
-The shared `WeeklyRecord<T>` supports week-keyed values for both features; assignments are partly implemented:
+The shared `WeeklyRecord<T>` supports week-keyed values for both features. Assignment records are stored on each
+`Assignment` within its group, in a map keyed by `StudentId`:
 
 * **Weekly records** (attendance and participation): each `Student` holds one record per kind, using the shared
   mechanism. Attendance values are stored as strings and participation values as integers; feature commands validate
   their own values before updating a student.
-* **Assignments:** a `Group` holds the list of assignments created for it, since assignment names are unique within a group. Each `Student` will hold their own submission status and grade for each assignment, keyed by assignment name, once recording them is implemented.
-* As `Student` is immutable, recording or updating a value replaces the student in its group with an updated copy.
+* **Assignments:** each `Assignment` holds explicit student records with a submitted flag and optional grade. The
+  assignment's group scopes those IDs, since IDs are unique only within a group. Removing a student removes their
+  records from every assignment in that group.
+* `Student` and `Assignment` are immutable. Weekly updates replace the student in its group; assignment updates
+  replace the assignment while preserving its position in the group's list.
 
 **Aspect: Where per-student records are stored**
 
-* **Alternative 1 (current choice):** Store the records on each `Student`, inside its group.
+* **Weekly-record choice:** Store attendance and participation records on each `Student`, inside its group.
   * Pros: A student's records are automatically scoped to the right group, which matters because student IDs are only unique within a group. Removing a student also removes all of their records, so no record can point to a student who no longer exists. The data file nests group → students → records, which is easy to read and edit by hand, and each feature adds its own field without changing the others.
   * Cons: `Student` grows a field for each kind of record, and every update creates a new `Student` object.
 
-* **Alternative 2:** Keep separate tables in each `Group`, keyed by student ID (e.g. one attendance table, one participation table).
+* **Alternative 2 for weekly records:** Keep separate tables in each `Group`, keyed by student ID (e.g. one attendance table, one participation table).
   * Pros: `Student` stays small, and each feature owns its own table.
   * Cons: Removing a student must also clean up every table, and a wrong manual edit of the data file can leave records for a student who does not exist.
 
-* **Alternative 3:** Keep one list of records for the whole app, keyed by group, student ID and week.
+* **Alternative 3 for weekly records:** Keep one list of records for the whole app, keyed by group, student ID and week.
   * Pros: All records are in one place.
   * Cons: Every lookup has to filter by group and student, and the data file is the hardest of the three to read and edit by hand.
 
