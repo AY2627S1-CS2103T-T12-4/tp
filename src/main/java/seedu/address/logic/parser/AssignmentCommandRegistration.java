@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 
 import seedu.address.logic.commands.AssignmentAddCommand;
+import seedu.address.logic.commands.AssignmentGradeCommand;
 import seedu.address.logic.commands.AssignmentListCommand;
+import seedu.address.logic.commands.AssignmentSubmitCommand;
 import seedu.address.logic.help.HelpEntry;
 
 /**
@@ -26,6 +28,14 @@ public final class AssignmentCommandRegistration {
                         "Create an assignment in the active group. Names: 1-60 letters, digits, spaces or hyphens; "
                                 + "unique per group, ignoring case.",
                         List.of("assignment add a/PS1")));
+        registry.register("assignment", "submit", new AssignmentSubmitCommandParser(),
+                new HelpEntry("assignment", AssignmentSubmitCommand.MESSAGE_USAGE,
+                        "Record or replace a student's submission status for an assignment. Status is yes or no.",
+                        List.of("assignment submit a/PS1 id/A0123456X s/yes")));
+        registry.register("assignment", "grade", new AssignmentGradeCommandParser(),
+                new HelpEntry("assignment", AssignmentGradeCommand.MESSAGE_USAGE,
+                        "Record or replace a grade from 0 to 100 after the student has submitted the assignment.",
+                        List.of("assignment grade a/PS1 id/A0123456X g/87")));
         registry.register("assignment", "list", new AssignmentListCommandParser(),
                 new HelpEntry("assignment", AssignmentListCommand.MESSAGE_USAGE,
                         "List every student's submission status and grade for an assignment of the active group. "
