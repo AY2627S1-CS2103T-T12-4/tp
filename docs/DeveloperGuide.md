@@ -626,7 +626,9 @@ snapshot would not itself append a new entry or discard redo history.
 **Restoring a change.** `TAssistParser` would recognize the one-word `undo` and `redo` commands beside `help`,
 `exit`, and `view`, because `CommandRegistry` only dispatches input of the form `feature subcommand`.
 The commands would return a proposed history-action request in `CommandResult`, leaving `LogicManager` to
-coordinate restoration and persistence. The proposed flow would be:
+coordinate restoration and persistence. `LogicManager` would check for this request as soon as the command returns,
+before the existing check that skips saving when the data is unchanged. An undo request leaves the model unchanged
+at that point, so without this order the snapshot would never be restored or saved. The proposed flow would be:
 
 1. Check that a previous or next entry exists. If none exists, return a specific message such as
    `Nothing to undo.` or `Nothing to redo.` without changing data or history.
