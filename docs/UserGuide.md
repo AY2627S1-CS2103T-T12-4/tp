@@ -116,9 +116,10 @@ Opens the **Help** screen, which lists the format, rules, and examples of every 
 The feedback box confirms with `Showing the command reference.`
 
 The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
-attendance, and participation commands, in the same order as their sections in this guide. Within a topic, commands appear in the order
-you would use them. The examples are written to follow on from each other: in a new TAssist, you can type the
-group, student, attendance, and participation examples in order, and each one works.
+attendance, participation, and assignment commands, in the same order as their sections in this guide. Within a topic,
+commands appear in the order you would use them. The examples are written to follow on from each other: in a new
+TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
+works.
 
 Format: `help [TOPIC]`
 
@@ -131,6 +132,7 @@ Format: `help [TOPIC]`
 Examples:
 * `help`
 * `help student`
+* `help assignment` shows `Showing assignment commands.` and opens the Help screen at the assignment commands.
 
 
 ### Opening a screen: `view`
