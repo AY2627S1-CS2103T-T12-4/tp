@@ -335,11 +335,16 @@ week already has a value, creates an immutable copy with `Student.withParticipat
 `Model.setStudent`. Feedback distinguishes a first entry from a replacement. The replacement preserves roster
 order, attendance, and scores for other weeks; students in other groups are untouched.
 
-The sequence diagram below shows how `participation set id/A0123456X w/3 s/2` is parsed and executed while T01 is
-the active group. `CommandRegistry` passes the arguments to the `ParticipationSetCommandParser` registered at startup,
-and the command replaces the student with the updated copy `u` instead of changing the original.
+The sequence diagram below shows how `LogicManager` executes the input `participation set id/A0123456X w/3 s/2`
+while T01 is the active group. The command replaces the student with the updated copy `u` instead of changing the
+original.
 
-![Interactions for the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetSequenceDiagram.png)
+![Execution of the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetSequenceDiagram.png)
+
+The `parse participation set` reference frame is shown below. `CommandRegistry` passes the arguments to the
+`ParticipationSetCommandParser` registered at startup, so no parser is created for each command.
+
+![Parsing of the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetParseSequenceDiagram.png)
 
 `ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
 the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.

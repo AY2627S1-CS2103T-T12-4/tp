@@ -1,0 +1,40 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+mainframe sd parse participation set
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":TAssistParser" as TAssistParser LOGIC_COLOR
+participant ":CommandRegistry" as CommandRegistry LOGIC_COLOR
+participant ":ParticipationSetCommandParser" as Parser LOGIC_COLOR
+participant "p:ParticipationSetCommand" as Command LOGIC_COLOR
+end box
+
+activate LogicManager
+
+LogicManager -> TAssistParser : parseCommand(input)
+activate TAssistParser
+
+TAssistParser -> CommandRegistry : parseCommand("participation", ...)
+activate CommandRegistry
+
+CommandRegistry -> Parser : parse("id/A0123456X w/3 s/2")
+activate Parser
+
+create Command
+Parser -> Command
+activate Command
+
+Command --> Parser
+deactivate Command
+
+Parser --> CommandRegistry : p
+deactivate Parser
+
+CommandRegistry --> TAssistParser : p
+deactivate CommandRegistry
+
+TAssistParser --> LogicManager : p
+deactivate TAssistParser
+@enduml
