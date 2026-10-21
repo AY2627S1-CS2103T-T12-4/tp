@@ -623,8 +623,8 @@ saved data. Read-only commands such as `student list`, `help`, and `view student
 The activity diagram covers ordinary commands. Undo and redo would follow a separate path, so restoring a
 snapshot would not itself append a new entry or discard redo history.
 
-**Restoring a change.** A registration class would register proposed `undo` and `redo` parsers through
-`CommandRegistry`.
+**Restoring a change.** `TAssistParser` would recognize the one-word `undo` and `redo` commands beside `help`,
+`exit`, and `view`, because `CommandRegistry` only dispatches input of the form `feature subcommand`.
 The commands would return a proposed history-action request in `CommandResult`, leaving `LogicManager` to
 coordinate restoration and persistence. The proposed flow would be:
 
