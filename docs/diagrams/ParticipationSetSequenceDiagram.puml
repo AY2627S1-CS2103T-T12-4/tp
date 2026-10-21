@@ -56,10 +56,10 @@ Command -[hidden]-> LogicManager
 destroy Command
 
 note right of LogicManager
-  Saves the changed data,
-  then returns r.
+  Saves the changed data, then returns
+  a copy of r marked as saved.
 end note
 
-[<-- LogicManager : r
+[<-- LogicManager : saved copy of r
 deactivate LogicManager
 @enduml
