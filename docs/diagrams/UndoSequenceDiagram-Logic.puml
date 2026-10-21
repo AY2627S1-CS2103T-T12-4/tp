@@ -12,7 +12,8 @@ participant ":Storage" as Storage STORAGE_COLOR
 activate LogicManager
 note over LogicManager, History
   Proposed flow, not implemented.
-  A previous entry exists; startup data is not protected.
+  Precondition: a previous entry exists and the data
+  file loaded, so saving is allowed.
   The pre-command model copy is retained for recovery.
 end note
 
