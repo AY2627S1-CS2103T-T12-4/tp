@@ -1,0 +1,95 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":TAssistParser" as TAssistParser LOGIC_COLOR
+participant ":CommandRegistry" as CommandRegistry LOGIC_COLOR
+participant ":ParticipationSetCommandParser" as Parser LOGIC_COLOR
+participant "p:ParticipationSetCommand" as Command LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "g:Group" as Group MODEL_COLOR
+participant "s:Student" as Student MODEL_COLOR
+participant "u:Student" as Updated MODEL_COLOR
+end box
+
+[-> LogicManager : execute(input)
+activate LogicManager
+note left of LogicManager
+  input = "participation set
+  id/A0123456X w/3 s/2"
+end note
+
+LogicManager -> TAssistParser : parseCommand(input)
+activate TAssistParser
+
+TAssistParser -> CommandRegistry : parseCommand("participation", "set id/A0123456X w/3 s/2")
+activate CommandRegistry
+
+CommandRegistry -> Parser : parse("id/A0123456X w/3 s/2")
+activate Parser
+
+create Command
+Parser -> Command
+activate Command
+
+Command --> Parser
+deactivate Command
+
+Parser --> CommandRegistry : p
+deactivate Parser
+
+CommandRegistry --> TAssistParser : p
+deactivate CommandRegistry
+
+TAssistParser --> LogicManager : p
+deactivate TAssistParser
+
+LogicManager -> Command : execute(m)
+activate Command
+
+Command -> Model : getActiveGroup()
+activate Model
+Model --> Command : g
+deactivate Model
+
+Command -> Group : findStudent(A0123456X)
+activate Group
+Group --> Command : s
+deactivate Group
+
+Command -> Student : withParticipationRecord(3, 2)
+activate Student
+
+create Updated
+Student -> Updated
+activate Updated
+Updated --> Student
+deactivate Updated
+
+Student --> Command : u
+deactivate Student
+
+Command -> Model : setStudent(T01, u)
+activate Model
+Model --> Command
+deactivate Model
+
+Command --> LogicManager : r
+deactivate Command
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+Command -[hidden]-> LogicManager
+destroy Command
+
+note right of LogicManager
+  Saves the changed data,
+  then returns r.
+end note
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml
