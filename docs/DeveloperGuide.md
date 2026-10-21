@@ -9,6 +9,10 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
+* The proposed undo/redo design adapts the snapshot-history idea from the
+  [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
+  The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
+
 * The GUI is based on the team-supplied **TAssist UI Mockups.html** design reference
   ([image of the mock-up](images/UiMockup.png)): its colors, cards and command-first layout. A single light top bar
   with the group chips, and a navigation bar that opens the screens, replace the mock-up's dark header with a menu bar
@@ -595,87 +599,107 @@ change.
 
 ### \[Proposed\] Undo/redo feature
 
-#### Proposed Implementation
+**Status: optional future work, not implemented in the current release.** This proposal is tracked in
+[issue #63](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/63). The `undo` and `redo` commands,
+`UndoRedoHistory`, `HistoryEntry`, and the history operations below are proposed additions. Existing TAssist
+classes are named to show where the design would fit; this section does not describe working commands.
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+#### Proposed implementation
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+The TA would use `undo` to reverse the latest successful data change and `redo` to restore the change just undone.
+The proposal would cover changes across tutorial groups, students, attendance, participation, and assignments.
+A snapshot would contain the complete `TAssist` data, including the active group, so restoring a deleted student
+would also restore that student's records in the correct group. GUI preferences would remain outside the history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+`LogicManager` would own an `UndoRedoHistory` containing an ordered list of `HistoryEntry` objects and a
+`currentIndex`. Each entry would hold a private `TAssist` snapshot and, except for the initial entry, a description
+of the command that produced it. Copies would use the existing `TAssist(ReadOnlyTAssist)` constructor; neither
+live model changes nor a restored model could modify a retained snapshot.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+<img src="images/UndoRedoHistoryClassDiagram.png" width="650" alt="Proposed undo/redo history structure" />
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+At startup, the history would contain only a copy of the loaded data. History would be kept in memory for the
+current session; restarting would retain the saved data but clear the ability to undo earlier commands.
+The implementation would bound the number of retained entries and discard the oldest entries when full,
+adjusting `currentIndex` to keep pointing to the retained current entry.
 
-![UndoRedoState0](images/UndoRedoState0.png)
+**Recording a change.** The existing `LogicManager` already copies the model before execution, saves changed
+data, and restores the copy if a command or save fails (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+The proposal would add a history entry only after this save succeeds. At that point, it would discard entries
+after `currentIndex`, append a copy of the new data with its command description, and advance the index.
+A rejected command, a failed save, or a command that leaves the data unchanged would preserve the entire history,
+including any entries available for redo.
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+This rule would also cover `group use` when it changes the active group, because that selection is part of the
+saved data. Read-only commands such as `student list`, `help`, and `view students` would not add history entries.
 
-![UndoRedoState1](images/UndoRedoState1.png)
+<img src="images/CommitActivityDiagram.png" width="650" alt="Proposed history recording after a normal command" />
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+The activity diagram covers ordinary commands. Undo and redo would follow a separate path, so restoring a
+snapshot would not itself append a new entry or discard redo history.
 
-![UndoRedoState2](images/UndoRedoState2.png)
+**Restoring a change.** `TAssistParser` would recognize the one-word `undo` and `redo` commands beside `help`,
+`exit`, and `view`, because `CommandRegistry` only dispatches input of the form `feature subcommand`.
+The commands would return a proposed history-action request in `CommandResult`, leaving `LogicManager` to
+coordinate restoration and persistence. `LogicManager` would check for this request as soon as the command returns,
+before the existing check that skips saving when the data is unchanged. An undo request leaves the model unchanged
+at that point, so without this order the snapshot would never be restored or saved. The proposed flow would be:
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+1. Check that a previous or next entry exists. If none exists, return a specific message such as
+   `Nothing to undo.` or `Nothing to redo.` without changing data or history.
+2. Keep a copy of the current model and obtain a copy of the target snapshot without moving `currentIndex`.
+3. Restore the target through the existing `Model#setTAssist`, which also refreshes the observable group and
+   student views, and save it through `Storage#saveTAssist`.
+4. Only after saving succeeds, move `currentIndex` to the target and return a saved-change confirmation naming
+   the affected command, for example `Undid: student delete id/A0123456X`.
 
-</div>
+If saving fails, restore the pre-command model and leave the index and history unchanged. The existing atomic
+save mechanism preserves the previous file. The startup protection for unreadable data must also continue to
+reject changes without attempting a save. Redo would restore the recorded snapshot, including its active group,
+rather than parse and execute the original command again.
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+<img src="images/UndoSequenceDiagram-Logic.png" width="750" alt="Proposed successful undo and save sequence" />
 
-![UndoRedoState3](images/UndoRedoState3.png)
+The sequence diagram omits parsing and shows the successful path after an undo request is recognized.
+`peekUndo()` would return a copy without moving the index; `confirmUndo()` would move it only after saving.
+Redo would use equivalent next-entry operations. These history methods do not exist yet.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+#### Example history
 
-</div>
+Suppose T01 is active and contains Alice (`A0123456X`) when the app starts. Let S0 be that initial snapshot.
+The following illustrates the proposed behavior; `undo` and `redo` cannot yet be run in the app.
 
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
+| Step | Command | Retained snapshots | Current snapshot and result |
+| --- | --- | --- | --- |
+| 1 | `attendance mark id/A0123456X w/3 s/present` | S0, S1 | S1: Alice is present in week 3. |
+| 2 | `student delete id/A0123456X` | S0, S1, S2 | S2: Alice and her records are removed. |
+| 3 | `undo` | S0, S1, S2 | S1: Alice and her attendance are restored. |
+| 4 | `redo` | S0, S1, S2 | S2: Alice is removed again. |
+| 5 | `undo`, then `student list` | S0, S1, S2 | S1: listing leaves the history unchanged. |
+| 6 | `participation set id/A0123456X w/3 s/2` | S0, S1, S3 | S3: the new score is saved; S2 is no longer available for redo. |
 
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
+Each data-changing step assumes saving succeeds. A failed step would retain the previous model, saved file,
+and history position. Undo at the oldest retained entry and redo at the newest entry would report that no
+further change is available.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+#### Design considerations
 
-</div>
+**Aspect: How to represent changes**
 
-Similarly, how an undo operation goes through the `Model` component is shown below:
+* **Alternative 1 (proposed choice):** Keep complete TAssist snapshots.
+  * Pros: One mechanism restores groups, students, records, and active selection together. It reuses the model's
+    copy and restore operations and does not require a different inverse operation for each command.
+  * Cons: Each entry copies the data. A bounded history limits memory use but also limits how far the TA can undo.
+* **Alternative 2:** Store an inverse operation for each command.
+  * Pros: Small changes can use less memory than a complete snapshot.
+  * Cons: Each command needs its own restoration logic, including dependent records when a student is deleted.
 
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
+**Aspect: When to move the history position**
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
+* **Proposed choice:** Update history only after a successful save. A storage error can then leave the model,
+  file, and history at the last successful state, and the TA can retry the same undo or redo.
+* **Alternative:** Move the index before saving. This would require rolling back both the model and history on
+  failure, adding another opportunity for them to disagree.
 
 ### \[Proposed\] Data archiving
 
