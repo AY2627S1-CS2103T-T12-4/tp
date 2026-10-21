@@ -18,7 +18,7 @@ class TAssist MODEL_COLOR
 
 show UndoRedoHistory members
 show HistoryEntry members
-LogicManager --> "1" UndoRedoHistory : history
+LogicManager *--> "1" UndoRedoHistory : history
 UndoRedoHistory *--> "1..*" HistoryEntry : entries {ordered}
 HistoryEntry *--> "1" TAssist : snapshot
 
