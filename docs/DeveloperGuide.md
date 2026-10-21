@@ -341,6 +341,9 @@ original.
 
 ![Execution of the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetSequenceDiagram.png)
 
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `ParticipationSetCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
 The `parse participation set` reference frame is shown below. `CommandRegistry` passes the arguments to the
 `ParticipationSetCommandParser` registered at startup, so no parser is created for each command.
 
