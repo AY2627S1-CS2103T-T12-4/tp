@@ -1,46 +1,46 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+title Proposed undo: successful restoration and save
 
-box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant "u:UndoCommand" as UndoCommand LOGIC_COLOR
-end box
-
-box Model MODEL_COLOR_T1
+participant ":UndoRedoHistory" as History LOGIC_COLOR
 participant ":Model" as Model MODEL_COLOR
-end box
-[-> LogicManager : execute(undo)
+participant ":Storage" as Storage STORAGE_COLOR
+
+[-> LogicManager : handle undo request
 activate LogicManager
+note over LogicManager, History
+  Proposed flow, not implemented.
+  A previous entry exists; startup data is not protected.
+  The pre-command model copy is retained for recovery.
+end note
 
-LogicManager -> AddressBookParser : parseCommand(undo)
-activate AddressBookParser
+LogicManager -> History : peekUndo()
+activate History
+History --> LogicManager : target snapshot copy
+deactivate History
 
-create UndoCommand
-AddressBookParser -> UndoCommand
-activate UndoCommand
-
-UndoCommand --> AddressBookParser
-deactivate UndoCommand
-
-AddressBookParser --> LogicManager : u
-deactivate AddressBookParser
-
-LogicManager -> UndoCommand : execute()
-activate UndoCommand
-
-UndoCommand -> Model : undoAddressBook()
+LogicManager -> Model : setTAssist(target)
 activate Model
-
-Model --> UndoCommand
+Model --> LogicManager
 deactivate Model
 
-UndoCommand --> LogicManager : result
-deactivate UndoCommand
-UndoCommand -[hidden]-> LogicManager : result
-destroy UndoCommand
+LogicManager -> Storage : saveTAssist(target)
+activate Storage
+Storage --> LogicManager : save succeeds
+deactivate Storage
 
-[<--LogicManager
+LogicManager -> History : confirmUndo()
+activate History
+History --> LogicManager : index moved to previous entry
+deactivate History
+
+[<-- LogicManager : saved confirmation with command description
 deactivate LogicManager
+
+note over LogicManager, Storage
+  On save failure, restore the pre-command model.
+  Leave the file, history entries, and index unchanged.
+end note
 @enduml
