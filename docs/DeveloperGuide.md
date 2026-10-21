@@ -334,6 +334,21 @@ or scores defensively, even when called without a parser.
 week already has a value, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
 `Model.setStudent`. Feedback distinguishes a first entry from a replacement. The replacement preserves roster
 order, attendance, and scores for other weeks; students in other groups are untouched.
+
+The sequence diagram below shows how `LogicManager` executes the input `participation set id/A0123456X w/3 s/2`
+while T01 is the active group. The command replaces the student with the updated copy `u` instead of changing the
+original.
+
+![Execution of the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `ParticipationSetCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
+The `parse participation set` reference frame is shown below. `CommandRegistry` passes the arguments to the
+`ParticipationSetCommandParser` registered at startup, so no parser is created for each command.
+
+![Parsing of the `participation set id/A0123456X w/3 s/2` command](images/ParticipationSetParseSequenceDiagram.png)
+
 `ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
 the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
 
