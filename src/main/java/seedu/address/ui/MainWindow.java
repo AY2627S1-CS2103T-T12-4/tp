@@ -3,11 +3,15 @@ package seedu.address.ui;
 import static java.util.Objects.requireNonNull;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
@@ -33,6 +37,7 @@ public class MainWindow extends UiPart<Stage> {
     private final Logic logic;
     private final Path dataFilePath;
     private final DataLoadStatus dataLoadStatus;
+    private final ConfirmationHandler confirmationHandler;
 
     private WorkspacePanel workspacePanel;
     private ResultDisplay resultDisplay;
@@ -63,11 +68,20 @@ public class MainWindow extends UiPart<Stage> {
      * Creates the main window with the startup data-loading outcome.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus) {
+        this(primaryStage, logic, dataFilePath, dataLoadStatus, MainWindow::showConfirmationDialog);
+    }
+
+    /**
+     * Creates the main window with a testable handler for destructive-command confirmations.
+     */
+    MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus,
+            ConfirmationHandler confirmationHandler) {
         super(FXML, primaryStage);
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
         this.dataLoadStatus = requireNonNull(dataLoadStatus);
+        this.confirmationHandler = requireNonNull(confirmationHandler);
 
         setWindowDefaultSize(logic.getGuiSettings());
         setAccelerators();
@@ -130,6 +144,18 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    private static boolean showConfirmationDialog(Stage owner, String prompt) {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.initOwner(owner);
+        dialog.setTitle("Confirm destructive action");
+        dialog.setHeaderText("This action cannot be undone.");
+        dialog.setContentText(prompt);
+        ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getButtonTypes().setAll(continueButton, cancelButton);
+        return dialog.showAndWait().filter(continueButton::equals).isPresent();
+    }
+
     /**
      * Shows the inline command reference.
      */
@@ -167,6 +193,15 @@ public class MainWindow extends UiPart<Stage> {
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
+            Optional<String> confirmationPrompt = logic.getConfirmationPrompt(commandText);
+            if (confirmationPrompt.isPresent()
+                    && !confirmationHandler.confirm(primaryStage, confirmationPrompt.get())) {
+                String feedback = "Command cancelled. No changes were made.";
+                resultDisplay.setFeedbackToUser(feedback);
+                statusBarFooter.setStatus("Command cancelled");
+                return new CommandResult(feedback);
+            }
+
             CommandResult result = logic.execute(commandText);
             logger.info("Result: " + result.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
@@ -185,5 +220,16 @@ public class MainWindow extends UiPart<Stage> {
             statusBarFooter.setStatus("Command failed — see feedback", true);
             throw e;
         }
+    }
+
+    /**
+     * Confirms a destructive command before allowing it to execute.
+     */
+    @FunctionalInterface
+    interface ConfirmationHandler {
+        /**
+         * Shows a confirmation prompt and returns whether the user accepted it.
+         */
+        boolean confirm(Stage owner, String prompt);
     }
 }
