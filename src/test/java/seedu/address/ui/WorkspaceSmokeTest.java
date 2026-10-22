@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
@@ -334,8 +335,9 @@ public class WorkspaceSmokeTest {
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
                 assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
                 confirmationPrompt = null;
-                enter(input, "student delete id/A2");
+                enter(input, "student delete id/A2 f/yes");
                 assertEquals("Removed Ben Lim from T03.", feedback.getText());
+                assertNull(confirmationPrompt);
                 assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
             });
         } finally {
