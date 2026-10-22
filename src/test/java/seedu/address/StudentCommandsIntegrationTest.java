@@ -79,7 +79,8 @@ public class StudentCommandsIntegrationTest {
         TAssist previousData = new TAssist(app.model.getTAssist());
         String savedFile = Files.readString(dataFile);
 
-        assertEquals(Optional.of("Remove Alice Tan and all their records from T01?"),
+        assertEquals(Optional.of("Remove Alice Tan and all their attendance, participation, submission, and grade "
+                        + "records from T01?"),
                 app.logic.getConfirmationPrompt("student delete id/A1"));
         assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("student delete id/A1 f/yes"));
         assertEquals(previousData, app.model.getTAssist());

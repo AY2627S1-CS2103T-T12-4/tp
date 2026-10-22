@@ -325,7 +325,8 @@ public class WorkspaceSmokeTest {
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(savedBeforeCancelledDelete, Files.readString(data));
                 assertEquals(2, studentTable().getItems().size());
-                assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
+                assertEquals("Remove Alice Tan and all their attendance, participation, submission, and grade "
+                        + "records from T03?", confirmationPrompt);
 
                 isConfirmationAccepted = true;
                 confirmationPrompt = null;
@@ -333,7 +334,8 @@ public class WorkspaceSmokeTest {
                 assertEquals("Removed Alice Tan from T03.", feedback.getText());
                 assertEquals(1, studentTable().getItems().size());
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
-                assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
+                assertEquals("Remove Alice Tan and all their attendance, participation, submission, and grade "
+                        + "records from T03?", confirmationPrompt);
                 confirmationPrompt = null;
                 enter(input, "student delete id/A2 f/yes");
                 assertEquals("Removed Ben Lim from T03.", feedback.getText());

@@ -21,7 +21,8 @@ public class StudentDeleteCommand extends Command {
     public static final String MESSAGE_USAGE = "student delete id/STUDENT_ID [f/yes]";
     public static final String MESSAGE_SUCCESS = "Removed %s from %s.";
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
-    public static final String MESSAGE_CONFIRMATION = "Remove %s and all their records from %s?";
+    public static final String MESSAGE_CONFIRMATION =
+            "Remove %s and all their attendance, participation, submission, and grade records from %s?";
 
     private static final Logger logger = LogsCenter.getLogger(StudentDeleteCommand.class);
     private final StudentId studentId;
