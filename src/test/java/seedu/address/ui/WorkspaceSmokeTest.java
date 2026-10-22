@@ -449,6 +449,34 @@ public class WorkspaceSmokeTest {
         }
     }
 
+    @Test
+    public void commandBox_recalledCommandFails_keepsItEditableAndHistoryUsable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view help");
+                enter(input, "view storage");
+                pressKey(KeyCode.UP);
+                input.setText(input.getText().replace("storage", "storge"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("view storge", input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+
+                pressKey(KeyCode.UP);
+                assertEquals("view storage", input.getText(), "Up skips the failed command already in the box");
+                pressKey(KeyCode.DOWN);
+                assertEquals("view storge", input.getText());
+                input.setText(input.getText().replace("storge", "storage"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+                assertFalse(input.getStyleClass().contains("error"));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
             runOnFx(() -> {

@@ -37,30 +37,37 @@ public class CommandHistory {
     }
 
     /**
-     * Returns the command entered before the one shown, or an empty {@code Optional} if none is earlier.
+     * Returns the nearest earlier command that differs from {@code currentText}, or an empty {@code Optional} if
+     * there is none. Skipping matching text lets the first Up after a failed command, which stays in the box,
+     * recall the command before it.
      * {@code currentText} is kept at the current position so that moving back to it restores any edits.
      */
     public Optional<String> previous(String currentText) {
         requireNonNull(currentText);
-        if (position == 0) {
-            return Optional.empty();
-        }
-
-        return Optional.of(moveTo(position - 1, currentText));
+        return findOtherText(position - 1, -1, currentText).map(index -> moveTo(index, currentText));
     }
 
     /**
-     * Returns the command entered after the one shown, the text the TA was typing once past the newest command,
-     * or an empty {@code Optional} if the TA is not recalling a command.
+     * Returns the nearest later command that differs from {@code currentText}, or the text the TA was typing once
+     * past the newest command, or an empty {@code Optional} if there is no such text.
      * {@code currentText} is kept at the current position so that moving back to it restores any edits.
      */
     public Optional<String> next(String currentText) {
         requireNonNull(currentText);
-        if (isTypingNewCommand()) {
-            return Optional.empty();
-        }
+        return findOtherText(position + 1, 1, currentText).map(index -> moveTo(index, currentText));
+    }
 
-        return Optional.of(moveTo(position + 1, currentText));
+    /**
+     * Returns the first position from {@code start}, moving by {@code step}, whose text differs from
+     * {@code currentText}.
+     */
+    private Optional<Integer> findOtherText(int start, int step, String currentText) {
+        for (int i = start; i >= 0 && i <= commands.size(); i += step) {
+            if (!getTextAt(i).equals(currentText)) {
+                return Optional.of(i);
+            }
+        }
+        return Optional.empty();
     }
 
     private String moveTo(int newPosition, String currentText) {
@@ -77,9 +84,5 @@ public class CommandHistory {
 
         assert index < commands.size() : "Typed text is saved before an earlier command is recalled";
         return commands.get(index);
-    }
-
-    private boolean isTypingNewCommand() {
-        return position == commands.size();
     }
 }

@@ -69,11 +69,20 @@ public class CommandHistoryTest {
     }
 
     @Test
-    public void add_sameCommandTwice_keepsBoth() {
+    public void previous_newestCommandStillShown_recallsCommandBeforeIt() {
+        addBothCommands();
+        assertEquals(Optional.of(FIRST_COMMAND), history.previous(SECOND_COMMAND));
+        assertEquals(Optional.of(SECOND_COMMAND), history.next(FIRST_COMMAND));
+        assertEquals(Optional.empty(), history.next(SECOND_COMMAND));
+    }
+
+    @Test
+    public void previous_sameCommandTwice_skipsRepeat() {
         history.add(FIRST_COMMAND);
         history.add(FIRST_COMMAND);
         assertEquals(Optional.of(FIRST_COMMAND), history.previous(""));
-        assertEquals(Optional.of(FIRST_COMMAND), history.previous(FIRST_COMMAND));
+        assertEquals(Optional.empty(), history.previous(FIRST_COMMAND));
+        assertEquals(Optional.of(""), history.next(FIRST_COMMAND));
     }
 
     @Test

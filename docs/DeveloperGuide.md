@@ -114,7 +114,9 @@ on the text field turns Up into `CommandHistory#previous` and Down into `Command
 Up and Down with Shift, Ctrl, Alt or Meta are left to the text field, so shortcuts such as Shift+Up still select text.
 Both methods take the text in the box and keep it at the current position before moving, so edits to a recalled
 command survive moving away and back, and Down past the newest command restores what the TA was typing. Entering a
-command adds it to the history, stops recalling and discards those edits, so the history keeps each command as entered. The history is kept in
+command adds it to the history, stops recalling and discards those edits, so the history keeps each command as entered.
+Both methods skip positions whose text matches the text in the box. A failed command stays in the box and is also the
+newest entry, so without this the first Up after a failure would appear to do nothing. The history is kept in
 memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
 that it can be unit tested.
 
@@ -1370,7 +1372,7 @@ the group strip, the navigation bar highlighting the current screen and keeping 
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
 do not open a screen keeping the current screen, a usage message fitting the feedback box, invalid-input retention, and
-recalling and editing earlier commands with Up and Down. Normal unit tests cover screen
+recalling and editing earlier commands with Up and Down, including after a recalled command fails. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, the Students screen's captions and empty states, and
 `CommandHistory`.
 It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
