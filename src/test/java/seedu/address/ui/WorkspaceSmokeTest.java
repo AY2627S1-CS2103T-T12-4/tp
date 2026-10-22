@@ -27,6 +27,8 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
@@ -39,6 +41,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
@@ -79,6 +82,9 @@ public class WorkspaceSmokeTest {
     private TextField input;
     private TabPane tabs;
     private Path data;
+    private boolean confirmationAccepted = true;
+    private String confirmationPrompt;
+    private boolean useDefaultConfirmationHandler;
 
     @BeforeAll
     public static void startToolkit() throws Exception {
@@ -309,15 +315,60 @@ public class WorkspaceSmokeTest {
                 assertEquals("Student ID A1 already exists in T03.", feedback.getText());
                 assertEquals("student add n/Alice Tan id/a1", input.getText());
                 assertEquals(2, studentTable().getItems().size());
+
+                confirmationAccepted = false;
+                TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
+                String savedBeforeCancelledDelete = Files.readString(data);
+                enter(input, "student delete id/a1");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(savedBeforeCancelledDelete, Files.readString(data));
+                assertEquals(2, studentTable().getItems().size());
+                assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
+
+                confirmationAccepted = true;
+                confirmationPrompt = null;
                 enter(input, "student delete id/a1");
                 assertEquals("Removed Alice Tan from T03.", feedback.getText());
                 assertEquals(1, studentTable().getItems().size());
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
+                assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
+                confirmationPrompt = null;
                 enter(input, "student delete id/A2");
+                assertEquals("Removed Ben Lim from T03.", feedback.getText());
                 assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
             });
         } finally {
             runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentDelete_defaultConfirmationDialogHonorsContinueAndCancel() throws Exception {
+        useDefaultConfirmationHandler = true;
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T03");
+                enter(input, "student add n/Alice Tan id/A1");
+                enter(input, "student add n/Ben Lim id/A2");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+
+                respondToConfirmation("Continue");
+                enter(input, "student delete id/A1");
+                assertEquals("Removed Alice Tan from T03.", feedback.getText());
+                assertEquals(1, studentTable().getItems().size());
+
+                TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
+                respondToConfirmation("Cancel");
+                enter(input, "student delete id/A2");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(1, studentTable().getItems().size());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+            useDefaultConfirmationHandler = false;
         }
     }
 
@@ -538,6 +589,8 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
+        confirmationAccepted = true;
+        confirmationPrompt = null;
         model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
@@ -557,8 +610,10 @@ public class WorkspaceSmokeTest {
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
-        MainWindow window = new MainWindow(stage,
-                new LogicManager(model, storage, commandRegistry, dataLoadStatus), data, dataLoadStatus);
+        LogicManager logic = new LogicManager(model, storage, commandRegistry, dataLoadStatus);
+        MainWindow window = useDefaultConfirmationHandler
+                ? new MainWindow(stage, logic, data, dataLoadStatus)
+                : new MainWindow(stage, logic, data, dataLoadStatus, this::handleConfirmation);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();
@@ -568,6 +623,28 @@ public class WorkspaceSmokeTest {
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
         assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
+    }
+
+    private boolean handleConfirmation(Stage owner, String prompt) {
+        confirmationPrompt = prompt;
+        return confirmationAccepted;
+    }
+
+    private void respondToConfirmation(String buttonText) {
+        Platform.runLater(() -> {
+            Stage dialogStage = Window.getWindows().stream()
+                    .filter(window -> window instanceof Stage)
+                    .map(window -> (Stage) window)
+                    .filter(Stage::isShowing)
+                    .filter(window -> "Confirm destructive action".equals(window.getTitle()))
+                    .findFirst().orElseThrow();
+            DialogPane pane = (DialogPane) dialogStage.getScene().getRoot();
+            ButtonType choice = pane.getButtonTypes().stream()
+                    .filter(buttonType -> buttonText.equals(buttonType.getText()))
+                    .findFirst().orElseThrow();
+            Button button = (Button) pane.lookupButton(choice);
+            button.fire();
+        });
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
