@@ -16,7 +16,9 @@ import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** Records or replaces the grade for one student's submitted assignment. */
+/**
+ * Records or replaces the grade for one student's submitted assignment.
+ */
 public class AssignmentGradeCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID g/GRADE";
     public static final String MESSAGE_SUCCESS = "Recorded grade %d for %s's %s.";
@@ -28,7 +30,9 @@ public class AssignmentGradeCommand extends Command {
     private final StudentId studentId;
     private final int grade;
 
-    /** Creates a command with an assignment grade from 0 to 100. */
+    /**
+     * Creates a command with an assignment grade from 0 to 100.
+     */
     public AssignmentGradeCommand(AssignmentName assignmentName, StudentId studentId, int grade) {
         this.assignmentName = requireNonNull(assignmentName);
         this.studentId = requireNonNull(studentId);

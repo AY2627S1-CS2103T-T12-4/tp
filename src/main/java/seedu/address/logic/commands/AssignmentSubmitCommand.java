@@ -14,7 +14,9 @@ import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** Records or replaces one student's submission status for an assignment. */
+/**
+ * Records or replaces one student's submission status for an assignment.
+ */
 public class AssignmentSubmitCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS";
     public static final String MESSAGE_SUCCESS = "Updated %s's %s submission status to %s.";
@@ -22,13 +24,15 @@ public class AssignmentSubmitCommand extends Command {
 
     private final AssignmentName assignmentName;
     private final StudentId studentId;
-    private final boolean submitted;
+    private final boolean isSubmitted;
 
-    /** Creates a command to set the student's status to submitted or not submitted. */
-    public AssignmentSubmitCommand(AssignmentName assignmentName, StudentId studentId, boolean submitted) {
+    /**
+     * Creates a command to set the student's status to submitted or not submitted.
+     */
+    public AssignmentSubmitCommand(AssignmentName assignmentName, StudentId studentId, boolean isSubmitted) {
         this.assignmentName = requireNonNull(assignmentName);
         this.studentId = requireNonNull(studentId);
-        this.submitted = submitted;
+        this.isSubmitted = isSubmitted;
     }
 
     @Override
@@ -41,8 +45,8 @@ public class AssignmentSubmitCommand extends Command {
         Student student = group.findStudent(studentId)
                 .orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
 
-        model.setAssignment(group.getName(), assignment.withSubmissionStatus(studentId, submitted));
-        String status = submitted ? "submitted" : "not submitted";
+        model.setAssignment(group.getName(), assignment.withSubmissionStatus(studentId, isSubmitted));
+        String status = isSubmitted ? "submitted" : "not submitted";
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), assignment.getName(), status));
     }
 
@@ -50,11 +54,11 @@ public class AssignmentSubmitCommand extends Command {
     public boolean equals(Object other) {
         return other == this || other instanceof AssignmentSubmitCommand otherCommand
                 && assignmentName.equals(otherCommand.assignmentName)
-                && studentId.equals(otherCommand.studentId) && submitted == otherCommand.submitted;
+                && studentId.equals(otherCommand.studentId) && isSubmitted == otherCommand.isSubmitted;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(assignmentName, studentId, submitted);
+        return Objects.hash(assignmentName, studentId, isSubmitted);
     }
 }

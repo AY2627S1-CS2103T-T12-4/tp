@@ -10,33 +10,42 @@ import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.student.StudentId;
 
-/** Jackson-friendly representation of one student's record for one assignment. */
+/**
+ * Represents one student's assignment record in a Jackson-friendly form.
+ */
 class JsonAdaptedAssignmentRecord {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Assignment record's %s field is missing.";
 
     private final String assignmentName;
     private final String studentId;
-    private final Boolean submitted;
+    @JsonProperty("submitted")
+    private final Boolean isSubmitted;
     private final Integer grade;
 
-    /** Creates an adapted record from JSON fields. */
+    /**
+     * Creates an adapted record from JSON fields.
+     */
     @JsonCreator
     public JsonAdaptedAssignmentRecord(@JsonProperty("assignmentName") String assignmentName,
-            @JsonProperty("studentId") String studentId, @JsonProperty("submitted") Boolean submitted,
+            @JsonProperty("studentId") String studentId, @JsonProperty("submitted") Boolean isSubmitted,
             @JsonProperty("grade") Integer grade) {
         this.assignmentName = assignmentName;
         this.studentId = studentId;
-        this.submitted = submitted;
+        this.isSubmitted = isSubmitted;
         this.grade = grade;
     }
 
-    /** Converts an assignment record into its JSON representation. */
+    /**
+     * Converts an assignment record into its JSON representation.
+     */
     public JsonAdaptedAssignmentRecord(AssignmentName assignmentName, StudentId studentId,
             AssignmentRecord record) {
         this(assignmentName.fullName, studentId.value, record.isSubmitted(), record.getGrade().orElse(null));
     }
 
-    /** Returns the validated assignment name in this record. */
+    /**
+     * Returns the validated assignment name in this record.
+     */
     public AssignmentName getAssignmentName() throws IllegalValueException {
         if (assignmentName == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "assignmentName"));
@@ -47,7 +56,9 @@ class JsonAdaptedAssignmentRecord {
         return new AssignmentName(assignmentName);
     }
 
-    /** Returns the validated student ID in this record. */
+    /**
+     * Returns the validated student ID in this record.
+     */
     public StudentId getStudentId() throws IllegalValueException {
         if (studentId == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "studentId"));
@@ -58,16 +69,18 @@ class JsonAdaptedAssignmentRecord {
         return new StudentId(studentId);
     }
 
-    /** Converts the status and grade fields into a validated model record. */
+    /**
+     * Converts the status and grade fields into a validated model record.
+     */
     public AssignmentRecord toModelType() throws IllegalValueException {
-        if (submitted == null) {
+        if (isSubmitted == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "submitted"));
         }
         if (grade != null && (grade < 0 || grade > 100)) {
             throw new IllegalValueException(AssignmentRecord.MESSAGE_INVALID_GRADE);
         }
         try {
-            return new AssignmentRecord(submitted, Optional.ofNullable(grade));
+            return new AssignmentRecord(isSubmitted, Optional.ofNullable(grade));
         } catch (IllegalArgumentException exception) {
             throw new IllegalValueException(exception.getMessage(), exception);
         }

@@ -5,7 +5,9 @@ import java.util.List;
 import seedu.address.logic.commands.AssignmentSubmitCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
-/** Parses the assignment, student, and yes-or-no status for a submission update. */
+/**
+ * Parses the assignment, student, and yes-or-no status for a submission update.
+ */
 public class AssignmentSubmitCommandParser implements Parser<AssignmentSubmitCommand> {
     private static final Prefix PREFIX_ASSIGNMENT = new Prefix("a/");
     private static final Prefix PREFIX_STUDENT_ID = new Prefix("id/");

@@ -63,7 +63,9 @@ class JsonAdaptedGroup {
         }
     }
 
-    /** Constructs a group without assignment records, for legacy JSON and tests. */
+    /**
+     * Constructs a group without assignment records, for legacy JSON and tests.
+     */
     public JsonAdaptedGroup(String name, List<JsonAdaptedStudent> students, List<String> assignments) {
         this(name, students, assignments, null);
     }

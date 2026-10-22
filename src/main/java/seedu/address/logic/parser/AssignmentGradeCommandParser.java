@@ -5,7 +5,9 @@ import java.util.List;
 import seedu.address.logic.commands.AssignmentGradeCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
-/** Parses the assignment, student, and whole-number grade for a grade update. */
+/**
+ * Parses the assignment, student, and whole-number grade for a grade update.
+ */
 public class AssignmentGradeCommandParser implements Parser<AssignmentGradeCommand> {
     private static final Prefix PREFIX_ASSIGNMENT = new Prefix("a/");
     private static final Prefix PREFIX_STUDENT_ID = new Prefix("id/");

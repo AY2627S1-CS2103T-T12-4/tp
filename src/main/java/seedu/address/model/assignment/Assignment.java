@@ -43,28 +43,38 @@ public class Assignment {
         return name;
     }
 
-    /** Returns a student's assignment record, using an unsubmitted record when none has been entered. */
+    /**
+     * Returns a student's assignment record, using an unsubmitted record when none has been entered.
+     */
     public AssignmentRecord getStudentRecord(StudentId studentId) {
         requireNonNull(studentId);
         return studentRecords.getOrDefault(studentId, AssignmentRecord.notSubmitted());
     }
 
-    /** Returns all explicitly entered student records as an unmodifiable map. */
+    /**
+     * Returns all explicitly entered student records as an unmodifiable map.
+     */
     public Map<StudentId, AssignmentRecord> getStudentRecords() {
         return studentRecords;
     }
 
-    /** Returns a copy with the student's submission status added or replaced. */
-    public Assignment withSubmissionStatus(StudentId studentId, boolean submitted) {
-        return withRecord(studentId, getStudentRecord(studentId).withSubmissionStatus(submitted));
+    /**
+     * Returns a copy with the student's submission status added or replaced.
+     */
+    public Assignment withSubmissionStatus(StudentId studentId, boolean isSubmitted) {
+        return withRecord(studentId, getStudentRecord(studentId).withSubmissionStatus(isSubmitted));
     }
 
-    /** Returns a copy with the student's grade added or replaced. */
+    /**
+     * Returns a copy with the student's grade added or replaced.
+     */
     public Assignment withGrade(StudentId studentId, int grade) {
         return withRecord(studentId, getStudentRecord(studentId).withGrade(grade));
     }
 
-    /** Returns a copy with the student's complete assignment record added or replaced. */
+    /**
+     * Returns a copy with the student's complete assignment record added or replaced.
+     */
     public Assignment withRecord(StudentId studentId, AssignmentRecord record) {
         requireNonNull(studentId);
         requireNonNull(record);
@@ -73,7 +83,9 @@ public class Assignment {
         return new Assignment(name, updatedRecords);
     }
 
-    /** Returns a copy without the student's record, or this assignment when no record exists. */
+    /**
+     * Returns a copy without the student's record, or this assignment when no record exists.
+     */
     public Assignment withoutStudentRecord(StudentId studentId) {
         requireNonNull(studentId);
         if (!studentRecords.containsKey(studentId)) {

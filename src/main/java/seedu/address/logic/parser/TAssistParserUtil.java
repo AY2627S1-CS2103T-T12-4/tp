@@ -118,7 +118,11 @@ public class TAssistParserUtil {
         return parseWholeNumber(grade, 0, 100, MESSAGE_GRADE);
     }
 
-    /** Parses yes or no as a submission status, ignoring case and surrounding whitespace. */
+    /**
+     * Parses yes or no as a submission status, ignoring case and surrounding whitespace.
+     *
+     * @throws ParseException If the status is neither yes nor no.
+     */
     public static boolean parseSubmissionStatus(String status) throws ParseException {
         requireNonNull(status);
         return switch (status.trim().toLowerCase(Locale.ROOT)) {
