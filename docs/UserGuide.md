@@ -383,13 +383,13 @@ Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
 ### Recording a grade: `assignment grade`
 
 Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
-`assignment submit`.
+`assignment submit`. Entering `s/no` clears any recorded grade and the feedback says so.
 
-Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID g/GRADE`
+Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 
-Example: `assignment grade a/PS1 id/A0123456X g/87` shows `Recorded grade 87 for Alice Tan's PS1.`
-An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Mark the assignment as
-submitted first.`
+Example: `assignment grade a/PS1 id/A0123456X m/87` shows `Recorded grade 87 for Alice Tan's PS1.`
+An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
+assignment submit a/PS1 id/A0123456X s/yes`.
 
 ### Listing assignment records: `assignment list`
 
@@ -422,10 +422,10 @@ Duplicate assignment | `Assignment PS1 already exists in T01` The message shows 
 Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
 Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
-Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `g/`.
-Grade before submission | `Cannot record a grade for an unsubmitted assignment. Mark the assignment as submitted first.` Use `assignment submit` first.
+Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
+Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
-Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `g/`, once each.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
@@ -545,6 +545,6 @@ Action | Format, Examples
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
-**Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID g/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X g/87`
+**Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
 **List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
 **Exit** | `exit`

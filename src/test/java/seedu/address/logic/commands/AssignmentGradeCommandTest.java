@@ -54,7 +54,7 @@ public class AssignmentGradeCommandTest {
         model.addAssignment(NAME_T01, PS1);
 
         assertCommandFailure(new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87), model,
-                AssignmentGradeCommand.MESSAGE_NOT_SUBMITTED);
+                String.format(AssignmentGradeCommand.MESSAGE_NOT_SUBMITTED, "PS1", ALICE_ID));
         assertEquals(AssignmentRecord.notSubmitted(), model.getGroup(NAME_T01).findAssignment(NAME_PS1)
                 .orElseThrow().getStudentRecord(ALICE_ID));
     }

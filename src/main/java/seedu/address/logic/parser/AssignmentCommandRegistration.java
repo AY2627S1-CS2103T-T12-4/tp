@@ -35,7 +35,7 @@ public final class AssignmentCommandRegistration {
         registry.register("assignment", "grade", new AssignmentGradeCommandParser(),
                 new HelpEntry("assignment", AssignmentGradeCommand.MESSAGE_USAGE,
                         "Record or replace a grade from 0 to 100 after the student has submitted the assignment.",
-                        List.of("assignment grade a/PS1 id/A0123456X g/87")));
+                        List.of("assignment grade a/PS1 id/A0123456X m/87")));
         registry.register("assignment", "list", new AssignmentListCommandParser(),
                 new HelpEntry("assignment", AssignmentListCommand.MESSAGE_USAGE,
                         "List every student's submission status and grade for an assignment of the active group. "

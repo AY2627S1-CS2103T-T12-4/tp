@@ -76,9 +76,6 @@ class JsonAdaptedAssignmentRecord {
         if (isSubmitted == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "submitted"));
         }
-        if (grade != null && (grade < 0 || grade > 100)) {
-            throw new IllegalValueException(AssignmentRecord.MESSAGE_INVALID_GRADE);
-        }
         try {
             return new AssignmentRecord(isSubmitted, Optional.ofNullable(grade));
         } catch (IllegalArgumentException exception) {

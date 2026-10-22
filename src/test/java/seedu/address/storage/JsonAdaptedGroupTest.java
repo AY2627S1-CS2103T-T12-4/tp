@@ -125,11 +125,12 @@ public class JsonAdaptedGroupTest {
                 String.format(JsonAdaptedGroup.MESSAGE_UNKNOWN_RECORD_ASSIGNMENT, "PS2", VALID_NAME),
                 unknownAssignment::toModelType);
 
-        JsonAdaptedGroup unknownStudent = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+        // A hand-edited file that removes a student but leaves their explicit assignment record is rejected.
+        JsonAdaptedGroup recordForRemovedStudent = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
                 List.of(new JsonAdaptedAssignmentRecord("PS1", "A0999999Z", true, null)));
         assertThrows(IllegalValueException.class,
                 String.format(JsonAdaptedGroup.MESSAGE_UNKNOWN_RECORD_STUDENT, "A0999999Z", VALID_NAME),
-                unknownStudent::toModelType);
+                recordForRemovedStudent::toModelType);
 
         JsonAdaptedGroup emptyRecord = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
                 Arrays.asList((JsonAdaptedAssignmentRecord) null));

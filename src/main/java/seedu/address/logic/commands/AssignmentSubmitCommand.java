@@ -5,7 +5,9 @@ import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_ASSIGNMENT;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.assignment.Assignment;
@@ -20,7 +22,11 @@ import seedu.address.model.student.StudentId;
 public class AssignmentSubmitCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS";
     public static final String MESSAGE_SUCCESS = "Updated %s's %s submission status to %s.";
+    public static final String MESSAGE_SUCCESS_WITHDRAWN =
+            "Updated %s's %s submission status to not submitted; any recorded grade was cleared.";
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student does not exist in the active group.";
+
+    private static final Logger logger = LogsCenter.getLogger(AssignmentSubmitCommand.class);
 
     private final AssignmentName assignmentName;
     private final StudentId studentId;
@@ -46,8 +52,14 @@ public class AssignmentSubmitCommand extends Command {
                 .orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
 
         model.setAssignment(group.getName(), assignment.withSubmissionStatus(studentId, isSubmitted));
-        String status = isSubmitted ? "submitted" : "not submitted";
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), assignment.getName(), status));
+        logger.fine("Updated an assignment submission for " + student.getStudentId()
+                + " in " + group.getName());
+        if (!isSubmitted) {
+            return new CommandResult(String.format(MESSAGE_SUCCESS_WITHDRAWN,
+                    student.getName(), assignment.getName()));
+        }
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                student.getName(), assignment.getName(), "submitted"));
     }
 
     @Override

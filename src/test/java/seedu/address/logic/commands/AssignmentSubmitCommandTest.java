@@ -50,7 +50,8 @@ public class AssignmentSubmitCommandTest {
         expected.setAssignment(NAME_T01, prior.withSubmissionStatus(ALICE_ID, false));
 
         assertCommandSuccess(new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, false), model,
-                "Updated Alice Tan's PS1 submission status to not submitted.", expected);
+                "Updated Alice Tan's PS1 submission status to not submitted; any recorded grade was cleared.",
+                expected);
     }
 
     @Test

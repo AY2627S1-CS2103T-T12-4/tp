@@ -58,7 +58,10 @@ public final class AssignmentRecord {
         return new AssignmentRecord(isSubmitted, Optional.of(newGrade));
     }
 
-    private static boolean isValidGrade(int grade) {
+    /**
+     * Returns whether a grade is a whole number from 0 through 100, inclusive.
+     */
+    public static boolean isValidGrade(int grade) {
         return grade >= 0 && grade <= 100;
     }
 

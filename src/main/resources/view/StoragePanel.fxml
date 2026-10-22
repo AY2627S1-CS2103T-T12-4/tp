@@ -11,7 +11,7 @@
   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" minHeight="0" hbarPolicy="NEVER">
     <VBox styleClass="storage-content" spacing="16">
       <Label text="Your records stay on this computer" styleClass="empty-title" wrapText="true" />
-      <Label text="Commands that change data save your groups, students, weekly records and active group. The footer confirms each successful save."
+      <Label text="Commands that change data save your groups, students, weekly records, assignment submissions and grades, and active group. The footer confirms each successful save."
              wrapText="true" styleClass="muted" />
       <Label text="DATA FILE" styleClass="eyebrow" />
       <Label fx:id="filePath" styleClass="file-path" wrapText="true" maxWidth="Infinity" />
@@ -19,8 +19,8 @@
              wrapText="true" styleClass="muted" />
       <Label text="Close TAssist before editing the file manually. If loading fails, the file is protected. Repair or move it, then restart."
              wrapText="true" styleClass="muted" />
-      <Label text="Assignment storage is coming soon."
-             wrapText="true" styleClass="coming-soon-note" />
+      <Label text="Assignment names, submissions, and grades are saved in this file."
+             wrapText="true" styleClass="muted" />
     </VBox>
   </ScrollPane>
 </VBox>

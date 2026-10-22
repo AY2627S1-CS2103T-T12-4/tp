@@ -11,7 +11,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class AssignmentGradeCommandParser implements Parser<AssignmentGradeCommand> {
     private static final Prefix PREFIX_ASSIGNMENT = new Prefix("a/");
     private static final Prefix PREFIX_STUDENT_ID = new Prefix("id/");
-    private static final Prefix PREFIX_GRADE = new Prefix("g/");
+    private static final Prefix PREFIX_GRADE = new Prefix("m/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
             List.of(PREFIX_ASSIGNMENT, PREFIX_STUDENT_ID, PREFIX_GRADE), List.of());

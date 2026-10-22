@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -17,7 +18,7 @@ public class TAssistParserUtil {
     public static final String MESSAGE_WEEK = "Invalid week. Enter a number from 1 to 13.";
     public static final String MESSAGE_PARTICIPATION_SCORE =
             "Invalid participation score. Enter a whole number from 0 to 5.";
-    public static final String MESSAGE_GRADE = "Invalid grade. Enter a whole number from 0 to 100.";
+    public static final String MESSAGE_GRADE = AssignmentRecord.MESSAGE_INVALID_GRADE;
     public static final String MESSAGE_SUBMISSION_STATUS = "Invalid submission status. Use yes or no.";
 
     private TAssistParserUtil() {}

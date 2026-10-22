@@ -28,7 +28,7 @@ public class AssignmentCommandRegistrationTest {
         assertEquals(new AssignmentSubmitCommand(NAME_PS1, ALICE.getStudentId(), true),
                 parser.parseCommand("assignment submit a/PS1 id/A0123456X s/yes"));
         assertEquals(new AssignmentGradeCommand(NAME_PS1, ALICE.getStudentId(), 87),
-                parser.parseCommand("assignment grade a/PS1 id/A0123456X g/87"));
+                parser.parseCommand("assignment grade a/PS1 id/A0123456X m/87"));
         assertEquals(new AssignmentListCommand(NAME_PS1), parser.parseCommand("assignment list a/ps1"));
         assertEquals(List.of(AssignmentAddCommand.MESSAGE_USAGE, AssignmentSubmitCommand.MESSAGE_USAGE,
                         AssignmentGradeCommand.MESSAGE_USAGE, AssignmentListCommand.MESSAGE_USAGE),
