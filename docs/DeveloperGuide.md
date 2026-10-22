@@ -378,11 +378,15 @@ Each command obtains the active group at execution time and throws `CommandExcep
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
 same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
 
-Mutations pass through the existing model and observable roster, so the Students screen updates without navigating
-away from the current screen. Successful commands use the existing JSON persistence in `LogicManager`.
-Parser and command tests cover validation, normalization, feedback, uniqueness, group isolation, and empty states.
+Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
+affected data without changing it; cancelling skips execution and persistence. Student deletion names the student and
+group in the prompt, and `f/yes` bypasses it for experienced users. Mutations pass through the existing model and
+observable roster, so the Students screen updates without navigating away from the current screen. Successful
+commands use the existing JSON persistence in `LogicManager`. Parser and command tests cover validation,
+normalization, confirmation details, feedback, uniqueness, group isolation, and empty states.
 `StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
-across restarts, and rejected commands preserving both the model and the saved file.
+across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
+that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
 
 ### Assignment commands
 
@@ -874,11 +878,24 @@ The following extensions apply to every use case that changes or views records o
 1.  TA requests to list the students in the active group.
 2.  TAssist shows the name and student ID of every student in the group.
 3.  TA requests to delete a specific student by student ID.
-4.  TAssist removes the student and the student's attendance, participation and assignment records from the group, and shows a confirmation.
+4.  TAssist shows the student and their records that will be removed, then asks for confirmation.
+5.  TA confirms the deletion.
+6.  TAssist removes the student and their attendance, participation and assignment records from the group, and shows a
+    confirmation.
 
     Use case ends.
 
 **Extensions**
+
+* 4a. TA cancels the prompt or closes it.
+    * 4a1. TAssist leaves the student and all records unchanged.
+
+      Use case ends.
+
+* 4b. TA includes `f/yes` in the delete command.
+    * 4b1. TAssist skips the prompt and removes the student and all their records.
+
+      Use case ends.
 
 * 2a. The group has no students.
 
@@ -1246,8 +1263,11 @@ testers are expected to do more *exploratory* testing.
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
    the roster and saved file.
 5. Create T02, add Alice with ID A0123456X there, then switch back using `group use g/T01`.
-   Enter `student delete id/a0123456x`. Expect `Removed Alice Tan from T01.` and A2 becomes row 1.
-6. Delete A2, then list students. Expect an empty-roster hint. Try deleting A2 again; expect an unknown-ID error.
+   Enter `student delete id/a0123456x`. Expect a prompt naming Alice and T01 and describing the records that will be
+   removed. Cancel it; Alice and the saved data remain unchanged. Enter the command again and confirm. Expect
+   `Removed Alice Tan from T01.` and A2 becomes row 1.
+6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
+   again; expect an unknown-ID error.
    Close and reopen; T01 stays empty and T02 still contains Alice.
 
 ### Managing tutorial groups
