@@ -59,9 +59,14 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues a command that changes the TAssist data.
+The *Sequence Diagram* below shows how the components interact when a command changes TAssist data and startup
+loading has not failed. Logic copies the current data before execution. A successful save returns a result marked
+as saved; a failed save restores the copy and reports an error while retaining the command input. Parsing and
+command-specific interactions are omitted. Commands that leave data unchanged skip saving (see
+[Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
+<img src="images/ArchitectureSequenceDiagram.png" width="850"
+     alt="Command execution with a snapshot, successful saving, and rollback after a failed save" />
 
 Each of the four main components (also shown in the diagram above),
 
