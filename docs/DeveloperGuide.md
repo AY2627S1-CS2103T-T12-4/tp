@@ -308,6 +308,9 @@ It declares `g/` optional to the argument parser so absent and blank values can 
 `Missing group name. Usage: ...` with the relevant command's syntax. The feature still requires a nonblank name.
 The listing parser declares no parameters and rejects extra input.
 
+`GroupName` hashes each Unicode code point after converting it to uppercase and then lowercase, matching its
+case-insensitive equality. Equal names therefore have the same hash code, while display capitalization is preserved.
+
 * `GroupAddCommand` checks `Model.hasGroup` before changing data, calls `Model.addGroup` with an empty group, and
   then calls `Model.setActiveGroup`. Creating any group therefore activates it, without modifying existing groups.
   A duplicate name throws `CommandException` with the existing group's display name.
