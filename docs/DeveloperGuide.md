@@ -111,6 +111,7 @@ a red row when the command failed, and failed commands retain their input.
 
 `CommandBox` keeps a `CommandHistory` of every command entered in the session, including failed ones. An event filter
 on the text field turns Up into `CommandHistory#previous` and Down into `CommandHistory#next`, and consumes both keys.
+Up and Down with Shift, Ctrl, Alt or Meta are left to the text field, so shortcuts such as Shift+Up still select text.
 `previous` saves the text being typed before it recalls the first command, and `next` returns that text once Down
 passes the newest command. Entering a command adds it to the history and stops recalling. The history is kept in
 memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so

@@ -66,9 +66,14 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Recalls an earlier command on Up and a later one on Down, leaving other keys to the text field.
+     * Recalls an earlier command on Up and a later one on Down, leaving other keys and modified Up and Down,
+     * such as Shift+Up to select text, to the text field.
      */
     private void handleKeyPressed(KeyEvent event) {
+        if (hasModifier(event)) {
+            return;
+        }
+
         if (event.getCode() == KeyCode.UP) {
             commandHistory.previous(commandTextField.getText()).ifPresent(this::showRecalledCommand);
             event.consume();
@@ -76,6 +81,10 @@ public class CommandBox extends UiPart<Region> {
             commandHistory.next().ifPresent(this::showRecalledCommand);
             event.consume();
         }
+    }
+
+    private static boolean hasModifier(KeyEvent event) {
+        return event.isShiftDown() || event.isControlDown() || event.isAltDown() || event.isMetaDown();
     }
 
     /**

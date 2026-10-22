@@ -440,6 +440,9 @@ public class WorkspaceSmokeTest {
                 assertTrue(input.getText().isEmpty());
                 pressKey(KeyCode.UP);
                 assertEquals("view storage", input.getText(), "The edited command is the newest entry");
+                input.setText("view st");
+                pressShiftKey(KeyCode.UP);
+                assertEquals("view st", input.getText(), "Shift+Up is left to the text field");
             });
         } finally {
             runOnFx(() -> stage.hide());
@@ -627,6 +630,10 @@ public class WorkspaceSmokeTest {
 
     private void pressKey(KeyCode key) {
         input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, false, false, false, false));
+    }
+
+    private void pressShiftKey(KeyCode key) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, true, false, false, false));
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {
