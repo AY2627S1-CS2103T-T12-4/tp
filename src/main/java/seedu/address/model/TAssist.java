@@ -141,6 +141,14 @@ public class TAssist implements ReadOnlyTAssist {
         getGroup(groupName).addAssignment(assignment);
     }
 
+    /**
+     * Replaces the assignment with the same name in the group named {@code groupName}.
+     */
+    public void setAssignment(GroupName groupName, Assignment assignment) {
+        requireAllNonNull(groupName, assignment);
+        getGroup(groupName).setAssignment(assignment);
+    }
+
     //// util methods
 
     @Override

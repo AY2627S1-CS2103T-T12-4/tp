@@ -53,4 +53,12 @@ public class UniqueAssignmentList extends UniqueList<Assignment> {
     public void setAssignments(List<Assignment> assignments) {
         setAll(assignments);
     }
+
+    /**
+     * Replaces the assignment with the same name as {@code assignment}.
+     * The assignment must already exist in the list.
+     */
+    public void setAssignment(Assignment assignment) {
+        set(assignment);
+    }
 }

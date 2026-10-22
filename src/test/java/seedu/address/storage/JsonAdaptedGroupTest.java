@@ -14,12 +14,14 @@ import static seedu.address.testutil.TypicalStudents.ALICE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
@@ -93,6 +95,48 @@ public class JsonAdaptedGroupTest {
     public void toModelType_groupWithAssignments_returnsSameGroupInSameOrder() throws Exception {
         Group source = new GroupBuilder(T01).withAssignments(PS2, PS1).build();
         assertEquals(source, new JsonAdaptedGroup(source).toModelType());
+    }
+
+    @Test
+    public void toModelType_assignmentRecords_restoresSubmissionAndGrade() throws Exception {
+        AssignmentRecord record = new AssignmentRecord(true, Optional.of(87));
+        JsonAdaptedGroup group = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+                List.of(new JsonAdaptedAssignmentRecord("PS1", ALICE.getStudentId().value, true, 87)));
+        Group expected = new GroupBuilder(T01).withAssignments(PS1.withRecord(ALICE.getStudentId(), record)).build();
+
+        assertEquals(expected, group.toModelType());
+    }
+
+    @Test
+    public void toModelType_duplicateUnknownAssignmentOrStudentRecord_rejectsData() {
+        JsonAdaptedAssignmentRecord first = new JsonAdaptedAssignmentRecord("PS1", ALICE.getStudentId().value,
+                true, null);
+        JsonAdaptedAssignmentRecord duplicate = new JsonAdaptedAssignmentRecord("ps1", ALICE.getStudentId().value,
+                false, null);
+        JsonAdaptedGroup duplicateRecords = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+                List.of(first, duplicate));
+        assertThrows(IllegalValueException.class,
+                String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT_RECORD, VALID_NAME,
+                        "ps1", ALICE.getStudentId()), duplicateRecords::toModelType);
+
+        JsonAdaptedGroup unknownAssignment = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+                List.of(new JsonAdaptedAssignmentRecord("PS2", ALICE.getStudentId().value, true, null)));
+        assertThrows(IllegalValueException.class,
+                String.format(JsonAdaptedGroup.MESSAGE_UNKNOWN_RECORD_ASSIGNMENT, "PS2", VALID_NAME),
+                unknownAssignment::toModelType);
+
+        // A hand-edited file that removes a student but leaves their explicit assignment record is rejected.
+        JsonAdaptedGroup recordForRemovedStudent = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+                List.of(new JsonAdaptedAssignmentRecord("PS1", "A0999999Z", true, null)));
+        assertThrows(IllegalValueException.class,
+                String.format(JsonAdaptedGroup.MESSAGE_UNKNOWN_RECORD_STUDENT, "A0999999Z", VALID_NAME),
+                recordForRemovedStudent::toModelType);
+
+        JsonAdaptedGroup emptyRecord = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
+                Arrays.asList((JsonAdaptedAssignmentRecord) null));
+        assertThrows(IllegalValueException.class,
+                String.format(JsonAdaptedGroup.MESSAGE_EMPTY_ASSIGNMENT_RECORD, VALID_NAME),
+                emptyRecord::toModelType);
     }
 
     @Test

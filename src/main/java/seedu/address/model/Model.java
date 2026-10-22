@@ -94,6 +94,12 @@ public interface Model {
     void addAssignment(GroupName groupName, Assignment assignment);
 
     /**
+     * Replaces the assignment with the same name in the group named {@code groupName}.
+     * The group and assignment must already exist.
+     */
+    void setAssignment(GroupName groupName, Assignment assignment);
+
+    /**
      * Returns the active group as an observable value, which is empty when no group is active.
      * It changes whenever another group becomes active, but not when the new active group is equal to the old one,
      * for example after {@code setTAssist} with the same data. Read the students from

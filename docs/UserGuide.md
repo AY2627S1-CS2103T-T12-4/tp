@@ -6,8 +6,7 @@ title: User Guide
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
 You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
-record and list weekly participation scores, and create assignments and list their records. Commands to record
-submissions and grades are **coming soon**.
+record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
 
 * Table of Contents
 {:toc}
@@ -72,7 +71,8 @@ the command box.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
-  It contains no simulated records. Use `assignment add` and `assignment list`; the Assignments screen remains a preview.
+  It contains no simulated records. Use `assignment add`, `assignment submit`, `assignment grade`, and
+  `assignment list`; the Assignments screen remains a preview.
 * **Help** provides an offline reference for every available command, with its format, rules, and examples.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
@@ -101,8 +101,7 @@ Opening a screen with `view` does not save or change data.
 * `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Commands to record
-  assignment submissions and grades remain **Coming soon**.
+  and suggest entering `help`. They do not change or save your data.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
@@ -371,6 +370,27 @@ Format: `assignment add a/ASSIGNMENT_NAME`
 
 Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01 is active.
 
+### Recording a submission: `assignment submit`
+
+Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
+and `no` for not submitted. Marking a submission as not submitted clears its grade.
+
+Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
+
+Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
+`Updated Alice Tan's PS1 submission status to submitted.`
+
+### Recording a grade: `assignment grade`
+
+Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
+`assignment submit`. Entering `s/no` clears any recorded grade and the feedback says so.
+
+Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
+
+Example: `assignment grade a/PS1 id/A0123456X m/87` shows `Recorded grade 87 for Alice Tan's PS1.`
+An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
+assignment submit a/PS1 id/A0123456X s/yes`.
+
 ### Listing assignment records: `assignment list`
 
 Lists every student in the active group, in roster order, with their status and grade for one assignment.
@@ -386,10 +406,10 @@ Alice Tan | A0123456X | Not submitted | -
 Ben Lim | A0234567Y | Not submitted | -
 ```
 
-Each row shows the student's name, ID, submission status, and grade. Every student shows `Not submitted` and `-`
-for now, because commands to record submissions and grades are **coming soon**. The name ignores case, and the
-heading shows the name as it was created. An empty group shows `No students in T01.`
-Created assignments are saved automatically and restored when you reopen TAssist.
+Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
+`Not submitted` and `-`. The name ignores case, and the heading shows the name as it was created. An empty group
+shows `No students in T01.` Submission statuses and grades are saved automatically and restored when you reopen
+TAssist.
 
 #### Assignment command errors
 
@@ -401,9 +421,13 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
 Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
 Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
-Missing parameter | `Missing required parameter(s): a/. Include each exactly once.` Supply `a/` followed by a name.
-Repeated or unknown prefix | The feedback names the prefix. Use only `a/`, once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add` and `list`.
+Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
+Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
+Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
+Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
+Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exiting the program: `exit`
 
@@ -413,8 +437,9 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist automatically saves your tutorial groups, their students, assignments, attendance, participation scores, and the active
-group after a successful command changes data. The footer shows `Changes saved.` only after the save succeeds.
+TAssist automatically saves your tutorial groups, their students, assignments and assignment records, attendance,
+participation scores, and the active group after a successful command changes data. The footer shows `Changes saved.`
+only after the save succeeds.
 Closing and reopening TAssist restores the last successfully saved state.
 
 Help, listing, navigation, and exit commands do not save data. Commands that leave the data unchanged, such as
@@ -447,7 +472,13 @@ The file looks like this:
       "attendance" : { "3" : "PRESENT" },
       "participation" : { "3" : 2 }
     } ],
-    "assignments" : [ "PS1", "Mid-term 1" ]
+    "assignments" : [ "PS1", "Mid-term 1" ],
+    "assignmentRecords" : [ {
+      "assignmentName" : "PS1",
+      "studentId" : "A0123456X",
+      "submitted" : true,
+      "grade" : 87
+    } ]
   } ]
 }
 ```
@@ -458,6 +489,10 @@ The file looks like this:
 * A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
   the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,
   empty, or repeated name makes the file invalid. An omitted list means the group has no assignments.
+* A group's optional `assignmentRecords` list stores explicit records by assignment and student. Each entry needs an
+  existing `assignmentName`, an existing `studentId`, and a boolean `submitted`; its optional `grade` must be a whole
+  number from 0 to 100 and requires `submitted` to be `true`. Duplicate assignment/student pairs and references to
+  missing assignments or students make the file invalid. Older files can omit this list.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
@@ -509,5 +544,7 @@ Action | Format, Examples
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
+**Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
+**Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
 **List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
 **Exit** | `exit`

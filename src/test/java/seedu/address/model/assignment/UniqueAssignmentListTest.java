@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.assignment.exceptions.AssignmentNotFoundException;
 import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
+import seedu.address.model.student.StudentId;
 
 public class UniqueAssignmentListTest {
 
@@ -71,6 +72,21 @@ public class UniqueAssignmentListTest {
         uniqueAssignmentList.add(PS1);
         uniqueAssignmentList.setAssignments(List.of(PS2, PS1));
         assertEquals(List.of(PS2, PS1), uniqueAssignmentList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void setAssignment_existingName_replacesRecord() {
+        uniqueAssignmentList.add(PS1);
+        Assignment updated = PS1.withSubmissionStatus(new StudentId("A1234567A"), true);
+
+        uniqueAssignmentList.setAssignment(updated);
+
+        assertEquals(List.of(updated), uniqueAssignmentList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void setAssignment_missingName_throwsAssignmentNotFoundException() {
+        assertThrows(AssignmentNotFoundException.class, () -> uniqueAssignmentList.setAssignment(PS1));
     }
 
     @Test

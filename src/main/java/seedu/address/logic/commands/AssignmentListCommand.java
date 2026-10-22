@@ -10,6 +10,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 
@@ -19,6 +20,7 @@ import seedu.address.model.student.Student;
 public class AssignmentListCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment list a/ASSIGNMENT_NAME";
     public static final String MESSAGE_NO_STUDENTS = "No students in %s.";
+    public static final String STATUS_SUBMITTED = "Submitted";
     public static final String STATUS_NOT_SUBMITTED = "Not submitted";
     public static final String GRADE_NOT_RECORDED = "-";
 
@@ -45,10 +47,11 @@ public class AssignmentListCommand extends Command {
 
         StringBuilder feedback = new StringBuilder(assignment.getName() + " records for " + group.getName() + ":");
         for (Student student : students) {
+            AssignmentRecord record = assignment.getStudentRecord(student.getStudentId());
             feedback.append('\n').append(student.getName()).append(" | ")
                     .append(student.getStudentId()).append(" | ")
-                    .append(STATUS_NOT_SUBMITTED).append(" | ")
-                    .append(GRADE_NOT_RECORDED);
+                    .append(record.isSubmitted() ? STATUS_SUBMITTED : STATUS_NOT_SUBMITTED).append(" | ")
+                    .append(record.getGrade().map(String::valueOf).orElse(GRADE_NOT_RECORDED));
         }
         return new CommandResult(feedback.toString());
     }

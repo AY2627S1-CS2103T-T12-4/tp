@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.BEN;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,23 @@ public class GroupTest {
         group.addStudent(BEN);
         assertEquals(ALICE, group.removeStudent(ALICE.getStudentId()));
         assertEquals(List.of(BEN), group.getStudentList());
+    }
+
+    @Test
+    public void removeStudent_existingStudent_removesOnlyTheirAssignmentRecords() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withSubmissionStatus(BEN.getStudentId(), true);
+        Assignment ps2 = PS2.withSubmissionStatus(ALICE.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(ps2);
+
+        group.removeStudent(ALICE.getStudentId());
+
+        assertEquals(Map.of(BEN.getStudentId(), ps1.getStudentRecord(BEN.getStudentId())),
+                group.findAssignment(PS1.getName()).orElseThrow().getStudentRecords());
+        assertTrue(group.findAssignment(PS2.getName()).orElseThrow().getStudentRecords().isEmpty());
     }
 
     @Test

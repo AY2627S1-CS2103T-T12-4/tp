@@ -133,6 +133,12 @@ public class ModelManager implements Model {
         tAssist.addAssignment(groupName, assignment);
     }
 
+    @Override
+    public void setAssignment(GroupName groupName, Assignment assignment) {
+        requireAllNonNull(groupName, assignment);
+        tAssist.setAssignment(groupName, assignment);
+    }
+
     //=========== Active Group Accessors =====================================================================
 
     @Override

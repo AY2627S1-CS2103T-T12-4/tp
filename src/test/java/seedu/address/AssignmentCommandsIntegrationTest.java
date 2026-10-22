@@ -63,8 +63,29 @@ public class AssignmentCommandsIntegrationTest {
     }
 
     @Test
+    public void execute_submitAndGrade_persistsStudentRecordsAfterRestart() throws Exception {
+        feedback("assignment add a/PS1");
+        assertEquals("Updated Alice Tan's PS1 submission status to submitted.",
+                feedback("assignment submit a/PS1 id/A0123456X s/yes"));
+        assertEquals("Recorded grade 87 for Alice Tan's PS1.",
+                feedback("assignment grade a/PS1 id/A0123456X m/87"));
+        TAssist expected = new TAssist(app.model.getTAssist());
+
+        restart();
+
+        assertEquals(expected, app.model.getTAssist());
+        assertEquals("PS1 records for T01:\nAlice Tan | A0123456X | Submitted | 87"
+                        + "\nBen Lim | A0234567Y | Not submitted | -"
+                        + "\nCarl Goh | A0345678Z | Not submitted | -",
+                feedback("assignment list a/PS1"));
+    }
+
+    @Test
     public void execute_rejectedInput_preservesModelAndSavedFile() throws Exception {
         feedback("assignment add a/PS1");
+        assertRejected("assignment submit a/PS1 id/A0123456X s/maybe", ParseException.class);
+        assertRejected("assignment grade a/PS1 id/A0123456X m/101", ParseException.class);
+        assertRejected("assignment grade a/PS1 id/A0123456X m/87", CommandException.class);
         for (String command : List.of("assignment", "assignment remove", "assignment add", "assignment add a/",
                 "assignment add a/PS_1", "assignment add a/PS1/PS2", "assignment add a/--",
                 "assignment add a/" + "a".repeat(10000), "assignment add a/PS2 a/PS3", "assignment add PS2",
@@ -81,7 +102,8 @@ public class AssignmentCommandsIntegrationTest {
     public void execute_noActiveGroup_preservesModelAndSavedFile() throws Exception {
         app.model.setTAssist(new TAssist());
         app.storage.saveTAssist(app.model.getTAssist());
-        for (String command : List.of("assignment add a/PS1", "assignment list a/PS1")) {
+        for (String command : List.of("assignment add a/PS1", "assignment submit a/PS1 id/A0123456X s/yes",
+                "assignment grade a/PS1 id/A0123456X m/87", "assignment list a/PS1")) {
             assertRejected(command, CommandException.class);
         }
     }
@@ -99,7 +121,10 @@ public class AssignmentCommandsIntegrationTest {
     @Test
     public void init_assignmentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "assignment");
-        assertEquals(List.of("assignment add a/ASSIGNMENT_NAME", "assignment list a/ASSIGNMENT_NAME"),
+        assertEquals(List.of("assignment add a/ASSIGNMENT_NAME",
+                        "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
+                        "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE",
+                        "assignment list a/ASSIGNMENT_NAME"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing assignment commands.", "assignment"),
                 app.logic.execute("help assignment"));

@@ -18,8 +18,10 @@ import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.GroupName;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.TypicalGroups;
 
 public class AssignmentListCommandTest {
@@ -48,6 +50,25 @@ public class AssignmentListCommandTest {
         assertCommandSuccess(new AssignmentListCommand(new AssignmentName("ps1")), model,
                 "PS1 records for T01:\nAlice Tan | A0123456X | Not submitted | -"
                         + "\nBen Lim | A0234567Y | Not submitted | -"
+                        + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
+    }
+
+    @Test
+    public void execute_recordedValues_listsSubmissionAndGrade() {
+        StudentId aliceId = new StudentId("A0123456X");
+        StudentId benId = new StudentId("A0234567Y");
+        Assignment assignment = PS1.withSubmissionStatus(aliceId, true).withGrade(aliceId, 87)
+                .withSubmissionStatus(benId, true);
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        model.setActiveGroup(NAME_T01);
+        model.addAssignment(NAME_T01, assignment);
+        Model expected = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        expected.setActiveGroup(NAME_T01);
+        expected.addAssignment(NAME_T01, assignment);
+
+        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model,
+                "PS1 records for T01:\nAlice Tan | A0123456X | Submitted | 87"
+                        + "\nBen Lim | A0234567Y | Submitted | -"
                         + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
     }
 
