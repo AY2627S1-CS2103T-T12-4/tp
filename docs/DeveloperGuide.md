@@ -109,6 +109,13 @@ confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `Workspace
 shows that many rows, from one up to six. Longer messages scroll. It shows a check mark beside a message, or a cross on
 a red row when the command failed, and failed commands retain their input.
 
+`CommandBox` keeps a `CommandHistory` of every command entered in the session, including failed ones. An event filter
+on the text field turns Up into `CommandHistory#previous` and Down into `CommandHistory#next`, and consumes both keys.
+`previous` saves the text being typed before it recalls the first command, and `next` returns that text once Down
+passes the newest command. Entering a command adds it to the history and stops recalling. The history is kept in
+memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
+that it can be unit tested.
+
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
 
@@ -1360,8 +1367,10 @@ The smoke test covers all seven screens at normal and compact sizes, F1 and Esca
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
-do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
-parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
+do not open a screen keeping the current screen, a usage message fitting the feedback box, invalid-input retention, and
+recalling and editing earlier commands with Up and Down. Normal unit tests cover screen
+parsing, result identity, navigation with unavailable storage, the Students screen's captions and empty states, and
+`CommandHistory`.
 It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
 and retaining an invalid attendance command for correction.
 
@@ -1377,6 +1386,8 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
 4. Enter `help group`. Verify that Help opens at the group commands and the feedback box shows one line.
-5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
-   100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
-   853x440 content pixels, allowing for window decorations at 150% scaling.
+5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
+   the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
+   Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at
+   100% and 150% on the target platforms. The automated compact preview uses 853x440 content pixels, allowing for
+   window decorations at 150% scaling.
