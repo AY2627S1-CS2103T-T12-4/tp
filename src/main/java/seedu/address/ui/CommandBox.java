@@ -78,7 +78,7 @@ public class CommandBox extends UiPart<Region> {
             commandHistory.previous(commandTextField.getText()).ifPresent(this::showRecalledCommand);
             event.consume();
         } else if (event.getCode() == KeyCode.DOWN) {
-            commandHistory.next().ifPresent(this::showRecalledCommand);
+            commandHistory.next(commandTextField.getText()).ifPresent(this::showRecalledCommand);
             event.consume();
         }
     }

@@ -88,8 +88,9 @@ Opening a screen with `view` does not save or change data.
 
 Press **Up** in the command box to bring back the commands you entered earlier, newest first, including ones that
 failed. Press **Down** to move back towards the newest command; going past it restores what you were typing. You can
-edit a recalled command before pressing **Enter** to run it, which saves retyping when you mark a whole group. The
-history starts empty each time you open TAssist.
+edit a recalled command before pressing **Enter** to run it, which saves retyping when you mark a whole group. Your
+edits to recalled commands are kept while you move through the history, and the history itself keeps each command as
+you entered it. The history starts empty each time you open TAssist.
 
 ## Features
 
