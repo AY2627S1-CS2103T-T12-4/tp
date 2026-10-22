@@ -3,8 +3,6 @@ package seedu.address.model.group;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
-import java.util.Locale;
-
 import seedu.address.commons.util.StringUtil;
 
 /**
@@ -70,7 +68,12 @@ public class GroupName {
 
     @Override
     public int hashCode() {
-        return fullName.toLowerCase(Locale.ROOT).hashCode();
+        int hash = 0;
+        // Match equalsIgnoreCase's Unicode folding, including supplementary characters.
+        for (int codePoint : fullName.codePoints().toArray()) {
+            hash = 31 * hash + Character.toLowerCase(Character.toUpperCase(codePoint));
+        }
+        return hash;
     }
 
 }

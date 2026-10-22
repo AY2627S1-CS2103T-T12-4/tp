@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 public class GroupNameTest {
@@ -76,6 +79,31 @@ public class GroupNameTest {
     @Test
     public void hashCode_differentCase_sameHashCode() {
         assertEquals(new GroupName("T01").hashCode(), new GroupName("t01").hashCode());
+    }
+
+    @Test
+    public void hashCode_unicodeCaseVariants_preservesHashSetMembership() {
+        String[][] equivalentNames = {
+            {"T\u01301", "ti1"},
+            {"T\u01311", "ti1"},
+            {"T\u03a31", "t\u03c21"},
+            {"T\u03a31", "t\u03c31"},
+            {"T\ud801\udc001", "t\ud801\udc281"}
+        };
+
+        for (String[] names : equivalentNames) {
+            GroupName first = new GroupName(names[0]);
+            GroupName second = new GroupName(names[1]);
+            assertEquals(first, second);
+            assertEquals(first.hashCode(), second.hashCode());
+
+            Set<GroupName> groupNames = new HashSet<>();
+            groupNames.add(first);
+            assertTrue(groupNames.contains(second));
+            assertFalse(groupNames.add(second));
+            assertTrue(groupNames.remove(second));
+            assertTrue(groupNames.isEmpty());
+        }
     }
 
     @Test
