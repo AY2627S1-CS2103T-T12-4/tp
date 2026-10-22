@@ -14,7 +14,7 @@ public abstract class Command {
      * Returns a confirmation prompt when this command may remove user data.
      *
      * @param model {@code Model} which the command should operate on.
-     * @return a prompt to show before execution, or empty if confirmation is unnecessary.
+     * @return A prompt to show before execution, or empty if confirmation is unnecessary.
      */
     public Optional<String> getConfirmationPrompt(Model model) {
         return Optional.empty();

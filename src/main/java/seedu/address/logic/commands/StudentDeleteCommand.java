@@ -25,7 +25,7 @@ public class StudentDeleteCommand extends Command {
 
     private static final Logger logger = LogsCenter.getLogger(StudentDeleteCommand.class);
     private final StudentId studentId;
-    private final boolean skipConfirmation;
+    private final boolean shouldSkipConfirmation;
 
     /**
      * Creates a command to delete the student with the given ID.
@@ -38,17 +38,17 @@ public class StudentDeleteCommand extends Command {
      * Creates a student deletion command that optionally skips the confirmation prompt.
      *
      * @param studentId The ID of the student to delete.
-     * @param skipConfirmation Whether to skip the confirmation prompt.
+     * @param shouldSkipConfirmation Whether to skip the confirmation prompt.
      */
-    public StudentDeleteCommand(StudentId studentId, boolean skipConfirmation) {
+    public StudentDeleteCommand(StudentId studentId, boolean shouldSkipConfirmation) {
         this.studentId = requireNonNull(studentId);
-        this.skipConfirmation = skipConfirmation;
+        this.shouldSkipConfirmation = shouldSkipConfirmation;
     }
 
     @Override
     public Optional<String> getConfirmationPrompt(Model model) {
         requireNonNull(model);
-        if (skipConfirmation) {
+        if (shouldSkipConfirmation) {
             return Optional.empty();
         }
         return model.getActiveGroup().flatMap(group -> group.findStudent(studentId)
@@ -72,11 +72,12 @@ public class StudentDeleteCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof StudentDeleteCommand otherCommand
-                && studentId.equals(otherCommand.studentId) && skipConfirmation == otherCommand.skipConfirmation;
+                && studentId.equals(otherCommand.studentId)
+                && shouldSkipConfirmation == otherCommand.shouldSkipConfirmation;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(studentId, skipConfirmation);
+        return Objects.hash(studentId, shouldSkipConfirmation);
     }
 }

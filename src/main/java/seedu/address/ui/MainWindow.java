@@ -68,7 +68,7 @@ public class MainWindow extends UiPart<Stage> {
      * Creates the main window with the startup data-loading outcome.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus) {
-        this(primaryStage, logic, dataFilePath, dataLoadStatus, MainWindow::showConfirmationDialog);
+        this(primaryStage, logic, dataFilePath, dataLoadStatus, MainWindow::isConfirmationAccepted);
     }
 
     /**
@@ -144,7 +144,7 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
-    private static boolean showConfirmationDialog(Stage owner, String prompt) {
+    private static boolean isConfirmationAccepted(Stage owner, String prompt) {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.initOwner(owner);
         dialog.setTitle("Confirm destructive action");
@@ -195,7 +195,7 @@ public class MainWindow extends UiPart<Stage> {
         try {
             Optional<String> confirmationPrompt = logic.getConfirmationPrompt(commandText);
             if (confirmationPrompt.isPresent()
-                    && !confirmationHandler.confirm(primaryStage, confirmationPrompt.get())) {
+                    && !confirmationHandler.isConfirmed(primaryStage, confirmationPrompt.get())) {
                 String feedback = "Command cancelled. No changes were made.";
                 resultDisplay.setFeedbackToUser(feedback);
                 statusBarFooter.setStatus("Command cancelled");
@@ -230,6 +230,6 @@ public class MainWindow extends UiPart<Stage> {
         /**
          * Shows a confirmation prompt and returns whether the user accepted it.
          */
-        boolean confirm(Stage owner, String prompt);
+        boolean isConfirmed(Stage owner, String prompt);
     }
 }

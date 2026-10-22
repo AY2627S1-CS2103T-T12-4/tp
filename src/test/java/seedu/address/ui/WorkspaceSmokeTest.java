@@ -83,9 +83,9 @@ public class WorkspaceSmokeTest {
     private TextField input;
     private TabPane tabs;
     private Path data;
-    private boolean confirmationAccepted = true;
+    private boolean isConfirmationAccepted = true;
     private String confirmationPrompt;
-    private boolean useDefaultConfirmationHandler;
+    private boolean shouldUseDefaultConfirmationHandler;
 
     @BeforeAll
     public static void startToolkit() throws Exception {
@@ -317,7 +317,7 @@ public class WorkspaceSmokeTest {
                 assertEquals("student add n/Alice Tan id/a1", input.getText());
                 assertEquals(2, studentTable().getItems().size());
 
-                confirmationAccepted = false;
+                isConfirmationAccepted = false;
                 TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
                 String savedBeforeCancelledDelete = Files.readString(data);
                 enter(input, "student delete id/a1");
@@ -327,7 +327,7 @@ public class WorkspaceSmokeTest {
                 assertEquals(2, studentTable().getItems().size());
                 assertEquals("Remove Alice Tan and all their records from T03?", confirmationPrompt);
 
-                confirmationAccepted = true;
+                isConfirmationAccepted = true;
                 confirmationPrompt = null;
                 enter(input, "student delete id/a1");
                 assertEquals("Removed Alice Tan from T03.", feedback.getText());
@@ -347,7 +347,7 @@ public class WorkspaceSmokeTest {
 
     @Test
     public void studentDelete_defaultConfirmationDialogHonorsContinueAndCancel() throws Exception {
-        useDefaultConfirmationHandler = true;
+        shouldUseDefaultConfirmationHandler = true;
         runOnFx(this::initializeWorkspace);
         try {
             runOnFx(() -> {
@@ -370,7 +370,7 @@ public class WorkspaceSmokeTest {
             });
         } finally {
             runOnFx(() -> stage.hide());
-            useDefaultConfirmationHandler = false;
+            shouldUseDefaultConfirmationHandler = false;
         }
     }
 
@@ -591,7 +591,7 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
-        confirmationAccepted = true;
+        isConfirmationAccepted = true;
         confirmationPrompt = null;
         model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
@@ -613,9 +613,9 @@ public class WorkspaceSmokeTest {
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
         LogicManager logic = new LogicManager(model, storage, commandRegistry, dataLoadStatus);
-        MainWindow window = useDefaultConfirmationHandler
+        MainWindow window = shouldUseDefaultConfirmationHandler
                 ? new MainWindow(stage, logic, data, dataLoadStatus)
-                : new MainWindow(stage, logic, data, dataLoadStatus, this::handleConfirmation);
+                : new MainWindow(stage, logic, data, dataLoadStatus, this::isPromptAccepted);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();
@@ -627,9 +627,9 @@ public class WorkspaceSmokeTest {
         assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
     }
 
-    private boolean handleConfirmation(Stage owner, String prompt) {
+    private boolean isPromptAccepted(Stage owner, String prompt) {
         confirmationPrompt = prompt;
-        return confirmationAccepted;
+        return isConfirmationAccepted;
     }
 
     private void respondToConfirmation(String buttonText) {

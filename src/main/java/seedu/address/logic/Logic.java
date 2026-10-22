@@ -30,7 +30,7 @@ public interface Logic {
      * Returns the confirmation prompt for a command before executing it.
      *
      * @param commandText The command as entered by the user.
-     * @return the prompt to show, or empty if the command needs no confirmation.
+     * @return The prompt to show, or empty if the command needs no confirmation.
      * @throws ParseException If the command cannot be parsed.
      */
     Optional<String> getConfirmationPrompt(String commandText) throws ParseException;
