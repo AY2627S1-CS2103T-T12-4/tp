@@ -27,6 +27,15 @@ public interface Logic {
     CommandResult execute(String commandText) throws CommandException, ParseException;
 
     /**
+     * Returns the confirmation prompt for a command before executing it.
+     *
+     * @param commandText The command as entered by the user.
+     * @return the prompt to show, or empty if the command needs no confirmation.
+     * @throws ParseException If the command cannot be parsed.
+     */
+    Optional<String> getConfirmationPrompt(String commandText) throws ParseException;
+
+    /**
      * Returns the in-app help entries available to the user.
      *
      * @return An immutable list of command help entries.

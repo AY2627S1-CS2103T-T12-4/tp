@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
@@ -16,18 +18,41 @@ import seedu.address.model.student.StudentId;
  * Removes a student and their records from the active tutorial group.
  */
 public class StudentDeleteCommand extends Command {
-    public static final String MESSAGE_USAGE = "student delete id/STUDENT_ID";
+    public static final String MESSAGE_USAGE = "student delete id/STUDENT_ID [f/yes]";
     public static final String MESSAGE_SUCCESS = "Removed %s from %s.";
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
+    public static final String MESSAGE_CONFIRMATION = "Remove %s and all their records from %s?";
 
     private static final Logger logger = LogsCenter.getLogger(StudentDeleteCommand.class);
     private final StudentId studentId;
+    private final boolean skipConfirmation;
 
     /**
      * Creates a command to delete the student with the given ID.
      */
     public StudentDeleteCommand(StudentId studentId) {
+        this(studentId, false);
+    }
+
+    /**
+     * Creates a student deletion command that optionally skips the confirmation prompt.
+     *
+     * @param studentId The ID of the student to delete.
+     * @param skipConfirmation Whether to skip the confirmation prompt.
+     */
+    public StudentDeleteCommand(StudentId studentId, boolean skipConfirmation) {
         this.studentId = requireNonNull(studentId);
+        this.skipConfirmation = skipConfirmation;
+    }
+
+    @Override
+    public Optional<String> getConfirmationPrompt(Model model) {
+        requireNonNull(model);
+        if (skipConfirmation) {
+            return Optional.empty();
+        }
+        return model.getActiveGroup().flatMap(group -> group.findStudent(studentId)
+                .map(student -> String.format(MESSAGE_CONFIRMATION, student.getName(), group.getName())));
     }
 
     @Override
@@ -47,11 +72,11 @@ public class StudentDeleteCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof StudentDeleteCommand otherCommand
-                && studentId.equals(otherCommand.studentId);
+                && studentId.equals(otherCommand.studentId) && skipConfirmation == otherCommand.skipConfirmation;
     }
 
     @Override
     public int hashCode() {
-        return studentId.hashCode();
+        return Objects.hash(studentId, skipConfirmation);
     }
 }

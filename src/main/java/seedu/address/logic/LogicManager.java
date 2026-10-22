@@ -94,6 +94,12 @@ public class LogicManager implements Logic {
         }
     }
 
+    @Override
+    public Optional<String> getConfirmationPrompt(String commandText) throws ParseException {
+        requireNonNull(commandText);
+        return tAssistParser.parseCommand(commandText).getConfirmationPrompt(model);
+    }
+
     private CommandResult executeAndSave(Command command, TAssist previousData) throws CommandException {
         CommandResult commandResult = command.execute(model);
 
