@@ -1176,19 +1176,28 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Check that `java -version` reports Java 25. Download the JAR file and copy it into an empty folder that you can
+      write to.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with no data. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar "tassist.jar"`. Double-clicking the JAR may not work on every
+      system, so prefer the terminal.<br>
+      Expected: The GUI opens with no data and shows `No saved data found. Starting with an empty database.`
+      `preferences.json` and the log file `tassist.log.0` appear in the folder, but `data/tassist.json` does not.
+
+   1. Start the JAR from another folder, for example `java -jar "path/to/tassist.jar"`.<br>
+      Expected: The files are still read from and written to the folder that contains the JAR.
 
 1. Saving window preferences
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+   1. Resize the window to an optimal size. Move the window to a different location. Enter `exit`.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+   1. Relaunch the app with `java -jar "tassist.jar"`.<br>
+      Expected: The most recent window size and location are retained.
 
-1. _{ more test cases …​ }_
+1. Shutting down
+
+   1. Close the window with its close button instead of `exit`.<br>
+      Expected: The app closes, and the window size and location are saved as with `exit`.
 
 ### Saving data
 
