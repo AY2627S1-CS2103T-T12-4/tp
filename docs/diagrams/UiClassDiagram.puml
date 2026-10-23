@@ -19,6 +19,7 @@ class GroupStrip
 class NavigationBar
 class WorkspacePanel
 class CommandBox
+class CommandHistory
 class ResultDisplay
 class StatusBarFooter
 class StudentListPanel
@@ -30,6 +31,7 @@ class StoragePanel
 UiManager .up.|> Ui
 UiManager --> MainWindow
 MainWindow *--> CommandBox
+CommandBox *--> CommandHistory
 MainWindow *--> ResultDisplay
 MainWindow *--> StatusBarFooter
 MainWindow *--> GroupStrip

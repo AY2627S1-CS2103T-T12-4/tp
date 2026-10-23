@@ -86,6 +86,13 @@ The footer shows the local file path, reports successful saves or command failur
 Escape shortcuts.
 Opening a screen with `view` does not save or change data.
 
+Press **Up** in the command box to bring back the commands you entered earlier, newest first, including ones that
+failed. Press **Down** to move back towards the newest command; going past it restores what you were typing. You can
+edit a recalled command before pressing **Enter** to run it, which saves retyping when you mark a whole group. Your
+edits to recalled commands are kept while you move through the history, and the history itself keeps each command as
+you entered it. Up and Down skip any command that matches the text already in the box, so after a command fails, the
+first Up brings back the command before it. The history starts empty each time you open TAssist.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">
