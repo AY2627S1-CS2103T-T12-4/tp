@@ -50,11 +50,12 @@ public class GroupRecordsCsvExporter {
 
     /**
      * Returns the file that an export of the group named {@code groupName} writes, such as
-     * {@code T01-records.csv}. Spaces in the name become hyphens, so the file name needs no quoting.
+     * {@code T01-records.csv}. Spaces in the name become underscores, so the file name needs no quoting. Group names
+     * cannot contain underscores, so two different groups, such as {@code Lab 1} and {@code Lab-1}, never share a file.
      */
     public Path getExportFile(GroupName groupName) {
         requireNonNull(groupName);
-        return exportFolder.resolve(groupName.toString().replace(' ', '-') + FILE_NAME_SUFFIX);
+        return exportFolder.resolve(groupName.toString().replace(' ', '_') + FILE_NAME_SUFFIX);
     }
 
     /**

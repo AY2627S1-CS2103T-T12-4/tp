@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
@@ -37,8 +38,9 @@ public class GroupRecordsCsvExporterTest {
         GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
 
         assertEquals(temporaryFolder.resolve("exports").resolve("T01-records.csv"), exporter.getExportFile(NAME_T01));
-        assertEquals("Thursday-1-Lab-records.csv",
+        assertEquals("Thursday_1_Lab-records.csv",
                 exporter.getExportFile(new GroupName(" Thursday   1 Lab")).getFileName().toString());
+        assertNotEquals(exporter.getExportFile(new GroupName("Lab 1")), exporter.getExportFile(new GroupName("Lab-1")));
     }
 
     @Test

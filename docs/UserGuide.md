@@ -438,7 +438,8 @@ Exporting only reads your records: it never changes them, the active group, or t
 Format: `group export`
 
 * The file is saved in the `exports` folder next to the TAssist JAR, which is created if needed, and is named after
-  the group, such as `exports/T01-records.csv`. Spaces in a group name become hyphens.
+  the group, such as `exports/T01-records.csv`. Spaces in a group name become underscores, so the file for `Lab 1`
+  is `Lab_1-records.csv`.
 * Exporting the same group again replaces its earlier file, so the file always matches the latest records.
   Close the file in your spreadsheet before exporting again.
 * The command takes no parameters. Select the group to export with `group use` first.
