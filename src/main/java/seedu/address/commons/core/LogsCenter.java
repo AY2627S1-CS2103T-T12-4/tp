@@ -85,14 +85,30 @@ public class LogsCenter {
         consoleHandler.setLevel(Level.ALL);
         baseLogger.addHandler(consoleHandler);
 
-        // add a FileHandler to log to a file
+        addFileHandler(baseLogger, LOG_FILE);
+    }
+
+    /**
+     * Adds a handler that writes the messages of {@code targetLogger} to the file at {@code logFile}.
+     * If the file cannot be written, for example in a read-only folder, warns through {@code targetLogger} and
+     * leaves it logging to its other handlers only, so that TAssist still starts.
+     *
+     * @return true if the file handler was added.
+     */
+    static boolean addFileHandler(Logger targetLogger, String logFile) {
+        requireNonNull(targetLogger);
+        requireNonNull(logFile);
         try {
-            FileHandler fileHandler = new FileHandler(LOG_FILE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            FileHandler fileHandler = new FileHandler(logFile, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
-            baseLogger.addHandler(fileHandler);
-        } catch (IOException e) {
-            logger.warning("Error adding file handler for logger.");
+            targetLogger.addHandler(fileHandler);
+            return true;
+        } catch (IOException | SecurityException e) {
+            // The logger of this class may not exist yet, so warn through the logger being set up.
+            targetLogger.warning("Could not write the log file " + logFile + " (" + e.getMessage()
+                    + "). Logging to the console only.");
+            return false;
         }
     }
 

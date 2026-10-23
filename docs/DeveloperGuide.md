@@ -1176,19 +1176,92 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Check that `java -version` reports Java 25. Download the JAR file and copy it into an empty folder that you can
+      write to.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with no data. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar "tassist.jar"`. Double-clicking the JAR may not work on every
+      system, so prefer the terminal.<br>
+      Expected: The GUI opens with no data and shows `No saved data found. Starting with an empty database.`
+      `preferences.json` and the log file `tassist.log.0` appear in the folder, but `data/tassist.json` does not.
+
+   1. Start the JAR from another folder, for example `java -jar "path/to/tassist.jar"`.<br>
+      Expected: The files are still read from and written to the folder that contains the JAR.
 
 1. Saving window preferences
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+   1. Resize the window to an optimal size. Move the window to a different location. Enter `exit`.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+   1. Relaunch the app with `java -jar "tassist.jar"`.<br>
+      Expected: The most recent window size and location are retained.
 
-1. _{ more test cases …​ }_
+1. Shutting down
+
+   1. Close the window with its close button instead of `exit`.<br>
+      Expected: The app closes, and the window size and location are saved as with `exit`.
+
+### End-to-end acceptance walkthrough
+
+This walkthrough checks the product as a TA uses it, from a first launch to a restart. Run it on the release JAR,
+in an empty folder, with Java 25, before each release. `AcceptanceWalkthroughTest` automates the same session
+through the real parsers, model and JSON storage, but the steps below also check the GUI and the JAR itself.
+
+1. First launch
+
+   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view attendance` and
+      `group list`.<br>
+      Expected: Help and the Attendance screen open, `group list` says no tutorial groups exist, and
+      `data/tassist.json` is still not created.
+
+1. Recording a tutorial
+
+   1. Enter `group add g/T01`, `group add g/T02` and `group use g/t01`.<br>
+      Expected: The group bar shows T01 and T02 with T01 highlighted, and the footer shows `Changes saved.`
+   1. Enter `student add n/Alice Tan id/A0123456X`, `student add n/Ben Lim id/A0234567Y` and
+      `student add n/Chloe O'Neil-Ng id/a0345678z`.<br>
+      Expected: The Students screen lists the three students, with Chloe's ID shown as `A0345678Z`.
+   1. Enter `attendance mark id/A0123456X w/1 s/present`, `attendance mark id/A0234567Y w/1 s/absent`, and then
+      `attendance mark id/a0123456x w/1 s/ABSENT` to correct Alice's mark.
+   1. Enter `participation set id/A0123456X w/1 s/3` and `participation set id/A0345678Z w/1 s/0`.
+   1. Enter `assignment add a/PS1`, `assignment submit a/PS1 id/A0123456X s/yes`,
+      `assignment grade a/ps1 id/A0123456X m/87` and `assignment submit a/PS1 id/A0234567Y s/yes`.
+   1. Enter `group use g/T02`, `student add n/Alice Tan id/A0123456X`,
+      `attendance mark id/A0123456X w/1 s/present` and `group use g/T01`.<br>
+      Expected: Each command succeeds. The same student ID is allowed in two groups.
+
+1. Restoring the tutorial after a restart
+
+   1. Enter `exit`, then launch the JAR again.<br>
+      Expected: T01 is active and lists Alice, Ben and Chloe.
+   1. Enter `attendance list w/1`, `participation list w/1` and `assignment list a/PS1`.<br>
+      Expected: Alice is `Absent`, Ben is `Absent` and Chloe is `Not recorded`; Alice has 3, Ben is
+      `Not recorded` and Chloe has 0; Alice is `Submitted | 87`, Ben is `Submitted | -` and Chloe is
+      `Not submitted | -`.
+   1. Enter `group use g/T02` and `attendance list w/1`.<br>
+      Expected: T02's Alice is `Present`. Records of one group never appear in another.
+
+1. Rejecting mistakes
+
+   1. Note the contents of `data/tassist.json`. Enter commands with an invalid value (`attendance mark id/A0123456X
+      w/14 s/present`), a missing parameter (`participation set id/A0123456X w/1`), a repeated parameter
+      (`group add g/T03 g/T04`), a duplicate (`assignment add a/ps1`), an unknown student
+      (`attendance mark id/A9 w/1 s/present`) and a very long value (a student name of a few thousand letters).<br>
+      Expected: Each command fails with feedback that names the problem, stays in the command box for correcting,
+      and leaves the data and the file unchanged.
+
+1. Removing a student
+
+   1. Enter `group use g/T01` and `student delete id/a0234567y`, then restart.<br>
+      Expected: Ben and his attendance and assignment records are gone from T01. T02 still has its Alice.
+
+1. Window sizes
+
+   1. Repeat a few listings at 1920x1080 and at 1280x720, and at 125% and 150% display scaling if your system
+      supports them.<br>
+      Expected: The group bar, the screen tabs, the feedback box and the command box stay visible and usable.
+      Long names are shortened with an ellipsis and shown in full in a tooltip.
+
+If the app and the User Guide disagree, fix whichever is wrong, and report the rest as bugs with the `alpha-bug`
+label.
 
 ### Saving data
 

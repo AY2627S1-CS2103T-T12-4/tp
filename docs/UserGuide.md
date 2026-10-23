@@ -398,12 +398,12 @@ Listing does not change any data.
 
 Format: `assignment list a/ASSIGNMENT_NAME`
 
-Example: `assignment list a/PS1`
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+`assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
-Alice Tan | A0123456X | Not submitted | -
-Ben Lim | A0234567Y | Not submitted | -
+Alice Tan | A0123456X | Submitted | 87
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
@@ -524,6 +524,12 @@ location while TAssist is closed, then restart. Repairing the file while the app
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **Double-clicking the JAR file** may not open TAssist, or may open it with the wrong Java version, on some
+   systems. Start it from a terminal with `java -jar tassist.jar`, as in the [Quick start](#quick-start).
+1. **In a folder TAssist cannot write to**, such as a read-only folder, TAssist opens
+   but cannot save. Every command that changes data reports
+   `Unable to save changes. Your previous saved data is unchanged.` with a reminder to check the folder's
+   permissions. Move the JAR to a folder you can write to, such as one in your home folder, and start it again.
 
 --------------------------------------------------------------------------------------------------------------------
 
