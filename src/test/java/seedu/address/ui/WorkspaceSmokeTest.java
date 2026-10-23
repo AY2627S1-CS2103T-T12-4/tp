@@ -438,6 +438,9 @@ public class WorkspaceSmokeTest {
                 input.fireEvent(new ActionEvent());
                 assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
                 assertTrue(input.getText().isEmpty());
+                enter(input, "   ");
+                assertFalse(input.getStyleClass().contains("error"), "Blank input is ignored");
+                input.clear();
                 pressKey(KeyCode.UP);
                 assertEquals("view storage", input.getText(), "The edited command is the newest entry");
                 input.setText("view st");
