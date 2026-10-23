@@ -110,6 +110,20 @@ public class GroupRecordsCsvExporter {
         return row;
     }
 
+    /**
+     * Returns true if {@code other} is an exporter that writes to the same folder.
+     */
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof GroupRecordsCsvExporter otherExporter
+                && exportFolder.equals(otherExporter.exportFolder);
+    }
+
+    @Override
+    public int hashCode() {
+        return exportFolder.hashCode();
+    }
+
     private static IntStream weeks() {
         return IntStream.rangeClosed(WeeklyRecord.MIN_WEEK, WeeklyRecord.MAX_WEEK);
     }
