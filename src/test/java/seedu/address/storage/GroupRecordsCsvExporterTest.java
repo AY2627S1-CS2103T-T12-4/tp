@@ -1,16 +1,23 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
 import seedu.address.testutil.GroupBuilder;
 import seedu.address.testutil.StudentBuilder;
@@ -21,6 +28,55 @@ public class GroupRecordsCsvExporterTest {
             .build().withAttendanceRecord(1, "PRESENT").withAttendanceRecord(13, "ABSENT")
             .withParticipationRecord(1, 3).withParticipationRecord(2, 0);
     private static final Student BEN = new StudentBuilder().withName("Ben Lim").withStudentId("A0234567Y").build();
+
+    @TempDir
+    public Path temporaryFolder;
+
+    @Test
+    public void getExportFile_groupName_namesFileAfterGroupInExportFolder() {
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
+
+        assertEquals(temporaryFolder.resolve("exports").resolve("T01-records.csv"), exporter.getExportFile(NAME_T01));
+        assertEquals("Thursday-1-Lab-records.csv",
+                exporter.getExportFile(new GroupName(" Thursday   1 Lab")).getFileName().toString());
+    }
+
+    @Test
+    public void export_group_writesUtf8CsvWithByteOrderMarkAndCrlf() throws IOException {
+        Group group = new GroupBuilder().withName(NAME_T01).withStudents(ALICE, BEN).build();
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
+
+        Path exportFile = exporter.export(group);
+
+        assertEquals(exporter.getExportFile(NAME_T01), exportFile);
+        String csv = Files.readString(exportFile, StandardCharsets.UTF_8);
+        assertTrue(csv.startsWith("\uFEFFName,Student ID,Week 1 Attendance,"));
+        assertTrue(csv.contains("\r\nAlice Tan,A0123456X,Present,"));
+        assertTrue(csv.endsWith("\r\n"));
+        assertEquals(3, csv.split("\r\n").length);
+    }
+
+    @Test
+    public void export_sameGroupAgain_replacesEarlierExportWithoutLeavingTemporaryFiles() throws IOException {
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder);
+        exporter.export(new GroupBuilder().withName(NAME_T01).withStudents(ALICE, BEN).build());
+
+        Path exportFile = exporter.export(new Group(NAME_T01));
+
+        assertEquals(1, Files.readString(exportFile).split("\r\n").length);
+        try (var files = Files.list(temporaryFolder)) {
+            assertEquals(List.of(exportFile), files.toList());
+        }
+    }
+
+    @Test
+    public void export_folderIsAFile_throwsIoExceptionAndWritesNothing() throws IOException {
+        Path notAFolder = Files.writeString(temporaryFolder.resolve("exports"), "not a folder");
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(notAFolder);
+
+        assertThrows(IOException.class, () -> exporter.export(new Group(NAME_T01)));
+        assertEquals("not a folder", Files.readString(notAFolder));
+    }
 
     @Test
     public void toRows_header_namesEveryWeekOfBothRecords() {
@@ -51,7 +107,11 @@ public class GroupRecordsCsvExporterTest {
     }
 
     @Test
-    public void toRows_null_throwsNullPointerException() {
+    public void nullArguments_throwNullPointerException() {
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder);
+        assertThrows(NullPointerException.class, () -> new GroupRecordsCsvExporter(null));
+        assertThrows(NullPointerException.class, () -> exporter.getExportFile(null));
+        assertThrows(NullPointerException.class, () -> exporter.export(null));
         assertThrows(NullPointerException.class, () -> GroupRecordsCsvExporter.toRows(null));
     }
 
