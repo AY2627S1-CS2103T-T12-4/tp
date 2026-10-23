@@ -45,12 +45,15 @@ public class CommandHistoryTest {
     }
 
     @Test
-    public void previousAndNext_editedRecalledCommand_keepsEdit() {
+    public void previousAndNext_editedTypedTextAndRecalledCommand_keepsBothEdits() {
         addBothCommands();
-        history.previous("");
+        history.previous("student");
         String editedCommand = SECOND_COMMAND.replace("A0123456X", "A0234567Y");
         assertEquals(Optional.of(FIRST_COMMAND), history.previous(editedCommand));
         assertEquals(Optional.of(editedCommand), history.next(FIRST_COMMAND));
+        assertEquals(Optional.of("student"), history.next(editedCommand));
+        assertEquals(Optional.of(editedCommand), history.previous("student list"));
+        assertEquals(Optional.of("student list"), history.next(editedCommand));
     }
 
     @Test

@@ -444,8 +444,11 @@ public class WorkspaceSmokeTest {
                 pressKey(KeyCode.UP);
                 assertEquals("view storage", input.getText(), "The edited command is the newest entry");
                 input.setText("view st");
-                pressShiftKey(KeyCode.UP);
-                assertEquals("view st", input.getText(), "Shift+Up is left to the text field");
+                for (KeyCode modifier : List.of(KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META)) {
+                    pressKeyWithModifier(KeyCode.UP, modifier);
+                    pressKeyWithModifier(KeyCode.DOWN, modifier);
+                    assertEquals("view st", input.getText(), modifier + "+Up and Down are left to the text field");
+                }
             });
         } finally {
             runOnFx(() -> stage.hide());
@@ -663,8 +666,9 @@ public class WorkspaceSmokeTest {
         input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, false, false, false, false));
     }
 
-    private void pressShiftKey(KeyCode key) {
-        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, true, false, false, false));
+    private void pressKeyWithModifier(KeyCode key, KeyCode modifier) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, modifier == KeyCode.SHIFT,
+                modifier == KeyCode.CONTROL, modifier == KeyCode.ALT, modifier == KeyCode.META));
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {
