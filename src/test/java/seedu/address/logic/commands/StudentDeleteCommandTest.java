@@ -10,6 +10,8 @@ import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
@@ -47,6 +49,20 @@ public class StudentDeleteCommandTest {
     }
 
     @Test
+    public void getConfirmationPrompt_namesStudentAndCanBeSkipped() {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        model.setActiveGroup(NAME_T01);
+
+        assertEquals(Optional.of("Remove Alice Tan and all their attendance, participation, submission, and grade "
+                        + "records from T01?"),
+                new StudentDeleteCommand(ALICE.getStudentId()).getConfirmationPrompt(model));
+        assertEquals(Optional.empty(),
+                new StudentDeleteCommand(ALICE.getStudentId(), true).getConfirmationPrompt(model));
+        assertEquals(Optional.empty(),
+                new StudentDeleteCommand(FIONA.getStudentId()).getConfirmationPrompt(model));
+    }
+
+    @Test
     public void nullInputs_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new StudentDeleteCommand(null));
         assertThrows(NullPointerException.class, () -> new StudentDeleteCommand(ALICE.getStudentId()).execute(null));
@@ -59,6 +75,7 @@ public class StudentDeleteCommandTest {
         assertEquals(command, new StudentDeleteCommand(new StudentId("a0123456x")));
         assertEquals(command.hashCode(), new StudentDeleteCommand(ALICE.getStudentId()).hashCode());
         assertNotEquals(command, new StudentDeleteCommand(FIONA.getStudentId()));
+        assertNotEquals(command, new StudentDeleteCommand(ALICE.getStudentId(), true));
         assertNotEquals(command, null);
         assertNotEquals(command, "student");
     }
