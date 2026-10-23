@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
@@ -66,6 +67,29 @@ public class GroupRecordsCsvExporterTest {
         Path exportFile = exporter.export(new Group(NAME_T01));
 
         assertEquals(1, Files.readString(exportFile).split("\r\n").length);
+        try (var files = Files.list(temporaryFolder)) {
+            assertEquals(List.of(exportFile), files.toList());
+        }
+    }
+
+    @Test
+    public void export_posixFileSystem_givesFileTheFolderDefaultPermissions() throws IOException {
+        assumeTrue(temporaryFolder.getFileSystem().supportedFileAttributeViews().contains("posix"));
+        Path ordinaryFile = Files.writeString(temporaryFolder.resolve("ordinary.txt"), "");
+
+        Path exportFile = new GroupRecordsCsvExporter(temporaryFolder).export(new Group(NAME_T01));
+
+        assertEquals(Files.getPosixFilePermissions(ordinaryFile), Files.getPosixFilePermissions(exportFile));
+    }
+
+    @Test
+    public void export_temporaryFileLeftByEarlierCrash_isReplaced() throws IOException {
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder);
+        Files.writeString(temporaryFolder.resolve(".T01-records.csv.tmp"), "half-written");
+
+        Path exportFile = exporter.export(new Group(NAME_T01));
+
+        assertTrue(Files.readString(exportFile).startsWith(GroupRecordsCsvExporter.BYTE_ORDER_MARK + "Name,"));
         try (var files = Files.list(temporaryFolder)) {
             assertEquals(List.of(exportFile), files.toList());
         }

@@ -71,7 +71,9 @@ public class GroupRecordsCsvExporter {
         String csv = BYTE_ORDER_MARK + CsvUtil.formatTable(toRows(group));
 
         Files.createDirectories(exportFolder);
-        Path temporaryFile = Files.createTempFile(exportFolder, ".export-", ".tmp");
+        // Files.createTempFile would make the file readable by its owner only, and the move would keep that.
+        // A plain file gets the same permissions as any other file the user creates in the folder.
+        Path temporaryFile = exportFolder.resolve("." + exportFile.getFileName() + ".tmp");
         try {
             Files.writeString(temporaryFile, csv, StandardCharsets.UTF_8);
             Files.move(temporaryFile, exportFile, StandardCopyOption.ATOMIC_MOVE,
