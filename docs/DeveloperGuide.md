@@ -328,9 +328,10 @@ before `LogicManager` is created. Their parsers use `TAssistArgumentParser` for 
 `TAssistParserUtil` for IDs, weeks 1–13, and whole-number scores 0–5. Command constructors also reject invalid weeks
 or scores defensively, even when called without a parser.
 
-`ParticipationSetCommand` finds the student in the active group before changing anything. It checks whether that
-week already has a value, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
-`Model.setStudent`. Feedback distinguishes a first entry from a replacement. The replacement preserves roster
+`ParticipationSetCommand` finds the student in the active group before changing anything. It reads that week's
+existing value, if any, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
+`Model.setStudent`. Feedback distinguishes a first entry, a replacement (showing the old and new score, such as
+`2 to 4`), and an entry equal to the existing score, which says nothing changed. The replacement preserves roster
 order, attendance, and scores for other weeks; students in other groups are untouched.
 `ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
 the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
@@ -401,9 +402,11 @@ These classes follow the rules in our feature specification:
 `AttendanceStatus` accepts present or absent, ignoring case and surrounding spaces.
 
 `AttendanceMarkCommand` checks the active group and finds the student in that group before changing data.
-It checks whether a record already exists for the week, creates an updated student through
-`withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`;
-the confirmation distinguishes a first mark from an update. Existing `LogicManager` persistence saves the result.
+It reads the week's existing record, if any, creates an updated student through
+`withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`.
+The confirmation distinguishes a first mark, an update (showing the old and new status, such as
+`present to absent`), and a mark equal to the existing one, which says nothing changed.
+Existing `LogicManager` persistence saves the result.
 
 `AttendanceListCommandParser` requires only `w/` and uses the same week validation. `AttendanceListCommand`
 selects attendance through `Group#getWeeklyRecordEntries`. If no student has a record for that week, it returns
@@ -1138,7 +1141,8 @@ testers are expected to do more *exploratory* testing.
 1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
    Select T01 with `group use g/T01`. Enter `participation list w/3`; both rows should say `Not recorded`.
 2. Enter `participation set id/a0123456x w/3 s/0`. Expect a first-entry confirmation and Alice's Week 3 score of zero.
-   Set it again with `s/4`. Expect the update message, with Ben still `Not recorded` when listing Week 3.
+   Set it again with `s/4`. Expect `Updated Alice Tan's participation score for Week 3: 0 to 4.`,
+   with Ben still `Not recorded` when listing Week 3.
 3. Set Alice's Week 13 score to 5. Close and reopen, then list Weeks 3 and 13. Expect 4 and 5 respectively.
    List Week 1; Alice and Ben should still be `Not recorded`.
 4. Try `participation set id/A0123456X w/0 s/2`, `participation set id/A0123456X w/3 s/6`,
@@ -1198,7 +1202,9 @@ testers are expected to do more *exploratory* testing.
    1. Enter `attendance mark id/A0123456X w/3 s/present`.
       Expected: `Recorded Alice Tan as present for Week 3.`
    1. Enter `attendance mark id/A0123456X w/3 s/absent`.
-      Expected: `Updated Alice Tan's attendance for Week 3 to absent.`
+      Expected: `Updated Alice Tan's attendance for Week 3: present to absent.`
+   1. Enter `attendance mark id/A0123456X w/3 s/absent` again.
+      Expected: `Alice Tan's attendance for Week 3 is already absent. Nothing changed.`
    1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:` and
       `Alice Tan | A0123456X | Absent`. Other students, if present, show `Not recorded`.
    1. Enter `attendance list w/13`. Expected: `No attendance records have been recorded for Week 13.`

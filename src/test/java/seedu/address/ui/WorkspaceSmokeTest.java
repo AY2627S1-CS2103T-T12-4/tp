@@ -283,7 +283,7 @@ public class WorkspaceSmokeTest {
                 assertEquals("participation set id/A0123456X w/3 s/6", input.getText());
                 assertTrue(input.getStyleClass().contains("error"));
                 enter(input, "participation set id/A0123456X w/3 s/4");
-                assertEquals("Updated Alice Tan's participation score for Week 3 to 4.", feedback.getText());
+                assertEquals("Updated Alice Tan's participation score for Week 3: 0 to 4.", feedback.getText());
                 assertTrue(input.getText().isEmpty());
                 assertEquals("participation", tabs.getSelectionModel().getSelectedItem().getId());
             });
