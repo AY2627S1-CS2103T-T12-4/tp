@@ -94,11 +94,11 @@ keyboard focus away from the command box, so the UI stays usable by mouse while 
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
 The `GroupStrip` and the Students screen (`StudentListPanel`) observe the
-views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getActiveGroupStudentList()` (see
+views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getDisplayedStudentList()` (see
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
 the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
 group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
-table, and says whether no group is active or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
@@ -470,7 +470,7 @@ participation feedback and failed-input retention through the JavaFX command box
 
 ### Student commands
 
-`StudentCommandRegistration` registers `student add`, `student list`, and `student delete`, including their help
+`StudentCommandRegistration` registers `student add`, `student list`, `student find`, and `student delete`, including their help
 formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
@@ -480,7 +480,8 @@ Each command obtains the active group at execution time and throws `CommandExcep
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
-same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
+same ID. `StudentListCommand` clears the display filter, opens Students, and returns the full numbered roster
+or an empty-roster hint.
 
 Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
 affected data without changing it; cancelling skips execution and persistence. Student deletion names the student,
@@ -492,6 +493,19 @@ normalization, confirmation details, feedback, uniqueness, group isolation, and 
 `StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
 across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
 that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
+
+#### Student search
+
+`StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
+at least one nonblank fragment. Fragments are not validated as complete names or IDs. `StudentSearchPredicate`
+uses case-insensitive substring matching and combines the supplied filters with AND.
+
+`ModelManager` maintains a `FilteredList` over the active group's live roster and exposes an unmodifiable
+`getDisplayedStudentList()` through Logic. The Students table binds to this display; `getActiveGroupStudentList()`
+continues to expose the complete roster. Searching changes only the predicate, so `LogicManager` does not save it.
+Each search replaces the previous one, and `student list` clears it. Switching to a different group resets the
+filter; rebinding the same group after a failed command preserves it. Restarting constructs an unfiltered view.
+The table distinguishes an empty roster from no search matches, and shows the matching count against the total.
 
 ### Assignment commands
 

@@ -116,6 +116,7 @@ public class MainWindow extends UiPart<Stage> {
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+                logic.getDisplayedStudentList(),
                 dataFilePath, logic.getHelpEntries());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());

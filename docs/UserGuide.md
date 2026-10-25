@@ -233,7 +233,8 @@ Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.`
 
 ### Listing students: `student list`
 
-Lists the active group's students in roster order in the feedback box. It takes no parameters.
+Clears the search, opens the Students screen, and lists all students in the active group in roster order
+in the feedback box. It takes no parameters.
 
 Format: `student list`
 
@@ -245,6 +246,29 @@ Students in T01:
 
 An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
 Long rosters can be scrolled in the feedback box or viewed on the Students screen with `view students`.
+
+### Finding students: `student find`
+
+Shows students in the active group whose names or IDs contain the supplied fragments, ignoring case.
+The Students screen opens with matching rows and a count. When only part of the roster is shown, the count
+is shown as, for example, `2 of 20 students`.
+
+Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
+
+* Include at least one filter. If both are supplied, a student must match **both**.
+* Name fragments match anywhere in the name, including across words. Repeated spaces are treated as one space.
+* ID fragments can be incomplete and need not contain a digit. Accents remain significant.
+* Each search replaces the previous search. Blank, repeated, and unknown filters are rejected.
+* Adding or deleting students updates the matching rows immediately. Other record commands and CSV export
+  continue to use the complete group.
+* Switching to a different group or restarting clears the search. Selecting the already active group keeps it.
+* Searching does not change the roster or saved file. Use `student list` to show all students again.
+
+Examples: `student find n/alice` finds Alice Tan; `student find id/0123` matches A0123456X.
+`student find n/alice id/0123` requires both fragments to match the same student.
+
+No matches shows `No matching students in T01. Use student list to show all students.`
+The table also explains how to restore the full roster. An empty name or ID filter reports which filter is blank.
 
 ### Deleting a student: `student delete`
 
@@ -599,6 +623,7 @@ Action | Format, Examples
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
+**Find students** | `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`<br> e.g., `student find n/alice`
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`

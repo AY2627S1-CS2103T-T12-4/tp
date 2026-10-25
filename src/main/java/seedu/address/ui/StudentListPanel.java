@@ -54,9 +54,10 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Creates a table of the active group's students that follows {@code activeGroup} and {@code students}.
      */
-    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students) {
+    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> roster,
+            ObservableList<Student> students) {
         super(FXML);
-        requireAllNonNull(activeGroup, students);
+        requireAllNonNull(activeGroup, roster, students);
 
         studentTable.setItems(students);
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
@@ -75,12 +76,13 @@ public class StudentListPanel extends UiPart<Region> {
                 activeGroup);
         studentCount.visibleProperty().bind(hasActiveGroup);
         studentCount.managedProperty().bind(hasActiveGroup);
-        studentCount.textProperty().bind(Bindings.createStringBinding(() -> describeCount(students.size()),
-                students));
+        studentCount.textProperty().bind(Bindings.createStringBinding(() ->
+                students.size() == roster.size() ? describeCount(students.size())
+                        : students.size() + " of " + describeCount(roster.size()), students, roster));
         emptyTitle.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyTitle(activeGroup.getValue()),
-                activeGroup));
+                activeGroup, roster, students));
         emptyHint.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyHint(activeGroup.getValue()),
-                activeGroup));
+                activeGroup, roster, students));
         showEmptyStateInsteadOfTable(students);
     }
 
@@ -128,6 +130,9 @@ public class StudentListPanel extends UiPart<Region> {
      * Returns the title shown in place of the table when there are no students to show.
      */
     static String describeEmptyTitle(Optional<Group> activeGroup) {
+        if (activeGroup.isPresent() && !activeGroup.orElseThrow().getStudentList().isEmpty()) {
+            return "No matching students";
+        }
         return activeGroup.map(group -> String.format(EMPTY_GROUP_TITLE_FORMAT, group.getName()))
                 .orElse(NO_ACTIVE_GROUP);
     }
@@ -136,6 +141,9 @@ public class StudentListPanel extends UiPart<Region> {
      * Returns the hint shown in place of the table when there are no students to show.
      */
     static String describeEmptyHint(Optional<Group> activeGroup) {
+        if (activeGroup.isPresent() && !activeGroup.orElseThrow().getStudentList().isEmpty()) {
+            return "Use student list to show all students.";
+        }
         return activeGroup.map(group -> String.format(EMPTY_GROUP_HINT_FORMAT, group.getName()))
                 .orElse(NO_ACTIVE_GROUP_HINT);
     }

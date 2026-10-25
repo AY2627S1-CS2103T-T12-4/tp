@@ -34,10 +34,10 @@ public class WorkspacePanel extends UiPart<TabPane> {
      * Creates the workspace with the active group's live students and explicit previews of future features.
      */
     public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
-            Path dataFilePath, List<HelpEntry> helpEntries) {
+            ObservableList<Student> displayedStudents, Path dataFilePath, List<HelpEntry> helpEntries) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students);
+        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, displayedStudents);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
                 "Use group add, group list, and group use to manage tutorial groups. This table is coming soon.",

@@ -44,4 +44,11 @@ public class StudentListPanelTest {
         assertEquals(StudentListPanel.NO_ACTIVE_GROUP, StudentListPanel.describeEmptyTitle(Optional.empty()));
         assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, StudentListPanel.describeEmptyHint(Optional.empty()));
     }
+
+    @Test
+    public void describeEmptyState_populatedGroup_explainsHowToClearSearch() {
+        assertEquals("No matching students", StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT01())));
+        assertEquals("Use student list to show all students.",
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT01())));
+    }
 }

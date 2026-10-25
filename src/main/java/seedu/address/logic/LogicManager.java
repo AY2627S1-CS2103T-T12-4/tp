@@ -149,6 +149,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Student> getDisplayedStudentList() {
+        return model.getDisplayedStudentList();
+    }
+
+    @Override
     public GuiSettings getGuiSettings() {
         return model.getGuiSettings();
     }

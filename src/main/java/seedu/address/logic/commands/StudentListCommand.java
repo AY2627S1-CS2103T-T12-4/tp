@@ -5,6 +5,7 @@ import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.List;
 
+import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.group.Group;
@@ -25,7 +26,7 @@ public class StudentListCommand extends Command {
         model.resetStudentDisplay();
         List<Student> students = group.getStudentList();
         if (students.isEmpty()) {
-            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
+            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()), WorkspaceView.STUDENTS);
         }
 
         StringBuilder feedback = new StringBuilder("Students in " + group.getName() + ":");
@@ -34,6 +35,6 @@ public class StudentListCommand extends Command {
             feedback.append('\n').append(i + 1).append(". ").append(student.getName())
                     .append(" | ").append(student.getStudentId());
         }
-        return new CommandResult(feedback.toString());
+        return new CommandResult(feedback.toString(), WorkspaceView.STUDENTS);
     }
 }

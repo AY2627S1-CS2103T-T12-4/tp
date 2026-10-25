@@ -59,6 +59,9 @@ public interface Logic {
      */
     ObservableList<Student> getActiveGroupStudentList();
 
+    /** Returns the active group's students matching the current display filter. */
+    ObservableList<Student> getDisplayedStudentList();
+
     /**
      * Returns the user prefs' GUI settings.
      */
