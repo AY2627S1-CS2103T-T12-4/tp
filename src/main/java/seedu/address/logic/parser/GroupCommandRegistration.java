@@ -2,26 +2,45 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.nio.file.Path;
 import java.util.List;
 
+import seedu.address.commons.core.AppHome;
 import seedu.address.logic.commands.GroupAddCommand;
+import seedu.address.logic.commands.GroupExportCommand;
 import seedu.address.logic.commands.GroupListCommand;
 import seedu.address.logic.commands.GroupUseCommand;
 import seedu.address.logic.help.HelpEntry;
+import seedu.address.storage.GroupRecordsCsvExporter;
 
 /**
  * Registers tutorial-group commands and their help entries before application startup.
  */
 public final class GroupCommandRegistration {
+    /** Name of the folder, next to the TAssist JAR, that exports are written to by default. */
+    public static final String EXPORT_FOLDER_NAME = "exports";
+
     private GroupCommandRegistration() {}
 
     /**
-     * Adds tutorial-group parsers and help to the given registry.
+     * Adds tutorial-group parsers and help to the given registry. Exports are written to the
+     * {@value #EXPORT_FOLDER_NAME} folder next to the TAssist JAR.
      *
      * @param registry The registry assembled before constructing the logic component.
      */
     public static void registerCommands(CommandRegistry registry) {
+        registerCommands(registry, AppHome.getHomeDirectory().resolve(EXPORT_FOLDER_NAME));
+    }
+
+    /**
+     * Adds tutorial-group parsers and help to the given registry, with exports written to {@code exportFolder}.
+     *
+     * @param registry The registry assembled before constructing the logic component.
+     * @param exportFolder The folder that {@code group export} writes its files to.
+     */
+    public static void registerCommands(CommandRegistry registry, Path exportFolder) {
         requireNonNull(registry);
+        requireNonNull(exportFolder);
         registry.register("group", "add", new GroupAddCommandParser(),
                 new HelpEntry("group", GroupAddCommand.MESSAGE_USAGE,
                         "Create an empty tutorial group and make it active. Names have 1-60 letters, digits, "
@@ -36,5 +55,11 @@ public final class GroupCommandRegistration {
                         "Make an existing tutorial group active. Names ignore case. "
                                 + "Each group keeps its own students and records.",
                         List.of("group use g/T01")));
+        registry.register("group", "export", new GroupExportCommandParser(new GroupRecordsCsvExporter(exportFolder)),
+                new HelpEntry("group", GroupExportCommand.MESSAGE_USAGE,
+                        "Save the active group's attendance and participation for every week as a CSV file that "
+                                + "opens in a spreadsheet. The file is in the exports folder next to TAssist and "
+                                + "is replaced by the next export of the same group. Takes no parameters.",
+                        List.of("group export")));
     }
 }

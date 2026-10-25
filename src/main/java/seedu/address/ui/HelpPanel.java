@@ -43,10 +43,6 @@ public class HelpPanel extends UiPart<Region> {
             }
             addCommand(entry);
         }
-        Label planned = new Label("Coming soon: assignments.");
-        planned.setWrapText(true);
-        planned.getStyleClass().add("coming-soon-note");
-        commands.getChildren().add(planned);
     }
 
     private void addTopicHeading(String topic) {

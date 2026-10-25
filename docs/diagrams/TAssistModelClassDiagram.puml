@@ -14,6 +14,9 @@ Class UniqueStudentList
 Class Student
 Class StudentName
 Class StudentId
+Class UniqueAssignmentList
+Class Assignment
+Class AssignmentName
 Class "WeeklyRecord<T>" as WeeklyRecord
 }
 
@@ -23,7 +26,10 @@ TAssist --> "0..1" Group : active
 UniqueGroupList -right-> "~* all" Group
 Group *--> "1" GroupName
 Group *--> "1" UniqueStudentList
+Group *--> "1" UniqueAssignmentList
 UniqueStudentList --> "~* all" Student
+UniqueAssignmentList --> "~* all" Assignment
+Assignment *--> "1" AssignmentName
 Student *--> "1" StudentName
 Student *--> "1" StudentId
 Student *--> "2" WeeklyRecord : records

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.GroupExportCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -51,7 +52,7 @@ public class GroupCommandsIntegrationTest {
             }
         };
         CommandRegistry registry = new CommandRegistry();
-        GroupCommandRegistration.registerCommands(registry);
+        GroupCommandRegistration.registerCommands(registry, temporaryFolder.resolve("exports"));
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), registry);
     }
@@ -81,10 +82,11 @@ public class GroupCommandsIntegrationTest {
                     String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "T01", "g/"));
         }
         assertRejected("group list g/T01", ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
+        assertRejected("group export g/T01", ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
         assertRejected("group", ParseException.class, String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
-                "group", "add, list, use", "group"));
+                "group", "add, export, list, use", "group"));
         assertRejected("group remove", ParseException.class, String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
-                "remove", "group", "add, list, use"));
+                "remove", "group", "add, export, list, use"));
     }
 
     @Test
@@ -93,6 +95,22 @@ public class GroupCommandsIntegrationTest {
         assertRejected("group add g/ tutorial   1 ", CommandException.class,
                 "A tutorial group named Tutorial 1 already exists.");
         assertRejected("group use g/T04", CommandException.class, "Tutorial group T04 does not exist.");
+    }
+
+    @Test
+    public void execute_export_writesActiveGroupWithoutChangingModelOrFile() throws Exception {
+        TAssist expected = new TAssist(model.getTAssist());
+        String saved = Files.readString(dataFile);
+        Path exportFile = temporaryFolder.resolve("exports").resolve("T02-records.csv");
+
+        assertEquals(String.format(GroupExportCommand.MESSAGE_SUCCESS, "2 students", "T02", exportFile),
+                logic.execute(" group   export ").getFeedbackToUser());
+
+        List<String> rows = Files.readAllLines(exportFile);
+        assertEquals(List.of("\uFEFFName,Student ID", "Daniel Ong,A0456789W", "Elle Teo,A0567890U"),
+                rows.stream().map(row -> String.join(",", List.of(row.split(",", 3)).subList(0, 2))).toList());
+        assertEquals(expected, model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
     }
 
     private void assertRejected(String command, Class<? extends Exception> exceptionType, String message)

@@ -31,10 +31,12 @@ public class HelpIntegrationTest {
     /** Every command format, in the order the Help screen shows them. */
     private static final List<String> EXPECTED_FORMATS = List.of(
             "view SCREEN", "help [TOPIC]", "exit",
-            "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME",
-            "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID",
+            "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export",
+            "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID [f/yes]",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
-            "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK");
+            "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
+            "assignment add a/ASSIGNMENT_NAME", "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
+            "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE", "assignment list a/ASSIGNMENT_NAME");
 
     private static final Path USER_GUIDE = Path.of("docs", "UserGuide.md");
     private static final String COMMAND_SUMMARY_HEADING = "## Command summary";
@@ -59,7 +61,7 @@ public class HelpIntegrationTest {
 
     @Test
     public void getHelpEntries_everyTopicWithCommands_hasExamplesOfItsOwnCommands() {
-        for (String topic : List.of("group", "student", "attendance", "participation")) {
+        for (String topic : HelpCatalog.TOPICS) {
             List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), topic);
             assertFalse(entries.isEmpty(), "No help for " + topic);
             for (HelpEntry entry : entries) {

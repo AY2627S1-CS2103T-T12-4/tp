@@ -14,26 +14,50 @@ activate ui UI_COLOR
 ui -[UI_COLOR]> logic : execute("command")
 activate logic LOGIC_COLOR
 
+logic -[LOGIC_COLOR]> model : getTAssist()
+activate model MODEL_COLOR
+model --[MODEL_COLOR]> logic : current data
+deactivate model
+
+note right of logic
+  Copies the current data as previousData.
+  Command parsing is omitted.
+end note
+
 logic -[LOGIC_COLOR]> model : update TAssist data
 activate model MODEL_COLOR
 
-model -[MODEL_COLOR]-> logic
+model --[MODEL_COLOR]> logic
 deactivate model
 
+note over storage
+  Writes a temporary file before
+  atomically replacing the saved file.
+end note
+
+alt save succeeds
 logic -[LOGIC_COLOR]> storage : saveTAssist(tAssist)
 activate storage STORAGE_COLOR
-
-storage -[STORAGE_COLOR]> storage : Save to file
-activate storage STORAGE_COLOR_T1
-storage --[STORAGE_COLOR]> storage
+storage --[STORAGE_COLOR]> logic : save completes
 deactivate storage
 
-storage --[STORAGE_COLOR]> logic
+logic --[LOGIC_COLOR]> ui : result with hasSavedChanges() = true
+ui --[UI_COLOR]> user : command feedback and "Changes saved."
+else save fails
+logic -[LOGIC_COLOR]> storage : saveTAssist(tAssist)
+activate storage STORAGE_COLOR
+storage --[STORAGE_COLOR]> logic : IOException
 deactivate storage
 
-logic --[LOGIC_COLOR]> ui
+logic -[LOGIC_COLOR]> model : setTAssist(previousData)
+activate model MODEL_COLOR
+model --[MODEL_COLOR]> logic
+deactivate model
+
+logic --[LOGIC_COLOR]> ui : CommandException with save error
+ui --[UI_COLOR]> user : error feedback; input retained
+end
+
 deactivate logic
-
-ui--[UI_COLOR]> user
 deactivate ui
 @enduml

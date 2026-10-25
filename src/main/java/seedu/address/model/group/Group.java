@@ -9,6 +9,9 @@ import java.util.function.Function;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.UniqueAssignmentList;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.UniqueStudentList;
@@ -16,13 +19,14 @@ import seedu.address.model.student.WeeklyRecord;
 import seedu.address.model.student.WeeklyRecordEntry;
 
 /**
- * Represents a tutorial group and the students in it.
- * Guarantees: the name is present and not null; student IDs are unique within the group.
+ * Represents a tutorial group, the students in it, and the assignments created for it.
+ * Guarantees: the name is present and not null; student IDs and assignment names are unique within the group.
  */
 public class Group {
 
     private final GroupName name;
     private final UniqueStudentList students = new UniqueStudentList();
+    private final UniqueAssignmentList assignments = new UniqueAssignmentList();
 
     /**
      * Creates an empty group with the given {@code name}.
@@ -38,6 +42,7 @@ public class Group {
     public Group(Group toCopy) {
         this(requireNonNull(toCopy).name);
         students.setStudents(toCopy.getStudentList());
+        assignments.setAssignments(toCopy.getAssignmentList());
     }
 
     public GroupName getName() {
@@ -49,6 +54,13 @@ public class Group {
      */
     public ObservableList<Student> getStudentList() {
         return students.asUnmodifiableObservableList();
+    }
+
+    /**
+     * Returns an unmodifiable view of the assignments created for this group, in creation order.
+     */
+    public ObservableList<Assignment> getAssignmentList() {
+        return assignments.asUnmodifiableObservableList();
     }
 
     /**
@@ -96,7 +108,13 @@ public class Group {
      * The student must be in this group.
      */
     public Student removeStudent(StudentId studentId) {
-        return students.remove(studentId);
+        Student removedStudent = students.remove(studentId);
+        for (Assignment assignment : List.copyOf(getAssignmentList())) {
+            if (assignment.getStudentRecords().containsKey(removedStudent.getStudentId())) {
+                setAssignment(assignment.withoutStudentRecord(removedStudent.getStudentId()));
+            }
+        }
+        return removedStudent;
     }
 
     /**
@@ -106,6 +124,36 @@ public class Group {
      */
     public void setStudent(Student student) {
         students.setStudent(requireNonNull(student));
+    }
+
+    /**
+     * Returns true if an assignment named {@code assignmentName} (ignoring case) is in this group.
+     */
+    public boolean hasAssignment(AssignmentName assignmentName) {
+        return assignments.contains(assignmentName);
+    }
+
+    /**
+     * Returns the assignment named {@code assignmentName} (ignoring case),
+     * or an empty {@code Optional} if no such assignment is in this group.
+     */
+    public Optional<Assignment> findAssignment(AssignmentName assignmentName) {
+        return assignments.find(assignmentName);
+    }
+
+    /**
+     * Adds {@code assignment} to this group.
+     * No assignment in this group may have the same name, ignoring case.
+     */
+    public void addAssignment(Assignment assignment) {
+        assignments.add(assignment);
+    }
+
+    /**
+     * Replaces an existing assignment with the same name.
+     */
+    public void setAssignment(Assignment assignment) {
+        assignments.setAssignment(requireNonNull(assignment));
     }
 
     /**
@@ -122,7 +170,7 @@ public class Group {
     }
 
     /**
-     * Returns true if both groups have the same name and the same students.
+     * Returns true if both groups have the same name, students and assignments.
      * This defines a stronger notion of equality between two groups.
      */
     @Override
@@ -137,12 +185,13 @@ public class Group {
         }
 
         return name.equals(otherGroup.name)
-                && students.equals(otherGroup.students);
+                && students.equals(otherGroup.students)
+                && assignments.equals(otherGroup.assignments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, students);
+        return Objects.hash(name, students, assignments);
     }
 
     @Override
@@ -150,6 +199,7 @@ public class Group {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("students", students)
+                .add("assignments", assignments)
                 .toString();
     }
 
