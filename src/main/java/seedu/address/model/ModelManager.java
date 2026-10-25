@@ -4,10 +4,13 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.assignment.Assignment;
@@ -25,6 +28,10 @@ public class ModelManager implements Model {
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
+    private final FilteredList<Student> displayedStudents =
+            new FilteredList<>(activeGroupTracker.getStudentList());
+    private final ObservableList<Student> unmodifiableDisplayedStudents =
+            FXCollections.unmodifiableObservableList(displayedStudents);
 
     /**
      * Initializes a ModelManager with copies of the given tAssist and userPrefs.
@@ -151,10 +158,30 @@ public class ModelManager implements Model {
         return activeGroupTracker.getStudentList();
     }
 
+    @Override
+    public ObservableList<Student> getDisplayedStudentList() {
+        return unmodifiableDisplayedStudents;
+    }
+
+    @Override
+    public void filterStudents(Predicate<Student> predicate) {
+        displayedStudents.setPredicate(requireNonNull(predicate));
+        logger.fine("Updated the student display filter");
+    }
+
+    @Override
+    public void resetStudentDisplay() {
+        displayedStudents.setPredicate(null);
+    }
+
     /**
      * Points the active group views at the group that is active in {@code tAssist}.
      */
     private void trackActiveGroup() {
+        if (!activeGroupTracker.activeGroupProperty().get().map(Group::getName)
+                .equals(tAssist.getActiveGroup().map(Group::getName))) {
+            resetStudentDisplay();
+        }
         activeGroupTracker.track(tAssist.getActiveGroup());
         assert activeGroupTracker.activeGroupProperty().get().equals(tAssist.getActiveGroup())
                 : "The active group views must show the active group";

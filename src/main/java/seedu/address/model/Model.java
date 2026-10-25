@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
@@ -112,4 +113,13 @@ public interface Model {
      * It follows the active group, and is empty when no group is active.
      */
     ObservableList<Student> getActiveGroupStudentList();
+
+    /** Returns the active group's students matching the current display filter. */
+    ObservableList<Student> getDisplayedStudentList();
+
+    /** Replaces the display filter without changing the stored roster. */
+    void filterStudents(Predicate<Student> predicate);
+
+    /** Restores the complete student display in roster order. */
+    void resetStudentDisplay();
 }
