@@ -3,9 +3,12 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -25,6 +28,8 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
@@ -34,9 +39,12 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.HelpCommand;
@@ -47,6 +55,7 @@ import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.Group;
@@ -75,6 +84,9 @@ public class WorkspaceSmokeTest {
     private TextField input;
     private TabPane tabs;
     private Path data;
+    private boolean isConfirmationAccepted = true;
+    private String confirmationPrompt;
+    private boolean shouldUseDefaultConfirmationHandler;
 
     @BeforeAll
     public static void startToolkit() throws Exception {
@@ -89,6 +101,52 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void startup_missingOrUnreadableData_showsLoadOutcome() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.MISSING, DataLoadStatus.FAILED)) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    assertEquals(status.getMessage(), ((TextArea) root.lookup("#resultDisplay")).getText());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.getMessage()));
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
+    }
+
+    @Test
+    public void saveFailure_showsErrorWithoutSuccessAndRestoresWorkspace() throws Exception {
+        for (IOException failure : List.of(new IOException("Disk full"), new AccessDeniedException("Data folder"))) {
+            runOnFx(() -> initializeWorkspace(DataLoadStatus.LOADED, failure));
+            try {
+                runOnFx(() -> {
+                    TAssist previousData = new TAssist(model.getTAssist());
+                    enter(input, "group add g/T04");
+                    String expected = failure instanceof AccessDeniedException
+                            ? LogicManager.MESSAGE_SAVE_PERMISSION_FAILURE : LogicManager.MESSAGE_SAVE_FAILURE;
+                    TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                    assertEquals(expected, feedback.getText());
+                    assertEquals("group add g/T04", input.getText());
+                    assertTrue(isFooterShowingFailure());
+                    assertFalse(((Label) root.lookup("#saveLocationStatus")).getText().contains("Changes saved."));
+                    assertEquals(previousData, model.getTAssist());
+                    assertGroupChips(List.of("T01", "T02", "T03"), "");
+                    assertStudentsShown(StudentListPanel.NO_ACTIVE_GROUP);
+                    enter(input, "help");
+                    assertEquals(HelpCommand.MESSAGE_SHOWING_HELP, feedback.getText());
+                    assertFalse(isFooterShowingFailure());
+                });
+                assertFalse(Files.exists(data));
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
     }
 
     @Test
@@ -184,6 +242,8 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown("T02");
                 assertEquals(TypicalGroups.getT02().getStudentList(), studentTable().getItems());
                 enter(input, "group add g/ Thursday   1 ");
+                Label status = (Label) root.lookup("#saveLocationStatus");
+                assertTrue(status.getText().startsWith("Changes saved."));
                 assertStudentsShown("Thursday 1");
                 assertTrue(studentTable().getItems().isEmpty());
                 assertGroupChips(List.of("T01", "T02", "T03", "Thursday 1"), "Thursday 1");
@@ -191,6 +251,7 @@ public class WorkspaceSmokeTest {
                 assertEquals("Created tutorial group: Thursday 1.\nActive group is now Thursday 1.",
                         feedback.getText());
                 enter(input, "group list");
+                assertTrue(status.getText().startsWith("Local data file"));
                 assertEquals("1. T01\n2. T02\n3. T03\n4. Thursday 1\nActive group: Thursday 1", feedback.getText());
             });
             runOnFx(() -> render(root, "group-commands", 853, 440));
@@ -256,15 +317,70 @@ public class WorkspaceSmokeTest {
                 assertEquals("Student ID A1 already exists in T03.", feedback.getText());
                 assertEquals("student add n/Alice Tan id/a1", input.getText());
                 assertEquals(2, studentTable().getItems().size());
+
+                isConfirmationAccepted = false;
+                TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
+                String savedBeforeCancelledDelete = Files.readString(data);
+                enter(input, "student delete id/a1");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(savedBeforeCancelledDelete, Files.readString(data));
+                assertEquals(2, studentTable().getItems().size());
+                assertEquals("Remove Alice Tan (A1) and all their attendance, participation, submission, "
+                        + "and grade records from T03?", confirmationPrompt);
+
+                isConfirmationAccepted = true;
+                confirmationPrompt = null;
                 enter(input, "student delete id/a1");
                 assertEquals("Removed Alice Tan from T03.", feedback.getText());
                 assertEquals(1, studentTable().getItems().size());
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
-                enter(input, "student delete id/A2");
+                assertEquals("Remove Alice Tan (A1) and all their attendance, participation, submission, "
+                        + "and grade records from T03?", confirmationPrompt);
+                confirmationPrompt = null;
+                enter(input, "student delete id/A2 f/yes");
+                assertEquals("Removed Ben Lim from T03.", feedback.getText());
+                assertNull(confirmationPrompt);
                 assertEmptyTitle(String.format(StudentListPanel.EMPTY_GROUP_TITLE_FORMAT, "T03"));
             });
         } finally {
             runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentDelete_defaultConfirmationDialogHonorsContinueAndCancel() throws Exception {
+        shouldUseDefaultConfirmationHandler = true;
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T03");
+                enter(input, "student add n/Alice Tan id/A1");
+                enter(input, "student add n/Ben Lim id/A2");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+
+                respondToConfirmation("Continue");
+                enter(input, "student delete id/A1");
+                assertEquals("Removed Alice Tan from T03.", feedback.getText());
+                assertEquals(1, studentTable().getItems().size());
+
+                TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
+                cancelConfirmationWithEnter("Remove Ben Lim (A2) and all their attendance, participation, "
+                        + "submission, and grade records from T03?");
+                enter(input, "student delete id/A2");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(1, studentTable().getItems().size());
+
+                respondToConfirmation("Cancel");
+                enter(input, "student delete id/A2");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(1, studentTable().getItems().size());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+            shouldUseDefaultConfirmationHandler = false;
         }
     }
 
@@ -360,6 +476,76 @@ public class WorkspaceSmokeTest {
         }
     }
 
+    @Test
+    public void commandBox_upAndDownKeys_recallEarlierCommandsForEditing() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view help");
+                enter(input, "view nowhere");
+                input.setText("view stor");
+                pressKey(KeyCode.UP);
+                assertEquals("view nowhere", input.getText());
+                assertEquals("view nowhere".length(), input.getCaretPosition());
+                pressKey(KeyCode.UP);
+                pressKey(KeyCode.UP);
+                assertEquals("view help", input.getText(), "Up stops at the oldest command");
+                pressKey(KeyCode.DOWN);
+                assertEquals("view nowhere", input.getText(), "Failed commands are recalled too");
+                pressKey(KeyCode.DOWN);
+                pressKey(KeyCode.DOWN);
+                assertEquals("view stor", input.getText(), "Down past the newest command restores the typed text");
+
+                pressKey(KeyCode.UP);
+                input.setText(input.getText().replace("nowhere", "storage"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+                enter(input, "   ");
+                assertFalse(input.getStyleClass().contains("error"), "Blank input is ignored");
+                input.clear();
+                pressKey(KeyCode.UP);
+                assertEquals("view storage", input.getText(), "The edited command is the newest entry");
+                input.setText("view st");
+                for (KeyCode modifier : List.of(KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META)) {
+                    pressKeyWithModifier(KeyCode.UP, modifier);
+                    pressKeyWithModifier(KeyCode.DOWN, modifier);
+                    assertEquals("view st", input.getText(), modifier + "+Up and Down are left to the text field");
+                }
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void commandBox_recalledCommandFails_keepsItEditableAndHistoryUsable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view help");
+                enter(input, "view storage");
+                pressKey(KeyCode.UP);
+                input.setText(input.getText().replace("storage", "storge"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("view storge", input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+
+                pressKey(KeyCode.UP);
+                assertEquals("view storage", input.getText(), "Up skips the failed command already in the box");
+                pressKey(KeyCode.DOWN);
+                assertEquals("view storge", input.getText());
+                input.setText(input.getText().replace("storge", "storage"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+                assertFalse(input.getStyleClass().contains("error"));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
             runOnFx(() -> {
@@ -375,7 +561,7 @@ public class WorkspaceSmokeTest {
     private void verifyKeyboard() throws Exception {
         runOnFx(() -> {
             input.setText("view students");
-            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1, false, false, false, false));
+            pressKey(KeyCode.F1);
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
             assertEquals("view students", input.getText());
             tabs.requestFocus();
@@ -477,9 +663,28 @@ public class WorkspaceSmokeTest {
     }
 
     private void initializeWorkspace() {
+        initializeWorkspace(DataLoadStatus.LOADED);
+    }
+
+    private void initializeWorkspace(DataLoadStatus dataLoadStatus) {
+        initializeWorkspace(dataLoadStatus, null);
+    }
+
+    private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
+        isConfirmationAccepted = true;
+        confirmationPrompt = null;
         model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
-        StorageManager storage = new StorageManager(new JsonTAssistStorage(data),
+        JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
+            @Override
+            public void saveTAssist(ReadOnlyTAssist tAssist) throws IOException {
+                if (saveFailure != null) {
+                    throw saveFailure;
+                }
+                super.saveTAssist(tAssist);
+            }
+        };
+        StorageManager storage = new StorageManager(dataStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
@@ -487,7 +692,10 @@ public class WorkspaceSmokeTest {
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
-        MainWindow window = new MainWindow(stage, new LogicManager(model, storage, commandRegistry), data);
+        LogicManager logic = new LogicManager(model, storage, commandRegistry, dataLoadStatus);
+        MainWindow window = shouldUseDefaultConfirmationHandler
+                ? new MainWindow(stage, logic, data, dataLoadStatus)
+                : new MainWindow(stage, logic, data, dataLoadStatus, this::isPromptAccepted);
         window.fillInnerParts();
         window.show();
         root = stage.getScene().getRoot();
@@ -497,6 +705,53 @@ public class WorkspaceSmokeTest {
         assertNotNull(input);
         assertEquals(7, tabs.getTabs().size());
         assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
+    }
+
+    private boolean isPromptAccepted(Stage owner, String prompt) {
+        confirmationPrompt = prompt;
+        return isConfirmationAccepted;
+    }
+
+    private void respondToConfirmation(String buttonText) {
+        Platform.runLater(() -> confirmationButton(buttonText).fire());
+    }
+
+    /**
+     * Presses Enter on the real confirmation dialog after it has selected Cancel.
+     */
+    private void cancelConfirmationWithEnter(String expectedPrompt) {
+        Platform.runLater(() -> Platform.runLater(() -> {
+            Stage dialogStage = confirmationDialog();
+            DialogPane pane = (DialogPane) dialogStage.getScene().getRoot();
+            Button cancel = confirmationButton("Cancel");
+            Button proceed = confirmationButton("Continue");
+            assertEquals(expectedPrompt, pane.getContentText());
+            assertTrue(cancel.isDefaultButton());
+            assertTrue(cancel.isCancelButton());
+            assertFalse(proceed.isDefaultButton());
+            assertEquals(cancel, dialogStage.getScene().getFocusOwner());
+            Runnable enterAction = dialogStage.getScene().getAccelerators()
+                    .get(new KeyCodeCombination(KeyCode.ENTER));
+            assertNotNull(enterAction);
+            enterAction.run();
+        }));
+    }
+
+    private Button confirmationButton(String buttonText) {
+        DialogPane pane = (DialogPane) confirmationDialog().getScene().getRoot();
+        ButtonType choice = pane.getButtonTypes().stream()
+                .filter(buttonType -> buttonText.equals(buttonType.getText()))
+                .findFirst().orElseThrow();
+        return (Button) pane.lookupButton(choice);
+    }
+
+    private Stage confirmationDialog() {
+        return Window.getWindows().stream()
+                .filter(window -> window instanceof Stage)
+                .map(window -> (Stage) window)
+                .filter(Stage::isShowing)
+                .filter(window -> "Confirm destructive action".equals(window.getTitle()))
+                .findFirst().orElseThrow();
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
@@ -519,6 +774,15 @@ public class WorkspaceSmokeTest {
     private void enter(TextField input, String command) {
         input.setText(command);
         input.fireEvent(new ActionEvent());
+    }
+
+    private void pressKey(KeyCode key) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, false, false, false, false));
+    }
+
+    private void pressKeyWithModifier(KeyCode key, KeyCode modifier) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, modifier == KeyCode.SHIFT,
+                modifier == KeyCode.CONTROL, modifier == KeyCode.ALT, modifier == KeyCode.META));
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {

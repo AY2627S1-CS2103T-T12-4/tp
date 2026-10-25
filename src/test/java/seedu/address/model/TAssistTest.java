@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
@@ -23,6 +25,9 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.exceptions.DuplicateGroupException;
@@ -172,6 +177,49 @@ public class TAssistTest {
     public void addStudent_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> typicalTAssist.addStudent(null, FIONA));
         assertThrows(NullPointerException.class, () -> typicalTAssist.addStudent(NAME_T01, null));
+    }
+
+    @Test
+    public void addAssignment_existingGroup_assignmentAddedToThatGroupOnly() {
+        typicalTAssist.addAssignment(new GroupName("t01"), PS1);
+        assertEquals(List.of(PS1), typicalTAssist.getGroup(NAME_T01).getAssignmentList());
+        assertTrue(typicalTAssist.getGroup(NAME_T02).getAssignmentList().isEmpty());
+    }
+
+    @Test
+    public void addAssignment_sameNameInDifferentGroups_success() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        typicalTAssist.addAssignment(NAME_T02, PS1);
+        assertTrue(typicalTAssist.getGroup(NAME_T01).hasAssignment(PS1.getName()));
+        assertTrue(typicalTAssist.getGroup(NAME_T02).hasAssignment(PS1.getName()));
+    }
+
+    @Test
+    public void addAssignment_duplicateNameInGroup_throwsDuplicateAssignmentException() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        Assignment sameName = new Assignment(new AssignmentName("ps1"));
+        assertThrows(DuplicateAssignmentException.class, () -> typicalTAssist.addAssignment(NAME_T01, sameName));
+    }
+
+    @Test
+    public void addAssignment_missingGroup_throwsGroupNotFoundException() {
+        assertThrows(GroupNotFoundException.class, () -> typicalTAssist.addAssignment(NAME_T04, PS2));
+    }
+
+    @Test
+    public void addAssignment_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> typicalTAssist.addAssignment(null, PS1));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.addAssignment(NAME_T01, null));
+    }
+
+    @Test
+    public void copyConstructor_withAssignments_originalUnchanged() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        TAssist copy = new TAssist(typicalTAssist);
+        assertEquals(typicalTAssist, copy);
+
+        copy.addAssignment(NAME_T01, PS2);
+        assertEquals(List.of(PS1), typicalTAssist.getGroup(NAME_T01).getAssignmentList());
     }
 
     @Test

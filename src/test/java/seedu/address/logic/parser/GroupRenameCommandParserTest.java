@@ -10,8 +10,7 @@ import seedu.address.logic.commands.GroupRenameCommand;
 import seedu.address.model.group.GroupName;
 
 public class GroupRenameCommandParserTest {
-    private static final String MESSAGE_MISSING =
-            "Missing group name or new name. Usage: group rename g/GROUP_NAME n/NEW_NAME";
+    private static final String USAGE = " Usage: group rename g/GROUP_NAME n/NEW_NAME";
 
     private final GroupRenameCommandParser parser = new GroupRenameCommandParser();
 
@@ -24,8 +23,11 @@ public class GroupRenameCommandParserTest {
 
     @Test
     public void parse_missingOrBlankName_reportsRenameUsage() {
-        for (String input : new String[] {"", "g/T01", "n/T02", "g/ n/T02", "g/T01 n/  "}) {
-            assertParseFailure(parser, input, MESSAGE_MISSING);
+        for (String input : new String[] {"", "n/T02", "g/ n/T02"}) {
+            assertParseFailure(parser, input, "Missing group name." + USAGE);
+        }
+        for (String input : new String[] {"g/T01", "g/T01 n/  "}) {
+            assertParseFailure(parser, input, "Missing new group name." + USAGE);
         }
     }
 

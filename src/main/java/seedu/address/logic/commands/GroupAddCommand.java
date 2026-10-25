@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_DUPLICATE_GROUP;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -13,7 +14,6 @@ import seedu.address.model.group.GroupName;
 public class GroupAddCommand extends Command {
     public static final String MESSAGE_USAGE = "group add g/GROUP_NAME";
     public static final String MESSAGE_SUCCESS = "Created tutorial group: %1$s.\nActive group is now %1$s.";
-    public static final String MESSAGE_DUPLICATE_GROUP = "A tutorial group named %s already exists.";
 
     private final GroupName name;
 

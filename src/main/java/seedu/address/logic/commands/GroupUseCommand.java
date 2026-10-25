@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_GROUP;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -12,7 +13,6 @@ import seedu.address.model.group.GroupName;
 public class GroupUseCommand extends Command {
     public static final String MESSAGE_USAGE = "group use g/GROUP_NAME";
     public static final String MESSAGE_SUCCESS = "Switched active group to %s.";
-    public static final String MESSAGE_UNKNOWN_GROUP = "Tutorial group %s does not exist.";
 
     private final GroupName name;
 

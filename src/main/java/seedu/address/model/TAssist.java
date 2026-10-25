@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.UniqueGroupList;
@@ -17,8 +18,9 @@ import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
 /**
- * Wraps all TAssist data: the tutorial groups, each holding its own students, and the active group.
- * Two groups cannot have the same name (compared case-insensitively), and a student ID is unique within a group.
+ * Wraps all TAssist data: the tutorial groups, each holding its own students and assignments, and the active group.
+ * Two groups cannot have the same name (compared case-insensitively), and a student ID or an assignment name
+ * (compared case-insensitively) is unique within a group.
  * Invariant: if there is an active group, it is one of the groups held.
  */
 public class TAssist implements ReadOnlyTAssist {
@@ -160,6 +162,25 @@ public class TAssist implements ReadOnlyTAssist {
     public Student removeStudent(GroupName groupName, StudentId studentId) {
         requireAllNonNull(groupName, studentId);
         return getGroup(groupName).removeStudent(studentId);
+    }
+
+    //// assignment-level operations
+
+    /**
+     * Adds {@code assignment} to the group named {@code groupName}.
+     * The group must exist, and no assignment in it may have the same name, ignoring case.
+     */
+    public void addAssignment(GroupName groupName, Assignment assignment) {
+        requireAllNonNull(groupName, assignment);
+        getGroup(groupName).addAssignment(assignment);
+    }
+
+    /**
+     * Replaces the assignment with the same name in the group named {@code groupName}.
+     */
+    public void setAssignment(GroupName groupName, Assignment assignment) {
+        requireAllNonNull(groupName, assignment);
+        getGroup(groupName).setAssignment(assignment);
     }
 
     //// util methods

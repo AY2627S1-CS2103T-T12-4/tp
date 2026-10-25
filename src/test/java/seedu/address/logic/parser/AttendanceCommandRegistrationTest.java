@@ -25,7 +25,7 @@ public class AttendanceCommandRegistrationTest {
         assertEquals(new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.PRESENT),
                 parser.parseCommand(" attendance   mark id/A0123456X w/3 s/present "));
         assertEquals(new AttendanceListCommand(3), parser.parseCommand("attendance list w/3"));
-        assertEquals(List.of(AttendanceListCommand.MESSAGE_USAGE, AttendanceMarkCommand.MESSAGE_USAGE),
+        assertEquals(List.of(AttendanceMarkCommand.MESSAGE_USAGE, AttendanceListCommand.MESSAGE_USAGE),
                 parser.getHelpEntries().stream().filter(entry -> entry.getTopic().equals("attendance"))
                         .map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing attendance commands.", "attendance"),

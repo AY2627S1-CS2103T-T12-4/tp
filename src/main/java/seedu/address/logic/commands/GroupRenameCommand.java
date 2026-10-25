@@ -2,6 +2,8 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+import static seedu.address.logic.Messages.MESSAGE_DUPLICATE_GROUP;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_GROUP;
 
 import java.util.Objects;
 
@@ -16,8 +18,6 @@ import seedu.address.model.group.GroupName;
 public class GroupRenameCommand extends Command {
     public static final String MESSAGE_USAGE = "group rename g/GROUP_NAME n/NEW_NAME";
     public static final String MESSAGE_SUCCESS = "Renamed tutorial group %s to %s.";
-    public static final String MESSAGE_UNKNOWN_GROUP = "Tutorial group %s does not exist.";
-    public static final String MESSAGE_DUPLICATE_GROUP = "A tutorial group named %s already exists.";
 
     private final GroupName name;
     private final GroupName newName;

@@ -7,6 +7,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,9 +74,24 @@ public class StudentCommandsIntegrationTest {
     }
 
     @Test
+    public void getConfirmationPrompt_namesStudentWithoutChangingSavedData() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String savedFile = Files.readString(dataFile);
+
+        assertEquals(Optional.of("Remove Alice Tan (A1) and all their attendance, participation, submission, "
+                        + "and grade records from T01?"),
+                app.logic.getConfirmationPrompt("student delete id/A1"));
+        assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("student delete id/A1 f/yes"));
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(savedFile, Files.readString(dataFile));
+    }
+
+    @Test
     public void init_studentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "student");
-        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student delete id/STUDENT_ID", "student list"),
+        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student list",
+                        "student delete id/STUDENT_ID [f/yes]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing student commands.", "student"), app.logic.execute("help student"));
         for (HelpEntry entry : entries) {

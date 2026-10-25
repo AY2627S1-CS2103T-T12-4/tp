@@ -20,8 +20,15 @@ public class GroupDeleteCommandParserTest {
     @Test
     public void parse_missingOrBlankName_reportsDeleteUsage() {
         for (String input : new String[] {"", "  ", "g/", "g/   "}) {
-            assertParseFailure(parser, input, "Missing group name. Usage: group delete g/GROUP_NAME");
+            assertParseFailure(parser, input, "Missing group name. Usage: group delete g/GROUP_NAME [f/yes]");
         }
+    }
+
+    @Test
+    public void parse_fastDeleteOption_skipsConfirmation() {
+        assertParseSuccess(parser, "g/T01 f/yes", new GroupDeleteCommand(new GroupName("T01"), true));
+        assertParseSuccess(parser, "f/YES g/T01", new GroupDeleteCommand(new GroupName("T01"), true));
+        assertParseFailure(parser, "g/T01 f/no", GroupDeleteCommandParser.MESSAGE_INVALID_FAST_DELETE_OPTION);
     }
 
     @Test

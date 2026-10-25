@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.exceptions.DuplicateGroupException;
@@ -306,6 +308,40 @@ public class ModelManagerTest {
         modelManager = modelWithActiveGroup(NAME_T01);
         assertThrows(NullPointerException.class, () -> modelManager.addStudent(null, FIONA));
         assertThrows(NullPointerException.class, () -> modelManager.addStudent(NAME_T01, null));
+    }
+
+    @Test
+    public void addAssignment_validArguments_assignmentAddedToGroup() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addAssignment(NAME_T01, PS1);
+        assertEquals(List.of(PS1), modelManager.getGroup(NAME_T01).getAssignmentList());
+        assertEquals(List.of(PS1), modelManager.getActiveGroup().orElseThrow().getAssignmentList());
+    }
+
+    @Test
+    public void addAssignment_nullArguments_throwsNullPointerException() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(NullPointerException.class, () -> modelManager.addAssignment(null, PS1));
+        assertThrows(NullPointerException.class, () -> modelManager.addAssignment(NAME_T01, null));
+    }
+
+    @Test
+    public void setAssignment_validArguments_replacesExistingAssignment() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.addAssignment(NAME_T01, PS1);
+        Assignment updated = PS1.withSubmissionStatus(FIONA.getStudentId(), true);
+
+        modelManager.setAssignment(NAME_T01, updated);
+
+        assertEquals(List.of(updated), modelManager.getGroup(NAME_T01).getAssignmentList());
+        assertEquals(List.of(updated), modelManager.getActiveGroup().orElseThrow().getAssignmentList());
+    }
+
+    @Test
+    public void setAssignment_nullArguments_throwsNullPointerException() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        assertThrows(NullPointerException.class, () -> modelManager.setAssignment(null, PS1));
+        assertThrows(NullPointerException.class, () -> modelManager.setAssignment(NAME_T01, null));
     }
 
     @Test

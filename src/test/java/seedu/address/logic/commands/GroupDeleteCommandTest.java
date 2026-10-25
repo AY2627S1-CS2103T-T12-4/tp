@@ -6,6 +6,8 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.Model;
@@ -41,6 +43,19 @@ public class GroupDeleteCommandTest {
     }
 
     @Test
+    public void getConfirmationPrompt_namesGroupAndCanBeSkipped() {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+
+        assertEquals(Optional.of("Delete tutorial group T01 and all 3 student(s) in it, with their attendance, "
+                        + "participation, submission, and grade records?"),
+                new GroupDeleteCommand(new GroupName("t01")).getConfirmationPrompt(model));
+        assertEquals(Optional.empty(), new GroupDeleteCommand(TypicalGroups.NAME_T01, true)
+                .getConfirmationPrompt(model));
+        assertEquals(Optional.empty(), new GroupDeleteCommand(TypicalGroups.NAME_T04)
+                .getConfirmationPrompt(model));
+    }
+
+    @Test
     public void execute_unknownGroup_preservesData() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         assertCommandFailure(new GroupDeleteCommand(TypicalGroups.NAME_T04), model,
@@ -61,6 +76,7 @@ public class GroupDeleteCommandTest {
         assertEquals(command, new GroupDeleteCommand(new GroupName("t01")));
         assertEquals(command.hashCode(), new GroupDeleteCommand(new GroupName("t01")).hashCode());
         assertNotEquals(command, new GroupDeleteCommand(TypicalGroups.NAME_T02));
+        assertNotEquals(command, new GroupDeleteCommand(TypicalGroups.NAME_T01, true));
         assertNotEquals(command, new GroupUseCommand(TypicalGroups.NAME_T01));
         assertNotEquals(command, null);
     }
