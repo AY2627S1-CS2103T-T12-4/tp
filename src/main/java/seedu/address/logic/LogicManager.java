@@ -21,6 +21,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.TAssistParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.StudentDisplayState;
 import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
@@ -85,10 +86,12 @@ public class LogicManager implements Logic {
 
         Command command = tAssistParser.parseCommand(commandText);
         TAssist previousData = new TAssist(model.getTAssist());
+        StudentDisplayState previousDisplay = model.getStudentDisplayState();
         try {
             return executeAndSave(command, previousData);
         } catch (CommandException e) {
             model.setTAssist(previousData);
+            model.setStudentDisplayState(previousDisplay);
             assert previousData.equals(model.getTAssist()) : "A failed command must leave data unchanged";
             throw e;
         }

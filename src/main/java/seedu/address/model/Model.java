@@ -126,4 +126,10 @@ public interface Model {
 
     /** Restores the complete student display in roster order. */
     void resetStudentDisplay();
+
+    /** Returns the transient display settings for command rollback. */
+    StudentDisplayState getStudentDisplayState();
+
+    /** Restores display settings captured before a failed command. */
+    void setStudentDisplayState(StudentDisplayState state);
 }

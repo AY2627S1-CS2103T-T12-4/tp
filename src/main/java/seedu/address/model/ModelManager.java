@@ -184,6 +184,18 @@ public class ModelManager implements Model {
         displayedStudents.setComparator(null);
     }
 
+    @Override
+    public StudentDisplayState getStudentDisplayState() {
+        return new StudentDisplayState(filteredStudents.getPredicate(), displayedStudents.getComparator());
+    }
+
+    @Override
+    public void setStudentDisplayState(StudentDisplayState state) {
+        requireNonNull(state);
+        filteredStudents.setPredicate(state.predicate());
+        displayedStudents.setComparator(state.comparator());
+    }
+
     /**
      * Points the active group views at the group that is active in {@code tAssist}.
      */
