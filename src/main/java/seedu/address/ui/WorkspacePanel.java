@@ -48,7 +48,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
         addWeeklyView(WorkspaceView.PARTICIPATION, "Weekly participation",
                 "Use participation set and participation list to manage scores. This table is coming soon.", "SCORE");
         addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",
-                "Assignment selection, submissions and grades are coming soon.",
+                "Use assignment add, assignment submit, assignment grade, and assignment list to manage records.",
                 "NAME", "STUDENT ID", "SUBMISSION", "GRADE").getRoot());
         helpPanel = new HelpPanel(helpEntries);
         addView(WorkspaceView.HELP, helpPanel.getRoot());

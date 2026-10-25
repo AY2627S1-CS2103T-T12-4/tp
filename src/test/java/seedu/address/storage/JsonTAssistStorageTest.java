@@ -4,13 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
+import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.FIONA;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
 import seedu.address.testutil.GroupBuilder;
@@ -134,6 +141,92 @@ public class JsonTAssistStorageTest {
 
         assertTrue(loaded.getAttendanceRecords().getRecords().isEmpty());
         assertTrue(loaded.getParticipationRecords().getRecords().isEmpty());
+    }
+
+    @Test
+    public void readAndSaveTAssist_withAssignments_assignmentsSurviveReload() throws Exception {
+        Path filePath = testFolder.resolve("assignments.json");
+        TAssist original = TypicalGroups.getTypicalTAssist();
+        original.addAssignment(TypicalGroups.NAME_T01, PS2);
+        original.addAssignment(TypicalGroups.NAME_T01, PS1);
+        original.addAssignment(TypicalGroups.NAME_T02, PS1);
+        Assignment gradedPs1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withGrade(ALICE.getStudentId(), 87);
+        original.setAssignment(TypicalGroups.NAME_T01, gradedPs1);
+        JsonTAssistStorage jsonTAssistStorage = new JsonTAssistStorage(filePath);
+
+        jsonTAssistStorage.saveTAssist(original, filePath);
+        TAssist readBack = new TAssist(jsonTAssistStorage.readTAssist(filePath).orElseThrow());
+
+        assertEquals(original, readBack);
+        assertEquals(List.of(PS2, gradedPs1), readBack.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
+        assertTrue(readBack.getGroup(TypicalGroups.NAME_T03).getAssignmentList().isEmpty());
+    }
+
+    @Test
+    public void read_handEditedAssignments_loadsAssignmentsInFileOrder() throws Exception {
+        Path filePath = testFolder.resolve("handEdited.json");
+        Files.writeString(filePath, """
+                {"activeGroup":"T01","groups":[{"name":"T01","assignments":["PS1", " ps2 "]}]}
+                """);
+
+        TAssist loaded = new TAssist(new JsonTAssistStorage(filePath).readTAssist().orElseThrow());
+
+        assertEquals(List.of(PS1, PS2), loaded.getGroup(TypicalGroups.NAME_T01).getAssignmentList());
+    }
+
+    @Test
+    public void read_duplicateAssignmentsInFile_exceptionThrown() throws Exception {
+        Path filePath = testFolder.resolve("duplicateAssignments.json");
+        Files.writeString(filePath, """
+                {"groups":[{"name":"T01","assignments":["PS1","Ps1"]}]}
+                """);
+
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                new JsonTAssistStorage(filePath).readTAssist());
+
+        assertEquals(String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT, "T01", "Ps1"),
+                e.getCause().getMessage());
+    }
+
+    @Test
+    public void saveTAssist_partialWriteFailure_preservesSavedFile() throws Exception {
+        JsonTAssistStorage storage = new JsonTAssistStorage(testFolder.resolve("tassist.json")) {
+            @Override
+            void writeTemporaryFile(Path temporaryFile, String json) throws IOException {
+                Files.writeString(temporaryFile, "partial JSON");
+                throw new IOException("Writing was interrupted.");
+            }
+        };
+        assertFailedSavePreservesFile(storage);
+    }
+
+    @Test
+    public void saveTAssist_atomicMoveUnsupported_preservesSavedFile() throws Exception {
+        JsonTAssistStorage storage = new JsonTAssistStorage(testFolder.resolve("tassist.json")) {
+            @Override
+            void replaceDataFile(Path temporaryFile, Path target) throws IOException {
+                throw new AtomicMoveNotSupportedException(temporaryFile.toString(), target.toString(),
+                        "Atomic replacement is unavailable.");
+            }
+        };
+        assertFailedSavePreservesFile(storage);
+    }
+
+    private void assertFailedSavePreservesFile(JsonTAssistStorage storage) throws Exception {
+        Path filePath = storage.getTAssistFilePath();
+        assertThrows(IOException.class, () -> storage.saveTAssist(TypicalGroups.getTypicalTAssist()));
+        assertFalse(Files.exists(filePath), "A failed first save must not create the data file.");
+
+        JsonTAssistStorage workingStorage = new JsonTAssistStorage(filePath);
+        workingStorage.saveTAssist(TypicalGroups.getTypicalTAssist());
+        String previousContents = Files.readString(filePath);
+        assertThrows(IOException.class, () -> storage.saveTAssist(new TAssist()));
+        assertEquals(previousContents, Files.readString(filePath));
+        assertEquals(TypicalGroups.getTypicalTAssist(), workingStorage.readTAssist().orElseThrow());
+        try (Stream<Path> files = Files.list(testFolder)) {
+            assertEquals(List.of(filePath), files.toList(), "Temporary files must be removed.");
+        }
     }
 
     @Test

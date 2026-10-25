@@ -24,6 +24,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.CommandRegistry;
+import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.TAssistArgumentParser;
 import seedu.address.logic.parser.TAssistParserUtil;
@@ -78,6 +79,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_commandThrowsAfterMutation_restoresModel() {
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "fail", args -> new StubCommand(model -> {
+            model.addGroup(TypicalGroups.getT01());
+            model.setActiveGroup(TypicalGroups.NAME_T01);
+            throw new CommandException("The command failed after changing data.");
+        }));
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_IO_EXCEPTION)), registry);
+
+        assertCommandFailure("group fail", CommandException.class,
+                "The command failed after changing data.", new ModelManager());
+        assertTrue(logic.activeGroupProperty().get().isEmpty());
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+    }
+
+    @Test
     public void execute_validCommand_success() throws Exception {
         CommandRegistry registry = new CommandRegistry();
         registry.register("student", "list", args -> new StubCommand());
@@ -97,6 +114,36 @@ public class LogicManagerTest {
     public void execute_viewWithUnavailableStorage_success() throws Exception {
         logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_AD_EXCEPTION)));
         assertEquals(WorkspaceView.HELP, logic.execute("view help").getView().orElseThrow());
+    }
+
+    @Test
+    public void execute_readOnlyCommands_doesNotSave() throws Exception {
+        CommandRegistry registry = new CommandRegistry();
+        GroupCommandRegistration.registerCommands(registry);
+        registry.register("student", "list", args -> new StubCommand());
+        JsonTAssistStorage storage = new JsonTAssistStorage(temporaryFolder.resolve("readOnly.json")) {
+            @Override
+            public void saveTAssist(ReadOnlyTAssist tAssist) {
+                throw new AssertionError("Read-only commands must not save.");
+            }
+        };
+        logic = new LogicManager(model, createStorage(storage), registry);
+
+        for (String command : List.of("help", "group list", "student list", "view students", "exit")) {
+            assertFalse(logic.execute(command).hasSavedChanges());
+        }
+        assertFalse(Files.exists(storage.getTAssistFilePath()));
+    }
+
+    @Test
+    public void execute_useAlreadyActiveGroup_doesNotSave() throws Exception {
+        model.setTAssist(new TAssistBuilder(TypicalGroups.getTypicalTAssist())
+                .withActiveGroup(TypicalGroups.NAME_T02).build());
+        CommandRegistry registry = new CommandRegistry();
+        GroupCommandRegistration.registerCommands(registry);
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_AD_EXCEPTION)), registry);
+
+        assertEquals("Switched active group to T02.", logic.execute("group use g/t02").getFeedbackToUser());
     }
 
     @Test
@@ -130,7 +177,10 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager(tAssist, new UserPrefs());
         expectedModel.addStudent(TypicalGroups.NAME_T02,
                 new Student(new StudentName("Alice Tan"), new StudentId("a1")));
-        assertCommandSuccess(" student   add id/a1 n/ Alice   Tan ", StubCommand.MESSAGE_SUCCESS, expectedModel);
+        CommandResult result = logic.execute(" student   add id/a1 n/ Alice   Tan ");
+        assertEquals(StubCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertTrue(result.hasSavedChanges());
+        assertEquals(expectedModel, model);
         assertEquals(new TAssist(expectedModel.getTAssist()), new TAssist(storage.readTAssist().orElseThrow()));
     }
 
@@ -164,14 +214,12 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_PERMISSION_FAILURE);
     }
 
     @Test
@@ -289,12 +337,14 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        // Inject LogicManager with a JsonTAssistStorage that throws the IOException e when saving,
-        // and trigger saveTAssist by executing a command that does not change the view
-        CommandRegistry registry = new CommandRegistry();
-        registry.register("student", "list", args -> new StubCommand());
-        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)), registry);
-        assertCommandFailure("student list", CommandException.class, expectedMessage, new ModelManager());
+        model.setTAssist(new TAssistBuilder(TypicalGroups.getTypicalTAssist())
+                .withActiveGroup(TypicalGroups.NAME_T02).build());
+        TAssist previousData = new TAssist(model.getTAssist());
+        logic = new LogicManager(model, createStorage(createFailingTAssistStorage(e)), createFeatureRegistry());
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("student add id/A1 n/Alice"));
+        assertEquals(previousData, model.getTAssist());
+        assertEquals(TypicalGroups.getT02(), logic.activeGroupProperty().get().orElseThrow());
+        assertEquals(TypicalGroups.getT02().getStudentList(), logic.getActiveGroupStudentList());
     }
 
     /**

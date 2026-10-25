@@ -1,18 +1,27 @@
 @startuml
 skin rose
+skinparam Shadowing false
 skinparam ActivityFontSize 15
 skinparam ArrowFontSize 12
+title Proposed history recording (ordinary commands only)
+
 start
-:User executes command;
-
-'Since the beta syntax does not support placing the condition outside the
-'diamond we place it as the true branch instead.
-
-if () then ([command commits AddressBook])
-    :Purge redundant states;
-    :Save AddressBook to
-    addressBookStateList;
-else ([else])
+:Process command with existing
+validation, save and rollback rules;
+if () then ([changed data saved successfully])
+    :Discard redo entries;
+    :Append snapshot and command description;
+    :Move index to new entry and
+trim oldest entries if history is full;
+    :Return saved-change confirmation;
+else ([otherwise])
+    :Preserve history and current index;
+    note right
+      Includes rejected commands,
+      failed or protected saves,
+      and unchanged data.
+    end note
+    :Return command result or error;
 endif
 stop
 @enduml

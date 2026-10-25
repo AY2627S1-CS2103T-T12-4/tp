@@ -9,6 +9,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import seedu.address.MainApp;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
@@ -21,30 +22,41 @@ public class UiManager implements Ui {
     public static final String ALERT_DIALOG_PANE_FIELD_ID = "alertDialogPane";
 
     private static final Logger logger = LogsCenter.getLogger(UiManager.class);
-    private static final String ICON_APPLICATION = "/images/address_book_32.png";
+    private static final String ICON_APPLICATION = "/images/tassist_32.png";
+    private static final String ICON_APPLICATION_LARGE = "/images/tassist_256.png";
 
     private Logic logic;
     private Path dataFilePath;
     private MainWindow mainWindow;
+    private final DataLoadStatus dataLoadStatus;
 
     /**
      * Creates a {@code UiManager} with the given {@code Logic} and the data file path
      * to show in the status bar.
      */
     public UiManager(Logic logic, Path dataFilePath) {
+        this(logic, dataFilePath, DataLoadStatus.LOADED);
+    }
+
+    /**
+     * Creates a UI manager that displays the startup data-loading outcome.
+     */
+    public UiManager(Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.dataLoadStatus = dataLoadStatus;
     }
 
     @Override
     public void start(Stage primaryStage) {
         logger.info("Starting UI...");
 
-        //Set the application icon.
-        primaryStage.getIcons().add(getImage(ICON_APPLICATION));
+        // Set the application icon. The platform picks the size that suits the window and the task bar.
+        primaryStage.getIcons().addAll(getImage(ICON_APPLICATION), getImage(ICON_APPLICATION_LARGE));
+        TaskbarIcon.show(ICON_APPLICATION_LARGE);
 
         try {
-            mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
+            mainWindow = new MainWindow(primaryStage, logic, dataFilePath, dataLoadStatus);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
 

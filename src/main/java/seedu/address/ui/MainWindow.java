@@ -1,17 +1,25 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.WorkspaceView;
@@ -29,6 +37,8 @@ public class MainWindow extends UiPart<Stage> {
     private final Stage primaryStage;
     private final Logic logic;
     private final Path dataFilePath;
+    private final DataLoadStatus dataLoadStatus;
+    private final ConfirmationHandler confirmationHandler;
 
     private WorkspacePanel workspacePanel;
     private ResultDisplay resultDisplay;
@@ -52,10 +62,27 @@ public class MainWindow extends UiPart<Stage> {
      * Creates the main window with its logic and configured data path.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
+        this(primaryStage, logic, dataFilePath, DataLoadStatus.LOADED);
+    }
+
+    /**
+     * Creates the main window with the startup data-loading outcome.
+     */
+    public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus) {
+        this(primaryStage, logic, dataFilePath, dataLoadStatus, MainWindow::isConfirmationAccepted);
+    }
+
+    /**
+     * Creates the main window with a testable handler for destructive-command confirmations.
+     */
+    MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, DataLoadStatus dataLoadStatus,
+            ConfirmationHandler confirmationHandler) {
         super(FXML, primaryStage);
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.dataLoadStatus = requireNonNull(dataLoadStatus);
+        this.confirmationHandler = requireNonNull(confirmationHandler);
 
         setWindowDefaultSize(logic.getGuiSettings());
         setAccelerators();
@@ -98,6 +125,10 @@ public class MainWindow extends UiPart<Stage> {
 
         statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
+        if (dataLoadStatus != DataLoadStatus.LOADED) {
+            resultDisplay.setFeedbackToUser(dataLoadStatus.getMessage(), dataLoadStatus.isFailure());
+            statusBarFooter.setStatus(dataLoadStatus.getMessage(), dataLoadStatus.isFailure());
+        }
 
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
@@ -112,6 +143,35 @@ public class MainWindow extends UiPart<Stage> {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());
         }
+    }
+
+    private static boolean isConfirmationAccepted(Stage owner, String prompt) {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.initOwner(owner);
+        dialog.setTitle("Confirm destructive action");
+        dialog.setHeaderText("This action cannot be undone.");
+        dialog.setContentText(prompt);
+        ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getButtonTypes().setAll(continueButton, cancelButton);
+        Button cancel = (Button) dialog.getDialogPane().lookupButton(cancelButton);
+        assert cancel != null : "The confirmation dialog must include a Cancel button";
+        // Enter activates the default button, so Cancel must be that button.
+        selectCancelByDefault(dialog, continueButton, cancel);
+        dialog.setOnShown(event -> Platform.runLater(() ->
+                selectCancelByDefault(dialog, continueButton, cancel)));
+        return dialog.showAndWait().filter(continueButton::equals).isPresent();
+    }
+
+    /**
+     * Makes Cancel the default and focused button so Enter does not confirm deletion.
+     */
+    private static void selectCancelByDefault(Alert dialog, ButtonType continueButton, Button cancel) {
+        if (dialog.getDialogPane().lookupButton(continueButton) instanceof Button continueAction) {
+            continueAction.setDefaultButton(false);
+        }
+        cancel.setDefaultButton(true);
+        cancel.requestFocus();
     }
 
     /**
@@ -151,16 +211,23 @@ public class MainWindow extends UiPart<Stage> {
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
+            Optional<String> confirmationPrompt = logic.getConfirmationPrompt(commandText);
+            if (confirmationPrompt.isPresent()
+                    && !confirmationHandler.isConfirmed(primaryStage, confirmationPrompt.get())) {
+                String feedback = "Command cancelled. No changes were made.";
+                resultDisplay.setFeedbackToUser(feedback);
+                statusBarFooter.setStatus("Command cancelled");
+                return new CommandResult(feedback);
+            }
+
             CommandResult result = logic.execute(commandText);
             logger.info("Result: " + result.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
-                statusBarFooter.setStatus("Local data file");
-            } else {
-                statusBarFooter.setStatus("Changes saved");
-                showHelpIfRequested(result);
             }
+            statusBarFooter.setStatus(result.hasSavedChanges() ? "Changes saved." : "Local data file");
+            showHelpIfRequested(result);
             if (result.isExit()) {
                 handleExit();
             }
@@ -171,5 +238,16 @@ public class MainWindow extends UiPart<Stage> {
             statusBarFooter.setStatus("Command failed — see feedback", true);
             throw e;
         }
+    }
+
+    /**
+     * Confirms a destructive command before allowing it to execute.
+     */
+    @FunctionalInterface
+    interface ConfirmationHandler {
+        /**
+         * Shows a confirmation prompt and returns whether the user accepted it.
+         */
+        boolean isConfirmed(Stage owner, String prompt);
     }
 }

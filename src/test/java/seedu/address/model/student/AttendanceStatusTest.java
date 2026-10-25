@@ -26,4 +26,17 @@ public class AttendanceStatusTest {
         }
         assertThrows(NullPointerException.class, () -> AttendanceStatus.fromValue(null));
     }
+
+    @Test
+    public void formatStoredValue_storedStatus_returnsDisplayValue() {
+        assertEquals("Present", AttendanceStatus.formatStoredValue("PRESENT"));
+        assertEquals("Absent", AttendanceStatus.formatStoredValue("ABSENT"));
+    }
+
+    @Test
+    public void formatStoredValue_otherText_returnsItUnchanged() {
+        assertEquals("present", AttendanceStatus.formatStoredValue("present"));
+        assertEquals("Late", AttendanceStatus.formatStoredValue("Late"));
+        assertThrows(NullPointerException.class, () -> AttendanceStatus.formatStoredValue(null));
+    }
 }
