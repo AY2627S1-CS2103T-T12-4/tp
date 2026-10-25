@@ -1,6 +1,7 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -100,6 +101,30 @@ public class StudentCommandsIntegrationTest {
                 app.logic.execute(example);
             }
         }
+    }
+
+    @Test
+    public void execute_searchAndList_changesOnlyDisplayAndResetsOnRestart() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student add n/Ben Lim id/B2");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+
+        assertFalse(app.logic.execute("student find n/liCE id/a").hasSavedChanges());
+        assertEquals(List.of("A1"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("student find n/Ben");
+        assertEquals("B2", app.logic.getDisplayedStudentList().getFirst().getStudentId().toString());
+        feedback("student list");
+        assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
+        feedback("student find n/nobody");
+        assertTrue(app.logic.getDisplayedStudentList().isEmpty());
+        restart();
+        assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
+        assertEquals(saved, Files.readString(dataFile));
     }
 
     private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
