@@ -1218,7 +1218,8 @@ through the real parsers, model and JSON storage, but the steps below also check
       Expected: The group bar shows T01 and T02 with T01 highlighted, and the footer shows `Changes saved.`
    1. Enter `student add n/Alice Tan id/A0123456X`, `student add n/Ben Lim id/A0234567Y` and
       `student add n/Chloe O'Neil-Ng id/a0345678z`.<br>
-      Expected: The Students screen lists the three students, with Chloe's ID shown as `A0345678Z`.
+      Expected: The Attendance screen stays open. `student add` does not switch screens, so the three
+      students are not listed on it. The feedback confirms that each student was added to T01.
    1. Enter `attendance mark id/A0123456X w/1 s/present`, `attendance mark id/A0234567Y w/1 s/absent`, and then
       `attendance mark id/a0123456x w/1 s/ABSENT` to correct Alice's mark.
    1. Enter `participation set id/A0123456X w/1 s/3` and `participation set id/A0345678Z w/1 s/0`.
@@ -1231,7 +1232,8 @@ through the real parsers, model and JSON storage, but the steps below also check
 1. Restoring the tutorial after a restart
 
    1. Enter `exit`, then launch the JAR again.<br>
-      Expected: T01 is active and lists Alice, Ben and Chloe.
+      Expected: The Students screen is shown, because a launch opens it. T01 is active and lists Alice,
+      Ben and Chloe, with Chloe's ID shown as `A0345678Z`.
    1. Enter `attendance list w/1`, `participation list w/1` and `assignment list a/PS1`.<br>
       Expected: Alice is `Absent`, Ben is `Absent` and Chloe is `Not recorded`; Alice has 3, Ben is
       `Not recorded` and Chloe has 0; Alice is `Submitted | 87`, Ben is `Submitted | -` and Chloe is
@@ -1241,12 +1243,15 @@ through the real parsers, model and JSON storage, but the steps below also check
 
 1. Rejecting mistakes
 
-   1. Note the contents of `data/tassist.json`. Enter commands with an invalid value (`attendance mark id/A0123456X
-      w/14 s/present`), a missing parameter (`participation set id/A0123456X w/1`), a repeated parameter
-      (`group add g/T03 g/T04`), a duplicate (`assignment add a/ps1`), an unknown student
-      (`attendance mark id/A9 w/1 s/present`) and a very long value (a student name of a few thousand letters).<br>
-      Expected: Each command fails with feedback that names the problem, stays in the command box for correcting,
-      and leaves the data and the file unchanged.
+   1. Enter `group use g/T01`. The previous step left T02 active, and PS1 exists only in T01, so switch
+      back before trying the duplicate. Note the contents of `data/tassist.json`. Enter commands with an
+      invalid value (`attendance mark id/A0123456X w/14 s/present`), a missing parameter
+      (`participation set id/A0123456X w/1`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
+      (`assignment add a/ps1`), an unknown student (`attendance mark id/A9 w/1 s/present`) and a very long
+      value (a student name of a few thousand letters).<br>
+      Expected: `group use` reports `Switched active group to T01.` and saves. Each later command fails
+      with feedback that names the problem, stays in the command box for correcting, and leaves the data
+      and the file as they were after that switch.
 
 1. Removing a student
 
