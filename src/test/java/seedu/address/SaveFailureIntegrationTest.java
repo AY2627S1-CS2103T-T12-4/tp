@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -37,7 +38,8 @@ public class SaveFailureIntegrationTest {
         MainApp app = openApp();
         for (String command : List.of("group add g/T01", "student add n/Alice id/A1",
                 "attendance mark id/A1 w/1 s/present", "participation set id/A1 w/1 s/2",
-                "group add g/T02", "group use g/T01")) {
+                "assignment add a/PS1", "assignment submit a/PS1 id/A1 s/yes",
+                "assignment grade a/PS1 id/A1 m/87", "group add g/T02", "group use g/T01")) {
             assertTrue(app.logic.execute(command).hasSavedChanges());
         }
         TAssist lastSaved = new TAssist(app.model.getTAssist());
@@ -53,8 +55,14 @@ public class SaveFailureIntegrationTest {
                     app.logic.getActiveGroupStudentList(), command);
             assertEquals(savedContents, Files.readString(dataFile()), command);
         }
+        for (String command : List.of("assignment submit a/PS1 id/A1 s/no",
+                "assignment grade a/PS1 id/A1 m/91")) {
+            assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> app.logic.execute(command));
+            assertEquals(lastSaved, app.model.getTAssist(), command);
+            assertEquals(savedContents, Files.readString(dataFile()), command);
+        }
         for (String command : List.of("group list", "student list", "attendance list w/1",
-                "participation list w/1", "help", "view storage")) {
+                "participation list w/1", "assignment list a/PS1", "help", "view storage")) {
             assertFalse(app.logic.execute(command).hasSavedChanges());
         }
         app.stop();
@@ -106,6 +114,7 @@ public class SaveFailureIntegrationTest {
         GroupCommandRegistration.registerCommands(registry);
         StudentCommandRegistration.registerCommands(registry);
         AttendanceCommandRegistration.registerCommands(registry);
+        AssignmentCommandRegistration.registerCommands(registry);
         ParticipationCommandRegistration.registerCommands(registry);
         app.logic = new LogicManager(app.model, new StorageManager(dataStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))), registry);

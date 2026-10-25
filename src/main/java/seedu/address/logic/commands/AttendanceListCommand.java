@@ -47,22 +47,8 @@ public class AttendanceListCommand extends Command {
 
     private static String formatRow(WeeklyRecordEntry<String> entry) {
         Student student = entry.getStudent();
-        String value = entry.formatValueOrNotRecorded(AttendanceListCommand::formatStoredStatus);
+        String value = entry.formatValueOrNotRecorded(AttendanceStatus::formatStoredValue);
         return student.getName() + " | " + student.getStudentId() + " | " + value;
-    }
-
-    /**
-     * Formats a stored status for display without parsing it again.
-     * {@code PRESENT} and {@code ABSENT} are the values mark and JSON write. Any other stored text is shown as-is.
-     */
-    private static String formatStoredStatus(String status) {
-        if (AttendanceStatus.PRESENT.name().equals(status)) {
-            return AttendanceStatus.PRESENT.getDisplayValue();
-        }
-        if (AttendanceStatus.ABSENT.name().equals(status)) {
-            return AttendanceStatus.ABSENT.getDisplayValue();
-        }
-        return status;
     }
 
     @Override

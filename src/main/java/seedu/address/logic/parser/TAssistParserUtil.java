@@ -2,8 +2,11 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
-import seedu.address.commons.util.StringUtil;
+import java.util.Locale;
+
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -12,12 +15,11 @@ import seedu.address.model.student.StudentName;
  * Validates and normalizes values shared by TAssist feature parsers.
  */
 public class TAssistParserUtil {
-    public static final int NAME_MAX_LENGTH = 60;
-    public static final String MESSAGE_ASSIGNMENT_NAME = "Assignment names must contain 1-60 characters.";
     public static final String MESSAGE_WEEK = "Invalid week. Enter a number from 1 to 13.";
     public static final String MESSAGE_PARTICIPATION_SCORE =
             "Invalid participation score. Enter a whole number from 0 to 5.";
-    public static final String MESSAGE_GRADE = "Grade must be a whole number from 0 to 100.";
+    public static final String MESSAGE_GRADE = AssignmentRecord.MESSAGE_INVALID_GRADE;
+    public static final String MESSAGE_SUBMISSION_STATUS = "Invalid submission status. Use yes or no.";
 
     private TAssistParserUtil() {}
 
@@ -78,17 +80,16 @@ public class TAssistParserUtil {
     }
 
     /**
-     * Parses an assignment name, collapsing internal whitespace and preserving capitalization.
+     * Parses an assignment name using the domain's character, length, and whitespace rules.
      *
-     * @throws ParseException if the normalized name is empty or exceeds 60 characters.
+     * @throws ParseException if the name is invalid.
      */
-    public static String parseAssignmentName(String name) throws ParseException {
+    public static AssignmentName parseAssignmentName(String name) throws ParseException {
         requireNonNull(name);
-        String normalizedName = StringUtil.normalizeSpaces(name);
-        if (normalizedName.isEmpty() || normalizedName.length() > NAME_MAX_LENGTH) {
-            throw new ParseException(MESSAGE_ASSIGNMENT_NAME);
+        if (!AssignmentName.isValidAssignmentName(name)) {
+            throw new ParseException(AssignmentName.MESSAGE_CONSTRAINTS);
         }
-        return normalizedName;
+        return new AssignmentName(name);
     }
 
     /**
@@ -116,6 +117,20 @@ public class TAssistParserUtil {
      */
     public static int parseGrade(String grade) throws ParseException {
         return parseWholeNumber(grade, 0, 100, MESSAGE_GRADE);
+    }
+
+    /**
+     * Parses yes or no as a submission status, ignoring case and surrounding whitespace.
+     *
+     * @throws ParseException If the status is neither yes nor no.
+     */
+    public static boolean parseSubmissionStatus(String status) throws ParseException {
+        requireNonNull(status);
+        return switch (status.trim().toLowerCase(Locale.ROOT)) {
+            case "yes" -> true;
+            case "no" -> false;
+            default -> throw new ParseException(MESSAGE_SUBMISSION_STATUS);
+        };
     }
 
     private static int parseWholeNumber(String value, int minimum, int maximum, String message) throws ParseException {

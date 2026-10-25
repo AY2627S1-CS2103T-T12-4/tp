@@ -4,15 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.BEN;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
@@ -33,6 +40,7 @@ public class GroupTest {
     public void constructor_newGroup_hasNoStudents() {
         assertEquals(NAME_T01, group.getName());
         assertTrue(group.getStudentList().isEmpty());
+        assertTrue(group.getAssignmentList().isEmpty());
     }
 
     @Test
@@ -44,6 +52,17 @@ public class GroupTest {
         copy.addStudent(BEN);
         assertEquals(List.of(ALICE), group.getStudentList());
         assertEquals(List.of(ALICE, BEN), copy.getStudentList());
+    }
+
+    @Test
+    public void copyConstructor_withAssignments_copiesAssignmentsIndependently() {
+        group.addAssignment(PS1);
+        Group copy = new Group(group);
+        assertEquals(group, copy);
+
+        copy.addAssignment(PS2);
+        assertEquals(List.of(PS1), group.getAssignmentList());
+        assertEquals(List.of(PS1, PS2), copy.getAssignmentList());
     }
 
     @Test
@@ -67,6 +86,23 @@ public class GroupTest {
         group.addStudent(BEN);
         assertEquals(ALICE, group.removeStudent(ALICE.getStudentId()));
         assertEquals(List.of(BEN), group.getStudentList());
+    }
+
+    @Test
+    public void removeStudent_existingStudent_removesOnlyTheirAssignmentRecords() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withSubmissionStatus(BEN.getStudentId(), true);
+        Assignment ps2 = PS2.withSubmissionStatus(ALICE.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(ps2);
+
+        group.removeStudent(ALICE.getStudentId());
+
+        assertEquals(Map.of(BEN.getStudentId(), ps1.getStudentRecord(BEN.getStudentId())),
+                group.findAssignment(PS1.getName()).orElseThrow().getStudentRecords());
+        assertTrue(group.findAssignment(PS2.getName()).orElseThrow().getStudentRecords().isEmpty());
     }
 
     @Test
@@ -108,6 +144,39 @@ public class GroupTest {
     }
 
     @Test
+    public void addAssignment_newAssignment_assignmentInGroup() {
+        group.addAssignment(PS1);
+        assertTrue(group.hasAssignment(new AssignmentName("ps1")));
+        assertEquals(Optional.of(PS1), group.findAssignment(NAME_PS1));
+        assertFalse(group.hasAssignment(PS2.getName()));
+        assertEquals(Optional.empty(), group.findAssignment(PS2.getName()));
+    }
+
+    @Test
+    public void addAssignment_assignmentsKeptInCreationOrder() {
+        group.addAssignment(PS2);
+        group.addAssignment(PS1);
+        assertEquals(List.of(PS2, PS1), group.getAssignmentList());
+    }
+
+    @Test
+    public void addAssignment_sameNameInDifferentCase_throwsDuplicateAssignmentException() {
+        group.addAssignment(PS1);
+        Assignment sameName = new Assignment(new AssignmentName("ps1"));
+        assertThrows(DuplicateAssignmentException.class, () -> group.addAssignment(sameName));
+    }
+
+    @Test
+    public void addAssignment_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> group.addAssignment(null));
+    }
+
+    @Test
+    public void getAssignmentList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> group.getAssignmentList().add(PS1));
+    }
+
+    @Test
     public void isSameGroup() {
         // same object -> returns true
         assertTrue(group.isSameGroup(group));
@@ -146,6 +215,11 @@ public class GroupTest {
         // different students -> returns false
         assertFalse(group.equals(new Group(NAME_T01)));
 
+        // different assignments -> returns false
+        Group differentAssignments = new Group(sameGroup);
+        differentAssignments.addAssignment(PS1);
+        assertFalse(group.equals(differentAssignments));
+
         // different name -> returns false
         Group differentName = new Group(new GroupName("T02"));
         differentName.addStudent(ALICE);
@@ -154,7 +228,7 @@ public class GroupTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Group.class.getCanonicalName() + "{name=" + NAME_T01 + ", students=[]}";
+        String expected = Group.class.getCanonicalName() + "{name=" + NAME_T01 + ", students=[], assignments=[]}";
         assertEquals(expected, group.toString());
     }
 }

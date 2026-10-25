@@ -25,8 +25,11 @@ import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
+import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
+import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.logic.parser.TAssistArgumentParser;
@@ -263,6 +266,30 @@ public class LogicManagerTest {
         CommandResult nothingToUndo = logic.execute("undo");
         assertEquals(UndoCommand.MESSAGE_NOTHING_TO_UNDO, nothingToUndo.getFeedbackToUser());
         assertFalse(nothingToUndo.hasSavedChanges());
+    }
+
+    @Test
+    public void execute_undoStudentDelete_restoresStudentWithRecords() throws Exception {
+        CommandRegistry registry = createGroupAndStudentRegistry();
+        AttendanceCommandRegistration.registerCommands(registry);
+        ParticipationCommandRegistration.registerCommands(registry);
+        AssignmentCommandRegistration.registerCommands(registry);
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("all.json"))),
+                registry);
+        for (String command : List.of("group add g/T01", "student add n/Alice Tan id/A0123456X",
+                "attendance mark id/A0123456X w/3 s/present", "participation set id/A0123456X w/3 s/4",
+                "assignment add a/PS1", "assignment submit a/PS1 id/A0123456X s/yes",
+                "assignment grade a/PS1 id/A0123456X m/8")) {
+            logic.execute(command);
+        }
+        TAssist withRecords = new TAssist(model.getTAssist());
+
+        logic.execute("student delete id/A0123456X f/yes");
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+
+        assertEquals("Undone: student delete id/A0123456X f/yes", logic.execute("undo").getFeedbackToUser());
+        assertEquals(withRecords, model.getTAssist());
+        assertEquals(1, logic.getActiveGroupStudentList().size());
     }
 
     @Test

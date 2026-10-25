@@ -6,7 +6,7 @@ title: User Guide
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
 You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
-and record and list weekly participation scores. Commands for assignments are **coming soon**.
+record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
 
 * Table of Contents
 {:toc}
@@ -71,7 +71,8 @@ the command box.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
-  It contains no simulated records, and assignment commands are not yet supported.
+  It contains no simulated records. Use `assignment add`, `assignment submit`, `assignment grade`, and
+  `assignment list`; the Assignments screen remains a preview.
 * **Help** provides an offline reference for every available command, with its format, rules, and examples.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
@@ -84,6 +85,13 @@ command box so you can correct it. A command stays on the current screen unless 
 The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
 Escape shortcuts.
 Opening a screen with `view` does not save or change data.
+
+Press **Up** in the command box to bring back the commands you entered earlier, newest first, including ones that
+failed. Press **Down** to move back towards the newest command; going past it restores what you were typing. You can
+edit a recalled command before pressing **Enter** to run it, which saves retyping when you mark a whole group. Your
+edits to recalled commands are kept while you move through the history, and the history itself keeps each command as
+you entered it. Up and Down skip any command that matches the text already in the box, so after a command fails, the
+first Up brings back the command before it. The history starts empty each time you open TAssist.
 
 ## Features
 
@@ -101,8 +109,7 @@ Opening a screen with `view` does not save or change data.
   reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
-  and suggest entering `help`. They do not change or save your data. Assignment
-  commands remain **Coming soon**.
+  and suggest entering `help`. They do not change or save your data.
 
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
@@ -115,10 +122,11 @@ Opening a screen with `view` does not save or change data.
 Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
 
-The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group, student,
-attendance, and participation commands, in the same order as their sections in this guide. Within a topic, commands appear in the order
-you would use them. The examples are written to follow on from each other: in a new TAssist, you can type the
-group, student, attendance, and participation examples in order, and each one works.
+The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group,
+student, attendance, participation, and assignment commands, in the same order as their sections in this guide.
+Within a topic, commands appear in the order you would use them. The examples are written to follow on from each other: in a new
+TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
+works.
 
 Format: `help [TOPIC]`
 
@@ -131,6 +139,7 @@ Format: `help [TOPIC]`
 Examples:
 * `help`
 * `help student`
+* `help assignment` shows `Showing assignment commands.` and opens the Help screen at the assignment commands.
 
 
 ### Opening a screen: `view`
@@ -204,7 +213,7 @@ Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or crea
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `export`, `list`, and `use`.
 
 ### Adding a student: `student add`
 
@@ -240,13 +249,16 @@ Long rosters can be scrolled in the feedback box or viewed on the Students scree
 
 ### Deleting a student: `student delete`
 
-Removes the student and their weekly records from the active group immediately.
-The same student in another group is unaffected. Remaining students are renumbered without changing their order.
+Asks you to confirm before removing a student and all their records from the active group.
+The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
+by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
+group is unaffected, and remaining students are renumbered without changing their order.
 
-Format: `student delete id/STUDENT_ID`
+Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` shows `Removed Ben Lim from T01.` IDs ignore case, so
-`student delete id/a0234567y` does the same.
+Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
+Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
+IDs ignore case, so `student delete id/a0234567y` targets the same student.
 
 #### Student command errors
 
@@ -353,10 +365,130 @@ Invalid or blank score | `Invalid participation score. Enter a whole number from
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
 
+### Creating an assignment: `assignment add`
+
+Creates an assignment in the active tutorial group. Create or select a group first with `group add` or `group use`.
+
+Format: `assignment add a/ASSIGNMENT_NAME`
+
+* Assignment names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
+  The length limit applies after this normalization.
+* Names ignore case when matching, but keep the capitalization entered for display. `PS1` and `ps1` are duplicates,
+  and so are `Problem Set 1` and ` problem   set 1 `.
+* An assignment belongs to one group. Another group may have an assignment with the same name.
+* Supply `a/` exactly once.
+
+Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01 is active.
+
+### Recording a submission: `assignment submit`
+
+Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
+and `no` for not submitted. Marking a submission as not submitted clears its grade.
+
+Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
+
+Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
+`Updated Alice Tan's PS1 submission status to submitted.`
+
+### Recording a grade: `assignment grade`
+
+Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
+`assignment submit`. Entering `s/no` clears any recorded grade and the feedback says so.
+
+Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
+
+Example: `assignment grade a/PS1 id/A0123456X m/87` shows `Recorded grade 87 for Alice Tan's PS1.`
+An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
+assignment submit a/PS1 id/A0123456X s/yes`.
+
+### Listing assignment records: `assignment list`
+
+Lists every student in the active group, in roster order, with their status and grade for one assignment.
+Listing does not change any data.
+
+Format: `assignment list a/ASSIGNMENT_NAME`
+
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+`assignment list a/PS1` shows
+
+```text
+PS1 records for T01:
+Alice Tan | A0123456X | Submitted | 87
+```
+
+Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
+`Not submitted` and `-`. The name ignores case, and the heading shows the name as it was created. An empty group
+shows `No students in T01.` Submission statuses and grades are saved automatically and restored when you reopen
+TAssist.
+
+#### Assignment command errors
+
+Rejected input leaves the assignments and saved data file unchanged.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
+Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
+Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
+Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
+Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
+Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
+
+### Exporting a group's records: `group export`
+
+Saves the attendance and participation of every student in the active group to a CSV file, which opens in Excel,
+Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
+Exporting only reads your records: it never changes them, the active group, or the saved data file.
+
+Format: `group export`
+
+* The file is saved in the `exports` folder next to the TAssist JAR, which is created if needed, and is named after
+  the group, such as `exports/T01-records.csv`. Spaces in a group name become underscores, so the file for `Lab 1`
+  is `Lab_1-records.csv`.
+* Exporting the same group again replaces its earlier file, so the file always matches the latest records.
+  Close the file in your spreadsheet before exporting again.
+* The command takes no parameters. Select the group to export with `group use` first.
+
+Example: with T01 active, `group export` shows the full path of the file, for example:
+
+```text
+Exported attendance and participation of 1 student in T01 to:
+/Users/alex/TAssist/exports/T01-records.csv
+```
+
+The file has a header row, then one row per student in roster order:
+
+* `Name` and `Student ID`.
+* `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
+* `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
+
+For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, her row reads
+(with the empty weeks shortened):
+
+Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | …
+-----|------------|-------------------|-------------------|-------------------|---|----------------------|---
+Alice Tan | A0123456X | | | Absent | … | 4 | …
+
+An empty group exports only the header row. Assignment submissions and grades are not exported; list them with
+`assignment list a/ASSIGNMENT_NAME`.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
+Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
+
 ### Undoing a change: `undo`
 
-Reverses your latest change to tutorial groups, students, attendance, or participation scores. Switching the active
-group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes, newest first.
+Reverses your latest change to tutorial groups, students, attendance, participation scores, or assignments.
+Switching the active group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes,
+newest first.
 
 Format: `undo`
 
@@ -392,11 +524,12 @@ Format: `exit`
 
 ### Saving the data
 
-TAssist automatically saves your tutorial groups, their students, attendance, participation scores, and the active
-group after a successful command changes data. The footer shows `Changes saved.` only after the save succeeds.
+TAssist automatically saves your tutorial groups, their students, assignments and assignment records, attendance,
+participation scores, and the active group after a successful command changes data. The footer shows `Changes saved.`
+only after the save succeeds.
 Closing and reopening TAssist restores the last successfully saved state.
 
-Help, listing, navigation, and exit commands do not save data. Commands that leave the data unchanged, such as
+Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
 selecting the already active group or entering the same attendance mark again, do not save either.
 Undoing or redoing a change saves the restored data.
 
@@ -408,8 +541,8 @@ Resolve the disk or permission problem and enter the command again. Failed comma
 ### Editing the data file
 
 TAssist data is saved as `data/tassist.json` in the home folder, which is the folder containing the JAR file.
-Preferences (`preferences.json`) and the log file are saved in that same folder. TAssist does not read or write
-files outside it, including when the JAR is started from another directory.
+Preferences (`preferences.json`), the log file, and the `exports` folder for `group export` are in that same folder.
+TAssist does not read or write files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
 If the file is missing, TAssist shows `No saved data found. Starting with an empty database.`
 It creates the file after the first successful command that changes data.
@@ -426,6 +559,13 @@ The file looks like this:
       "studentId" : "A0123456X",
       "attendance" : { "3" : "PRESENT" },
       "participation" : { "3" : 2 }
+    } ],
+    "assignments" : [ "PS1", "Mid-term 1" ],
+    "assignmentRecords" : [ {
+      "assignmentName" : "PS1",
+      "studentId" : "A0123456X",
+      "submitted" : true,
+      "grade" : 87
     } ]
   } ]
 }
@@ -434,6 +574,13 @@ The file looks like this:
 * `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
   the groups, ignoring case.
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
+* A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
+  the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,
+  empty, or repeated name makes the file invalid. An omitted list means the group has no assignments.
+* A group's optional `assignmentRecords` list stores explicit records by assignment and student. Each entry needs an
+  existing `assignmentName`, an existing `studentId`, and a boolean `submitted`; its optional `grade` must be a whole
+  number from 0 to 100 and requires `submitted` to be `true`. Duplicate assignment/student pairs and references to
+  missing assignments or students make the file invalid. Older files can omit this list.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
@@ -465,6 +612,12 @@ location while TAssist is closed, then restart. Repairing the file while the app
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **Double-clicking the JAR file** may not open TAssist, or may open it with the wrong Java version, on some
+   systems. Start it from a terminal with `java -jar tassist.jar`, as in the [Quick start](#quick-start).
+1. **In a folder TAssist cannot write to**, such as a read-only folder, TAssist opens
+   but cannot save. Every command that changes data reports
+   `Unable to save changes. Your previous saved data is unchanged.` with a reminder to check the folder's
+   permissions. Move the JAR to a folder you can write to, such as one in your home folder, and start it again.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -479,11 +632,16 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
+**Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
-**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0234567Y`
+**Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
+**Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
+**Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
+**Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
+**List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
 **Exit** | `exit`

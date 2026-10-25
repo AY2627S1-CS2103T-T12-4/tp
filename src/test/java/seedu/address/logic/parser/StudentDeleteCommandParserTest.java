@@ -17,6 +17,13 @@ public class StudentDeleteCommandParserTest {
     @Test
     public void parse_validId_normalizesCaseAndSpaces() {
         assertParseSuccess(parser, " id/ a0123456x ", new StudentDeleteCommand(ALICE.getStudentId()));
+        assertParseSuccess(parser, "id/a0123456x f/yes", new StudentDeleteCommand(ALICE.getStudentId(), true));
+    }
+
+    @Test
+    public void parse_invalidFastDeleteOption_reportsHowToSkipConfirmation() {
+        assertParseFailure(parser, "id/A1 f/no", StudentDeleteCommandParser.MESSAGE_INVALID_FAST_DELETE_OPTION);
+        assertParseFailure(parser, "id/A1 f/", StudentDeleteCommandParser.MESSAGE_INVALID_FAST_DELETE_OPTION);
     }
 
     @Test
@@ -32,9 +39,9 @@ public class StudentDeleteCommandParserTest {
         assertParseFailure(parser, "id/A1 id/A2",
                 Messages.getErrorMessageForDuplicatePrefixes(new Prefix("id/")));
         assertParseFailure(parser, "id/A1 n/Alice",
-                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "id/"));
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "id/ f/"));
         assertParseFailure(parser, "A1",
-                String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "A1", "id/"));
+                String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "A1", "id/ f/"));
     }
 
     @Test

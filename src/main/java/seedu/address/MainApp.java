@@ -16,6 +16,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -39,11 +40,13 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.3";
+    public static final String VERSION = "V1.4";
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = AppHome.getHomeDirectory().resolve("preferences.json");
     private static final Path TASSIST_FILE_PATH = AppHome.getHomeDirectory().resolve(Path.of("data", "tassist.json"));
+    private static final Path EXPORT_FOLDER =
+            AppHome.getHomeDirectory().resolve(GroupCommandRegistration.EXPORT_FOLDER_NAME);
 
     protected Ui ui;
     protected Logic logic;
@@ -52,24 +55,36 @@ public class MainApp extends Application {
 
     private final Path userPrefsFilePath;
     private final Path tAssistFilePath;
+    private final Path exportFolder;
     private DataLoadStatus dataLoadStatus = DataLoadStatus.LOADED;
 
     /**
      * Creates a TAssist application that uses the default preference and data file paths.
      */
     public MainApp() {
-        this(USER_PREFS_FILE_PATH, TASSIST_FILE_PATH);
+        this(USER_PREFS_FILE_PATH, TASSIST_FILE_PATH, EXPORT_FOLDER);
     }
 
     /**
      * Creates a TAssist application that reads preferences from {@code userPrefsFilePath}
-     * and TAssist data from {@code tAssistFilePath}.
+     * and TAssist data from {@code tAssistFilePath}, and exports to an exports folder beside the data file.
      */
     MainApp(Path userPrefsFilePath, Path tAssistFilePath) {
+        this(userPrefsFilePath, tAssistFilePath, tAssistFilePath.toAbsolutePath()
+                .resolveSibling(GroupCommandRegistration.EXPORT_FOLDER_NAME));
+    }
+
+    /**
+     * Creates a TAssist application that reads preferences from {@code userPrefsFilePath}
+     * and TAssist data from {@code tAssistFilePath}, and writes exports to {@code exportFolder}.
+     */
+    MainApp(Path userPrefsFilePath, Path tAssistFilePath, Path exportFolder) {
         requireNonNull(userPrefsFilePath);
         requireNonNull(tAssistFilePath);
+        requireNonNull(exportFolder);
         this.userPrefsFilePath = userPrefsFilePath;
         this.tAssistFilePath = tAssistFilePath;
+        this.exportFolder = exportFolder;
     }
 
     @Override
@@ -85,7 +100,8 @@ public class MainApp extends Application {
         model = initModelManager(storage, userPrefs);
 
         CommandRegistry commandRegistry = new CommandRegistry();
-        GroupCommandRegistration.registerCommands(commandRegistry);
+        GroupCommandRegistration.registerCommands(commandRegistry, exportFolder);
+        AssignmentCommandRegistration.registerCommands(commandRegistry);
         AttendanceCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);

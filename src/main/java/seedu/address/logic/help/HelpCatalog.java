@@ -27,8 +27,8 @@ public final class HelpCatalog {
                             + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
             new HelpEntry("", "undo",
-                    "Undo the latest change to groups, students, attendance, or participation, including switching "
-                            + "groups. Repeat to undo up to " + TAssistHistory.MAX_CHANGES
+                    "Undo the latest change to groups, students, attendance, participation, or assignments, including "
+                            + "switching groups. Repeat to undo up to " + TAssistHistory.MAX_CHANGES
                             + " changes made since TAssist was opened. The restored data is saved.",
                     List.of("undo")),
             new HelpEntry("", "redo",
