@@ -59,7 +59,7 @@ public interface Logic {
      */
     ObservableList<Student> getActiveGroupStudentList();
 
-    /** Returns the active group's students matching the current display filter. */
+    /** Returns the active group's students in the current filtered and sorted display order. */
     ObservableList<Student> getDisplayedStudentList();
 
     /**
