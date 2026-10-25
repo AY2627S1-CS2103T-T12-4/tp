@@ -32,7 +32,7 @@ public class HelpIntegrationTest {
     private static final List<String> EXPECTED_FORMATS = List.of(
             "view SCREEN", "help [TOPIC]", "exit",
             "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME",
-            "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID",
+            "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID [f/yes]",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
             "assignment add a/ASSIGNMENT_NAME", "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",

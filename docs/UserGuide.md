@@ -248,13 +248,16 @@ Long rosters can be scrolled in the feedback box or viewed on the Students scree
 
 ### Deleting a student: `student delete`
 
-Removes the student and their weekly records from the active group immediately.
-The same student in another group is unaffected. Remaining students are renumbered without changing their order.
+Asks you to confirm before removing a student and all their records from the active group.
+The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
+by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
+group is unaffected, and remaining students are renumbered without changing their order.
 
-Format: `student delete id/STUDENT_ID`
+Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` shows `Removed Ben Lim from T01.` IDs ignore case, so
-`student delete id/a0234567y` does the same.
+Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
+Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
+IDs ignore case, so `student delete id/a0234567y` targets the same student.
 
 #### Student command errors
 
@@ -551,7 +554,7 @@ Action | Format, Examples
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
-**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0234567Y`
+**Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
