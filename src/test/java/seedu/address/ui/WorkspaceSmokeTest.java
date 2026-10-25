@@ -413,6 +413,76 @@ public class WorkspaceSmokeTest {
         }
     }
 
+    @Test
+    public void commandBox_upAndDownKeys_recallEarlierCommandsForEditing() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view help");
+                enter(input, "view nowhere");
+                input.setText("view stor");
+                pressKey(KeyCode.UP);
+                assertEquals("view nowhere", input.getText());
+                assertEquals("view nowhere".length(), input.getCaretPosition());
+                pressKey(KeyCode.UP);
+                pressKey(KeyCode.UP);
+                assertEquals("view help", input.getText(), "Up stops at the oldest command");
+                pressKey(KeyCode.DOWN);
+                assertEquals("view nowhere", input.getText(), "Failed commands are recalled too");
+                pressKey(KeyCode.DOWN);
+                pressKey(KeyCode.DOWN);
+                assertEquals("view stor", input.getText(), "Down past the newest command restores the typed text");
+
+                pressKey(KeyCode.UP);
+                input.setText(input.getText().replace("nowhere", "storage"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+                enter(input, "   ");
+                assertFalse(input.getStyleClass().contains("error"), "Blank input is ignored");
+                input.clear();
+                pressKey(KeyCode.UP);
+                assertEquals("view storage", input.getText(), "The edited command is the newest entry");
+                input.setText("view st");
+                for (KeyCode modifier : List.of(KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META)) {
+                    pressKeyWithModifier(KeyCode.UP, modifier);
+                    pressKeyWithModifier(KeyCode.DOWN, modifier);
+                    assertEquals("view st", input.getText(), modifier + "+Up and Down are left to the text field");
+                }
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void commandBox_recalledCommandFails_keepsItEditableAndHistoryUsable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view help");
+                enter(input, "view storage");
+                pressKey(KeyCode.UP);
+                input.setText(input.getText().replace("storage", "storge"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("view storge", input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+
+                pressKey(KeyCode.UP);
+                assertEquals("view storage", input.getText(), "Up skips the failed command already in the box");
+                pressKey(KeyCode.DOWN);
+                assertEquals("view storge", input.getText());
+                input.setText(input.getText().replace("storge", "storage"));
+                input.fireEvent(new ActionEvent());
+                assertEquals("storage", tabs.getSelectionModel().getSelectedItem().getId());
+                assertTrue(input.getText().isEmpty());
+                assertFalse(input.getStyleClass().contains("error"));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
     private void verifyScreens() throws Exception {
         for (WorkspaceView view : WorkspaceView.values()) {
             runOnFx(() -> {
@@ -428,7 +498,7 @@ public class WorkspaceSmokeTest {
     private void verifyKeyboard() throws Exception {
         runOnFx(() -> {
             input.setText("view students");
-            input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1, false, false, false, false));
+            pressKey(KeyCode.F1);
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
             assertEquals("view students", input.getText());
             tabs.requestFocus();
@@ -590,6 +660,15 @@ public class WorkspaceSmokeTest {
     private void enter(TextField input, String command) {
         input.setText(command);
         input.fireEvent(new ActionEvent());
+    }
+
+    private void pressKey(KeyCode key) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, false, false, false, false));
+    }
+
+    private void pressKeyWithModifier(KeyCode key, KeyCode modifier) {
+        input.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, modifier == KeyCode.SHIFT,
+                modifier == KeyCode.CONTROL, modifier == KeyCode.ALT, modifier == KeyCode.META));
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {
