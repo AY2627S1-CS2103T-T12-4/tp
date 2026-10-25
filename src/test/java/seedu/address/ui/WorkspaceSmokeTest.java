@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+import static seedu.address.testutil.TypicalStudents.CARL;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -13,7 +16,9 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
@@ -25,6 +30,10 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
@@ -716,6 +725,93 @@ public class WorkspaceSmokeTest {
     private void clickRow(TableRow<?> row, MouseButton button) {
         row.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, button, 1,
                 false, false, false, false, false, false, false, false, false, true, null));
+    }
+
+    @Test
+    public void studentClick_repeatedAndIgnoredActions_preservesDraftAndHistory() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                String saved = Files.readString(data);
+                TAssist previousData = new TAssist(model.getTAssist());
+                input.setText("unfinished draft");
+                studentTable().getSelectionModel().select(0);
+                studentTable().requestFocus();
+                studentTable().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
+                        false, false, false, false));
+                assertEquals(1, studentTable().getSelectionModel().getSelectedIndex());
+                assertEquals("unfinished draft", input.getText());
+                clickRow(tableRow(studentTable(), 0), MouseButton.SECONDARY);
+                clickRow(tableRow(studentTable(), 0), MouseButton.MIDDLE);
+                TableRow<?> emptyRow = tableRow(studentTable(), studentTable().getItems().size());
+                assertTrue(emptyRow.isEmpty());
+                clickRow(emptyRow, MouseButton.PRIMARY);
+                assertEquals("unfinished draft", input.getText());
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                input.appendText("3 s/present");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                String template = "attendance mark id/A0123456X w/";
+                assertEquals(template, input.getText());
+                assertEquals(template.length(), input.getCaretPosition());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                pressKey(KeyCode.UP);
+                assertEquals("group use g/T01", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals(template, input.getText());
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentClick_groupAndRosterChanges_usesCurrentRowStudent() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                enter(input, "group use g/T02");
+                assertTrue(input.getText().isEmpty(), "Changing groups does not fill a template automatically");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                assertEquals("attendance mark id/A0456789W w/", input.getText());
+                model.removeStudent(TypicalGroups.NAME_T02,
+                        model.getActiveGroupStudentList().getFirst().getStudentId());
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                assertEquals("attendance mark id/A0567890U w/", input.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentClick_transformedList_usesDisplayedStudentInsteadOfRosterIndex() throws Exception {
+        runOnFx(() -> {
+            FilteredList<Student> filtered = new FilteredList<>(FXCollections.observableArrayList(ALICE, BEN, CARL),
+                    student -> !student.equals(ALICE));
+            SortedList<Student> sorted = new SortedList<>(filtered,
+                    Comparator.comparing((Student student) -> student.getStudentId().toString()).reversed());
+            List<Student> clicked = new ArrayList<>();
+            StudentListPanel panel = new StudentListPanel(
+                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), sorted, clicked::add);
+            Stage transformedStage = new Stage();
+            transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
+            transformedStage.show();
+            try {
+                TableView<?> table = (TableView<?>) panel.getRoot().lookup("#studentTable");
+                clickRow(tableRow(table, 0), MouseButton.PRIMARY);
+                assertEquals(List.of(CARL), clicked);
+                filtered.setPredicate(student -> student.equals(ALICE));
+                clickRow(tableRow(table, 0), MouseButton.PRIMARY);
+                assertEquals(List.of(CARL, ALICE), clicked);
+            } finally {
+                transformedStage.close();
+            }
+        });
     }
 
     private void verifyFailure() throws Exception {

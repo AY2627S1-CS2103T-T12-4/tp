@@ -1588,6 +1588,20 @@ save/reload, preservation of participation and other weeks, isolation when one s
 and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
 parameter errors, empty groups, week boundaries, and display formatting.
 
+### Preparing a command from a student row
+
+1. Open a group with at least two students. Type an unfinished command, then click a populated row.
+   Expect an attendance template containing that row's ID, focus in the command box, and the cursor after `w/`.
+   The previous draft is replaced, while feedback, attendance records, and the saved file stay unchanged.
+2. Complete the week and status, then click the same row again. Expect the incomplete template to replace the draft.
+   Press Up and Down; the last submitted command and the new template should remain available without execution.
+3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
+   Selecting another row with the keyboard must also leave the command box alone.
+4. Submit the incomplete template with Enter. Expect a validation error, retained text, and unchanged records.
+   Complete it with a valid week and status, then press Enter; only then should attendance be saved.
+5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.
+   The JavaFX regression also checks filtered and sorted observable lists to prevent using a stale roster index.
+
 ### Testing the workspace
 
 Run `./gradlew clean test checkstyleMain checkstyleTest` and `sh .github/run-checks.sh` for the standard checks.
