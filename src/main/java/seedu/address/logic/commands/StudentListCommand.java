@@ -22,6 +22,7 @@ public class StudentListCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        model.resetStudentDisplay();
         List<Student> students = group.getStudentList();
         if (students.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
