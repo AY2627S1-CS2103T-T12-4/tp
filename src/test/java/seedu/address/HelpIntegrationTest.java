@@ -61,7 +61,7 @@ public class HelpIntegrationTest {
 
     @Test
     public void getHelpEntries_everyTopicWithCommands_hasExamplesOfItsOwnCommands() {
-        for (String topic : List.of("group", "student", "attendance", "participation")) {
+        for (String topic : HelpCatalog.TOPICS) {
             List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), topic);
             assertFalse(entries.isEmpty(), "No help for " + topic);
             for (HelpEntry entry : entries) {
