@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -114,11 +115,14 @@ public interface Model {
      */
     ObservableList<Student> getActiveGroupStudentList();
 
-    /** Returns the active group's students matching the current display filter. */
+    /** Returns the active group's students in the current filtered and sorted display order. */
     ObservableList<Student> getDisplayedStudentList();
 
     /** Replaces the display filter without changing the stored roster. */
     void filterStudents(Predicate<Student> predicate);
+
+    /** Sorts the displayed students without changing the stored roster. */
+    void sortStudents(Comparator<Student> comparator);
 
     /** Restores the complete student display in roster order. */
     void resetStudentDisplay();

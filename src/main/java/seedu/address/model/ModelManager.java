@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -11,6 +12,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.assignment.Assignment;
@@ -28,8 +30,9 @@ public class ModelManager implements Model {
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
-    private final FilteredList<Student> displayedStudents =
+    private final FilteredList<Student> filteredStudents =
             new FilteredList<>(activeGroupTracker.getStudentList());
+    private final SortedList<Student> displayedStudents = new SortedList<>(filteredStudents);
     private final ObservableList<Student> unmodifiableDisplayedStudents =
             FXCollections.unmodifiableObservableList(displayedStudents);
 
@@ -165,13 +168,20 @@ public class ModelManager implements Model {
 
     @Override
     public void filterStudents(Predicate<Student> predicate) {
-        displayedStudents.setPredicate(requireNonNull(predicate));
+        filteredStudents.setPredicate(requireNonNull(predicate));
         logger.fine("Updated the student display filter");
     }
 
     @Override
+    public void sortStudents(Comparator<Student> comparator) {
+        displayedStudents.setComparator(requireNonNull(comparator));
+        logger.fine("Updated the student display order");
+    }
+
+    @Override
     public void resetStudentDisplay() {
-        displayedStudents.setPredicate(null);
+        filteredStudents.setPredicate(null);
+        displayedStudents.setComparator(null);
     }
 
     /**
