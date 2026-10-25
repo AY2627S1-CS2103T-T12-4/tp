@@ -46,11 +46,12 @@ public class Group {
     }
 
     /**
-     * Returns a copy of this group with the given {@code newName} and the same students.
+     * Returns a copy of this group with the given {@code newName}, and the same students and assignments.
      */
     public Group withName(GroupName newName) {
         Group renamed = new Group(newName);
         renamed.students.setStudents(getStudentList());
+        renamed.assignments.setAssignments(getAssignmentList());
         return renamed;
     }
 

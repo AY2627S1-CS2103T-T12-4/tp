@@ -38,6 +38,7 @@ import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
 import seedu.address.testutil.StudentBuilder;
 import seedu.address.testutil.TAssistBuilder;
+import seedu.address.testutil.TypicalAssignments;
 import seedu.address.testutil.TypicalGroups;
 
 public class TAssistTest {
@@ -119,6 +120,16 @@ public class TAssistTest {
         assertEquals("T02-Thu", renamed.getName().toString());
         assertEquals(TypicalGroups.getT02().getStudentList(), renamed.getStudentList());
         assertEquals(3, typicalTAssist.getGroupList().size());
+    }
+
+    @Test
+    public void renameGroup_groupWithAssignments_keepsAssignments() {
+        typicalTAssist.getGroup(TypicalGroups.NAME_T01).addAssignment(TypicalAssignments.PS1);
+
+        typicalTAssist.renameGroup(TypicalGroups.NAME_T01, TypicalGroups.NAME_T04);
+
+        assertEquals(List.of(TypicalAssignments.PS1),
+                typicalTAssist.getGroup(TypicalGroups.NAME_T04).getAssignmentList());
     }
 
     @Test
