@@ -89,7 +89,7 @@ public class TAssistParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
-            case ExitCommand.COMMAND_WORD -> new ExitCommand();
+            case ExitCommand.COMMAND_WORD -> new ExitCommandParser().parse(arguments);
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             default -> commandRegistry.parseCommand(commandWord, arguments);

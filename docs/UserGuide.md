@@ -489,6 +489,9 @@ Exits the program.
 
 Format: `exit`
 
+`exit` takes no parameters. Extra input, such as `exit now`, is rejected with
+`This command takes no parameters. Remove the extra input.` and TAssist stays open.
+
 ### Saving the data
 
 TAssist automatically saves your tutorial groups, their students, assignments and assignment records, attendance,
