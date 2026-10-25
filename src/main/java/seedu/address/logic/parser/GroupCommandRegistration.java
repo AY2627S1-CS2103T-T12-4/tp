@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 
 import seedu.address.logic.commands.GroupAddCommand;
+import seedu.address.logic.commands.GroupDeleteCommand;
 import seedu.address.logic.commands.GroupListCommand;
+import seedu.address.logic.commands.GroupRenameCommand;
 import seedu.address.logic.commands.GroupUseCommand;
 import seedu.address.logic.help.HelpEntry;
 
@@ -29,6 +31,14 @@ public final class GroupCommandRegistration {
         registry.register("group", "list", new GroupListCommandParser(),
                 new HelpEntry("group", GroupListCommand.MESSAGE_USAGE,
                         "List tutorial groups in creation order and show the active group.", List.of("group list")));
+        registry.register("group", "delete", new GroupDeleteCommandParser(),
+                new HelpEntry("group", GroupDeleteCommand.MESSAGE_USAGE,
+                        "Delete a tutorial group with all its students and records. This cannot be undone.",
+                        List.of("group delete g/T01")));
+        registry.register("group", "rename", new GroupRenameCommandParser(),
+                new HelpEntry("group", GroupRenameCommand.MESSAGE_USAGE,
+                        "Rename a tutorial group. Its students and records stay with it.",
+                        List.of("group rename g/T01 n/T01-Thu")));
         registry.register("group", "use", new GroupUseCommandParser(),
                 new HelpEntry("group", GroupUseCommand.MESSAGE_USAGE,
                         "Switch to an existing tutorial group. Its students and records stay separate.",

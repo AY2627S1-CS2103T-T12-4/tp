@@ -153,6 +153,17 @@ public class GroupTest {
     }
 
     @Test
+    public void withName_returnsCopyWithNewNameAndSameStudents() {
+        group.addStudent(ALICE);
+
+        Group renamed = group.withName(new GroupName("T09"));
+
+        assertEquals(new GroupName("T09"), renamed.getName());
+        assertEquals(group.getStudentList(), renamed.getStudentList());
+        assertEquals(NAME_T01, group.getName());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Group.class.getCanonicalName() + "{name=" + NAME_T01 + ", students=[]}";
         assertEquals(expected, group.toString());

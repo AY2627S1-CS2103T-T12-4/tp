@@ -47,6 +47,15 @@ public class UniqueGroupList extends UniqueList<Group> {
     }
 
     /**
+     * Removes the group named {@code name}.
+     *
+     * @throws GroupNotFoundException if there is no such group.
+     */
+    public void remove(GroupName name) {
+        remove(find(name).orElseThrow(GroupNotFoundException::new));
+    }
+
+    /**
      * Replaces the contents of this list with {@code groups}.
      * {@code groups} must not contain groups with the same name.
      */

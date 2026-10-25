@@ -85,6 +85,64 @@ public class TAssistTest {
     }
 
     @Test
+    public void removeGroup_existingGroup_removesAndReturnsGroup() {
+        typicalTAssist.setActiveGroup(TypicalGroups.NAME_T02);
+
+        assertEquals(TypicalGroups.getT01(), typicalTAssist.removeGroup(new GroupName("t01")));
+
+        assertEquals(List.of(TypicalGroups.getT02(), TypicalGroups.getT03()), typicalTAssist.getGroupList());
+        assertEquals(Optional.of(TypicalGroups.getT02()), typicalTAssist.getActiveGroup());
+    }
+
+    @Test
+    public void removeGroup_activeGroup_leavesNoActiveGroup() {
+        typicalTAssist.setActiveGroup(TypicalGroups.NAME_T02);
+        typicalTAssist.removeGroup(TypicalGroups.NAME_T02);
+        assertEquals(Optional.empty(), typicalTAssist.getActiveGroup());
+    }
+
+    @Test
+    public void removeGroup_missingGroup_throwsGroupNotFoundException() {
+        assertThrows(GroupNotFoundException.class, () -> typicalTAssist.removeGroup(TypicalGroups.NAME_T04));
+    }
+
+    @Test
+    public void renameGroup_existingGroup_keepsStudentsAndPosition() {
+        typicalTAssist.renameGroup(new GroupName("t02"), new GroupName("T02-Thu"));
+
+        Group renamed = typicalTAssist.getGroupList().get(1);
+        assertEquals("T02-Thu", renamed.getName().toString());
+        assertEquals(TypicalGroups.getT02().getStudentList(), renamed.getStudentList());
+        assertEquals(3, typicalTAssist.getGroupList().size());
+    }
+
+    @Test
+    public void renameGroup_activeGroup_staysActiveUnderNewName() {
+        typicalTAssist.setActiveGroup(TypicalGroups.NAME_T02);
+        typicalTAssist.renameGroup(TypicalGroups.NAME_T02, TypicalGroups.NAME_T04);
+        assertEquals(TypicalGroups.NAME_T04, typicalTAssist.getActiveGroup().orElseThrow().getName());
+    }
+
+    @Test
+    public void renameGroup_onlyChangesCase_success() {
+        typicalTAssist.renameGroup(TypicalGroups.NAME_T01, new GroupName("t01"));
+        assertEquals("t01", typicalTAssist.getGroupList().get(0).getName().toString());
+    }
+
+    @Test
+    public void renameGroup_nameOfAnotherGroup_throwsDuplicateGroupExceptionAndKeepsData() {
+        assertThrows(DuplicateGroupException.class, () ->
+                typicalTAssist.renameGroup(TypicalGroups.NAME_T01, new GroupName("t02")));
+        assertEquals(TypicalGroups.getTypicalTAssist(), typicalTAssist);
+    }
+
+    @Test
+    public void renameGroup_missingGroup_throwsGroupNotFoundException() {
+        assertThrows(GroupNotFoundException.class, () ->
+                typicalTAssist.renameGroup(TypicalGroups.NAME_T04, new GroupName("T05")));
+    }
+
+    @Test
     public void addStudent_existingGroup_studentAddedToThatGroupOnly() {
         typicalTAssist.addStudent(new GroupName("t03"), FIONA);
         assertEquals(List.of(FIONA), typicalTAssist.getGroup(NAME_T03).getStudentList());

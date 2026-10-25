@@ -5,7 +5,7 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
+You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
 and record and list weekly participation scores. Commands for assignments are **coming soon**.
 
 * Table of Contents
@@ -185,18 +185,40 @@ Format: `group use g/GROUP_NAME`
 
 Example: `group use g/t01` switches to a group saved as T01 and shows `Switched active group to T01.`
 
+### Renaming a tutorial group: `group rename`
+
+Changes the name of an existing tutorial group, for example to fix a typo. The group keeps its students, records,
+position in the list, and active status.
+
+Format: `group rename g/GROUP_NAME n/NEW_NAME`
+
+* The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
+* Changing only the capitalization or spacing of a group's own name, such as `T01` to `t01`, is allowed.
+
+Example: `group rename g/T 01 n/T01` shows `Renamed tutorial group T 01 to T01.`
+
+### Deleting a tutorial group: `group delete`
+
+Deletes a tutorial group together with all its students and their records. **This cannot be undone**, so check the
+name with `group list` first. Other groups are unchanged. If the deleted group was active, no group is active
+afterwards; select one with `group use`.
+
+Format: `group delete g/GROUP_NAME`
+
+Example: `group delete g/T 01` shows `Deleted tutorial group T 01 and its 0 student(s).`
+
 #### Tutorial-group command errors
 
 Rejected group commands do not change the groups, the active selection, or the saved data file.
 
 Problem | Feedback and correction
 --------|------------------------
-Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`.
-Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`.
-Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
+Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`. This also applies to `group rename` when `n/` names another group.
+Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`. `group use`, `group rename`, and `group delete` all report it.
+Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` or `group delete` usage). Supply a name after `g/`. `group rename` needs both `g/` and `n/`.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
-Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
+Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `list`, `rename`, and `use`.
 
 ### Recording or correcting attendance: `attendance mark`
 
@@ -423,6 +445,8 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T02`
+**Rename group** | `group rename g/GROUP_NAME n/NEW_NAME`<br> e.g., `group rename g/T 01 n/T01`
+**Delete group** | `group delete g/GROUP_NAME`<br> e.g., `group delete g/T02`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
 **Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0123456X`

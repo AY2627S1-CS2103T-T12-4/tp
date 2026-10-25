@@ -56,6 +56,23 @@ public interface Model {
     Group getGroup(GroupName name);
 
     /**
+     * Removes the group named {@code name}, with its students, and returns the removed group.
+     * If it is the active group, no group is active afterwards.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.
+     */
+    Group removeGroup(GroupName name);
+
+    /**
+     * Renames the group named {@code name} to {@code newName}, keeping its students and active status.
+     * No other group may have {@code newName}, ignoring case.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no group named {@code name}.
+     * @throws seedu.address.model.group.exceptions.DuplicateGroupException if another group has {@code newName}.
+     */
+    void renameGroup(GroupName name, GroupName newName);
+
+    /**
      * Makes the group named {@code name} the active group.
      *
      * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.

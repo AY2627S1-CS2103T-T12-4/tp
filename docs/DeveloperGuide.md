@@ -211,8 +211,8 @@ AttendanceCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
-`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `list`,
-and `use` with their parsers and help entries. Future features can register their commands in the same registry.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `list`,
+`rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
@@ -268,11 +268,12 @@ data file unchanged, using a storage implementation that fails if saving is atte
 
 ### Tutorial-group commands
 
-`GroupAddCommandParser`, `GroupListCommandParser`, and `GroupUseCommandParser` construct the commands for
-`group add g/GROUP_NAME`, `group list`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects all three
+`GroupAddCommandParser`, `GroupDeleteCommandParser`, `GroupListCommandParser`, `GroupRenameCommandParser`, and
+`GroupUseCommandParser` construct the commands for `group add g/GROUP_NAME`, `group delete g/GROUP_NAME`, `group list`,
+`group rename g/GROUP_NAME n/NEW_NAME`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects all
 parsers and their `HelpEntry` objects to `CommandRegistry`, making them available through `help group`.
 
-Creation and switching share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
+Creation, switching and deletion share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
 duplicates, and unexpected text, then `TAssistParserUtil.parseGroupName` to apply the existing domain rules.
 It declares `g/` optional to the argument parser so absent and blank values can both report
 `Missing group name. Usage: ...` with the relevant command's syntax. The feature still requires a nonblank name.
@@ -286,6 +287,11 @@ The listing parser declares no parameters and rejects extra input.
   an active selection, it shows `Active group: None`.
 * `GroupUseCommand` checks that the group exists before calling `Model.setActiveGroup`. Feedback uses the stored
   capitalization, even if the input uses another case. A missing group throws `CommandException` before mutation.
+* `GroupDeleteCommand` checks that the group exists, then calls `Model.removeGroup`, which removes the group with its
+  students and clears the active group if it was the one removed. The feedback states how many students were deleted.
+* `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
+  `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
+  and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
 
 These commands return feedback without a screen-navigation request. `LogicManager` therefore saves the resulting
 groups and active selection through the existing JSON storage. The observable group strip and Students screen
@@ -1108,7 +1114,16 @@ testers are expected to do more *exploratory* testing.
       Expected: Specific duplicate, unknown-group, missing-name, or invalid-name feedback, respectively.
    1. Enter `group add g/T03 g/T04`, `group use n/T01`, and `group list g/T01`.
       Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
+   1. Enter `group delete g/T04`, `group rename g/T04 n/T05`, `group rename g/T01 n/t02`, and `group rename g/T01`.
+      Expected: Unknown-group, unknown-group, duplicate-name, and missing-name errors, respectively.
    1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
+
+1. Renaming and deleting groups
+
+   1. With groups T01 and T02 and T02 active, enter `group rename g/t02 n/T02-Thu`.
+      Expected: `Renamed tutorial group T02 to T02-Thu.`, and the top bar highlights T02-Thu with its students intact.
+   1. Enter `group delete g/T02-Thu`. Expected: The group and its students are removed and no group is active.
+   1. Close and reopen the app. Expected: Only T01 remains, with no active group.
 
 ### Recording and viewing attendance
 

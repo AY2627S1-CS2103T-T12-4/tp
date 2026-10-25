@@ -40,6 +40,15 @@ public class Group {
         students.setStudents(toCopy.getStudentList());
     }
 
+    /**
+     * Returns a copy of this group with the given {@code newName} and the same students.
+     */
+    public Group withName(GroupName newName) {
+        Group renamed = new Group(newName);
+        renamed.students.setStudents(getStudentList());
+        return renamed;
+    }
+
     public GroupName getName() {
         return name;
     }

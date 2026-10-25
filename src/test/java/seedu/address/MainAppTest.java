@@ -51,9 +51,29 @@ public class MainAppTest {
         assertEquals("Switched active group to T01.", app.logic.execute("group use g/t01").getFeedbackToUser());
         assertEquals("1. T01\n2. T02\nActive group: T01", app.logic.execute("group list").getFeedbackToUser());
         assertEquals(CommandResult.forHelp("Showing group commands.", "group"), app.logic.execute("help group"));
-        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME"),
+        assertEquals(List.of("group add g/GROUP_NAME", "group delete g/GROUP_NAME", "group list",
+                "group rename g/GROUP_NAME n/NEW_NAME", "group use g/GROUP_NAME"),
                 HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "group").stream()
                         .map(HelpEntry::getCommandFormat).toList());
+    }
+
+    @Test
+    public void init_afterGroupRenameAndDelete_savesChanges() throws Exception {
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile);
+        app.init();
+        app.logic.execute("group add g/T 01");
+        app.logic.execute("group add g/T02");
+
+        assertEquals("Renamed tutorial group T 01 to T01.", app.logic.execute("group rename g/T 01 n/T01")
+                .getFeedbackToUser());
+        assertEquals("T01", new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getGroupList().get(0).getName().toString());
+
+        app.logic.execute("group delete g/T02");
+        assertEquals(1, new JsonTAssistStorage(dataFile).readTAssist().orElseThrow().getGroupList().size());
+        assertEquals(Optional.empty(), new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getActiveGroup());
     }
 
     @Test

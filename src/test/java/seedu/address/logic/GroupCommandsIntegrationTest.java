@@ -58,7 +58,7 @@ public class GroupCommandsIntegrationTest {
 
     @Test
     public void execute_invalidGroupNames_preservesModelAndFile() throws Exception {
-        for (String subcommand : List.of("add", "use")) {
+        for (String subcommand : List.of("add", "delete", "use")) {
             String command = "group " + subcommand;
             String missingName = "Missing group name. Usage: " + command + " g/GROUP_NAME";
             assertRejected(command, ParseException.class, missingName);
@@ -71,7 +71,7 @@ public class GroupCommandsIntegrationTest {
 
     @Test
     public void execute_malformedArguments_preservesModelAndFile() throws Exception {
-        for (String subcommand : List.of("add", "use")) {
+        for (String subcommand : List.of("add", "delete", "use")) {
             String command = "group " + subcommand;
             assertRejected(command + " g/T01 g/T02", ParseException.class,
                     Messages.getErrorMessageForDuplicatePrefixes(new Prefix("g/")));
@@ -80,11 +80,13 @@ public class GroupCommandsIntegrationTest {
             assertRejected(command + " T01", ParseException.class,
                     String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "T01", "g/"));
         }
+        assertRejected("group rename g/T01", ParseException.class,
+                "Missing group name or new name. Usage: group rename g/GROUP_NAME n/NEW_NAME");
         assertRejected("group list g/T01", ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
         assertRejected("group", ParseException.class, String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
-                "group", "add, list, use", "group"));
+                "group", "add, delete, list, rename, use", "group"));
         assertRejected("group remove", ParseException.class, String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
-                "remove", "group", "add, list, use"));
+                "remove", "group", "add, delete, list, rename, use"));
     }
 
     @Test
@@ -93,6 +95,10 @@ public class GroupCommandsIntegrationTest {
         assertRejected("group add g/ tutorial   1 ", CommandException.class,
                 "A tutorial group named Tutorial 1 already exists.");
         assertRejected("group use g/T04", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group delete g/T04", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group rename g/T04 n/T05", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group rename g/T01 n/ t03 ", CommandException.class,
+                "A tutorial group named T03 already exists.");
     }
 
     private void assertRejected(String command, Class<? extends Exception> exceptionType, String message)

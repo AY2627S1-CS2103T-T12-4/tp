@@ -196,6 +196,29 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void removeGroup_activeGroup_clearsActiveGroupViews() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.removeGroup(NAME_T01);
+        assertFalse(modelManager.hasGroup(NAME_T01));
+        assertEquals(Optional.empty(), modelManager.activeGroupProperty().get());
+        assertTrue(modelManager.getActiveGroupStudentList().isEmpty());
+    }
+
+    @Test
+    public void renameGroup_activeGroup_showsGroupUnderNewName() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        modelManager.renameGroup(NAME_T01, NAME_T04);
+        assertEquals(NAME_T04, modelManager.activeGroupProperty().get().orElseThrow().getName());
+        assertEquals(TypicalGroups.getT01().getStudentList(), modelManager.getActiveGroupStudentList());
+    }
+
+    @Test
+    public void removeAndRenameGroup_nullName_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.removeGroup(null));
+        assertThrows(NullPointerException.class, () -> modelManager.renameGroup(NAME_T01, null));
+    }
+
+    @Test
     public void setActiveGroup_nullName_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.setActiveGroup(null));
     }

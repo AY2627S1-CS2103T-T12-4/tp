@@ -6,10 +6,11 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.group.GroupName;
 
 /**
- * Parses the group-name parameter shared by group creation and switching.
+ * Parses the group-name parameter shared by group creation, switching and deletion.
  */
 final class GroupCommandParserUtil {
     static final Prefix PREFIX_GROUP = new Prefix("g/");
+    static final Prefix PREFIX_NEW_NAME = new Prefix("n/");
 
     private GroupCommandParserUtil() {}
 
