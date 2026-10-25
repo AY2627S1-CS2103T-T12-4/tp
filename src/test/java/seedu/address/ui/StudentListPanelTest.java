@@ -34,21 +34,31 @@ public class StudentListPanelTest {
     @Test
     public void describeEmptyState_activeGroup_namesGroup() {
         assertEquals("No students in T03 yet",
-                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03())));
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), false));
         assertEquals("Students you add to T03 will appear here.",
-                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03())));
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), false));
     }
 
     @Test
     public void describeEmptyState_noActiveGroup_explainsHowToSeeStudents() {
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, StudentListPanel.describeEmptyTitle(Optional.empty()));
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, StudentListPanel.describeEmptyHint(Optional.empty()));
+        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, StudentListPanel.describeEmptyTitle(Optional.empty(), false));
+        assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT,
+                StudentListPanel.describeEmptyHint(Optional.empty(), false));
     }
 
     @Test
     public void describeEmptyState_populatedGroup_explainsHowToClearSearch() {
-        assertEquals("No matching students", StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT01())));
+        assertEquals("No matching students",
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT01()), true));
         assertEquals("Use student list to show all students.",
-                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT01())));
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT01()), true));
+    }
+
+    @Test
+    public void describeEmptyState_emptyFilteredGroup_explainsHowToClearSearch() {
+        assertEquals("No matching students",
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), true));
+        assertEquals("Use student list to show all students.",
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), true));
     }
 }

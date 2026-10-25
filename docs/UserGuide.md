@@ -250,8 +250,8 @@ Long rosters can be scrolled in the feedback box or viewed on the Students scree
 ### Finding students: `student find`
 
 Shows students in the active group whose names or IDs contain the supplied fragments, ignoring case.
-The Students screen opens with matching rows and a count. When only part of the roster is shown, the count
-is shown as, for example, `2 of 20 students`.
+The Students screen opens with matching rows and a count. While a search is active, the count
+is shown as, for example, `2 of 20 students`, even when every student matches.
 
 Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
 
@@ -259,6 +259,8 @@ Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
 * Name fragments match anywhere in the name, including across words. Repeated spaces are treated as one space.
 * ID fragments can be incomplete and need not contain a digit. Accents remain significant.
 * Each search replaces the previous search and keeps the current sort order. Blank, repeated, and unknown filters are rejected.
+* Deleting the last student keeps the search active: the pane shows `No matching students` and `0 of 0 students`.
+  Later additions still need to match; use `student list` to clear the search.
 * Adding or deleting students updates the matching rows immediately. Other record commands and CSV export
   continue to use the complete group.
 * Switching to a different group or restarting clears search and sorting. Selecting the already active group keeps them.

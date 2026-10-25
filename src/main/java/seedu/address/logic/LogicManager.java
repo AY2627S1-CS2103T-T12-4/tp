@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.DataLoadStatus;
@@ -154,6 +155,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Student> getDisplayedStudentList() {
         return model.getDisplayedStudentList();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty studentFilterActiveProperty() {
+        return model.studentFilterActiveProperty();
     }
 
     @Override

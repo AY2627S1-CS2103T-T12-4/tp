@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
+import static seedu.address.testutil.TypicalGroups.NAME_T03;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.BEN;
 import static seedu.address.testutil.TypicalStudents.CARL;
@@ -101,9 +102,27 @@ public class StudentDisplayTest {
         model.filterStudents(new StudentSearchPredicate("a", ""));
         model.sortStudents(StudentSortField.NAME.getComparator());
         StudentDisplayState previousDisplay = model.getStudentDisplayState();
+        assertTrue(model.studentFilterActiveProperty().get());
         model.resetStudentDisplay();
+        assertFalse(model.studentFilterActiveProperty().get());
         assertEquals(model.getActiveGroupStudentList(), model.getDisplayedStudentList());
         model.setStudentDisplayState(previousDisplay);
+        assertTrue(model.studentFilterActiveProperty().get());
         assertEquals(List.of(ALICE, CARL), model.getDisplayedStudentList());
+    }
+
+    @Test
+    public void studentFilterActiveProperty_emptyRoster_followsDisplaySettings() {
+        model.setActiveGroup(NAME_T03);
+        assertFalse(model.studentFilterActiveProperty().get());
+        model.filterStudents(new StudentSearchPredicate("missing", ""));
+        StudentDisplayState previousDisplay = model.getStudentDisplayState();
+        assertTrue(model.studentFilterActiveProperty().get());
+        model.resetStudentDisplay();
+        assertFalse(model.studentFilterActiveProperty().get());
+        model.setStudentDisplayState(previousDisplay);
+        assertTrue(model.studentFilterActiveProperty().get());
+        model.setActiveGroup(NAME_T02);
+        assertFalse(model.studentFilterActiveProperty().get());
     }
 }

@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,6 +35,7 @@ public class ModelManager implements Model {
     private final FilteredList<Student> filteredStudents =
             new FilteredList<>(activeGroupTracker.getStudentList());
     private final SortedList<Student> displayedStudents = new SortedList<>(filteredStudents);
+    private final ReadOnlyBooleanWrapper hasStudentFilter = new ReadOnlyBooleanWrapper();
     private final ObservableList<Student> unmodifiableDisplayedStudents =
             FXCollections.unmodifiableObservableList(displayedStudents);
 
@@ -46,6 +49,7 @@ public class ModelManager implements Model {
 
         this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
+        hasStudentFilter.bind(filteredStudents.predicateProperty().isNotNull());
         trackActiveGroup();
     }
 
@@ -164,6 +168,11 @@ public class ModelManager implements Model {
     @Override
     public ObservableList<Student> getDisplayedStudentList() {
         return unmodifiableDisplayedStudents;
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty studentFilterActiveProperty() {
+        return hasStudentFilter.getReadOnlyProperty();
     }
 
     @Override

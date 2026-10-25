@@ -639,8 +639,9 @@ public class WorkspaceSmokeTest {
                 assertEmptyTitle("No matching students");
                 assertEquals("0 of 1 student", ((Label) root.lookup("#studentCount")).getText());
                 enter(input, "student delete id/A1 f/yes");
-                assertEmptyTitle("No students in T03 yet");
-                assertEquals("0 students", ((Label) root.lookup("#studentCount")).getText());
+                assertEmptyTitle("No matching students");
+                assertEquals("Use student list to show all students.", ((Label) root.lookup("#emptyHint")).getText());
+                assertEquals("0 of 0 students", ((Label) root.lookup("#studentCount")).getText());
                 enter(input, "student add n/Zoe id/Z2");
                 assertEmptyTitle("No matching students");
                 enter(input, "student add n/Missing Person id/M3");
@@ -648,7 +649,7 @@ public class WorkspaceSmokeTest {
                 assertTrue(studentTable().isVisible());
                 assertEquals("1 of 2 students", ((Label) root.lookup("#studentCount")).getText());
                 enter(input, "student delete id/Z2 f/yes");
-                assertEquals("1 student", ((Label) root.lookup("#studentCount")).getText());
+                assertEquals("1 of 1 student", ((Label) root.lookup("#studentCount")).getText());
                 enter(input, "group use g/T02");
                 assertStudentsShown("T02");
             });

@@ -510,7 +510,9 @@ Each search replaces the previous one while preserving sorting, and sorting pres
 `student list` clears both. Switching to a different group resets both; rebinding the same group after a failed
 command preserves them. `LogicManager` also snapshots `StudentDisplayState` and restores it on command failure,
 including a group switch whose save fails. Restarting constructs an unfiltered view in roster order.
-The table distinguishes an empty roster from no search matches, and shows the matching count against the total.
+The table observes the read-only `studentFilterActiveProperty()` exposed by Model and Logic, which follows
+whether a predicate is installed. Empty-state captions and counts use this property rather than roster size.
+An active search always shows the matching count against the total, including `0 of 0 students`.
 
 `StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `StudentSortField` supplies
 ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
@@ -1531,6 +1533,10 @@ label.
    The search must remain active, and the sort message must not suggest resetting it.
    Add Missing Two (M2), then Missing One (M1); expect only M1 and M2, ordered by ID.
    Restart and list students; the full saved roster must remain in insertion order.
+9. While `student find n/missing` is active, delete every student in the group.
+   Expect `No matching students`, the hint to use `student list`, and `0 of 0 students`.
+   Add Zoe; she stays hidden by the existing search, and the count becomes `0 of 1 student`.
+   Enter `student list`; Zoe appears and the count becomes `1 student`.
 
 
 ### Managing students

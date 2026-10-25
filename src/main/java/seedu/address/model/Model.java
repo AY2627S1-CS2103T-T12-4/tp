@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -117,6 +118,9 @@ public interface Model {
 
     /** Returns the active group's students in the current filtered and sorted display order. */
     ObservableList<Student> getDisplayedStudentList();
+
+    /** Returns whether a student search is active, including when the roster is empty. */
+    ReadOnlyBooleanProperty studentFilterActiveProperty();
 
     /** Replaces the display filter without changing the stored roster. */
     void filterStudents(Predicate<Student> predicate);
