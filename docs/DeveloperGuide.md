@@ -362,7 +362,8 @@ exportFolder)` builds the exporter. `MainApp` passes the `exports` folder in the
 `preferences.json`, so TAssist still writes only inside its own folder. The `MainApp(Path, Path)` constructor that tests
 use places `exports` beside the data file, so tests never write next to the build. The file is named after the group,
 with spaces replaced by underscores, such as `exports/T01-records.csv`. Group names cannot contain underscores, so
-two different groups, such as `Lab 1` and `Lab-1`, never share a file.
+`Lab 1` and `Lab-1` get different files. Names that differ only in Unicode normalization can still map to the same
+file on macOS.
 
 **What the file holds.** `GroupRecordsCsvExporter.toRows(Group)` returns a header row, then one row per student in
 roster order:
@@ -379,8 +380,9 @@ A week without a record is an empty cell, so it is not mistaken for an absence o
 a quote, a line break, or a leading or trailing space, and quotes inside it are doubled. The exporter starts the
 file with a UTF-8 byte order mark, so Excel shows names such as `Chloé` correctly instead of guessing another
 encoding. A field that starts with `=`, `+`, `-`, `@`, a tab, or a carriage return gets a leading `'`, so a
-spreadsheet shows it as text instead of running it as a formula. Current name and ID rules never produce such a
-field, but the guard keeps the export safe if those rules are relaxed later.
+spreadsheet shows it as text instead of running it as a formula. A student name may start with a hyphen, such as
+`-Ann`, and `CsvUtil` writes that field as `'-Ann`. Student IDs cannot start with those characters. The guard
+still keeps the export safe if the ID rules are relaxed later.
 
 **Failing safely.** The exporter writes the whole file to a temporary file in the exports folder, then moves it over
 the old export in one step (`ATOMIC_MOVE` with `REPLACE_EXISTING`). A failed export therefore never leaves a half-written
