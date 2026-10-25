@@ -47,6 +47,7 @@ import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -586,9 +587,74 @@ public class WorkspaceSmokeTest {
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
             enter(input, "student list");
+            assertEquals(Messages.MESSAGE_NO_ACTIVE_GROUP, feedbackArea.getText());
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
-                    "Commands that do not open a screen keep the current screen");
+                    "A failed listing keeps the current screen");
         });
+    }
+
+    @Test
+    public void studentSearchAndSort_updatesTableCountsEmptyStateAndNavigation() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T03");
+                enter(input, "student add n/Zoe id/Z3");
+                enter(input, "student add n/Alice Tan id/A2");
+                enter(input, "student add n/alice Tan id/A1");
+                enter(input, "view help");
+                enter(input, "student find n/ALI id/a");
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("2 of 3 students", ((Label) root.lookup("#studentCount")).getText());
+                enter(input, "student sort by/name");
+                assertEquals("A1", studentTable().getColumns().get(2).getCellObservableValue(0).getValue());
+                assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
+                enter(input, "student sort by/grade");
+                assertEquals("student sort by/grade", input.getText());
+                assertEquals("A1", studentTable().getColumns().get(2).getCellObservableValue(0).getValue());
+                enter(input, "student find n/nobody");
+                assertEmptyTitle("No matching students");
+                assertEquals("Use student list to show all students.", ((Label) root.lookup("#emptyHint")).getText());
+                enter(input, "student list");
+                assertEquals("3 students", ((Label) root.lookup("#studentCount")).getText());
+                assertEquals("Z3", studentTable().getColumns().get(2).getCellObservableValue(0).getValue());
+                assertEquals(3, studentTable().getItems().size());
+                enter(input, "student find n/alice");
+                enter(input, "group use g/T01");
+                assertStudentsShown("T01");
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentSearch_rosterBecomesEmpty_updatesHintsAndCounts() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T03");
+                enter(input, "student add n/Alice id/A1");
+                enter(input, "student find n/missing");
+                assertEmptyTitle("No matching students");
+                assertEquals("0 of 1 student", ((Label) root.lookup("#studentCount")).getText());
+                enter(input, "student delete id/A1 f/yes");
+                assertEmptyTitle("No students in T03 yet");
+                assertEquals("0 students", ((Label) root.lookup("#studentCount")).getText());
+                enter(input, "student add n/Zoe id/Z2");
+                assertEmptyTitle("No matching students");
+                enter(input, "student add n/Missing Person id/M3");
+                assertEquals(1, studentTable().getItems().size());
+                assertTrue(studentTable().isVisible());
+                assertEquals("1 of 2 students", ((Label) root.lookup("#studentCount")).getText());
+                enter(input, "student delete id/Z2 f/yes");
+                assertEquals("1 student", ((Label) root.lookup("#studentCount")).getText());
+                enter(input, "group use g/T02");
+                assertStudentsShown("T02");
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     private void verifyFailure() throws Exception {

@@ -470,8 +470,8 @@ participation feedback and failed-input retention through the JavaFX command box
 
 ### Student commands
 
-`StudentCommandRegistration` registers `student add`, `student list`, `student find`, and `student delete`, including their help
-formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
+`StudentCommandRegistration` registers `student add`, `student list`, `student find`, `student sort`, and
+`student delete`, including their help formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
 name or ID reports its value constraints. Listing accepts no parameters.
@@ -480,8 +480,8 @@ Each command obtains the active group at execution time and throws `CommandExcep
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
-same ID. `StudentListCommand` clears the display filter, opens Students, and returns the full numbered roster
-or an empty-roster hint.
+same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
+numbered roster or an empty-roster hint.
 
 Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
 affected data without changing it; cancelling skips execution and persistence. Student deletion names the student,
@@ -494,18 +494,26 @@ normalization, confirmation details, feedback, uniqueness, group isolation, and 
 across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
 that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
 
-#### Student search
+#### Student search and sorting
 
 `StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
 at least one nonblank fragment. Fragments are not validated as complete names or IDs. `StudentSearchPredicate`
 uses case-insensitive substring matching and combines the supplied filters with AND.
 
-`ModelManager` maintains a `FilteredList` over the active group's live roster and exposes an unmodifiable
-`getDisplayedStudentList()` through Logic. The Students table binds to this display; `getActiveGroupStudentList()`
-continues to expose the complete roster. Searching changes only the predicate, so `LogicManager` does not save it.
-Each search replaces the previous one, and `student list` clears it. Switching to a different group resets the
-filter; rebinding the same group after a failed command preserves it. Restarting constructs an unfiltered view.
+`ModelManager` maintains a `FilteredList` over the active group's live roster, wraps it in a `SortedList`,
+and exposes an unmodifiable `getDisplayedStudentList()` through Logic. The Students table binds to this display; `getActiveGroupStudentList()`
+continues to expose the complete roster. Searching changes only the predicate and sorting changes only the
+comparator, so `LogicManager` does not save them.
+Each search replaces the previous one while preserving sorting, and sorting preserves the current filter.
+`student list` clears both. Switching to a different group resets both; rebinding the same group after a failed
+command preserves them. `LogicManager` also snapshots `StudentDisplayState` and restores it on command failure,
+including a group switch whose save fails. Restarting constructs an unfiltered view in roster order.
 The table distinguishes an empty roster from no search matches, and shows the matching count against the total.
+
+`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `StudentSortField` supplies
+ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
+lexicographic comparison of their normalized uppercase values. Sorting is exposed through the CLI; table headers
+remain non-sortable. These transformations keep the original roster order and all record/export commands intact.
 
 ### Assignment commands
 
@@ -1494,6 +1502,21 @@ label.
 8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
    belong to one group.
    With no active group, both commands must ask you to create or select a group first.
+
+### Finding and sorting students
+
+1. Create an empty group and add Zoe (Z3), Alice Tan (A2), and alice Tan (A1), in that order.
+2. Enter `student find n/ALI id/a`. Expect only the two Alice rows, a `2 of 3 students` count, and the Students screen.
+   Enter `student sort by/name`; expect A1 before A2, with row numbers starting at 1. Try `student sort by/id` too.
+3. Enter `student find n/nobody`. Expect a no-matches message and a hint to use `student list`.
+   Enter `student list`; expect all three students in their insertion order, with Zoe first.
+4. Search for Alice again and sort by ID. Add Alice Tan (A0); expect A0 before A1 and A2. Delete A1; it disappears.
+   Enter `student find n/`, `student find n/Alice n/Zoe`, and `student sort by/grade`.
+   Each must report its error and preserve the displayed rows, order, and saved file.
+5. While Alice is the search, mark Zoe's attendance and participation and list those records. Zoe must still be
+   addressable, and record lists and `group export` must include the complete roster in insertion order.
+6. Select a different group and return. Expect the complete roster in insertion order. Repeat a search and sort,
+   then restart; expect the same reset. Compare the data file before and after search/sort to confirm no writes.
 
 ### Managing students
 
