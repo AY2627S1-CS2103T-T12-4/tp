@@ -23,6 +23,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.GroupName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -165,9 +166,8 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_invalidDataFile_startsEmptyAndKeepsFile() throws Exception {
-        String unknownActiveGroup = "{ \"activeGroup\" : \"T09\", \"groups\" : [ ] }";
         String missingBrackets = "{ \"groups\" : [ { \"name\" : \"T01\" }";
-        for (String invalidData : List.of(unknownActiveGroup, missingBrackets, "null")) {
+        for (String invalidData : List.of(missingBrackets, "null")) {
             Files.writeString(dataFile(), invalidData);
 
             Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
@@ -175,6 +175,16 @@ public class MainAppTest {
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void initModelManager_unknownActiveGroup_loadsDataWithNoActiveGroup() throws Exception {
+        Files.writeString(dataFile(), "{ \"activeGroup\" : \"T09\", \"groups\" : [ { \"name\" : \"T01\" } ] }");
+
+        Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
+
+        assertTrue(model.hasGroup(new GroupName("T01")));
+        assertEquals(Optional.empty(), model.getActiveGroup());
     }
 
     private Path dataFile() {

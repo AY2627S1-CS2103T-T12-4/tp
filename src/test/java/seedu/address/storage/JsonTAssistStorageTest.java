@@ -77,9 +77,10 @@ public class JsonTAssistStorageTest {
     }
 
     @Test
-    public void read_unknownActiveGroup_exceptionThrown() {
-        assertReadFailsWithReason("unknownActiveGroupTAssist.json",
-                String.format(JsonSerializableTAssist.MESSAGE_UNKNOWN_ACTIVE_GROUP, "T09"));
+    public void read_unknownActiveGroup_loadsGroupsWithNoActiveGroup() throws Exception {
+        ReadOnlyTAssist readBack = readTAssist("unknownActiveGroupTAssist.json").orElseThrow();
+        assertEquals(1, readBack.getGroupList().size());
+        assertEquals(Optional.empty(), readBack.getActiveGroup());
     }
 
     /**
