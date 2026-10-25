@@ -189,6 +189,33 @@ public class JsonTAssistStorageTest {
     }
 
     @Test
+    public void read_fractionalParticipationScore_exceptionThrown() throws Exception {
+        assertHandEditedFileRejected("""
+                {"groups":[{"name":"T01","students":[
+                  {"name":"Alice Tan","studentId":"A1","participation":{"1":5.9}}]}]}
+                """);
+    }
+
+    @Test
+    public void read_fractionalGrade_exceptionThrown() throws Exception {
+        assertHandEditedFileRejected("""
+                {"groups":[{"name":"T01","students":[{"name":"Alice Tan","studentId":"A1"}],
+                  "assignments":["PS1"],
+                  "assignmentRecords":[
+                    {"assignmentName":"PS1","studentId":"A1","submitted":true,"grade":100.9}]}]}
+                """);
+    }
+
+    /**
+     * Asserts that reading a data file containing {@code json} fails.
+     */
+    private void assertHandEditedFileRejected(String json) throws IOException {
+        Path filePath = testFolder.resolve("handEdited.json");
+        Files.writeString(filePath, json);
+        assertThrows(DataLoadingException.class, () -> new JsonTAssistStorage(filePath).readTAssist());
+    }
+
+    @Test
     public void saveTAssist_partialWriteFailure_preservesSavedFile() throws Exception {
         JsonTAssistStorage storage = new JsonTAssistStorage(testFolder.resolve("tassist.json")) {
             @Override
