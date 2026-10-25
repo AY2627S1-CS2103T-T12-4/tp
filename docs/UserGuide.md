@@ -97,7 +97,8 @@ Opening a screen with `view` does not save or change data.
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
+* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list`, `student list`, `undo`, and `redo`
+  reject extra input.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data. Assignment
@@ -114,7 +115,7 @@ Opening a screen with `view` does not save or change data.
 Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
 
-The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
+The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group, student,
 attendance, and participation commands, in the same order as their sections in this guide. Within a topic, commands appear in the order
 you would use them. The examples are written to follow on from each other: in a new TAssist, you can type the
 group, student, attendance, and participation examples in order, and each one works.
@@ -352,6 +353,37 @@ Invalid or blank score | `Invalid participation score. Enter a whole number from
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
 
+### Undoing a change: `undo`
+
+Reverses your latest change to tutorial groups, students, attendance, or participation scores. Switching the active
+group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes, newest first.
+
+Format: `undo`
+
+* You can undo up to 20 changes made since TAssist was opened. Changes from before you last opened TAssist cannot be
+  undone.
+* Commands that were rejected or did not change any data, such as listing, `help`, `view`, or entering the same
+  attendance mark again, are skipped.
+* The data that `undo` restores is saved, just like any other change.
+
+For example, after `attendance mark id/A0123456X w/3 s/absent`, entering `undo` shows
+`Undone: attendance mark id/A0123456X w/3 s/absent` and restores Alice Tan's earlier Week 3 attendance.
+If there is nothing to undo, TAssist shows
+`Nothing to undo. TAssist can undo the last 20 changes made since it was opened.` and changes no data.
+
+### Redoing a change: `redo`
+
+Reapplies the latest change that you reversed with `undo`.
+
+Format: `redo`
+
+* Enter `redo` again to reapply further undone changes, in the order you made them.
+* Making a new change after `undo` clears the changes you can redo.
+
+Continuing the example above, entering `redo` shows `Redone: attendance mark id/A0123456X w/3 s/absent`.
+If there is nothing to redo, TAssist shows
+`Nothing to redo. Redo is available after undo, until you make another change.`
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -366,6 +398,7 @@ Closing and reopening TAssist restores the last successfully saved state.
 
 Help, listing, navigation, and exit commands do not save data. Commands that leave the data unchanged, such as
 selecting the already active group or entering the same attendance mark again, do not save either.
+Undoing or redoing a change saves the restored data.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
 The command's changes are rolled back, including the active selection and roster. For a permission problem, the
@@ -441,6 +474,8 @@ Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
+**Undo** | `undo`
+**Redo** | `redo`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`

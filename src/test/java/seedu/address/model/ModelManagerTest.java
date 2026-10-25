@@ -379,6 +379,46 @@ public class ModelManagerTest {
         assertFalse(modelManager.equals(new ModelManager(typicalTAssistWithActiveGroup(NAME_T02), userPrefs)));
     }
 
+    @Test
+    public void undoAndRedoTAssist_groupSwitchedAndStudentRemoved_restoresDataAndActiveGroupViews() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        TAssist beforeSwitch = new TAssist(modelManager.getTAssist());
+        modelManager.setActiveGroup(NAME_T02);
+        modelManager.commitTAssist(beforeSwitch, "group use g/T02");
+        TAssist beforeRemoval = new TAssist(modelManager.getTAssist());
+        modelManager.removeStudent(NAME_T02, TypicalGroups.getT02().getStudentList().get(0).getStudentId());
+        modelManager.commitTAssist(beforeRemoval, "student delete");
+        TAssist afterRemoval = new TAssist(modelManager.getTAssist());
+
+        assertEquals("student delete", modelManager.undoTAssist());
+        assertEquals(beforeRemoval, modelManager.getTAssist());
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT02()));
+        assertEquals("group use g/T02", modelManager.undoTAssist());
+        assertActiveGroupShown(modelManager, Optional.of(TypicalGroups.getT01()));
+        assertFalse(modelManager.canUndoTAssist());
+
+        assertEquals("group use g/T02", modelManager.redoTAssist());
+        assertEquals("student delete", modelManager.redoTAssist());
+        assertEquals(afterRemoval, modelManager.getTAssist());
+        assertActiveGroupShown(modelManager, modelManager.getActiveGroup());
+        assertFalse(modelManager.canRedoTAssist());
+    }
+
+    @Test
+    public void setTAssistHistory_copyChangedLater_modelHistoryUnchanged() {
+        TAssistHistory history = new TAssistHistory();
+        modelManager.setTAssistHistory(history);
+        history.record(new TAssist(), "change");
+        assertFalse(modelManager.canUndoTAssist());
+
+        modelManager.commitTAssist(new TAssist(), "change");
+        modelManager.getTAssistHistory().undo(new TAssist());
+        assertTrue(modelManager.canUndoTAssist());
+        assertEquals(history, modelManager.getTAssistHistory());
+        assertThrows(NullPointerException.class, () -> modelManager.setTAssistHistory(null));
+        assertThrows(NullPointerException.class, () -> modelManager.commitTAssist(null, "change"));
+    }
+
     /**
      * Returns the typical TAssist data with the group named {@code activeGroupName} active.
      */

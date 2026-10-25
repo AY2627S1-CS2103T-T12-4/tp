@@ -546,89 +546,90 @@ change.
   * Pros: Each feature owns its file.
   * Cons: A manual edit to one file, such as renaming a group, can leave records in another file that point to nothing. Loading must check every file against the others.
 
-### \[Proposed\] Undo/redo feature
+### Undo and redo
 
-#### Proposed Implementation
+`undo` reverses the latest change to TAssist data, and `redo` reapplies the latest change that was undone. A change
+is any successful command that changes and saves the data, including `group use`, since the active group is saved too.
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+#### Implementation
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+The history is kept by `TAssistHistory` in the `Model` component. It holds two stacks of `TAssistHistory.Version`,
+each a copy of the TAssist data together with the command that changed it, as the user entered it:
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+* the **undo stack** holds the data from before each recent change, newest on top, and
+* the **redo stack** holds the data from after each change that was undone, newest on top.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+`ModelManager` exposes the history through `Model#commitTAssist`, `Model#undoTAssist`, `Model#redoTAssist`,
+`Model#canUndoTAssist` and `Model#canRedoTAssist`. The history is kept in memory only, so it starts empty each time
+TAssist opens. At most `TAssistHistory.MAX_CHANGES` (20) changes are kept; the oldest is dropped after that.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+`LogicManager` records a change after the command's data has been saved, and only if the data changed. Commands
+that fail, and commands that leave the data unchanged (listing, help, viewing a screen, or selecting the group that
+is already active), are not recorded. `Command#isUndoable` returns false for `UndoCommand` and `RedoCommand`, so they
+move through the history without recording themselves. Recording a new change empties the redo stack, as it no
+longer makes sense to redo a change made before the new one.
 
-![UndoRedoState0](images/UndoRedoState0.png)
+<img src="images/CommitActivityDiagram.png" width="300" />
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Given below is an example of how the stacks change.
 
-![UndoRedoState1](images/UndoRedoState1.png)
+Step 1. The TA opens TAssist. Both stacks are empty, so `undo` and `redo` report that there is nothing to undo or
+redo, without changing data.
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 2. The TA enters `attendance mark id/A0123456X w/3 s/absent`, which changes data. `LogicManager` saves the data,
+then calls `Model#commitTAssist` with a copy of the data from before the command. The undo stack now holds one
+version, described as `attendance mark id/A0123456X w/3 s/absent`.
 
-![UndoRedoState2](images/UndoRedoState2.png)
+Step 3. The TA realizes the student was present and enters `undo`. `UndoCommand` calls `Model#undoTAssist`. The
+history pops the version from the undo stack and pushes a copy of the current data onto the redo stack, with the
+same description. `ModelManager` then restores the popped data, including the active group. `LogicManager` sees that
+the data changed and saves it, so the data file holds the restored data. The feedback is
+`Undone: attendance mark id/A0123456X w/3 s/absent`.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
+The following sequence diagram shows how `undo` goes through the `Logic` component:
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
+And how `Model#undoTAssist` uses the history in the `Model` component:
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+Step 4. `redo` does the opposite: it pops the redo stack, pushes the current data onto the undo stack, and restores
+the popped data. If the TA enters another change instead, such as `attendance mark id/A0123456X w/3 s/present`, the
+redo stack is emptied.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If saving fails after `undo` or
+`redo`, `LogicManager` restores both the data and a copy of the history taken before the command, so the change can
+be undone again once the save problem is fixed.
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+`TAssistHistoryTest` covers the stacks and the size limit, `ModelManagerTest` covers restoring the active group, and
+`LogicManagerTest` checks saving, failed and read-only commands, and a failed save during `undo`.
 
-![UndoRedoState4](images/UndoRedoState4.png)
+#### Design considerations
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+**Aspect: How undo and redo restore data**
 
-![UndoRedoState5](images/UndoRedoState5.png)
+* **Alternative 1 (current choice):** Keep a copy of the whole TAssist data for each change.
+  * Pros: Simple and works the same for every command, including commands added later. Each copy is small for a
+    TA's few groups of about 20 students, and the number of copies is limited.
+  * Cons: Uses more memory than storing only what changed.
 
-The following activity diagram summarizes what happens when a user executes a new command:
+* **Alternative 2:** Each command knows how to reverse itself (for example, `student delete` keeps the deleted student).
+  * Pros: Uses less memory.
+  * Cons: Every data-changing command needs its own correct reverse operation and tests.
 
-<img src="images/CommitActivityDiagram.png" width="250" />
+**Aspect: What is recorded**
 
-#### Design considerations:
+* **Alternative 1 (current choice):** `LogicManager` records a change after a successful save whenever the data
+  differs.
+  * Pros: Commands need no extra code, and failed or unchanged commands can never be recorded.
+  * Cons: Undo and redo need `Command#isUndoable` so that they are not recorded themselves.
 
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
+* **Alternative 2:** Each command calls `Model#commitTAssist` itself, as AB3's proposed design did.
+  * Pros: Each command decides whether it is undoable.
+  * Cons: Easy to forget in a new command, and a change could be recorded even if saving it then fails.
 
 ### \[Proposed\] Data archiving
 
@@ -708,6 +709,7 @@ Priority 1 = Must have in MVP, Priority 2 = Nice to have, Priority 3 = Stretch
 | 38 | P1 | TA | have my data stored on my own laptop | keep student records private |
 | 39 | P2 | TA | export a group's records to CSV | hand figures to the course coordinator |
 | 40 | P3 | TA | import partial records from another TA's export | take over a group mid-semester |
+| 41 | P3 | busy TA | undo and redo my latest changes | recover quickly from a command entered by mistake |
 
 
 ### Use cases
@@ -1221,6 +1223,28 @@ Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSO
 save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
 and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
 parameter errors, empty groups, week boundaries, and display formatting.
+
+### Undoing and redoing changes
+
+1. Prerequisites: Open TAssist with T01 active and Alice Tan (`A0123456X`) in it, as for the attendance tests.
+
+1. Undoing and redoing
+
+   1. Enter `undo` before making any change. Expected: `Nothing to undo. TAssist can undo the last 20 changes made
+      since it was opened.` No data changes.
+   1. Enter `attendance mark id/A0123456X w/3 s/absent`, then `undo`.
+      Expected: `Undone: attendance mark id/A0123456X w/3 s/absent`, and `attendance list w/3` shows Alice's
+      earlier status.
+   1. Enter `redo`. Expected: `Redone: attendance mark id/A0123456X w/3 s/absent`, and Alice is absent again.
+   1. Enter `group add g/T09`, then `undo`. Expected: T09 is removed and T01 is the active group again.
+   1. Close and reopen TAssist. Expected: The data matches the state after the last undo or redo, and `undo` says
+      there is nothing to undo.
+
+1. Commands that are not undone
+
+   1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
+      Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
+   1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
 
 ### Testing the workspace
 

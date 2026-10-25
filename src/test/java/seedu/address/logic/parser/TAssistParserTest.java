@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -28,6 +30,18 @@ public class TAssistParserTest {
     public void parseCommand_exit() throws Exception {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
+    }
+
+    @Test
+    public void parseCommand_undoAndRedo() throws Exception {
+        assertEquals(new UndoCommand(), parser.parseCommand("  " + UndoCommand.COMMAND_WORD + "  "));
+        assertEquals(new RedoCommand(), parser.parseCommand(RedoCommand.COMMAND_WORD));
+        for (String input : List.of("undo 3", "redo all", "undo id/A0123456X")) {
+            assertThrows(ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS, () ->
+                    parser.parseCommand(input));
+        }
+        assertThrows(ParseException.class, String.format(MESSAGE_UNKNOWN_COMMAND, "UNDO"), () ->
+                parser.parseCommand("UNDO"));
     }
 
     @Test
@@ -95,7 +109,7 @@ public class TAssistParserTest {
 
     @Test
     public void constructor_builtInKeywordConflict_throwsIllegalArgumentException() {
-        for (String builtInKeyword : List.of("view", "help", "exit")) {
+        for (String builtInKeyword : List.of("view", "help", "undo", "redo", "exit")) {
             CommandRegistry registry = new CommandRegistry();
             registry.register(builtInKeyword, "student", args -> new StubCommand());
             assertThrows(IllegalArgumentException.class, () -> new TAssistParser(registry));
