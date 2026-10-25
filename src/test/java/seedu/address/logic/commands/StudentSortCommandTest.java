@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 import static seedu.address.testutil.TypicalStudents.CARL;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.student.StudentSearchPredicate;
 import seedu.address.model.student.StudentSortField;
+import seedu.address.testutil.StudentBuilder;
 import seedu.address.testutil.TypicalGroups;
 
 public class StudentSortCommandTest {
@@ -40,13 +42,36 @@ public class StudentSortCommandTest {
     }
 
     @Test
-    public void execute_noMatches_explainsHowToRestoreRoster() throws Exception {
+    public void execute_noMatches_reportsSortAndPreservesFilter() throws Exception {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(TypicalGroups.NAME_T01);
         model.filterStudents(new StudentSearchPredicate("nobody", ""));
-        assertEquals(new CommandResult("No matching students in T01. Use student list to show all students.",
+        TAssist previousData = new TAssist(model.getTAssist());
+        assertEquals(new CommandResult("Sorted 0 student(s) in T01 by id.",
                         WorkspaceView.STUDENTS),
                 new StudentSortCommand(StudentSortField.ID).execute(model));
+        assertEquals(previousData, model.getTAssist());
+        model.addStudent(TypicalGroups.NAME_T01,
+                new StudentBuilder().withName("Nobody Two").withStudentId("N2").build());
+        model.addStudent(TypicalGroups.NAME_T01,
+                new StudentBuilder().withName("Nobody One").withStudentId("N1").build());
+        assertEquals(List.of("N1", "N2"), model.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+    }
+
+    @Test
+    public void execute_emptyGroup_keepsSortForFutureStudents() throws Exception {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        model.setActiveGroup(TypicalGroups.NAME_T03);
+        TAssist previousData = new TAssist(model.getTAssist());
+
+        assertEquals(new CommandResult("Sorted 0 student(s) in T03 by name.", WorkspaceView.STUDENTS),
+                new StudentSortCommand(StudentSortField.NAME).execute(model));
+        assertEquals(previousData, model.getTAssist());
+        model.addStudent(TypicalGroups.NAME_T03, BEN);
+        model.addStudent(TypicalGroups.NAME_T03, ALICE);
+        assertEquals(List.of(ALICE, BEN), model.getDisplayedStudentList());
+        assertEquals(List.of(BEN, ALICE), model.getActiveGroupStudentList());
     }
 
     @Test

@@ -29,8 +29,7 @@ public class StudentSortCommand extends Command {
         Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
         model.sortStudents(field.getComparator());
         int count = model.getDisplayedStudentList().size();
-        String feedback = count == 0 ? String.format(StudentFindCommand.MESSAGE_NO_MATCHES, group.getName())
-                : String.format(MESSAGE_SUCCESS, count, group.getName(), field.getKeyword());
+        String feedback = String.format(MESSAGE_SUCCESS, count, group.getName(), field.getKeyword());
         return new CommandResult(feedback, WorkspaceView.STUDENTS);
     }
 }

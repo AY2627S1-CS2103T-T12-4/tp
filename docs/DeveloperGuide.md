@@ -499,6 +499,8 @@ that cancelling preserves the roster and saved file, while accepting or using `f
 `StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
 at least one nonblank fragment. Fragments are not validated as complete names or IDs. `StudentSearchPredicate`
 uses case-insensitive substring matching and combines the supplied filters with AND.
+`StudentFindCommand` checks for an empty roster before applying a new predicate. In that case it reports the
+empty roster and preserves the existing display settings, allowing a later addition to follow those settings.
 
 `ModelManager` maintains a `FilteredList` over the active group's live roster, wraps it in a `SortedList`,
 and exposes an unmodifiable `getDisplayedStudentList()` through Logic. The Students table binds to this display; `getActiveGroupStudentList()`
@@ -514,6 +516,7 @@ The table distinguishes an empty roster from no search matches, and shows the ma
 ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
 lexicographic comparison of their normalized uppercase values. Sorting is exposed through the CLI; table headers
 remain non-sortable. These transformations keep the original roster order and all record/export commands intact.
+Sort feedback reports the displayed count even when it is zero, without suggesting that the sort be reset.
 
 ### Assignment commands
 
@@ -1517,6 +1520,18 @@ label.
    addressable, and record lists and `group export` must include the complete roster in insertion order.
 6. Select a different group and return. Expect the complete roster in insertion order. Repeat a search and sort,
    then restart; expect the same reset. Compare the data file before and after search/sort to confirm no writes.
+7. Create a new empty group T04. Enter `student find n/alice` and expect the empty-roster hint,
+   rather than a no-matches message. Check that the saved file is unchanged by the query.
+   Add Zoe (Z2), who does not match the attempted search; Zoe must appear immediately.
+   Delete Zoe, then repeat the query with an ID fragment and check the same behavior.
+   This distinguishes an empty roster from an existing roster with no matching students.
+8. With T04 empty again, enter `student sort by/name`. Expect `Sorted 0 student(s) in T04 by name.`
+   Add Zoe (Z2), then Alice (A1); expect Alice before Zoe on screen, while the saved roster keeps insertion order.
+   Run `student find n/missing`, then `student sort by/id`; expect a sort result for zero displayed students.
+   The search must remain active, and the sort message must not suggest resetting it.
+   Add Missing Two (M2), then Missing One (M1); expect only M1 and M2, ordered by ID.
+   Restart and list students; the full saved roster must remain in insertion order.
+
 
 ### Managing students
 

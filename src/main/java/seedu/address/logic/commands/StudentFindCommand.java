@@ -29,6 +29,10 @@ public class StudentFindCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        if (group.getStudentList().isEmpty()) {
+            return new CommandResult(String.format(StudentListCommand.MESSAGE_NO_STUDENTS, group.getName()),
+                    WorkspaceView.STUDENTS);
+        }
         model.filterStudents(predicate);
         int count = model.getDisplayedStudentList().size();
         String feedback = count == 0 ? String.format(MESSAGE_NO_MATCHES, group.getName())

@@ -171,6 +171,26 @@ public class StudentCommandsIntegrationTest {
         assertEquals(displayed, app.logic.getDisplayedStudentList());
     }
 
+    @Test
+    public void execute_emptyRosterQueries_preservesFileAndShowsLaterAdditions() throws Exception {
+        String saved = Files.readString(dataFile);
+        CommandResult findResult = app.logic.execute("student find n/alice");
+        assertEquals("No students in T01. Add one using: student add n/NAME id/STUDENT_ID",
+                findResult.getFeedbackToUser());
+        assertFalse(findResult.hasSavedChanges());
+        CommandResult sortResult = app.logic.execute("student sort by/name");
+        assertEquals("Sorted 0 student(s) in T01 by name.", sortResult.getFeedbackToUser());
+        assertFalse(sortResult.hasSavedChanges());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student add n/Alice Tan id/A1");
+        assertEquals(List.of("A1", "B2"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+        restart();
+        assertEquals("Students in T01:\n1. Ben Lim | B2\n2. Alice Tan | A1", feedback("student list"));
+    }
+
     private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
         TAssist expected = new TAssist(app.model.getTAssist());
         String saved = Files.readString(dataFile);

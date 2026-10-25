@@ -269,6 +269,8 @@ Examples: `student find n/alice` finds Alice Tan; `student find id/0123` matches
 
 No matches shows `No matching students in T01. Use student list to show all students.`
 The table also explains how to restore the full roster. An empty name or ID filter reports which filter is blank.
+If the group has no students, finding reports the empty roster and how to add a student instead.
+It leaves the existing search and sort settings unchanged, so it does not apply a new filter to future students.
 
 ### Sorting students: `student sort`
 
@@ -289,6 +291,8 @@ Format: `student sort by/FIELD`
 
 For example, enter `student find n/alice`, then `student sort by/id` to order only matching students by ID.
 An unsupported or blank field shows `Invalid sort field. Use by/name or by/id.`
+Sorting zero displayed students reports, for example, `Sorted 0 student(s) in T01 by name.`
+The chosen order remains active for later matches or additions; sorting does not clear an existing search.
 
 ### Deleting a student: `student delete`
 
