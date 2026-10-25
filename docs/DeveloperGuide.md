@@ -204,6 +204,7 @@ The `Storage` component,
 * can save both TAssist data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
 * converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+* also writes a group's records to a CSV file through `GroupRecordsCsvExporter`. This is a one-way export that TAssist never reads back, so it is kept out of the `Storage` interface (see [Exporting a group's records](#exporting-a-groups-records)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -315,8 +316,9 @@ data file unchanged, using a storage implementation that fails if saving is atte
 ### Tutorial-group commands
 
 `GroupAddCommandParser`, `GroupListCommandParser`, and `GroupUseCommandParser` construct the commands for
-`group add g/GROUP_NAME`, `group list`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects all three
-parsers and their `HelpEntry` objects to `CommandRegistry`, making them available through `help group`.
+`group add g/GROUP_NAME`, `group list`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects these
+parsers, and the one for `group export` (see [Exporting a group's records](#exporting-a-groups-records)), with their
+`HelpEntry` objects to `CommandRegistry`, making them available through `help group`.
 
 Creation and switching share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
 duplicates, and unexpected text, then `TAssistParserUtil.parseGroupName` to apply the existing domain rules.
@@ -345,6 +347,89 @@ Command and parser tests cover successful operations, exact feedback, name bound
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
 observable student list, active group, and file contents, and never call storage. `MainAppTest` exercises actual startup
 registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the commands through the JavaFX command box.
+
+### Exporting a group's records
+
+`group export` saves the active group's attendance and participation as a CSV file that spreadsheets open. Four
+classes share the work:
+
+* `GroupExportCommandParser` (Logic) rejects any parameters, like the `group list` parser.
+* `GroupExportCommand` (Logic) finds the active group and reports where its file was written.
+* `GroupRecordsCsvExporter` (Storage) lays the group out as rows and writes the file.
+* `CsvUtil` (Commons) turns rows into CSV text. It knows nothing about TAssist, so a later import or another export
+  can reuse it.
+
+The diagram below shows `group export` with T01 active. The `parse group export` frame works like the parse frame of
+`participation set` in [Participation commands](#participation-commands).
+
+![Execution of the `group export` command](images/GroupExportSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `GroupExportCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
+**Where the file goes.** Commands receive only the `Model`, so the exporter is created once at startup and handed
+to the parser, which gives it to every command it creates. `GroupCommandRegistration.registerCommands(registry,
+exportFolder)` builds the exporter. `MainApp` passes the `exports` folder in the home folder, beside `data` and
+`preferences.json`, so TAssist still writes only inside its own folder. The `MainApp(Path, Path)` constructor that tests
+use places `exports` beside the data file, so tests never write next to the build. The file is named after the group,
+with spaces replaced by underscores, such as `exports/T01-records.csv`. Group names cannot contain underscores, so
+`Lab 1` and `Lab-1` get different files. Names that differ only in Unicode normalization can still map to the same
+file on macOS.
+
+**What the file holds.** `GroupRecordsCsvExporter.toRows(Group)` returns a header row, then one row per student in
+roster order:
+
+* `Name` and `Student ID`;
+* `Week 1 Attendance` to `Week 13 Attendance`;
+* `Week 1 Participation` to `Week 13 Participation`.
+
+A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. Attendance uses
+`AttendanceStatus.formatStoredValue`, which `attendance list` also uses, so the file and the app show the same
+`Present` and `Absent`.
+
+**Writing valid CSV.** `CsvUtil` follows RFC 4180. Rows end with CRLF. A field is quoted only if it holds a comma,
+a quote, a line break, or a leading or trailing space, and quotes inside it are doubled. The exporter starts the
+file with a UTF-8 byte order mark, so Excel shows names such as `Chloé` correctly instead of guessing another
+encoding. A field that starts with `=`, `+`, `-`, `@`, a tab, or a carriage return gets a leading `'`, so a
+spreadsheet shows it as text instead of running it as a formula. A student name may start with a hyphen, such as
+`-Ann`, and `CsvUtil` writes that field as `'-Ann`. Student IDs cannot start with those characters. The guard
+still keeps the export safe if the ID rules are relaxed later.
+
+**Failing safely.** The exporter writes the whole file to a temporary file in the exports folder, then moves it over
+the old export in one step (`ATOMIC_MOVE` with `REPLACE_EXISTING`). A failed export therefore never leaves a half-written
+file, and the previous export stays intact. The temporary file is deleted in a `finally` block. An `IOException`
+becomes a `CommandException` that names the group and the file, and the cause is logged. Exporting reads the model
+without changing it, so `LogicManager` never saves after `group export`, whether it succeeds or fails.
+
+**Design considerations.**
+
+* **Aspect: Shape of the table**
+  * **Alternative 1 (current choice):** One row per student, with a column for each week.
+    * Pros: Matches how a coordinator reads a gradebook. A student's total is one `SUM` over their row.
+    * Cons: The file always has 28 columns, even when only a few weeks have records.
+  * **Alternative 2:** One row per student and week, with attendance and participation columns.
+    * Pros: Never has empty cells, and suits importing into a database.
+    * Cons: Each student is spread over 13 rows, so a per-student total needs a pivot table.
+* **Aspect: Choosing the location**
+  * **Alternative 1 (current choice):** Always write to the `exports` folder in the home folder.
+    * Pros: Keeps TAssist from writing outside its folder (see [Editing the data file](UserGuide.html#editing-the-data-file)).
+      The command needs no path, so there are no path or permission errors to explain in the parser.
+    * Cons: Users cannot pick the folder. They move or copy the file themselves.
+  * **Alternative 2:** Take a path, such as `group export f/~/Desktop/t01.csv`.
+    * Pros: Users can pick where the file goes.
+    * Cons: Writes outside the home folder. Needs rules for relative paths, existing files, and paths that differ
+      between operating systems.
+* **Aspect: Assignment records**
+  * Issue #71 asks for attendance and participation only, so assignments are not exported. An assignment has a
+    name rather than a week, and each group has its own assignments, so assignments would need a variable set of
+    columns, such as `PS1 Submitted` and `PS1 Grade`. These could follow the week columns without changing how
+    the existing columns are read.
+
+`CsvUtilTest` covers quoting, line breaks, formula guards, and CRLF. `GroupRecordsCsvExporterTest` covers the
+layout, the byte order mark, replacing an earlier export without leaving temporary files, and an unwritable folder.
+`GroupExportCommandTest` covers the feedback, a missing active group, and a failed write. `GroupCommandsIntegrationTest`
+runs `group export` through `LogicManager`, reads the file back, and checks that the model and data file are
+unchanged and that storage is never called.
 
 ### Participation commands
 
@@ -1120,20 +1205,28 @@ The following extensions apply to every use case that changes or views records o
 
 **Use case: UC09 - Export a group's records**
 
-**Preconditions:** The active group has at least one student.
-
 **MSS**
 
 1.  TA requests to export the records of the active group.
-2.  TAssist saves the group's students, attendance, participation scores, and assignment records to a CSV file, and shows the location of the file.
-3.  TA sends the file to the course coordinator.
+2.  TAssist saves the group's students with their attendance and participation for every week to a CSV file, and shows the location of the file.
+3.  TA opens the file in a spreadsheet and sends it to the course coordinator.
 
     Use case ends.
 
 **Extensions**
 
+* 1a. No group is active.
+    * 1a1. TAssist shows an error message asking the TA to create or select a group.
+
+      Use case ends.
+
+* 1b. The group has no students.
+    * 1b1. TAssist saves a file with only the column headings.
+
+      Use case resumes at step 3.
+
 * 2a. TAssist is unable to write the file.
-    * 2a1. TAssist shows an error message stating that the export failed. No data is changed.
+    * 2a1. TAssist shows an error message naming the file and suggesting how to fix the problem. No data is changed, and any earlier export of the group is kept.
 
       Use case ends.
 
@@ -1430,6 +1523,25 @@ label.
    1. Enter `group add g/T03 g/T04`, `group use n/T01`, and `group list g/T01`.
       Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
    1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
+
+1. Exporting a group's records
+
+   1. Prerequisites: T01 is active and has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`). Enter
+      `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`.
+   1. Enter `group export`. Expected: `Exported attendance and participation of 2 students in T01 to:` followed by
+      the absolute path of `exports/T01-records.csv` in the folder that contains the JAR.
+   1. Open the file in a spreadsheet. Expected: 3 rows and 28 columns. Alice has `Present` under
+      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty.
+   1. Enter `student add n/Chloé Ng id/A0345678Z`, then `group export` again. Expected: The file is replaced, Chloé
+      appears with the accent intact, and the exports folder has no other files.
+   1. Enter `group export g/T01`. Expected: `This command takes no parameters. Remove the extra input.`
+   1. Enter `group add g/T02`, then `group export`. Expected: `0 students in T02`, and `T02-records.csv` contains only
+      the header row.
+   1. Close the app and delete `exports`. Create a file named `exports` instead, then reopen the app and enter
+      `group export`. Expected: `Could not export T02 to ...` naming the file. Enter `group list`. Expected: groups
+      are unchanged. Delete the `exports` file afterwards.
+   1. After each `group export`, check the footer. Expected: `Local data file` rather than `Changes saved.`, as
+      exporting never saves. The modification time of `data/tassist.json` is unchanged.
 
 ### Recording and viewing attendance
 

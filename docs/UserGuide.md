@@ -212,7 +212,7 @@ Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or crea
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `list`, and `use`.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `export`, `list`, and `use`.
 
 ### Adding a student: `student add`
 
@@ -439,6 +439,50 @@ Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, a
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
+### Exporting a group's records: `group export`
+
+Saves the attendance and participation of every student in the active group to a CSV file, which opens in Excel,
+Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
+Exporting only reads your records: it never changes them, the active group, or the saved data file.
+
+Format: `group export`
+
+* The file is saved in the `exports` folder next to the TAssist JAR, which is created if needed, and is named after
+  the group, such as `exports/T01-records.csv`. Spaces in a group name become underscores, so the file for `Lab 1`
+  is `Lab_1-records.csv`.
+* Exporting the same group again replaces its earlier file, so the file always matches the latest records.
+  Close the file in your spreadsheet before exporting again.
+* The command takes no parameters. Select the group to export with `group use` first.
+
+Example: with T01 active, `group export` shows the full path of the file, for example:
+
+```text
+Exported attendance and participation of 1 student in T01 to:
+/Users/alex/TAssist/exports/T01-records.csv
+```
+
+The file has a header row, then one row per student in roster order:
+
+* `Name` and `Student ID`.
+* `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
+* `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
+
+For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, her row reads
+(with the empty weeks shortened):
+
+Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | …
+-----|------------|-------------------|-------------------|-------------------|---|----------------------|---
+Alice Tan | A0123456X | | | Absent | … | 4 | …
+
+An empty group exports only the header row. Assignment submissions and grades are not exported; list them with
+`assignment list a/ASSIGNMENT_NAME`.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
+Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -452,7 +496,7 @@ participation scores, and the active group after a successful command changes da
 only after the save succeeds.
 Closing and reopening TAssist restores the last successfully saved state.
 
-Help, listing, navigation, and exit commands do not save data. Commands that leave the data unchanged, such as
+Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
 selecting the already active group or entering the same attendance mark again, do not save either.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
@@ -463,8 +507,8 @@ Resolve the disk or permission problem and enter the command again. Failed comma
 ### Editing the data file
 
 TAssist data is saved as `data/tassist.json` in the home folder, which is the folder containing the JAR file.
-Preferences (`preferences.json`) and the log file are saved in that same folder. TAssist does not read or write
-files outside it, including when the JAR is started from another directory.
+Preferences (`preferences.json`), the log file, and the `exports` folder for `group export` are in that same folder.
+TAssist does not read or write files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
 If the file is missing, TAssist shows `No saved data found. Starting with an empty database.`
 It creates the file after the first successful command that changes data.
@@ -552,6 +596,7 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
+**Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`

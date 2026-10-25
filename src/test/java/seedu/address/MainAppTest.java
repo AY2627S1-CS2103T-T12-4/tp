@@ -54,7 +54,7 @@ public class MainAppTest {
         assertEquals("Switched active group to T01.", app.logic.execute("group use g/t01").getFeedbackToUser());
         assertEquals("1. T01\n2. T02\nActive group: T01", app.logic.execute("group list").getFeedbackToUser());
         assertEquals(CommandResult.forHelp("Showing group commands.", "group"), app.logic.execute("help group"));
-        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME"),
+        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export"),
                 HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "group").stream()
                         .map(HelpEntry::getCommandFormat).toList());
     }
