@@ -41,6 +41,8 @@ public class JsonAdaptedAssignmentRecordTest {
                 new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 87).toModelType());
         assertEquals(AssignmentRecord.notSubmitted(),
                 new JsonAdaptedAssignmentRecord("PS1", "A0123456X", false, null).toModelType());
+        assertEquals(new AssignmentRecord(true, Optional.of(87)),
+                new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 87.0).toModelType());
     }
 
     @Test
@@ -50,6 +52,8 @@ public class JsonAdaptedAssignmentRecordTest {
                         new JsonAdaptedAssignmentRecord("PS1", "A0123456X", null, null).toModelType());
         assertThrows(IllegalValueException.class, AssignmentRecord.MESSAGE_INVALID_GRADE, () ->
                 new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 101).toModelType());
+        assertThrows(IllegalValueException.class, AssignmentRecord.MESSAGE_INVALID_GRADE, () ->
+                new JsonAdaptedAssignmentRecord("PS1", "A0123456X", true, 87.5).toModelType());
         assertThrows(IllegalValueException.class, "An unsubmitted assignment cannot have a grade.", () ->
                 new JsonAdaptedAssignmentRecord("PS1", "A0123456X", false, 87).toModelType());
     }

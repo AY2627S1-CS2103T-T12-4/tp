@@ -462,8 +462,8 @@ the shared weekly listing mechanism. Each row formats its value or `Not recorded
 
 Both commands use the standard feedback box and keep the current screen selected. The Participation table remains
 a preview and points users to the commands. Existing JSON storage already persists participation records, so the
-feature adds no new file format. Loading rejects a participation score outside 0–5 the same way it rejects a week
-outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
+feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
+it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
 restart persistence, and rejected commands preserving existing records and the file. Command and parser unit tests
 cover boundaries, corrections, group isolation, missing values, and malformed input. `WorkspaceSmokeTest` checks
 participation feedback and failed-input retention through the JavaFX command box.
@@ -701,7 +701,7 @@ temporary-file cleanup. `SaveFailureIntegrationTest` checks rollback across all 
 and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data and protection through shutdown.
 `WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, an invalid grade or a grade for an unsubmitted assignment, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, a fractional or out-of-range grade or a grade for an unsubmitted assignment, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
 
 Each Jackson-friendly class mirrors one model class and only converts its own fields. Assignments keep their names in
 the `assignments` list on `JsonAdaptedGroup`; explicit student records are serialized as the optional

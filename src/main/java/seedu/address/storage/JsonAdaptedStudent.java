@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -21,11 +22,13 @@ import seedu.address.model.student.WeeklyRecord;
 class JsonAdaptedStudent {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Student's %s field is missing.";
+    public static final String MESSAGE_INVALID_PARTICIPATION_SCORE =
+            "Participation score must be a whole number from 0 to 5.";
 
     private final String name;
     private final String studentId;
     private final Map<Integer, String> attendance;
-    private final Map<Integer, Integer> participation;
+    private final Map<Integer, Number> participation;
 
     /**
      * Constructs a {@code JsonAdaptedStudent} with the given student details.
@@ -33,7 +36,7 @@ class JsonAdaptedStudent {
     @JsonCreator
     public JsonAdaptedStudent(@JsonProperty("name") String name, @JsonProperty("studentId") String studentId,
             @JsonProperty("attendance") Map<Integer, String> attendance,
-            @JsonProperty("participation") Map<Integer, Integer> participation) {
+            @JsonProperty("participation") Map<Integer, Number> participation) {
         this.name = name;
         this.studentId = studentId;
         this.attendance = attendance == null ? Map.of() : new TreeMap<>(attendance);
@@ -95,16 +98,20 @@ class JsonAdaptedStudent {
     }
 
     /**
-     * Returns participation records, rejecting a score outside 0 to 5.
-     * Invalid weeks are still rejected by {@code WeeklyRecord}.
+     * Returns participation records, rejecting a score that is fractional or outside 0 to 5.
+     * Invalid weeks and missing scores are still rejected by {@code WeeklyRecord}.
      */
     private WeeklyRecord<Integer> toParticipationRecords() {
-        WeeklyRecord<Integer> records = new WeeklyRecord<>(participation);
-        for (int score : records.getRecords().values()) {
-            checkArgument(score >= 0 && score <= 5,
-                    "Participation score must be a whole number from 0 to 5.");
-        }
-        return records;
+        Map<Integer, Integer> scores = new TreeMap<>();
+        participation.forEach((week, score) ->
+                scores.put(week, score == null ? null : toParticipationScore(score)));
+        return new WeeklyRecord<>(scores);
+    }
+
+    private static int toParticipationScore(Number score) {
+        Optional<Integer> wholeScore = JsonWholeNumber.toInt(score).filter(value -> value >= 0 && value <= 5);
+        checkArgument(wholeScore.isPresent(), MESSAGE_INVALID_PARTICIPATION_SCORE);
+        return wholeScore.get();
     }
 
 }

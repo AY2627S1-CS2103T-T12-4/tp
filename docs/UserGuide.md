@@ -546,13 +546,14 @@ The file looks like this:
 * A group's optional `assignmentRecords` list stores explicit records by assignment and student. Each entry needs an
   existing `assignmentName`, an existing `studentId`, and a boolean `submitted`; its optional `grade` must be a whole
   number from 0 to 100 and requires `submitted` to be `true`. A fractional grade such as `87.5` makes the file
-  invalid. Duplicate assignment/student pairs and references to missing assignments or students make the file
-  invalid. Older files can omit this list.
+  invalid, while `87.0` is read as `87`. Duplicate assignment/student pairs and references to missing assignments
+  or students make the file invalid. Older files can omit this list.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
   Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A fractional score such as `4.5`, or a week or
-  score outside that range, makes the file invalid. An omitted map means no scores have been recorded.
+  score outside that range, makes the file invalid. A score such as `4.0` is read as `4`. An omitted map means no
+  scores have been recorded.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
 * `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
   Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance

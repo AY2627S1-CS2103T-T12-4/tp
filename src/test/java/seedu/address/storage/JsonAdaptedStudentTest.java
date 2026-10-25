@@ -100,6 +100,19 @@ public class JsonAdaptedStudentTest {
     }
 
     @Test
+    public void toModelType_fractionalParticipationScore_throwsIllegalValueException() {
+        JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID, Map.of(), Map.of(3, 4.5));
+        assertThrows(IllegalValueException.class, JsonAdaptedStudent.MESSAGE_INVALID_PARTICIPATION_SCORE,
+                adapted::toModelType);
+    }
+
+    @Test
+    public void toModelType_participationScoreWithZeroFraction_returnsWholeScore() throws Exception {
+        JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID, Map.of(), Map.of(3, 5.0));
+        assertEquals(BEN.withParticipationRecord(3, 5), adapted.toModelType());
+    }
+
+    @Test
     public void toModelType_unnormalizedDetails_returnsNormalizedStudent() throws Exception {
         JsonAdaptedStudent student = new JsonAdaptedStudent("  Ben   Lim ", " a0234567y ");
         assertEquals(BEN, student.toModelType());
