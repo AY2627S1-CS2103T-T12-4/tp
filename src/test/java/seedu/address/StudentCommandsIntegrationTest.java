@@ -15,11 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.GroupExportCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
+import seedu.address.model.student.Student;
+import seedu.address.storage.GroupRecordsCsvExporter;
 
 public class StudentCommandsIntegrationTest {
     @TempDir
@@ -69,7 +72,8 @@ public class StudentCommandsIntegrationTest {
     public void execute_noActiveGroup_preservesModelAndSavedFile() throws Exception {
         app.model.setTAssist(new TAssist());
         app.storage.saveTAssist(app.model.getTAssist());
-        for (String command : List.of("student add n/Alice id/A1", "student list", "student delete id/A1")) {
+        for (String command : List.of("student add n/Alice id/A1", "student list", "student find n/Alice",
+                "student sort by/name", "student delete id/A1")) {
             assertRejected(command, CommandException.class);
         }
     }
@@ -125,6 +129,46 @@ public class StudentCommandsIntegrationTest {
         restart();
         assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
         assertEquals(saved, Files.readString(dataFile));
+    }
+
+    @Test
+    public void execute_searchAndSort_errorsPreserveDisplayAndOtherFeaturesUseFullRoster() throws Exception {
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student find n/alice");
+        feedback("student sort by/id");
+        List<Student> displayed = List.copyOf(app.logic.getDisplayedStudentList());
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+        for (String command : List.of("student find", "student find n/", "student find id/",
+                "student find n/Alice n/Ben", "student find n/Alice w/1", "student sort by/grade",
+                "student sort by/name by/id", "student sort")) {
+            assertThrows(ParseException.class, () -> app.logic.execute(command));
+            assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
+        }
+        assertThrows(CommandException.class, () -> app.logic.execute("student delete id/C3"));
+        assertEquals(displayed, app.logic.getDisplayedStudentList());
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("attendance mark id/B2 w/1 s/present");
+        feedback("participation set id/B2 w/1 s/5");
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/B2 s/yes");
+        feedback("assignment grade a/PS1 id/B2 m/87");
+        for (String command : List.of("attendance list w/1", "participation list w/1", "assignment list a/PS1")) {
+            String rows = feedback(command);
+            assertTrue(rows.indexOf("Ben Lim | B2") < rows.indexOf("Alice Tan | A1"), command);
+            assertTrue(rows.contains("Ben Lim | B2"), command);
+        }
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
+        new GroupExportCommand(exporter).execute(app.model);
+        Path exportFile = exporter.getExportFile(app.model.getActiveGroup().orElseThrow().getName());
+        List<String> rows = Files.readAllLines(exportFile);
+        assertEquals(3, rows.size());
+        assertTrue(rows.get(1).startsWith("Ben Lim,B2,"));
+        assertTrue(rows.get(2).startsWith("Alice Tan,A1,"));
+        assertEquals(displayed, app.logic.getDisplayedStudentList());
     }
 
     private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
