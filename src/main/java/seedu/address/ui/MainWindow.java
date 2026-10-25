@@ -112,11 +112,15 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
+        commandBox = new CommandBox(this::executeCommand);
+        commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
-                dataFilePath, logic.getHelpEntries());
+                dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
+                        "attendance mark id/" + student.getStudentId() + " w/"));
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
@@ -130,8 +134,6 @@ public class MainWindow extends UiPart<Stage> {
             statusBarFooter.setStatus(dataLoadStatus.getMessage(), dataLoadStatus.isFailure());
         }
 
-        commandBox = new CommandBox(this::executeCommand);
-        commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         Platform.runLater(commandBox::focus);
     }
 

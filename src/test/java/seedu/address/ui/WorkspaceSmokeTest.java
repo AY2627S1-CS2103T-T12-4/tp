@@ -37,6 +37,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -44,6 +45,8 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -661,6 +664,58 @@ public class WorkspaceSmokeTest {
             assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             assertEquals(template.length(), field.getCaretPosition());
         });
+    }
+
+    @Test
+    public void studentClick_preparesTemplateAndRequiresEnter_preservesDataUntilCompleted() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                String saved = Files.readString(data);
+                TAssist previousData = new TAssist(model.getTAssist());
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                String previousFeedback = feedback.getText();
+                input.setText("unfinished draft");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                String template = "attendance mark id/A0123456X w/";
+                assertEquals(template, input.getText());
+                assertEquals(template.length(), input.getCaretPosition());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                assertEquals(previousFeedback, feedback.getText());
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+
+                input.fireEvent(new ActionEvent());
+                assertEquals(template, input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+                input.appendText("1 s/present");
+                input.fireEvent(new ActionEvent());
+                assertTrue(input.getText().isEmpty());
+                assertEquals("PRESENT", model.getActiveGroupStudentList().getFirst()
+                        .getAttendanceRecord(1).orElseThrow());
+                assertFalse(saved.equals(Files.readString(data)));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    private TableRow<?> tableRow(TableView<?> table, int index) {
+        table.applyCss();
+        table.layout();
+        return table.lookupAll(".table-row-cell").stream()
+                .filter(node -> node instanceof TableRow<?>)
+                .map(node -> (TableRow<?>) node)
+                .filter(row -> row.getIndex() == index)
+                .findFirst().orElseThrow();
+    }
+
+    private void clickRow(TableRow<?> row, MouseButton button) {
+        row.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, button, 1,
+                false, false, false, false, false, false, false, false, false, true, null));
     }
 
     private void verifyFailure() throws Exception {

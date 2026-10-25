@@ -93,6 +93,19 @@ edits to recalled commands are kept while you move through the history, and the 
 you entered it. Up and Down skip any command that matches the text already in the box, so after a command fails, the
 first Up brings back the command before it. The history starts empty each time you open TAssist.
 
+### Preparing an attendance command by clicking a student
+
+On the Students screen, click a student's row with the primary mouse button to fill the command box with their ID:
+`attendance mark id/A0123456X w/`. The click replaces any unfinished command, returns focus to the command box,
+and puts the cursor after `w/`. It does not execute a command or save data.
+
+Complete the week and status, for example `attendance mark id/A0123456X w/3 s/present`, then press **Enter**.
+Pressing Enter before completing the template reports a validation error and leaves the text editable.
+You can type the same command yourself; clicking is only a shortcut for entering the ID.
+Clicking the same row again prepares a fresh template, even if that row is already selected.
+Empty table space and other mouse buttons leave the command box unchanged.
+Selecting rows with the keyboard does not replace your draft.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">

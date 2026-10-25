@@ -101,6 +101,11 @@ group's name, and says "No active group" when none is active. When there are no 
 table, and says whether no group is active or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
+`StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
+is passed through a callback in `WorkspacePanel` to `MainWindow`, which fills an attendance template using its ID.
+This callback calls `CommandBox.fillTemplate` rather than Logic; only Enter follows the execution and save path.
+Keyboard or programmatic selection does not prepare a template, and empty rows and other mouse buttons are ignored.
+
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` saves only when the persisted model changes, so
 navigation and other read-only commands do not write data. `CommandResult.hasSavedChanges()` tells the UI whether
