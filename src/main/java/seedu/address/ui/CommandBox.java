@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -44,6 +46,17 @@ public class CommandBox extends UiPart<Region> {
      */
     public void focus() {
         commandTextField.requestFocus();
+    }
+
+    /**
+     * Replaces the current draft with {@code template}, ready for editing without executing or recording it.
+     */
+    public void fillTemplate(String template) {
+        requireNonNull(template);
+        commandHistory.startNewDraft();
+        focus();
+        showRecalledCommand(template);
+        setStyleToDefault();
     }
 
     /**

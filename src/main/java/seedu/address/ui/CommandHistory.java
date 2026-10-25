@@ -26,6 +26,14 @@ class CommandHistory {
     private int position;
 
     /**
+     * Starts a new draft without recording a command, discarding edits to the previous draft and recalled entries.
+     */
+    void startNewDraft() {
+        position = commands.size();
+        editedTexts.clear();
+    }
+
+    /**
      * Adds {@code command} as the newest entry and stops recalling, so the next Up recalls this command.
      * Edits to recalled commands are discarded, and the stored commands stay as they were entered.
      */

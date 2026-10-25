@@ -125,6 +125,11 @@ newest entry, so without this the first Up after a failure would appear to do no
 memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
 that it can be unit tested.
 
+`CommandBox.fillTemplate` replaces the current draft without executing it or adding it to history.
+It starts a fresh history position, returns focus to the input, and places the caret at the end.
+A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
+an incomplete template stays editable after its validation error.
+
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
 

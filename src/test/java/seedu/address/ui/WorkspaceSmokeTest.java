@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +29,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -47,6 +50,7 @@ import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -54,6 +58,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
@@ -588,6 +593,73 @@ public class WorkspaceSmokeTest {
             enter(input, "student list");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
                     "Commands that do not open a screen keep the current screen");
+        });
+    }
+
+    @Test
+    public void commandBox_fillTemplate_preparesNewDraftWithoutExecuting() throws Exception {
+        runOnFx(() -> {
+            List<String> executed = new ArrayList<>();
+            CommandBox box = new CommandBox(command -> {
+                executed.add(command);
+                return new CommandResult("Recorded");
+            });
+            Stage templateStage = new Stage();
+            templateStage.setScene(new Scene(box.getRoot()));
+            templateStage.show();
+            try {
+                TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+                String template = "attendance mark id/A1 w/";
+                field.setText("unfinished previous draft");
+                field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+                box.fillTemplate(template);
+                assertEquals(template, field.getText());
+                assertEquals(template.length(), field.getCaretPosition());
+                assertEquals(field, templateStage.getScene().getFocusOwner());
+                assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertTrue(executed.isEmpty());
+
+                field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+                box.fillTemplate(template);
+                assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertThrows(NullPointerException.class, () -> box.fillTemplate(null));
+                assertEquals(template, field.getText());
+                String completed = template + "1 s/present";
+                enter(field, completed);
+                assertEquals(List.of(completed), executed);
+                assertTrue(field.getText().isEmpty());
+
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
+                        false, false, false, false));
+                box.fillTemplate(template);
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
+                        false, false, false, false));
+                assertEquals(completed, field.getText());
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
+                        false, false, false, false));
+                assertEquals(template, field.getText());
+                assertEquals(List.of(completed), executed);
+            } finally {
+                templateStage.close();
+            }
+        });
+    }
+
+    @Test
+    public void fillTemplate_afterFailedEnter_keepsInputEditable() throws Exception {
+        runOnFx(() -> {
+            CommandBox box = new CommandBox(command -> {
+                throw new ParseException("Complete the attendance template first.");
+            });
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            String template = "attendance mark id/A1 w/";
+            box.fillTemplate(template);
+            field.fireEvent(new ActionEvent());
+            assertEquals(template, field.getText());
+            assertTrue(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            box.fillTemplate(template);
+            assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(template.length(), field.getCaretPosition());
         });
     }
 

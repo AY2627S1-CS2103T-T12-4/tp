@@ -103,4 +103,24 @@ public class CommandHistoryTest {
         history.add(FIRST_COMMAND);
         history.add(SECOND_COMMAND);
     }
+
+    @Test
+    public void startNewDraft_whileRecalling_keepsCommandsAndReplacesDraft() {
+        addBothCommands();
+        history.previous("old draft");
+        history.previous("edited recalled command");
+        history.startNewDraft();
+        String template = "attendance mark id/A1 w/";
+        assertEquals(Optional.of(SECOND_COMMAND), history.previous(template));
+        assertEquals(Optional.of(FIRST_COMMAND), history.previous(SECOND_COMMAND));
+        assertEquals(Optional.of(SECOND_COMMAND), history.next(FIRST_COMMAND));
+        assertEquals(Optional.of(template), history.next(SECOND_COMMAND));
+    }
+
+    @Test
+    public void startNewDraft_emptyHistory_doesNotCreateHistoryEntry() {
+        history.startNewDraft();
+        assertEquals(Optional.empty(), history.previous("attendance mark id/A1 w/"));
+        assertEquals(Optional.empty(), history.next("attendance mark id/A1 w/"));
+    }
 }
