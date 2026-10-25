@@ -22,7 +22,7 @@ public class StudentDeleteCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Removed %s from %s.";
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
     public static final String MESSAGE_CONFIRMATION =
-            "Remove %s and all their attendance, participation, submission, and grade records from %s?";
+            "Remove %s (%s) and all their attendance, participation, submission, and grade records from %s?";
 
     private static final Logger logger = LogsCenter.getLogger(StudentDeleteCommand.class);
     private final StudentId studentId;
@@ -53,7 +53,8 @@ public class StudentDeleteCommand extends Command {
             return Optional.empty();
         }
         return model.getActiveGroup().flatMap(group -> group.findStudent(studentId)
-                .map(student -> String.format(MESSAGE_CONFIRMATION, student.getName(), group.getName())));
+                .map(student -> String.format(MESSAGE_CONFIRMATION, student.getName(), student.getStudentId(),
+                        group.getName())));
     }
 
     @Override

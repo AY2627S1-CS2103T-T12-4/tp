@@ -243,12 +243,13 @@ Long rosters can be scrolled in the feedback box or viewed on the Students scree
 ### Deleting a student: `student delete`
 
 Asks you to confirm before removing a student and all their records from the active group.
-The prompt names the student and group. Cancel leaves the data unchanged. The same student in another group is
-unaffected, and remaining students are renumbered without changing their order.
+The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
+by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
+group is unaffected, and remaining students are renumbered without changing their order.
 
 Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` asks whether to remove Ben Lim and all their records from T01.
+Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
 Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
 IDs ignore case, so `student delete id/a0234567y` targets the same student.
 

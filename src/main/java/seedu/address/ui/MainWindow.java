@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCode;
@@ -153,7 +154,24 @@ public class MainWindow extends UiPart<Stage> {
         ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getButtonTypes().setAll(continueButton, cancelButton);
+        Button cancel = (Button) dialog.getDialogPane().lookupButton(cancelButton);
+        assert cancel != null : "The confirmation dialog must include a Cancel button";
+        // Enter activates the default button, so Cancel must be that button.
+        selectCancelByDefault(dialog, continueButton, cancel);
+        dialog.setOnShown(event -> Platform.runLater(() ->
+                selectCancelByDefault(dialog, continueButton, cancel)));
         return dialog.showAndWait().filter(continueButton::equals).isPresent();
+    }
+
+    /**
+     * Makes Cancel the default and focused button so Enter does not confirm deletion.
+     */
+    private static void selectCancelByDefault(Alert dialog, ButtonType continueButton, Button cancel) {
+        if (dialog.getDialogPane().lookupButton(continueButton) instanceof Button continueAction) {
+            continueAction.setDefaultButton(false);
+        }
+        cancel.setDefaultButton(true);
+        cancel.requestFocus();
     }
 
     /**

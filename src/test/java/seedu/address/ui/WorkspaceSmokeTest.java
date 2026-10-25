@@ -39,6 +39,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -325,8 +326,8 @@ public class WorkspaceSmokeTest {
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(savedBeforeCancelledDelete, Files.readString(data));
                 assertEquals(2, studentTable().getItems().size());
-                assertEquals("Remove Alice Tan and all their attendance, participation, submission, and grade "
-                        + "records from T03?", confirmationPrompt);
+                assertEquals("Remove Alice Tan (A1) and all their attendance, participation, submission, "
+                        + "and grade records from T03?", confirmationPrompt);
 
                 isConfirmationAccepted = true;
                 confirmationPrompt = null;
@@ -334,8 +335,8 @@ public class WorkspaceSmokeTest {
                 assertEquals("Removed Alice Tan from T03.", feedback.getText());
                 assertEquals(1, studentTable().getItems().size());
                 assertEquals("1", studentTable().getColumns().getFirst().getCellObservableValue(0).getValue());
-                assertEquals("Remove Alice Tan and all their attendance, participation, submission, and grade "
-                        + "records from T03?", confirmationPrompt);
+                assertEquals("Remove Alice Tan (A1) and all their attendance, participation, submission, "
+                        + "and grade records from T03?", confirmationPrompt);
                 confirmationPrompt = null;
                 enter(input, "student delete id/A2 f/yes");
                 assertEquals("Removed Ben Lim from T03.", feedback.getText());
@@ -364,6 +365,13 @@ public class WorkspaceSmokeTest {
                 assertEquals(1, studentTable().getItems().size());
 
                 TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
+                cancelConfirmationWithEnter("Remove Ben Lim (A2) and all their attendance, participation, "
+                        + "submission, and grade records from T03?");
+                enter(input, "student delete id/A2");
+                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(beforeCancelledDelete, model.getTAssist());
+                assertEquals(1, studentTable().getItems().size());
+
                 respondToConfirmation("Cancel");
                 enter(input, "student delete id/A2");
                 assertEquals("Command cancelled. No changes were made.", feedback.getText());
@@ -635,20 +643,45 @@ public class WorkspaceSmokeTest {
     }
 
     private void respondToConfirmation(String buttonText) {
-        Platform.runLater(() -> {
-            Stage dialogStage = Window.getWindows().stream()
-                    .filter(window -> window instanceof Stage)
-                    .map(window -> (Stage) window)
-                    .filter(Stage::isShowing)
-                    .filter(window -> "Confirm destructive action".equals(window.getTitle()))
-                    .findFirst().orElseThrow();
+        Platform.runLater(() -> confirmationButton(buttonText).fire());
+    }
+
+    /**
+     * Presses Enter on the real confirmation dialog after it has selected Cancel.
+     */
+    private void cancelConfirmationWithEnter(String expectedPrompt) {
+        Platform.runLater(() -> Platform.runLater(() -> {
+            Stage dialogStage = confirmationDialog();
             DialogPane pane = (DialogPane) dialogStage.getScene().getRoot();
-            ButtonType choice = pane.getButtonTypes().stream()
-                    .filter(buttonType -> buttonText.equals(buttonType.getText()))
-                    .findFirst().orElseThrow();
-            Button button = (Button) pane.lookupButton(choice);
-            button.fire();
-        });
+            Button cancel = confirmationButton("Cancel");
+            Button proceed = confirmationButton("Continue");
+            assertEquals(expectedPrompt, pane.getContentText());
+            assertTrue(cancel.isDefaultButton());
+            assertTrue(cancel.isCancelButton());
+            assertFalse(proceed.isDefaultButton());
+            assertEquals(cancel, dialogStage.getScene().getFocusOwner());
+            Runnable enterAction = dialogStage.getScene().getAccelerators()
+                    .get(new KeyCodeCombination(KeyCode.ENTER));
+            assertNotNull(enterAction);
+            enterAction.run();
+        }));
+    }
+
+    private Button confirmationButton(String buttonText) {
+        DialogPane pane = (DialogPane) confirmationDialog().getScene().getRoot();
+        ButtonType choice = pane.getButtonTypes().stream()
+                .filter(buttonType -> buttonText.equals(buttonType.getText()))
+                .findFirst().orElseThrow();
+        return (Button) pane.lookupButton(choice);
+    }
+
+    private Stage confirmationDialog() {
+        return Window.getWindows().stream()
+                .filter(window -> window instanceof Stage)
+                .map(window -> (Stage) window)
+                .filter(Stage::isShowing)
+                .filter(window -> "Confirm destructive action".equals(window.getTitle()))
+                .findFirst().orElseThrow();
     }
 
     private void runOnFx(CheckedAction action) throws Exception {

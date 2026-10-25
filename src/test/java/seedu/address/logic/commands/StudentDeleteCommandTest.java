@@ -53,8 +53,8 @@ public class StudentDeleteCommandTest {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(NAME_T01);
 
-        assertEquals(Optional.of("Remove Alice Tan and all their attendance, participation, submission, and grade "
-                        + "records from T01?"),
+        assertEquals(Optional.of("Remove Alice Tan (A0123456X) and all their attendance, participation, "
+                        + "submission, and grade records from T01?"),
                 new StudentDeleteCommand(ALICE.getStudentId()).getConfirmationPrompt(model));
         assertEquals(Optional.empty(),
                 new StudentDeleteCommand(ALICE.getStudentId(), true).getConfirmationPrompt(model));

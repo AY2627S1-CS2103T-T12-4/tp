@@ -379,8 +379,9 @@ student also removes their owned weekly records. Neither command changes another
 same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
 
 Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
-affected data without changing it; cancelling skips execution and persistence. Student deletion names the student and
-group in the prompt, and `f/yes` bypasses it for experienced users. Mutations pass through the existing model and
+affected data without changing it; cancelling skips execution and persistence. Student deletion names the student,
+their student ID, and the group in the prompt, because names are not unique. Cancel is the dialog's default button,
+so Enter cancels, and `f/yes` bypasses the prompt for experienced users. Mutations pass through the existing model and
 observable roster, so the Students screen updates without navigating away from the current screen. Successful
 commands use the existing JSON persistence in `LogicManager`. Parser and command tests cover validation,
 normalization, confirmation details, feedback, uniqueness, group isolation, and empty states.
@@ -878,7 +879,8 @@ The following extensions apply to every use case that changes or views records o
 1.  TA requests to list the students in the active group.
 2.  TAssist shows the name and student ID of every student in the group.
 3.  TA requests to delete a specific student by student ID.
-4.  TAssist shows the student and their records that will be removed, then asks for confirmation.
+4.  TAssist shows the student, their student ID, and their records that will be removed, then asks for confirmation.
+    Cancel is selected by default.
 5.  TA confirms the deletion.
 6.  TAssist removes the student and their attendance, participation and assignment records from the group, and shows a
     confirmation.
@@ -1263,8 +1265,9 @@ testers are expected to do more *exploratory* testing.
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
    the roster and saved file.
 5. Create T02, add Alice with ID A0123456X there, then switch back using `group use g/T01`.
-   Enter `student delete id/a0123456x`. Expect a prompt naming Alice and T01 and describing the records that will be
-   removed. Cancel it; Alice and the saved data remain unchanged. Enter the command again and confirm. Expect
+   Enter `student delete id/a0123456x`. Expect a prompt naming Alice, student ID A0123456X, and T01, and describing
+   the records that will be removed. Press Enter to cancel; Alice and the saved data remain unchanged. Enter the
+   command again and choose Continue. Expect
    `Removed Alice Tan from T01.` and A2 becomes row 1.
 6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
    again; expect an unknown-ID error.
