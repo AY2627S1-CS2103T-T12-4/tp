@@ -86,7 +86,7 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null", "{\"activeGroup\":\"unknown\"}")) {
+        for (String invalidData : List.of("{", "null")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();

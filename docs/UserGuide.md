@@ -537,8 +537,8 @@ The file looks like this:
 }
 ```
 
-* `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
-  the groups, ignoring case.
+* `activeGroup` is the name of the active group, or `null` if no group is active. It should match the name of one of
+  the groups, ignoring case. If it names no group, TAssist still loads every group and starts with no active group.
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
 * A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
   the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,

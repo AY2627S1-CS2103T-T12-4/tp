@@ -70,15 +70,11 @@ public class JsonSerializableTAssistTest {
     }
 
     @Test
-    public void toModelType_unknownActiveGroup_loadsGroupsWithNoActiveGroup() throws Exception {
-        TAssist expected = new TAssistBuilder(TypicalGroups.getTypicalTAssist()).build();
-        assertEquals(expected, new JsonSerializableTAssist("T04", TYPICAL_GROUPS).toModelType());
-    }
-
-    @Test
-    public void toModelType_invalidActiveGroupName_loadsGroupsWithNoActiveGroup() throws Exception {
-        TAssist expected = new TAssistBuilder(TypicalGroups.getTypicalTAssist()).build();
-        assertEquals(expected, new JsonSerializableTAssist("", TYPICAL_GROUPS).toModelType());
+    public void toModelType_unknownOrInvalidActiveGroup_loadsGroupsWithNoActiveGroup() throws Exception {
+        for (String activeGroup : new String[] {"T04", ""}) {
+            assertEquals(TypicalGroups.getTypicalTAssist(),
+                    new JsonSerializableTAssist(activeGroup, TYPICAL_GROUPS).toModelType());
+        }
     }
 
     @Test
