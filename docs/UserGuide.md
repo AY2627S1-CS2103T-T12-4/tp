@@ -86,6 +86,13 @@ The footer shows the local file path, reports successful saves or command failur
 Escape shortcuts.
 Opening a screen with `view` does not save or change data.
 
+Press **Up** in the command box to bring back the commands you entered earlier, newest first, including ones that
+failed. Press **Down** to move back towards the newest command; going past it restores what you were typing. You can
+edit a recalled command before pressing **Enter** to run it, which saves retyping when you mark a whole group. Your
+edits to recalled commands are kept while you move through the history, and the history itself keeps each command as
+you entered it. Up and Down skip any command that matches the text already in the box, so after a command fails, the
+first Up brings back the command before it. The history starts empty each time you open TAssist.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">
@@ -241,13 +248,16 @@ Long rosters can be scrolled in the feedback box or viewed on the Students scree
 
 ### Deleting a student: `student delete`
 
-Removes the student and their weekly records from the active group immediately.
-The same student in another group is unaffected. Remaining students are renumbered without changing their order.
+Asks you to confirm before removing a student and all their records from the active group.
+The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
+by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
+group is unaffected, and remaining students are renumbered without changing their order.
 
-Format: `student delete id/STUDENT_ID`
+Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` shows `Removed Ben Lim from T01.` IDs ignore case, so
-`student delete id/a0234567y` does the same.
+Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
+Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
+IDs ignore case, so `student delete id/a0234567y` targets the same student.
 
 #### Student command errors
 
@@ -398,12 +408,12 @@ Listing does not change any data.
 
 Format: `assignment list a/ASSIGNMENT_NAME`
 
-Example: `assignment list a/PS1`
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+`assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
-Alice Tan | A0123456X | Not submitted | -
-Ben Lim | A0234567Y | Not submitted | -
+Alice Tan | A0123456X | Submitted | 87
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
@@ -568,6 +578,12 @@ location while TAssist is closed, then restart. Repairing the file while the app
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **Double-clicking the JAR file** may not open TAssist, or may open it with the wrong Java version, on some
+   systems. Start it from a terminal with `java -jar tassist.jar`, as in the [Quick start](#quick-start).
+1. **In a folder TAssist cannot write to**, such as a read-only folder, TAssist opens
+   but cannot save. Every command that changes data reports
+   `Unable to save changes. Your previous saved data is unchanged.` with a reminder to check the folder's
+   permissions. Move the JAR to a folder you can write to, such as one in your home folder, and start it again.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -583,7 +599,7 @@ Action | Format, Examples
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
-**Delete student** | `student delete id/STUDENT_ID`<br> e.g., `student delete id/A0234567Y`
+**Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`

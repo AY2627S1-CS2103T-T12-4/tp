@@ -114,6 +114,17 @@ confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `Workspace
 shows that many rows, from one up to six. Longer messages scroll. It shows a check mark beside a message, or a cross on
 a red row when the command failed, and failed commands retain their input.
 
+`CommandBox` keeps a `CommandHistory` of every command entered in the session, including failed ones. An event filter
+on the text field turns Up into `CommandHistory#previous` and Down into `CommandHistory#next`, and consumes both keys.
+Up and Down with Shift, Ctrl, Alt or Meta are left to the text field, so shortcuts such as Shift+Up still select text.
+Both methods take the text in the box and keep it at the current position before moving, so edits to a recalled
+command survive moving away and back, and Down past the newest command restores what the TA was typing. Entering a
+command adds it to the history, stops recalling and discards those edits, so the history keeps each command as entered.
+Both methods skip positions whose text matches the text in the box. A failed command stays in the box and is also the
+newest entry, so without this the first Up after a failure would appear to do nothing. The history is kept in
+memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
+that it can be unit tested.
+
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
 
@@ -471,11 +482,16 @@ Each command obtains the active group at execution time and throws `CommandExcep
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
 same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
 
-Mutations pass through the existing model and observable roster, so the Students screen updates without navigating
-away from the current screen. Successful commands use the existing JSON persistence in `LogicManager`.
-Parser and command tests cover validation, normalization, feedback, uniqueness, group isolation, and empty states.
+Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
+affected data without changing it; cancelling skips execution and persistence. Student deletion names the student,
+their student ID, and the group in the prompt, because names are not unique. Cancel is the dialog's default button,
+so Enter cancels, and `f/yes` bypasses the prompt for experienced users. Mutations pass through the existing model and
+observable roster, so the Students screen updates without navigating away from the current screen. Successful
+commands use the existing JSON persistence in `LogicManager`. Parser and command tests cover validation,
+normalization, confirmation details, feedback, uniqueness, group isolation, and empty states.
 `StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
-across restarts, and rejected commands preserving both the model and the saved file.
+across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
+that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
 
 ### Assignment commands
 
@@ -991,11 +1007,25 @@ The following extensions apply to every use case that changes or views records o
 1.  TA requests to list the students in the active group.
 2.  TAssist shows the name and student ID of every student in the group.
 3.  TA requests to delete a specific student by student ID.
-4.  TAssist removes the student and the student's attendance, participation and assignment records from the group, and shows a confirmation.
+4.  TAssist shows the student, their student ID, and their records that will be removed, then asks for confirmation.
+    Cancel is selected by default.
+5.  TA confirms the deletion.
+6.  TAssist removes the student and their attendance, participation and assignment records from the group, and shows a
+    confirmation.
 
     Use case ends.
 
 **Extensions**
+
+* 4a. TA cancels the prompt or closes it.
+    * 4a1. TAssist leaves the student and all records unchanged.
+
+      Use case ends.
+
+* 4b. TA includes `f/yes` in the delete command.
+    * 4b1. TAssist skips the prompt and removes the student and all their records.
+
+      Use case ends.
 
 * 2a. The group has no students.
 
@@ -1269,19 +1299,97 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Check that `java -version` reports Java 25. Download the JAR file and copy it into an empty folder that you can
+      write to.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with no data. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar "tassist.jar"`. Double-clicking the JAR may not work on every
+      system, so prefer the terminal.<br>
+      Expected: The GUI opens with no data and shows `No saved data found. Starting with an empty database.`
+      `preferences.json` and the log file `tassist.log.0` appear in the folder, but `data/tassist.json` does not.
+
+   1. Start the JAR from another folder, for example `java -jar "path/to/tassist.jar"`.<br>
+      Expected: The files are still read from and written to the folder that contains the JAR.
 
 1. Saving window preferences
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+   1. Resize the window to an optimal size. Move the window to a different location. Enter `exit`.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+   1. Relaunch the app with `java -jar "tassist.jar"`.<br>
+      Expected: The most recent window size and location are retained.
 
-1. _{ more test cases …​ }_
+1. Shutting down
+
+   1. Close the window with its close button instead of `exit`.<br>
+      Expected: The app closes, and the window size and location are saved as with `exit`.
+
+### End-to-end acceptance walkthrough
+
+This walkthrough checks the product as a TA uses it, from a first launch to a restart. Run it on the release JAR,
+in an empty folder, with Java 25, before each release. `AcceptanceWalkthroughTest` automates the same session
+through the real parsers, model and JSON storage, but the steps below also check the GUI and the JAR itself.
+
+1. First launch
+
+   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view attendance` and
+      `group list`.<br>
+      Expected: Help and the Attendance screen open, `group list` says no tutorial groups exist, and
+      `data/tassist.json` is still not created.
+
+1. Recording a tutorial
+
+   1. Enter `group add g/T01`, `group add g/T02` and `group use g/t01`.<br>
+      Expected: The group bar shows T01 and T02 with T01 highlighted, and the footer shows `Changes saved.`
+   1. Enter `student add n/Alice Tan id/A0123456X`, `student add n/Ben Lim id/A0234567Y` and
+      `student add n/Chloe O'Neil-Ng id/a0345678z`.<br>
+      Expected: The Attendance screen stays open. `student add` does not switch screens, so the three
+      students are not listed on it. The feedback confirms that each student was added to T01.
+   1. Enter `attendance mark id/A0123456X w/1 s/present`, `attendance mark id/A0234567Y w/1 s/absent`, and then
+      `attendance mark id/a0123456x w/1 s/ABSENT` to correct Alice's mark.
+   1. Enter `participation set id/A0123456X w/1 s/3` and `participation set id/A0345678Z w/1 s/0`.
+   1. Enter `assignment add a/PS1`, `assignment submit a/PS1 id/A0123456X s/yes`,
+      `assignment grade a/ps1 id/A0123456X m/87` and `assignment submit a/PS1 id/A0234567Y s/yes`.
+   1. Enter `group use g/T02`, `student add n/Alice Tan id/A0123456X`,
+      `attendance mark id/A0123456X w/1 s/present` and `group use g/T01`.<br>
+      Expected: Each command succeeds. The same student ID is allowed in two groups.
+
+1. Restoring the tutorial after a restart
+
+   1. Enter `exit`, then launch the JAR again.<br>
+      Expected: The Students screen is shown, because a launch opens it. T01 is active and lists Alice,
+      Ben and Chloe, with Chloe's ID shown as `A0345678Z`.
+   1. Enter `attendance list w/1`, `participation list w/1` and `assignment list a/PS1`.<br>
+      Expected: Alice is `Absent`, Ben is `Absent` and Chloe is `Not recorded`; Alice has 3, Ben is
+      `Not recorded` and Chloe has 0; Alice is `Submitted | 87`, Ben is `Submitted | -` and Chloe is
+      `Not submitted | -`.
+   1. Enter `group use g/T02` and `attendance list w/1`.<br>
+      Expected: T02's Alice is `Present`. Records of one group never appear in another.
+
+1. Rejecting mistakes
+
+   1. Enter `group use g/T01`. The previous step left T02 active, and PS1 exists only in T01, so switch
+      back before trying the duplicate. Note the contents of `data/tassist.json`. Enter commands with an
+      invalid value (`attendance mark id/A0123456X w/14 s/present`), a missing parameter
+      (`participation set id/A0123456X w/1`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
+      (`assignment add a/ps1`), an unknown student (`attendance mark id/A9 w/1 s/present`) and a very long
+      value (a student name of a few thousand letters).<br>
+      Expected: `group use` reports `Switched active group to T01.` and saves. Each later command fails
+      with feedback that names the problem, stays in the command box for correcting, and leaves the data
+      and the file as they were after that switch.
+
+1. Removing a student
+
+   1. Enter `group use g/T01` and `student delete id/a0234567y`, then restart.<br>
+      Expected: Ben and his attendance and assignment records are gone from T01. T02 still has its Alice.
+
+1. Window sizes
+
+   1. Repeat a few listings at 1920x1080 and at 1280x720, and at 125% and 150% display scaling if your system
+      supports them.<br>
+      Expected: The group bar, the screen tabs, the feedback box and the command box stay visible and usable.
+      Long names are shortened with an ellipsis and shown in full in a tooltip.
+
+If the app and the User Guide disagree, fix whichever is wrong, and report the rest as bugs with the `alpha-bug`
+label.
 
 ### Saving data
 
@@ -1384,8 +1492,12 @@ testers are expected to do more *exploratory* testing.
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
    the roster and saved file.
 5. Create T02, add Alice with ID A0123456X there, then switch back using `group use g/T01`.
-   Enter `student delete id/a0123456x`. Expect `Removed Alice Tan from T01.` and A2 becomes row 1.
-6. Delete A2, then list students. Expect an empty-roster hint. Try deleting A2 again; expect an unknown-ID error.
+   Enter `student delete id/a0123456x`. Expect a prompt naming Alice, student ID A0123456X, and T01, and describing
+   the records that will be removed. Press Enter to cancel; Alice and the saved data remain unchanged. Enter the
+   command again and choose Continue. Expect
+   `Removed Alice Tan from T01.` and A2 becomes row 1.
+6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
+   again; expect an unknown-ID error.
    Close and reopen; T01 stays empty and T02 still contains Alice.
 
 ### Managing tutorial groups
@@ -1480,8 +1592,10 @@ The smoke test covers all seven screens at normal and compact sizes, F1 and Esca
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
-do not open a screen keeping the current screen, a usage message fitting the feedback box, and invalid-input retention. Normal unit tests cover screen
-parsing, result identity, navigation with unavailable storage, and the Students screen's captions and empty states.
+do not open a screen keeping the current screen, a usage message fitting the feedback box, invalid-input retention, and
+recalling and editing earlier commands with Up and Down, including after a recalled command fails. Normal unit tests cover screen
+parsing, result identity, navigation with unavailable storage, the Students screen's captions and empty states, and
+`CommandHistory`.
 It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
 and retaining an invalid attendance command for correction.
 
@@ -1497,6 +1611,8 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
 4. Enter `help group`. Verify that Help opens at the group commands and the feedback box shows one line.
-5. Check F1 and Escape while typing. Resize the window and scroll long content and feedback. Check 1920x1080 at
-   100% and 125%, and 1280x720 at 100% and 150% on the target platforms. The automated compact preview uses
-   853x440 content pixels, allowing for window decorations at 150% scaling.
+5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
+   the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
+   Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at
+   100% and 150% on the target platforms. The automated compact preview uses 853x440 content pixels, allowing for
+   window decorations at 150% scaling.

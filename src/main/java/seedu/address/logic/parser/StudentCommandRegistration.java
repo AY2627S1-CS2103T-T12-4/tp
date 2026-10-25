@@ -33,7 +33,8 @@ public final class StudentCommandRegistration {
                         List.of("student list")));
         registry.register("student", "delete", new StudentDeleteCommandParser(),
                 new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
-                        "Remove a student and their records from the active group. IDs ignore case.",
+                        "Remove a student and their records from the active group after confirmation. "
+                                + "Add f/yes to skip the prompt. IDs ignore case.",
                         List.of("student delete id/A0234567Y")));
     }
 }
