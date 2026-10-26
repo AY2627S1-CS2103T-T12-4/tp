@@ -233,8 +233,8 @@ AssignmentCommandRegistration.registerCommands(registry);
 Logic logic = new LogicManager(model, storage, registry);
 ```
 
-`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `list`,
-and `use` with their parsers and help entries. Future features can register their commands in the same registry.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `list`,
+`rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
@@ -315,12 +315,13 @@ data file unchanged, using a storage implementation that fails if saving is atte
 
 ### Tutorial-group commands
 
-`GroupAddCommandParser`, `GroupListCommandParser`, and `GroupUseCommandParser` construct the commands for
-`group add g/GROUP_NAME`, `group list`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects these
+`GroupAddCommandParser`, `GroupDeleteCommandParser`, `GroupListCommandParser`, `GroupRenameCommandParser`, and
+`GroupUseCommandParser` construct the commands for `group add g/GROUP_NAME`, `group delete g/GROUP_NAME [f/yes]`, `group list`,
+`group rename g/GROUP_NAME n/NEW_NAME`, and `group use g/GROUP_NAME`. `GroupCommandRegistration` connects these
 parsers, and the one for `group export` (see [Exporting a group's records](#exporting-a-groups-records)), with their
 `HelpEntry` objects to `CommandRegistry`, making them available through `help group`.
 
-Creation and switching share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
+Creation, switching, renaming and deletion share `GroupCommandParserUtil`. It uses `TAssistArgumentParser` to reject unknown prefixes,
 duplicates, and unexpected text, then `TAssistParserUtil.parseGroupName` to apply the existing domain rules.
 It declares `g/` optional to the argument parser so absent and blank values can both report
 `Missing group name. Usage: ...` with the relevant command's syntax. The feature still requires a nonblank name.
@@ -337,6 +338,13 @@ case-insensitive equality. Equal names therefore have the same hash code, while 
   an active selection, it shows `Active group: None`.
 * `GroupUseCommand` checks that the group exists before calling `Model.setActiveGroup`. Feedback uses the stored
   capitalization, even if the input uses another case. A missing group throws `CommandException` before mutation.
+* `GroupDeleteCommand` overrides `Command#getConfirmationPrompt`, like `StudentDeleteCommand`, so the UI asks before
+  deleting unless `f/yes` is given (parsed by `GroupDeleteCommandParser`). It then checks that the group exists and
+  calls `Model.removeGroup`, which removes the group with its students and clears the active group if it was the
+  one removed. The feedback states how many students were deleted.
+* `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
+  `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
+  and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
@@ -701,7 +709,7 @@ temporary-file cleanup. `SaveFailureIntegrationTest` checks rollback across all 
 and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data and protection through shutdown.
 `WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, a fractional or out-of-range grade or a grade for an unsubmitted assignment, and an active group that is not one of the groups. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, and a fractional or out-of-range grade or a grade for an unsubmitted assignment. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, an `activeGroup` that matches no group is ignored with a logged warning and no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
 
 Each Jackson-friendly class mirrors one model class and only converts its own fields. Assignments keep their names in
 the `assignments` list on `JsonAdaptedGroup`; explicit student records are serialized as the optional
@@ -1414,7 +1422,7 @@ label.
 
 1. Dealing with an invalid data file
 
-   1. Prerequisites: Close the app. In `data/tassist.json`, change `activeGroup` to a group that is not in the file, or delete a closing brace.
+   1. Prerequisites: Close the app. In `data/tassist.json`, delete a closing brace.
 
    1. Launch the app.<br>
       Expected: The app starts empty and shows
@@ -1522,7 +1530,19 @@ label.
       Expected: Specific duplicate, unknown-group, missing-name, or invalid-name feedback, respectively.
    1. Enter `group add g/T03 g/T04`, `group use n/T01`, and `group list g/T01`.
       Expected: Repeated-prefix, unknown-prefix, and unexpected-parameter errors, respectively.
+   1. Enter `group delete g/T04 f/yes`, `group rename g/T04 n/T05`, `group rename g/T01 n/t02`, `group rename g/T01`,
+      and `group rename n/T05`. Expected: Unknown-group, unknown-group, duplicate-name, missing-new-name, and
+      missing-group-name errors, respectively.
    1. Verify that the active group, group chips, students, and `data/tassist.json` have not changed after each error.
+
+1. Renaming and deleting groups
+
+   1. With groups T01 and T02 and T02 active, enter `group rename g/t02 n/T02-Thu`.
+      Expected: `Renamed tutorial group T02 to T02-Thu.`, and the top bar highlights T02-Thu with its students intact.
+   1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
+      that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
+      removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
+   1. Close and reopen the app. Expected: Only T01 remains, with no active group.
 
 1. Exporting a group's records
 

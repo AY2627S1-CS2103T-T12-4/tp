@@ -5,7 +5,7 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
+You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
 record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
 
 * Table of Contents
@@ -201,18 +201,45 @@ Format: `group use g/GROUP_NAME`
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
 `group use g/t01` does the same.
 
+### Renaming a tutorial group: `group rename`
+
+Changes the name of an existing tutorial group, for example to fix a typo. The group keeps its students, records,
+position in the list, and active status.
+
+Format: `group rename g/GROUP_NAME n/NEW_NAME`
+
+* The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
+* Changing only the capitalization or spacing of a group's own name, such as `T01` to `t01`, is allowed.
+
+Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02-Thu.`
+
+### Deleting a tutorial group: `group delete`
+
+Deletes a tutorial group together with all its students and their records. **This cannot be undone**, so check the
+name with `group list` first. Other groups are unchanged. If the deleted group was active, no group is active
+afterwards; select one with `group use`.
+
+Format: `group delete g/GROUP_NAME [f/yes]`
+
+* TAssist first asks you to confirm. The prompt names the group and how many students will be deleted. Cancel is
+  selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+* Add `f/yes` to skip the prompt.
+
+Example: `group delete g/T02-Thu` asks whether to delete T02-Thu and its students. After you confirm, it shows
+`Deleted tutorial group T02-Thu and its 0 student(s).` To skip the question, enter `group delete g/T02-Thu f/yes`.
+
 #### Tutorial-group command errors
 
 Rejected group commands do not change the groups, the active selection, or the saved data file.
 
 Problem | Feedback and correction
 --------|------------------------
-Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`.
-Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`.
-Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
+Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`. This also applies to `group rename` when `n/` names another group.
+Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`. `group use`, `group rename`, and `group delete` all report it.
+Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
-Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `export`, `list`, and `use`.
+Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
 
 ### Adding a student: `student add`
 
@@ -537,8 +564,8 @@ The file looks like this:
 }
 ```
 
-* `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
-  the groups, ignoring case.
+* `activeGroup` is the name of the active group, or `null` if no group is active. It should match the name of one of
+  the groups, ignoring case. If it names no group, TAssist still loads every group and starts with no active group.
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
 * A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
   the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,
@@ -598,6 +625,8 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
+**Rename group** | `group rename g/GROUP_NAME n/NEW_NAME`<br> e.g., `group rename g/T02 n/T02-Thu`
+**Delete group** | `group delete g/GROUP_NAME [f/yes]`<br> e.g., `group delete g/T02-Thu`
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`

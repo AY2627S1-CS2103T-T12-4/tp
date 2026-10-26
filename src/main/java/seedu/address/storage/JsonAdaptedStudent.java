@@ -97,6 +97,7 @@ class JsonAdaptedStudent {
         return new WeeklyRecord<>(normalizedRecords);
     }
 
+    //@@author limenxi07
     /**
      * Returns participation records, rejecting a score that is fractional or outside 0 to 5.
      * Invalid weeks and missing scores are still rejected by {@code WeeklyRecord}.

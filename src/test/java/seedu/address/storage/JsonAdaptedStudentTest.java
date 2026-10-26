@@ -84,6 +84,7 @@ public class JsonAdaptedStudentTest {
                 adaptedWithNullValue::toModelType);
     }
 
+    //@@author limenxi07
     @Test
     public void toModelType_invalidParticipationScore_throwsIllegalValueException() throws Exception {
         String aboveRange = "{\"name\":\"Ben Lim\",\"studentId\":\"A0234567Y\","
@@ -99,6 +100,7 @@ public class JsonAdaptedStudentTest {
                 "Participation score must be a whole number from 0 to 5.", adaptedBelowRange::toModelType);
     }
 
+    //@@author
     @Test
     public void toModelType_fractionalParticipationScore_throwsIllegalValueException() {
         JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID, Map.of(), Map.of(3, 4.5));
