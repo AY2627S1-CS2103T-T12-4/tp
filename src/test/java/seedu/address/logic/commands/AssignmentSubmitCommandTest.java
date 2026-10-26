@@ -60,7 +60,7 @@ public class AssignmentSubmitCommandTest {
         Model model = modelWithAssignment();
         Model expected = modelWithAssignment();
         assertCommandFailure(new AssignmentSubmitCommand(NAME_PS1, new StudentId("A0999999Z"), true), model,
-                MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, "A0999999Z", NAME_T01));
         assertEquals(expected, model);
     }
 

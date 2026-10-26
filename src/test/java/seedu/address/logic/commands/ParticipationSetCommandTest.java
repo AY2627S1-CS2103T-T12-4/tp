@@ -74,10 +74,10 @@ public class ParticipationSetCommandTest {
     @Test
     public void execute_missingStudentOrActiveGroup_preservesData() {
         assertCommandFailure(new ParticipationSetCommand(FIONA.getStudentId(), 3, 2), model,
-                MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, FIONA.getStudentId(), NAME_T01));
         model.setActiveGroup(NAME_T02);
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), model,
-                MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, ALICE.getStudentId(), NAME_T02));
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), new ModelManager(),
                 Messages.MESSAGE_NO_ACTIVE_GROUP);
     }

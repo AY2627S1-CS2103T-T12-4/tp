@@ -44,7 +44,8 @@ public abstract class Command {
      * @throws CommandException If no such student is in the group.
      */
     protected static Student getStudent(Group group, StudentId studentId) throws CommandException {
-        return group.findStudent(studentId).orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
+        return group.findStudent(studentId).orElseThrow(() -> new CommandException(
+                String.format(MESSAGE_UNKNOWN_STUDENT, studentId, group.getName())));
     }
 
     /**

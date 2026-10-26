@@ -320,7 +320,7 @@ For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` 
 
 Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
 an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
-`Student does not exist in the active group.` With no active group, use `group add g/GROUP_NAME` or
+`Student ID A0999999Z does not exist in T01.` With no active group, use `group add g/GROUP_NAME` or
 `group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
 
 ### Listing weekly attendance: `attendance list`
@@ -388,7 +388,7 @@ Rejected input leaves the existing scores and saved data file unchanged.
 Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digits only, without a sign or decimal point.
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
@@ -464,7 +464,7 @@ Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spac
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
-Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.

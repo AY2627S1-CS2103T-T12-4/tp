@@ -48,8 +48,8 @@ public class CommandTest {
     @Test
     public void getStudent_studentInAnotherGroup_throwsCommandException() throws CommandException {
         Group group = activeT01();
-        assertThrows(CommandException.class, MESSAGE_UNKNOWN_STUDENT, () ->
-                Command.getStudent(group, DANIEL.getStudentId()));
+        String expectedMessage = String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), NAME_T01);
+        assertThrows(CommandException.class, expectedMessage, () -> Command.getStudent(group, DANIEL.getStudentId()));
     }
 
     @Test

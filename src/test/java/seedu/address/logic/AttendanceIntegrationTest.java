@@ -91,7 +91,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/late",
                 ParseException.class, AttendanceStatus.MESSAGE_CONSTRAINTS);
         assertFailureUnchanged("attendance mark id/A0456789W w/3 s/present",
-                CommandException.class, MESSAGE_UNKNOWN_STUDENT);
+                CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
     }
 
     @Test
