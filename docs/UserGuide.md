@@ -309,12 +309,13 @@ Format: `attendance mark id/STUDENT_ID w/WEEK s/STATUS`
 
 * `WEEK` is a whole number from 1 to 13. `STATUS` is `present` or `absent`, ignoring case.
 * Student IDs ignore case. Supply each prefix exactly once, in any order, separated by spaces.
-* Repeating a mark for the same student and week replaces the earlier mark, even if the status is the same.
-  Other students, weeks, and participation records are preserved.
+* Repeating a mark for the same student and week replaces the earlier mark, and the feedback shows the old and
+  new status. Other students, weeks, and participation records are preserved.
 
 For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` shows
 `Recorded Alice Tan as present for Week 3.` Re-entering it with `s/absent` shows
-`Updated Alice Tan's attendance for Week 3 to absent.`
+`Updated Alice Tan's attendance for Week 3: present to absent.` Entering `s/absent` again shows
+`Alice Tan's attendance for Week 3 is already absent. Nothing changed.`
 
 Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
 an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
@@ -352,13 +353,14 @@ Format: `participation set id/STUDENT_ID w/WEEK s/SCORE`
 * `WEEK` is a whole number from 1 to 13. `SCORE` is a whole number from 0 to 5, including zero.
 * Student IDs ignore case. The ID must belong to the active group.
 * Supply each prefix exactly once, in any order, with spaces between parameters.
-* Setting the same student and week again replaces the score, including when the value is unchanged.
+* Setting the same student and week again replaces the score, and the feedback shows the old and new score.
   Other weeks, other students, and other groups are unaffected.
 
 Example: `participation set id/A0123456X w/3 s/2` shows
 `Recorded participation score 2 for Alice Tan in Week 3.`
 Then `participation set id/A0123456X w/3 s/4` shows
-`Updated Alice Tan's participation score for Week 3 to 4.`
+`Updated Alice Tan's participation score for Week 3: 2 to 4.`
+Setting the same score again shows `Alice Tan's participation score for Week 3 is already 4. Nothing changed.`
 
 ### Listing participation: `participation list`
 

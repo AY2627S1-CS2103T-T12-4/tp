@@ -53,10 +53,10 @@ public class ParticipationSetCommandTest {
         expected.setStudent(NAME_T01, BEN.withParticipationRecord(3, 4));
 
         assertCommandSuccess(new ParticipationSetCommand(BEN.getStudentId(), 3, 4), model,
-                "Updated Ben Lim's participation score for Week 3 to 4.", expected);
+                "Updated Ben Lim's participation score for Week 3: 0 to 4.", expected);
         assertEquals(BEN.getStudentId(), model.getActiveGroupStudentList().get(1).getStudentId());
         assertCommandSuccess(new ParticipationSetCommand(BEN.getStudentId(), 3, 4), model,
-                "Updated Ben Lim's participation score for Week 3 to 4.", expected);
+                "Ben Lim's participation score for Week 3 is already 4. Nothing changed.", expected);
     }
 
     @Test
