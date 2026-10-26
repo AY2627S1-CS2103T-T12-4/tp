@@ -70,17 +70,11 @@ public class JsonSerializableTAssistTest {
     }
 
     @Test
-    public void toModelType_unknownActiveGroup_throwsIllegalValueException() {
-        JsonSerializableTAssist data = new JsonSerializableTAssist("T04", TYPICAL_GROUPS);
-        assertThrows(IllegalValueException.class,
-                String.format(JsonSerializableTAssist.MESSAGE_UNKNOWN_ACTIVE_GROUP, "T04"), data::toModelType);
-    }
-
-    @Test
-    public void toModelType_invalidActiveGroupName_throwsIllegalValueException() {
-        JsonSerializableTAssist data = new JsonSerializableTAssist("", TYPICAL_GROUPS);
-        assertThrows(IllegalValueException.class,
-                String.format(JsonSerializableTAssist.MESSAGE_UNKNOWN_ACTIVE_GROUP, ""), data::toModelType);
+    public void toModelType_unknownOrInvalidActiveGroup_loadsGroupsWithNoActiveGroup() throws Exception {
+        for (String activeGroup : new String[] {"T04", ""}) {
+            assertEquals(TypicalGroups.getTypicalTAssist(),
+                    new JsonSerializableTAssist(activeGroup, TYPICAL_GROUPS).toModelType());
+        }
     }
 
     @Test
