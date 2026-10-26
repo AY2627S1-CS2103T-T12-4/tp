@@ -105,7 +105,8 @@ first Up brings back the command before it. The history starts empty each time y
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
+* Commands that take no parameters, such as `exit`, `group list`, and `student list`, reject extra input like
+  `exit 123`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
@@ -517,6 +518,9 @@ Extra input | `This command takes no parameters. Remove the extra input.` To exp
 Exits the program.
 
 Format: `exit`
+
+`exit` takes no parameters. Extra input, such as `exit now`, is rejected with
+`This command takes no parameters. Remove the extra input.` and TAssist stays open.
 
 ### Saving the data
 
