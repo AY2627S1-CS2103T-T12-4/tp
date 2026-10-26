@@ -3,8 +3,6 @@ package seedu.address.model.assignment;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
-import java.util.Locale;
-
 import seedu.address.commons.util.StringUtil;
 
 /**
@@ -70,7 +68,7 @@ public class AssignmentName {
 
     @Override
     public int hashCode() {
-        return fullName.toLowerCase(Locale.ROOT).hashCode();
+        return StringUtil.hashCodeIgnoreCase(fullName);
     }
 
 }
