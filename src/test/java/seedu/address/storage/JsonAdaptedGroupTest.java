@@ -119,6 +119,14 @@ public class JsonAdaptedGroupTest {
                 String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT_RECORD, VALID_NAME,
                         "ps1", ALICE.getStudentId()), duplicateRecords::toModelType);
 
+        // A Unicode case variant (dotless i) of the assignment name is still a duplicate record.
+        JsonAdaptedGroup unicodeDuplicateRecords = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PSI"),
+                List.of(new JsonAdaptedAssignmentRecord("PSI", ALICE.getStudentId().value, true, 87),
+                        new JsonAdaptedAssignmentRecord("psı", ALICE.getStudentId().value, true, 12)));
+        assertThrows(IllegalValueException.class,
+                String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT_RECORD, VALID_NAME,
+                        "psı", ALICE.getStudentId()), unicodeDuplicateRecords::toModelType);
+
         JsonAdaptedGroup unknownAssignment = new JsonAdaptedGroup(VALID_NAME, VALID_STUDENTS, List.of("PS1"),
                 List.of(new JsonAdaptedAssignmentRecord("PS2", ALICE.getStudentId().value, true, null)));
         assertThrows(IllegalValueException.class,
