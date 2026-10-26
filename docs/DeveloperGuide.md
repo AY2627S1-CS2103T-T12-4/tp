@@ -721,6 +721,10 @@ for a student or assignment that no longer exists (see [Where per-student record
 spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
 so the existing storage error handling reports the invalid file before commands use its records.
 
+In the same forgiving way, `JsonAdaptedStudent` and `JsonAdaptedAssignmentRecord` read a participation score or
+grade written with a zero fractional part, such as `5.0`, as the whole number `5`. A fractional mark such as `4.5`
+becomes an `IllegalValueException` instead of being truncated, so a hand-edited mark is never changed silently.
+
 Older files may omit attendance and participation maps, which `JsonAdaptedStudent` reads as empty records. The
 `assignmentRecords` list is optional for the same reason; an omitted list means no explicit submission or grade
 records have been entered.
@@ -1431,6 +1435,13 @@ label.
    1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
+
+   1. Close the app and replace the file with the example content from
+      [Saving and loading TAssist data](#saving-and-loading-tassist-data). Change Alice Tan's Week 1 participation
+      score from `4` to `4.5`, then launch the app.<br>
+      Expected: The same startup message appears, and the log records
+      `Participation score must be a whole number from 0 to 5.` Close the app, change the score to `4.0`, and launch
+      it again. The file loads, and `participation list w/1` shows Alice Tan's score as `4`.
 
 1. Dealing with a save failure
 
