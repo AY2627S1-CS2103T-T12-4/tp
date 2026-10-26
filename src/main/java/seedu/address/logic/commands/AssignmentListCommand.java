@@ -1,8 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
-import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_ASSIGNMENT;
 
 import java.util.List;
 
@@ -36,10 +34,8 @@ public class AssignmentListCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
-        Assignment assignment = group.findAssignment(assignmentName).orElseThrow(() ->
-                new CommandException(String.format(MESSAGE_UNKNOWN_ASSIGNMENT,
-                        assignmentName, group.getName(), assignmentName)));
+        Group group = getActiveGroup(model);
+        Assignment assignment = getAssignment(group, assignmentName);
         List<Student> students = group.getStudentList();
         if (students.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));

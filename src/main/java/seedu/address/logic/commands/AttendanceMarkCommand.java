@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -22,7 +21,6 @@ public class AttendanceMarkCommand extends Command {
     public static final String MESSAGE_RECORDED = "Recorded %s as %s for Week %d.";
     public static final String MESSAGE_UPDATED = "Updated %s's attendance for Week %d: %s to %s.";
     public static final String MESSAGE_UNCHANGED = "%s's attendance for Week %d is already %s. Nothing changed.";
-    public static final String MESSAGE_UNKNOWN_STUDENT = "Student does not exist in the active group.";
 
     private final StudentId studentId;
     private final int week;
@@ -41,9 +39,8 @@ public class AttendanceMarkCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
-        Student student = group.findStudent(studentId)
-                .orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
+        Group group = getActiveGroup(model);
+        Student student = getStudent(group, studentId);
         Optional<String> oldStatus = student.getAttendanceRecord(week).map(AttendanceMarkCommand::toCommandValue);
 
         model.setStudent(group.getName(), student.withAttendanceRecord(week, status.name()));

@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -59,7 +60,7 @@ public class AssignmentSubmitCommandTest {
         Model model = modelWithAssignment();
         Model expected = modelWithAssignment();
         assertCommandFailure(new AssignmentSubmitCommand(NAME_PS1, new StudentId("A0999999Z"), true), model,
-                AssignmentSubmitCommand.MESSAGE_UNKNOWN_STUDENT);
+                MESSAGE_UNKNOWN_STUDENT);
         assertEquals(expected, model);
     }
 

@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -65,7 +66,7 @@ public class AssignmentGradeCommandTest {
         assertCommandFailure(new AssignmentGradeCommand(new AssignmentName("PS2"), ALICE_ID, 87), model,
                 "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
         assertCommandFailure(new AssignmentGradeCommand(NAME_PS1, new StudentId(UNKNOWN_STUDENT_ID), 87), model,
-                AssignmentGradeCommand.MESSAGE_UNKNOWN_STUDENT);
+                MESSAGE_UNKNOWN_STUDENT);
         assertEquals(PS1.withSubmissionStatus(ALICE_ID, true), model.getGroup(NAME_T01).getAssignmentList().getFirst());
     }
 

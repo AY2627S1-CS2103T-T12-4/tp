@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -60,7 +59,7 @@ public class StudentDeleteCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        Group group = getActiveGroup(model);
         if (!group.hasStudent(studentId)) {
             throw new CommandException(String.format(MESSAGE_UNKNOWN_STUDENT, studentId, group.getName()));
         }
