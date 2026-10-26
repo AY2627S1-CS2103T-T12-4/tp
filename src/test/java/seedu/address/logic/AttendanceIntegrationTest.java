@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AttendanceCommandParserUtil;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -91,7 +91,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/late",
                 ParseException.class, AttendanceStatus.MESSAGE_CONSTRAINTS);
         assertFailureUnchanged("attendance mark id/A0456789W w/3 s/present",
-                CommandException.class, AttendanceMarkCommand.MESSAGE_UNKNOWN_STUDENT);
+                CommandException.class, MESSAGE_UNKNOWN_STUDENT);
     }
 
     @Test

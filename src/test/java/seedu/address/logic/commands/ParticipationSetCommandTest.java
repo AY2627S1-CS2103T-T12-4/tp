@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -73,10 +74,10 @@ public class ParticipationSetCommandTest {
     @Test
     public void execute_missingStudentOrActiveGroup_preservesData() {
         assertCommandFailure(new ParticipationSetCommand(FIONA.getStudentId(), 3, 2), model,
-                ParticipationSetCommand.MESSAGE_UNKNOWN_STUDENT);
+                MESSAGE_UNKNOWN_STUDENT);
         model.setActiveGroup(NAME_T02);
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), model,
-                ParticipationSetCommand.MESSAGE_UNKNOWN_STUDENT);
+                MESSAGE_UNKNOWN_STUDENT);
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), new ModelManager(),
                 Messages.MESSAGE_NO_ACTIVE_GROUP);
     }

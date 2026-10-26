@@ -2,7 +2,6 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -25,7 +24,6 @@ public class ParticipationSetCommand extends Command {
     public static final String MESSAGE_UPDATED = "Updated %s's participation score for Week %s: %s to %s.";
     public static final String MESSAGE_UNCHANGED =
             "%s's participation score for Week %s is already %s. Nothing changed.";
-    public static final String MESSAGE_UNKNOWN_STUDENT = "Student does not exist in the active group.";
 
     private static final Logger logger = LogsCenter.getLogger(ParticipationSetCommand.class);
     private final StudentId studentId;
@@ -46,9 +44,8 @@ public class ParticipationSetCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
-        Student student = group.findStudent(studentId)
-                .orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
+        Group group = getActiveGroup(model);
+        Student student = getStudent(group, studentId);
         Optional<Integer> oldScore = student.getParticipationRecord(week);
         Student updated = student.withParticipationRecord(week, score);
         model.setStudent(group.getName(), updated);
