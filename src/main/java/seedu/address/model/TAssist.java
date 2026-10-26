@@ -73,6 +73,40 @@ public class TAssist implements ReadOnlyTAssist {
     }
 
     /**
+     * Removes the group named {@code name}, with its students, and returns the removed group.
+     * If it is the active group, no group is active afterwards.
+     *
+     * @throws GroupNotFoundException if there is no such group.
+     */
+    public Group removeGroup(GroupName name) {
+        Group removed = getGroup(name);
+        groups.remove(name);
+        if (activeGroupName != null && removed.getName().equals(activeGroupName)) {
+            activeGroupName = null;
+        }
+        assert isActiveGroupHeld() : "The active group must be one of the groups held";
+        return removed;
+    }
+
+    /**
+     * Renames the group named {@code name} to {@code newName}, keeping its students, position and active status.
+     * No other group may have {@code newName}, ignoring case.
+     *
+     * @throws GroupNotFoundException if there is no group named {@code name}.
+     * @throws seedu.address.model.group.exceptions.DuplicateGroupException if another group has {@code newName}.
+     */
+    public void renameGroup(GroupName name, GroupName newName) {
+        requireAllNonNull(name, newName);
+        Group target = getGroup(name);
+        boolean isActive = target.getName().equals(activeGroupName);
+        groups.replace(target, target.withName(newName));
+        if (isActive) {
+            activeGroupName = newName;
+        }
+        assert isActiveGroupHeld() : "The active group must be one of the groups held";
+    }
+
+    /**
      * Returns the group named {@code name}, ignoring case.
      *
      * @throws GroupNotFoundException if there is no such group.

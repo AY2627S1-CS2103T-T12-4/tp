@@ -45,6 +45,16 @@ public class Group {
         assignments.setAssignments(toCopy.getAssignmentList());
     }
 
+    /**
+     * Returns a copy of this group with the given {@code newName}, and the same students and assignments.
+     */
+    public Group withName(GroupName newName) {
+        Group renamed = new Group(newName);
+        renamed.students.setStudents(getStudentList());
+        renamed.assignments.setAssignments(getAssignmentList());
+        return renamed;
+    }
+
     public GroupName getName() {
         return name;
     }

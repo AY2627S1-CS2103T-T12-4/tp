@@ -67,6 +67,35 @@ public class UniqueGroupListTest {
     }
 
     @Test
+    public void remove_byName_removesGroupIgnoringCase() {
+        uniqueGroupList.add(t01);
+        uniqueGroupList.remove(new GroupName("t01"));
+        assertTrue(uniqueGroupList.asUnmodifiableObservableList().isEmpty());
+        assertThrows(GroupNotFoundException.class, () -> uniqueGroupList.remove(new GroupName("t01")));
+    }
+
+    @Test
+    public void replace_groupWithNewName_keepsPosition() {
+        uniqueGroupList.add(t01);
+        uniqueGroupList.add(t02);
+        Group renamed = t01.withName(new GroupName("T09"));
+
+        uniqueGroupList.replace(t01, renamed);
+
+        assertEquals(List.of(renamed, t02), uniqueGroupList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void replace_invalidReplacement_throwsException() {
+        uniqueGroupList.add(t01);
+        uniqueGroupList.add(t02);
+        assertThrows(DuplicateGroupException.class, () -> uniqueGroupList.replace(t01, t02));
+        assertThrows(GroupNotFoundException.class, () ->
+                uniqueGroupList.replace(new Group(new GroupName("T09")), new Group(new GroupName("T10"))));
+        assertThrows(NullPointerException.class, () -> uniqueGroupList.replace(t01, null));
+    }
+
+    @Test
     public void setGroups_listWithDuplicateNames_throwsDuplicateGroupException() {
         List<Group> groupsWithSameName = List.of(t01, new Group(new GroupName("t01")));
         assertThrows(DuplicateGroupException.class, () -> uniqueGroupList.setGroups(groupsWithSameName));
