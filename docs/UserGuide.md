@@ -415,17 +415,23 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 ### Recording a submission: `assignment submit`
 
 Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
-and `no` for not submitted. Marking a submission as not submitted clears its grade.
+and `no` for not submitted. Marking a submission as not submitted clears its grade, if one is recorded.
+If it is already not submitted, the command reports that nothing changed and leaves the data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
 Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
 `Updated Alice Tan's PS1 submission status to submitted.`
 
+If Ben Lim (`A0234567Y`) is in the active group and has never submitted PS1, running
+`assignment submit a/PS1 id/A0234567Y s/no` shows
+`Ben Lim's PS1 submission status is already not submitted. Nothing changed.`
+
 ### Recording a grade: `assignment grade`
 
 Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
-`assignment submit`. Entering `s/no` clears any recorded grade and the feedback says so.
+`assignment submit`. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
+a grade was recorded.
 
 Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 

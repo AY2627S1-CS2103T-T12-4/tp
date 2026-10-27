@@ -1,9 +1,12 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
+import java.nio.file.Files;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -65,6 +68,52 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
                         + "\nBen Lim | A0234567Y | Not submitted | -"
                         + "\nCarl Goh | A0345678Z | Not submitted | -",
                 feedback("assignment list a/PS1"));
+    }
+
+    @Test
+    public void execute_noWithoutSubmission_preservesModelAndSavedFile() throws Exception {
+        feedback("assignment add a/PS1");
+        TAssist expected = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+
+        for (int i = 0; i < 2; i++) {
+            CommandResult result = app.logic.execute("assignment submit a/PS1 id/A0234567Y s/no");
+
+            assertEquals("Ben Lim's PS1 submission status is already not submitted. Nothing changed.",
+                    result.getFeedbackToUser());
+            assertFalse(result.hasSavedChanges());
+            assertEquals(expected, app.model.getTAssist());
+            assertEquals(saved, Files.readString(dataFile));
+            restart();
+        }
+    }
+
+    @Test
+    public void execute_withdrawSubmission_reportsActualGradeRemovalAndPersists() throws Exception {
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/A0123456X s/yes");
+        CommandResult ungraded = app.logic.execute("assignment submit a/PS1 id/A0123456X s/no");
+        assertEquals("Updated Alice Tan's PS1 submission status to not submitted.", ungraded.getFeedbackToUser());
+        assertTrue(ungraded.hasSavedChanges());
+        feedback("assignment submit a/PS1 id/A0123456X s/yes");
+        feedback("assignment grade a/PS1 id/A0123456X m/87");
+
+        CommandResult graded = app.logic.execute("assignment submit a/PS1 id/A0123456X s/no");
+        assertEquals("Updated Alice Tan's PS1 submission status to not submitted; the recorded grade was cleared.",
+                graded.getFeedbackToUser());
+        assertTrue(graded.hasSavedChanges());
+        TAssist expected = new TAssist(app.model.getTAssist());
+        restart();
+        assertEquals(expected, app.model.getTAssist());
+        assertEquals(LIST_PS1_IN_T01, feedback("assignment list a/PS1"));
+
+        String saved = Files.readString(dataFile);
+        CommandResult repeated = app.logic.execute("assignment submit a/PS1 id/A0123456X s/no");
+        assertEquals("Alice Tan's PS1 submission status is already not submitted. Nothing changed.",
+                repeated.getFeedbackToUser());
+        assertFalse(repeated.hasSavedChanges());
+        assertEquals(expected, app.model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
     }
 
     @Test
