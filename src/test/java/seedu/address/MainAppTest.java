@@ -14,9 +14,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+
 import javafx.stage.Stage;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -115,7 +121,7 @@ public class MainAppTest {
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
 
-            assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+            assertTrue(app.getDataLoadStatus().isFailure());
             for (String command : List.of("help", "view storage", "group list")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
@@ -128,7 +134,7 @@ public class MainAppTest {
 
             MainApp reopened = new MainApp(prefsFile, dataFile());
             reopened.init();
-            assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
+            assertTrue(reopened.getDataLoadStatus().isFailure());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
     }
@@ -161,7 +167,7 @@ public class MainAppTest {
         MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), directory);
         app.init();
 
-        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertEquals(DataLoadStatus.failed("The file could not be opened."), app.getDataLoadStatus());
         assertThrows(CommandException.class,
                 LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
         app.stop();
@@ -265,8 +271,40 @@ public class MainAppTest {
 
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
-            assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
+            assertTrue(mainApp.getDataLoadStatus().isFailure());
         }
+    }
+
+    @Test
+    public void initModelManager_invalidDataFile_statusNamesReason() throws Exception {
+        String duplicateIds = "{ \"groups\" : [ { \"name\" : \"T01\", \"students\" : ["
+                + " { \"name\" : \"Alice Tan\", \"studentId\" : \"A1\" },"
+                + " { \"name\" : \"Ben Lim\", \"studentId\" : \"A1\" } ] } ] }";
+        assertLoadFailureReason(duplicateIds, "Group T01 has more than one student with ID A1.");
+        assertLoadFailureReason("{\n  \"groups\" : [ {",
+                "The file has a JSON syntax error or a value of the wrong type near line 2.");
+        assertLoadFailureReason("{ \"groups\" : \"T01\" }",
+                "The file has a JSON syntax error or a value of the wrong type near line 1.");
+        assertLoadFailureReason("{ \"groups\" : [] }\n\nextra",
+                "The file has a JSON syntax error or a value of the wrong type near line 3.");
+        assertLoadFailureReason("null", JsonUtil.MESSAGE_NULL_CONTENT);
+    }
+
+    @Test
+    public void describeLoadFailure_noJsonLocation_omitsLine() {
+        String reason = "The file has a JSON syntax error or a value of the wrong type.";
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException((JsonParser) null, "Unexpected end."))));
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException(null, "Unexpected end.", JsonLocation.NA))));
+    }
+
+    private void assertLoadFailureReason(String invalidData, String reason) throws Exception {
+        Files.writeString(dataFile(), invalidData);
+        mainApp.initModelManager(createStorage(), new UserPrefs());
+        assertEquals(DataLoadStatus.failed(reason), mainApp.getDataLoadStatus());
+        assertEquals(DataLoadStatus.MESSAGE_FAILED_PREFIX + " " + reason + " "
+                + DataLoadStatus.MESSAGE_FILE_UNCHANGED, mainApp.getDataLoadStatus().getMessage());
     }
 
     @Test

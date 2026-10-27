@@ -595,12 +595,14 @@ The file looks like this:
   records for that student. Invalid weeks or statuses make the file invalid.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If the data file is unreadable or invalid, TAssist shows
-`Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+If the data file is unreadable or invalid, TAssist opens with no data and shows `Saved data could not be read.`,
+the reason, and `No changes were made to the saved file.` For example:
+`Saved data could not be read. Group T01 has more than one student with ID A1. No changes were made to the saved file.`
+For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
 The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
 file invalid; trailing spaces, tabs, and line breaks are allowed.
 The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` records the reason loading failed.
+and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>
