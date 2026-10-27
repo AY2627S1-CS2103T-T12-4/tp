@@ -699,8 +699,12 @@ their previous state. The UI shows the error and retains the rejected input. A s
 * If the file does not exist, the app starts with an empty `TAssist` and shows
   `No saved data found. Starting with an empty database.` The first successful data change creates the file.
 * If the file cannot be read, is not valid JSON, or holds invalid data, loading throws a `DataLoadingException`.
-  `MainApp` logs the reason and starts with an empty model. The UI shows
-  `Saved data could not be read. No changes were made to the saved file.`
+  `MainApp` logs the reason and starts with an empty model. It also turns the cause into a short reason with
+  `describeLoadFailure` and builds the status with `DataLoadStatus#failed`, so the UI shows
+  `Saved data could not be read.`, the reason, and `No changes were made to the saved file.` An
+  `IllegalValueException` gives its own message, such as `Group T01 has more than one student with ID A1.` A JSON
+  syntax error or a value of the wrong type names the line Jackson reports. The column is left out because Jackson
+  can report one past the end of an unknown word. Any other read error says the file could not be opened.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
 `JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
@@ -716,7 +720,8 @@ permission errors are reported rather than treated as missing data.
 
 `JsonTAssistStorageTest` injects partial-write and atomic-replacement failures to check file preservation and
 temporary-file cleanup. `SaveFailureIntegrationTest` checks rollback across all implemented mutations, retry,
-and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data and protection through shutdown.
+and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data, the reason shown for each kind of failure, and
+protection through shutdown.
 `WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
 `toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, and a fractional or out-of-range grade or a grade for an unsubmitted assignment. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, an `activeGroup` that matches no group is ignored with a logged warning and no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
@@ -1441,8 +1446,9 @@ label.
    1. Prerequisites: Close the app. In `data/tassist.json`, delete a closing brace.
 
    1. Launch the app.<br>
-      Expected: The app starts empty and shows
-      `Saved data could not be read. No changes were made to the saved file.` The log records the cause.
+      Expected: The app starts empty and shows `Saved data could not be read.`, then
+      `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
+      stopped, then `No changes were made to the saved file.` The log also records the cause.
 
    1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
@@ -1450,15 +1456,16 @@ label.
 
    1. Close the app and restore a valid data file. Append `THIS IS INVALID JSON` after its final closing brace,
       then launch the app and enter `group add g/T02`.<br>
-      Expected: The same startup warning appears, the command is rejected, and the file remains unchanged after exit.
+      Expected: The same kind of startup message appears, naming the line of the appended text. The command is
+      rejected, and the file remains unchanged after exit.
       Repeat with a second JSON object appended instead of the text; expect the same protection. Restore the valid
       file and append only spaces, tabs, or line breaks; expect normal loading and saving.
 
    1. Close the app and replace the file with the example content from
       [Saving and loading TAssist data](#saving-and-loading-tassist-data). Change Alice Tan's Week 1 participation
       score from `4` to `4.5`, then launch the app.<br>
-      Expected: The same startup message appears, and the log records
-      `Participation score must be a whole number from 0 to 5.` Close the app, change the score to `4.0`, and launch
+      Expected: The startup message names the reason, `Participation score must be a whole number from 0 to 5.`, and
+      the log records it too. Close the app, change the score to `4.0`, and launch
       it again. The file loads, and `participation list w/1` shows Alice Tan's score as `4`.
 
 1. Dealing with a save failure
