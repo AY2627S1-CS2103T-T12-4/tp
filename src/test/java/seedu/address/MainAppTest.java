@@ -113,9 +113,17 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
+        String weeklyRecordsData = """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",%s}]}]}
+                """;
+        String duplicateParticipation = weeklyRecordsData.formatted("\"participation\":{\"1\":3,\"01\":5}");
+        String duplicateAttendance = weeklyRecordsData
+                .formatted("\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}");
         new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
         String validData = Files.readString(dataFile());
-        for (String invalidData : List.of("{", "null", validData + "\nTHIS IS INVALID JSON",
+        for (String invalidData : List.of("{", "null", duplicateParticipation, duplicateAttendance,
+                validData + "\nTHIS IS INVALID JSON",
                 validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
@@ -137,6 +145,29 @@ public class MainAppTest {
             assertTrue(reopened.getDataLoadStatus().isFailure());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void init_distinctWeekAliases_loadsRecordsAndAllowsSaving() throws Exception {
+        Files.writeString(dataFile(), """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",
+                  "attendance":{"01":"PRESENT","13":"ABSENT"},
+                  "participation":{"01":3,"02":5}}]}]}
+                """);
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
+        app.init();
+
+        assertEquals(DataLoadStatus.LOADED, app.getDataLoadStatus());
+        assertEquals("Participation for T01, Week 1:\nAlice Tan | A1 | 3",
+                app.logic.execute("participation list w/1").getFeedbackToUser());
+        assertEquals("Participation for T01, Week 2:\nAlice Tan | A1 | 5",
+                app.logic.execute("participation list w/2").getFeedbackToUser());
+        assertEquals("Attendance for T01, Week 1:\nAlice Tan | A1 | Present",
+                app.logic.execute("attendance list w/1").getFeedbackToUser());
+        assertTrue(app.logic.execute("group add g/T02").hasSavedChanges());
+        app.stop();
+        assertEquals(app.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
     }
 
     @Test
@@ -288,6 +319,18 @@ public class MainAppTest {
         assertLoadFailureReason("{ \"groups\" : [] }\n\nextra",
                 "The file has a JSON syntax error or a value of the wrong type near line 3.");
         assertLoadFailureReason("null", JsonUtil.MESSAGE_NULL_CONTENT);
+    }
+
+    @Test
+    public void initModelManager_duplicateWeekAlias_showsSpecificReason() throws Exception {
+        String data = """
+                {"groups":[{"name":"T01","students":[{"name":"Alice Tan","studentId":"A1",%s}]}]}
+                """;
+        String reason = "Duplicate weekly record for Week 1. Use only one entry per week.";
+        assertLoadFailureReason(data.formatted("\"participation\":{\"1\":3,\"01\":5}"), reason);
+        assertLoadFailureReason(data.formatted("\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}"), reason);
+        assertLoadFailureReason(data.formatted("\"attendance\":{\"x\":\"PRESENT\"}"),
+                "The file has a JSON syntax error or a value of the wrong type near line 1.");
     }
 
     @Test
