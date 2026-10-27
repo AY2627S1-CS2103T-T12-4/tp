@@ -14,7 +14,8 @@ public class AssignmentSubmitCommandParser implements Parser<AssignmentSubmitCom
     private static final Prefix PREFIX_STATUS = new Prefix("s/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
-            List.of(PREFIX_ASSIGNMENT, PREFIX_STUDENT_ID, PREFIX_STATUS), List.of());
+            List.of(PREFIX_ASSIGNMENT, PREFIX_STUDENT_ID, PREFIX_STATUS), List.of(),
+            List.of(PREFIX_STUDENT_ID, PREFIX_STATUS));
 
     @Override
     public AssignmentSubmitCommand parse(String arguments) throws ParseException {

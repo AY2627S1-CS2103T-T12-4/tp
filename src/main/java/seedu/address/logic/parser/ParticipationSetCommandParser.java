@@ -16,7 +16,7 @@ public class ParticipationSetCommandParser implements Parser<ParticipationSetCom
     @Override
     public ParticipationSetCommand parse(String arguments) throws ParseException {
         ArgumentMultimap values = new TAssistArgumentParser(List.of(PREFIX_ID, PREFIX_WEEK, PREFIX_SCORE),
-                List.of()).parse(arguments);
+                List.of(), List.of(PREFIX_ID, PREFIX_WEEK, PREFIX_SCORE)).parse(arguments);
         return new ParticipationSetCommand(
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_ID).orElseThrow()),
                 TAssistParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()),

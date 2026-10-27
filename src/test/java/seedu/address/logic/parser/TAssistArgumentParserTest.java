@@ -18,7 +18,8 @@ public class TAssistArgumentParserTest {
     private static final Prefix PREFIX_GROUP = new Prefix("g/");
 
     private final TAssistArgumentParser parser = new TAssistArgumentParser(
-            List.of(PREFIX_NAME, PREFIX_ID), List.of(PREFIX_GROUP));
+            List.of(PREFIX_NAME, PREFIX_ID), List.of(PREFIX_GROUP),
+            List.of(PREFIX_ID));
 
     @Test
     public void parse_validParameters_trimsValuesAndAllowsAnyOrder() throws Exception {
@@ -78,6 +79,24 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void parse_extraTextAfterSingleWordValue_namesParameterAndExtraText() {
+        assertExtraText("n/Alice id/A1 now", "id/A1", "now");
+        assertExtraText("n/Alice id/A1   now  please ", "id/A1", "now  please");
+        assertExtraText("id/A1 now n/Alice", "id/A1", "now");
+    }
+
+    @Test
+    public void parse_extraTextAndMissingParameter_reportsMissingParameterFirst() {
+        String message = String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "n/");
+        assertThrows(ParseException.class, message, () -> parser.parse("id/A1 now"));
+    }
+
+    @Test
+    public void parse_spacesInFreeTextValue_preservesValue() throws Exception {
+        assertEquals("Alice Tan", parser.parse("n/Alice Tan id/A1").getValue(PREFIX_NAME).orElseThrow());
+    }
+
+    @Test
     public void parse_noParametersAllowed_rejectsAllExtraInput() throws Exception {
         TAssistArgumentParser noParametersParser = new TAssistArgumentParser(List.of(), List.of());
         assertEquals("", noParametersParser.parse(" \t ").getPreamble());
@@ -99,6 +118,8 @@ public class TAssistArgumentParserTest {
                 new TAssistArgumentParser(List.of(PREFIX_NAME), List.of(PREFIX_NAME)));
         assertThrows(IllegalArgumentException.class, () ->
                 new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_NAME)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new TAssistArgumentParser(List.of(PREFIX_NAME), List.of(), List.of(PREFIX_ID)));
     }
 
     @Test
@@ -120,5 +141,10 @@ public class TAssistArgumentParserTest {
     private void assertMissingParameters(String input, String missingPrefixes) {
         assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS,
                 missingPrefixes), () -> parser.parse(input));
+    }
+
+    private void assertExtraText(String input, String precedingText, String extraText) {
+        assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, precedingText,
+                extraText), () -> parser.parse(input));
     }
 }

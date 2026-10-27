@@ -30,7 +30,7 @@ public class ParticipationSetCommandParserTest {
         for (String score : new String[] {"", "-1", "6", "+1", "2.5", "two", "9".repeat(1000)}) {
             assertParseFailure(parser, "id/A0123456X w/3 s/" + score, TAssistParserUtil.MESSAGE_PARTICIPATION_SCORE);
         }
-        for (String id : new String[] {"", "ABC", "A 1", "A1!", "1".repeat(21)}) {
+        for (String id : new String[] {"", "ABC", "A1!", "1".repeat(21)}) {
             assertParseFailure(parser, "id/" + id + " w/3 s/2", StudentId.MESSAGE_CONSTRAINTS);
         }
     }
@@ -62,5 +62,11 @@ public class ParticipationSetCommandParserTest {
     @Test
     public void parse_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_extraTextAfterValue_reportsExtraText() {
+        assertParseFailure(parser, "id/A0123456X w/3 s/4 good",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "s/4", "good"));
     }
 }

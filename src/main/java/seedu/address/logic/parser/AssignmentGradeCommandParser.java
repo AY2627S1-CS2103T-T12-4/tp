@@ -14,7 +14,8 @@ public class AssignmentGradeCommandParser implements Parser<AssignmentGradeComma
     private static final Prefix PREFIX_GRADE = new Prefix("m/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
-            List.of(PREFIX_ASSIGNMENT, PREFIX_STUDENT_ID, PREFIX_GRADE), List.of());
+            List.of(PREFIX_ASSIGNMENT, PREFIX_STUDENT_ID, PREFIX_GRADE), List.of(),
+            List.of(PREFIX_STUDENT_ID, PREFIX_GRADE));
 
     @Override
     public AssignmentGradeCommand parse(String arguments) throws ParseException {
