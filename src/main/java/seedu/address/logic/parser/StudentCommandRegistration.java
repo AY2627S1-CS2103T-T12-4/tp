@@ -24,7 +24,8 @@ public final class StudentCommandRegistration {
         requireNonNull(registry);
         registry.register("student", "add", new StudentAddCommandParser(),
                 new HelpEntry("student", StudentAddCommand.MESSAGE_USAGE,
-                        "Add a student to the active group. Names: 1-60 letters, spaces, apostrophes or hyphens. "
+                        "Add a student to the active group. Names: 1-60 letters, spaces, apostrophes or hyphens, "
+                                + "and s/o, d/o, a/l or a/p between two parts, as in Ravi s/o Kumar. "
                                 + "IDs: 1-20 letters and digits, at least one digit; unique per group, ignoring case.",
                         List.of("student add n/Alice Tan id/A0123456X", "student add n/Ben Lim id/A0234567Y")));
         registry.register("student", "list", new StudentListCommandParser(),
