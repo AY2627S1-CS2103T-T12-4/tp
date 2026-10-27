@@ -756,7 +756,15 @@ public class WorkspaceSmokeTest {
                 assertEquals(template.length(), input.getCaretPosition());
                 assertEquals(input, stage.getScene().getFocusOwner());
                 pressKey(KeyCode.UP);
+                assertEquals(template + "3 s/present", input.getText());
+                pressKey(KeyCode.UP);
+                assertEquals("unfinished draft", input.getText());
+                pressKey(KeyCode.UP);
                 assertEquals("group use g/T01", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals("unfinished draft", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals(template + "3 s/present", input.getText());
                 pressKey(KeyCode.DOWN);
                 assertEquals(template, input.getText());
                 assertEquals(previousData, model.getTAssist());
