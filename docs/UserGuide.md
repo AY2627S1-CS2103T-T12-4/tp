@@ -595,6 +595,8 @@ The file looks like this:
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If the data file is unreadable or invalid, TAssist shows
 `Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
+file invalid; trailing spaces, tabs, and line breaks are allowed.
 The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
 and exit remain available. The log file `tassist.log.0` records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup

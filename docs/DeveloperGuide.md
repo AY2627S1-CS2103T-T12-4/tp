@@ -701,6 +701,10 @@ their previous state. The UI shows the error and retains the rejected input. A s
   `Saved data could not be read. No changes were made to the saved file.`
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
+`JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
+JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
+is allowed. This prevents a later save from silently removing appended content.
+
 `MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
 change data and restores the snapshot without attempting a save. Read-only commands remain available. This
 protection lasts until restart, including if the user repairs the file while the app is running. The user must
@@ -1439,6 +1443,12 @@ label.
    1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
+
+   1. Close the app and restore a valid data file. Append `THIS IS INVALID JSON` after its final closing brace,
+      then launch the app and enter `group add g/T02`.<br>
+      Expected: The same startup warning appears, the command is rejected, and the file remains unchanged after exit.
+      Repeat with a second JSON object appended instead of the text; expect the same protection. Restore the valid
+      file and append only spaces, tabs, or line breaks; expect normal loading and saving.
 
    1. Close the app and replace the file with the example content from
       [Saving and loading TAssist data](#saving-and-loading-tassist-data). Change Alice Tan's Week 1 participation
