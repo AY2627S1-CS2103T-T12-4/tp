@@ -120,6 +120,40 @@ public interface Model {
     void setAssignment(GroupName groupName, Assignment assignment);
 
     /**
+     * Records that the change described by {@code description} replaced {@code previousTAssist} with the current
+     * data, so that it can be undone. Changes that were undone can no longer be redone.
+     */
+    void commitTAssist(ReadOnlyTAssist previousTAssist, String description);
+
+    /** Returns true if there is a change that can be undone. */
+    boolean canUndoTAssist();
+
+    /** Returns true if there is an undone change that can be redone. */
+    boolean canRedoTAssist();
+
+    /**
+     * Restores the data from before the latest change, including which group is active,
+     * and returns the description of the undone change.
+     * There must be a change to undo.
+     */
+    String undoTAssist();
+
+    /**
+     * Restores the data from after the latest undone change, including which group is active,
+     * and returns the description of the redone change.
+     * There must be an undone change to redo.
+     */
+    String redoTAssist();
+
+    /** Returns a copy of the undo and redo history. */
+    TAssistHistory getTAssistHistory();
+
+    /**
+     * Replaces the undo and redo history with a copy of {@code history}.
+     */
+    void setTAssistHistory(TAssistHistory history);
+
+    /**
      * Returns the active group as an observable value, which is empty when no group is active.
      * It changes whenever another group becomes active, but not when the new active group is equal to the old one,
      * for example after {@code setTAssist} with the same data. Read the students from

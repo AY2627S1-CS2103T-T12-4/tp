@@ -12,7 +12,7 @@ public class AttendanceListCommandParser implements Parser<AttendanceListCommand
     private static final Prefix PREFIX_WEEK = new Prefix("w/");
 
     private final TAssistArgumentParser argumentParser =
-            new TAssistArgumentParser(List.of(PREFIX_WEEK), List.of());
+            new TAssistArgumentParser(List.of(PREFIX_WEEK), List.of(), List.of(PREFIX_WEEK));
 
     @Override
     public AttendanceListCommand parse(String arguments) throws ParseException {

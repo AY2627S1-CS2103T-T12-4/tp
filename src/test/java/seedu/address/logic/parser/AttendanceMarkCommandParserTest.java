@@ -58,4 +58,18 @@ public class AttendanceMarkCommandParserTest {
         assertParseFailure(parser, "extra " + validArguments,
                 String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "extra", "id/ w/ s/"));
     }
+
+    @Test
+    public void parse_forgottenPrefixBeforeExtraText_reportsMissingPrefix() {
+        assertParseFailure(parser, "id/A0123456X w/3 present",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+    }
+
+    @Test
+    public void parse_extraTextAfterValue_reportsExtraText() {
+        assertParseFailure(parser, "id/A0123456X w/3 s/present today",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "s/present", "today"));
+        assertParseFailure(parser, "id/A0123456X w/3 later s/present",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "w/3", "later"));
+    }
 }

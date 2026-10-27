@@ -29,6 +29,13 @@ public class GroupDeleteCommandParserTest {
         assertParseSuccess(parser, "g/T01 f/yes", new GroupDeleteCommand(new GroupName("T01"), true));
         assertParseSuccess(parser, "f/YES g/T01", new GroupDeleteCommand(new GroupName("T01"), true));
         assertParseFailure(parser, "g/T01 f/no", GroupDeleteCommandParser.MESSAGE_INVALID_FAST_DELETE_OPTION);
+        assertParseFailure(parser, "g/T01 f/yes now",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "f/yes", "now"));
+    }
+
+    @Test
+    public void parse_missingNameBeforeExtraText_reportsMissingName() {
+        assertParseFailure(parser, "f/yes T01", "Missing group name. Usage: group delete g/GROUP_NAME [f/yes]");
     }
 
     @Test

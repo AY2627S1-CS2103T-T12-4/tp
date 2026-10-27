@@ -36,4 +36,10 @@ public class AttendanceListCommandParserTest {
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "w/"));
         assertParseFailure(parser, "3", String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "3", "w/"));
     }
+
+    @Test
+    public void parse_extraTextAfterWeek_reportsExtraText() {
+        assertParseFailure(parser, "w/3 please",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "w/3", "please"));
+    }
 }

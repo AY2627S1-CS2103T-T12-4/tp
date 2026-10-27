@@ -26,10 +26,18 @@ final class GroupCommandParserUtil {
      * Parses {@code arguments} with {@code g/} and the given extra prefixes, each allowed at most once.
      */
     static ArgumentMultimap parseValues(String arguments, Prefix... extraPrefixes) throws ParseException {
+        return createParser(List.of(), extraPrefixes).parse(arguments);
+    }
+
+    /**
+     * Creates a parser for {@code g/} and the given extra prefixes, each allowed at most once, that also rejects
+     * spaces in the values of {@code singleWordPrefixes}, which must be among the extra prefixes.
+     */
+    static TAssistArgumentParser createParser(List<Prefix> singleWordPrefixes, Prefix... extraPrefixes) {
         // Declare g/ optional here so missing and empty values get the same feature-specific message.
         List<Prefix> prefixes = new ArrayList<>(List.of(PREFIX_GROUP));
         prefixes.addAll(List.of(extraPrefixes));
-        return new TAssistArgumentParser(List.of(), prefixes).parse(arguments);
+        return new TAssistArgumentParser(List.of(), prefixes, singleWordPrefixes);
     }
 
     /**

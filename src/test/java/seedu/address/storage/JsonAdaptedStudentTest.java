@@ -5,7 +5,9 @@ import static seedu.address.storage.JsonAdaptedStudent.MISSING_FIELD_MESSAGE_FOR
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.BEN;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,31 @@ public class JsonAdaptedStudentTest {
                 .withAttendanceRecord(13, "ABSENT").withParticipationRecord(2, 4);
 
         assertEquals(expected, adapted.toModelType());
+    }
+
+    @Test
+    public void fromJson_duplicateWeekAliases_throwsIoException() {
+        for (String weeklyRecords : List.of("\"participation\":{\"1\":3,\"01\":5}",
+                "\"participation\":{\"01\":5,\"1\":3}", "\"participation\":{\"1\":3,\"001\":3}",
+                "\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}")) {
+            String json = "{\"name\":\"Ben Lim\",\"studentId\":\"A0234567Y\"," + weeklyRecords + "}";
+
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(json, JsonAdaptedStudent.class));
+        }
+    }
+
+    @Test
+    public void toModelType_distinctWeekAliases_returnsStudentWithRecords() throws Exception {
+        String json = "{\"name\":\"Ben Lim\",\"studentId\":\"A0234567Y\","
+                + "\"attendance\":{\"01\":\"PRESENT\",\"13\":\"ABSENT\"},"
+                + "\"participation\":{\"01\":3,\"02\":5}}";
+        JsonAdaptedStudent adapted = JsonUtil.fromJsonString(json, JsonAdaptedStudent.class);
+        Student expected = BEN.withAttendanceRecord(1, "PRESENT").withAttendanceRecord(13, "ABSENT")
+                .withParticipationRecord(1, 3).withParticipationRecord(2, 5);
+
+        assertEquals(expected, adapted.toModelType());
+        assertEquals(expected, JsonUtil.fromJsonString(JsonUtil.toJsonString(adapted), JsonAdaptedStudent.class)
+                .toModelType());
     }
 
     @Test

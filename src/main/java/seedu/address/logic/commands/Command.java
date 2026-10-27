@@ -67,4 +67,12 @@ public abstract class Command {
      */
     public abstract CommandResult execute(Model model) throws CommandException;
 
+    /**
+     * Returns true if the data changes made by this command should be recorded so that they can be undone.
+     * Commands that move through the undo history themselves return false.
+     */
+    public boolean isUndoable() {
+        return true;
+    }
+
 }

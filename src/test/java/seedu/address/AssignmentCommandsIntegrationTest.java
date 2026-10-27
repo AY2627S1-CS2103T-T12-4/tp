@@ -34,13 +34,17 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     public void execute_addListAndRestart_preservesAssignmentsPerGroup() throws Exception {
         assertEquals("Created assignment PS1 for T01.", feedback("assignment add a/PS1"));
         assertEquals("Created assignment Mid-term 1 for T01.", feedback("assignment add a/  Mid-term   1 "));
+        assertEquals("Created assignment PS1.5 for T01.", feedback("assignment add a/PS1.5"));
+        assertEquals("Created assignment Lab 2 (Graphs) for T01.", feedback("assignment add a/Lab 2 (Graphs)"));
+        assertEquals("Created assignment Kattis: Week 3 for T01.", feedback("assignment add a/Kattis: Week 3"));
         assertEquals(LIST_PS1_IN_T01, feedback("assignment list a/ps1"));
         TAssist expected = new TAssist(app.model.getTAssist());
 
         restart();
 
         assertEquals(expected, app.model.getTAssist());
-        assertEquals(List.of(TypicalAssignments.PS1.getName().fullName, "Mid-term 1"),
+        assertEquals(List.of(TypicalAssignments.PS1.getName().fullName, "Mid-term 1", "PS1.5", "Lab 2 (Graphs)",
+                        "Kattis: Week 3"),
                 app.model.getActiveGroup().orElseThrow().getAssignmentList().stream()
                         .map(assignment -> assignment.getName().fullName).toList());
         assertEquals(LIST_PS1_IN_T01, feedback("assignment list a/PS1"));

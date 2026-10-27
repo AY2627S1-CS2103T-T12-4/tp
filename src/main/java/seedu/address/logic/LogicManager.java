@@ -24,6 +24,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.StudentDisplayState;
 import seedu.address.model.TAssist;
+import seedu.address.model.TAssistHistory;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
@@ -88,11 +89,13 @@ public class LogicManager implements Logic {
         Command command = tAssistParser.parseCommand(commandText);
         TAssist previousData = new TAssist(model.getTAssist());
         StudentDisplayState previousDisplay = model.getStudentDisplayState();
+        TAssistHistory previousHistory = model.getTAssistHistory();
         try {
-            return executeAndSave(command, previousData);
+            return executeAndSave(command, previousData, describe(commandText));
         } catch (CommandException e) {
             model.setTAssist(previousData);
             model.setStudentDisplayState(previousDisplay);
+            model.setTAssistHistory(previousHistory);
             assert previousData.equals(model.getTAssist()) : "A failed command must leave data unchanged";
             throw e;
         }
@@ -104,7 +107,8 @@ public class LogicManager implements Logic {
         return tAssistParser.parseCommand(commandText).getConfirmationPrompt(model);
     }
 
-    private CommandResult executeAndSave(Command command, TAssist previousData) throws CommandException {
+    private CommandResult executeAndSave(Command command, TAssist previousData, String description)
+            throws CommandException {
         CommandResult commandResult = command.execute(model);
 
         if (previousData.equals(model.getTAssist())) {
@@ -116,7 +120,17 @@ public class LogicManager implements Logic {
         }
 
         saveData();
+        if (command.isUndoable()) {
+            model.commitTAssist(previousData, description);
+        }
         return commandResult.withSavedChanges();
+    }
+
+    /**
+     * Returns the command as entered, without surrounding or repeated whitespace, to describe it in undo history.
+     */
+    private static String describe(String commandText) {
+        return commandText.trim().replaceAll("\\s+", " ");
     }
 
     private void saveData() throws CommandException {

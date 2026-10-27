@@ -24,23 +24,41 @@ public class TAssistArgumentParser {
     public static final String MESSAGE_UNEXPECTED_TEXT =
             "Unexpected text before parameters: '%s'. Start each parameter with an allowed prefix: %s.";
     public static final String MESSAGE_NO_PARAMETERS = "This command takes no parameters. Remove the extra input.";
+    public static final String MESSAGE_EXTRA_TEXT =
+            "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
+    private final List<Prefix> singleWordPrefixes;
 
     /**
-     * Creates a parser with required and optional single-valued prefixes.
+     * Creates a parser with required and optional single-valued prefixes, none of which is limited to one word.
      *
      * @param requiredPrefixes The prefixes required exactly once.
      * @param optionalPrefixes The prefixes permitted at most once.
      * @throws IllegalArgumentException if prefixes are invalid, repeated, or both required and optional.
      */
     public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes) {
+        this(requiredPrefixes, optionalPrefixes, List.of());
+    }
+
+    /**
+     * Creates a parser with required and optional single-valued prefixes, some of which take a single word.
+     *
+     * @param requiredPrefixes The prefixes required exactly once.
+     * @param optionalPrefixes The prefixes permitted at most once.
+     * @param singleWordPrefixes The required or optional prefixes whose values cannot contain spaces.
+     * @throws IllegalArgumentException if prefixes are invalid, repeated, both required and optional, or if a
+     *         single-word prefix is not declared as required or optional.
+     */
+    public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes,
+            Collection<Prefix> singleWordPrefixes) {
         requireNonNull(requiredPrefixes);
         requireNonNull(optionalPrefixes);
+        requireNonNull(singleWordPrefixes);
         this.requiredPrefixes = List.copyOf(requiredPrefixes);
         allowedPrefixes = new LinkedHashSet<>();
         for (Prefix prefix : requiredPrefixes) {
@@ -49,6 +67,9 @@ public class TAssistArgumentParser {
         for (Prefix prefix : optionalPrefixes) {
             addAllowedPrefix(prefix);
         }
+        checkArgument(allowedPrefixes.containsAll(singleWordPrefixes),
+                "Single-word prefixes must be declared as required or optional.");
+        this.singleWordPrefixes = List.copyOf(singleWordPrefixes);
     }
 
     /**
@@ -60,6 +81,21 @@ public class TAssistArgumentParser {
      * @throws ParseException if the arguments violate the declared parameter rules.
      */
     public ArgumentMultimap parse(String arguments) throws ParseException {
+        ArgumentMultimap values = parseWithoutExtraTextCheck(arguments);
+        verifyNoExtraText(values);
+        return values;
+    }
+
+    /**
+     * Parses parameters as {@link #parse(String)} does, except that it does not check for extra text after
+     * single-word values. A caller that reports its own missing parameters must run those checks and then call
+     * {@link #verifyNoExtraText(ArgumentMultimap)}, so that a missing parameter is reported before extra text.
+     *
+     * @param arguments The command's arguments, excluding both command keywords.
+     * @return The checked prefix-value mapping.
+     * @throws ParseException if the arguments violate the declared parameter rules other than extra text.
+     */
+    public ArgumentMultimap parseWithoutExtraTextCheck(String arguments) throws ParseException {
         requireNonNull(arguments);
         if (allowedPrefixes.isEmpty() && !arguments.trim().isEmpty()) {
             throw new ParseException(MESSAGE_NO_PARAMETERS);
@@ -73,6 +109,21 @@ public class TAssistArgumentParser {
         values.verifyNoDuplicatePrefixesFor(allowedPrefixes.toArray(Prefix[]::new));
         verifyRequiredPrefixes(values);
         return values;
+    }
+
+    /**
+     * Checks that no single-word value of {@code values} is followed by extra text.
+     *
+     * @param values The mapping returned by {@link #parseWithoutExtraTextCheck(String)}.
+     * @throws ParseException if a single-word value contains spaces.
+     */
+    public void verifyNoExtraText(ArgumentMultimap values) throws ParseException {
+        for (Prefix prefix : singleWordPrefixes) {
+            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
+            if (words.length > 1) {
+                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            }
+        }
     }
 
     private void addAllowedPrefix(Prefix prefix) {

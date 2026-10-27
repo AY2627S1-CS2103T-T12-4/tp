@@ -92,6 +92,9 @@ public class TAssistParserUtilTest {
         assertEquals(new AssignmentName("Problem Set 1"), TAssistParserUtil.parseAssignmentName(" Problem   Set\t1 "));
         assertEquals("Problem Set 1", TAssistParserUtil.parseAssignmentName(" Problem   Set\t1 ").fullName);
         assertEquals("Mid-term", TAssistParserUtil.parseAssignmentName("Mid-term").fullName);
+        assertEquals("PS1.5", TAssistParserUtil.parseAssignmentName("PS1.5").fullName);
+        assertEquals("Lab 2 (Graphs)", TAssistParserUtil.parseAssignmentName(" Lab  2 (Graphs) ").fullName);
+        assertEquals("Kattis: Week 3", TAssistParserUtil.parseAssignmentName("Kattis: Week 3").fullName);
         assertEquals("A", TAssistParserUtil.parseAssignmentName("A").fullName);
         assertEquals("a".repeat(60), TAssistParserUtil.parseAssignmentName(" " + "a".repeat(60) + " ").fullName);
     }

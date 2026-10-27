@@ -18,12 +18,15 @@ final class StudentCommandParserUtil {
      */
     static ArgumentMultimap parse(String arguments, String usage, Prefix... prefixes) throws ParseException {
         // Check presence here so the error includes this command's complete format.
-        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(prefixes)).parse(arguments);
+        List<Prefix> singleWordPrefixes = List.of(prefixes).contains(PREFIX_ID) ? List.of(PREFIX_ID) : List.of();
+        TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(prefixes), singleWordPrefixes);
+        ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         for (Prefix prefix : prefixes) {
             if (values.getValue(prefix).isEmpty()) {
                 throw new ParseException("Missing required parameter. Usage: " + usage);
             }
         }
+        parser.verifyNoExtraText(values);
         return values;
     }
 }
