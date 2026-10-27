@@ -22,6 +22,7 @@ import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
 import seedu.address.testutil.StudentBuilder;
@@ -72,6 +73,14 @@ public class GroupTest {
         assertTrue(group.hasStudent(new StudentId("a0123456x")));
         assertEquals(Optional.of(ALICE), group.findStudent(ALICE.getStudentId()));
         assertFalse(group.hasStudent(BEN.getStudentId()));
+    }
+
+    @Test
+    public void hasStudentNamed_ignoresCaseAndExtraSpaces() {
+        group.addStudent(ALICE);
+        assertTrue(group.hasStudentNamed(new StudentName("alice  TAN")));
+        assertFalse(group.hasStudentNamed(new StudentName("Alice")));
+        assertFalse(group.hasStudentNamed(BEN.getName()));
     }
 
     @Test

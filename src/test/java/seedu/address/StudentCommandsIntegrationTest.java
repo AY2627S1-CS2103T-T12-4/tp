@@ -37,7 +37,8 @@ public class StudentCommandsIntegrationTest {
     @Test
     public void execute_studentCommandsAndRestart_preservesRosterAndDeletion() throws Exception {
         assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/a0123456x"));
-        assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/A2"));
+        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. "
+                + "Check that the student ID is correct.", feedback("student add n/Alice Tan id/A2"));
         assertEquals(2, app.logic.getActiveGroupStudentList().size());
         restart();
         assertEquals("Students in T01:\n1. Alice Tan | A0123456X\n2. Alice Tan | A2", feedback("student list"));
