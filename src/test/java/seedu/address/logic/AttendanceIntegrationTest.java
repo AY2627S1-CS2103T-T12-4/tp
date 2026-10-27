@@ -102,7 +102,10 @@ public class AttendanceIntegrationTest {
         assertEquals(ALICE.withAttendanceRecord(3, "PRESENT").withParticipationRecord(4, 3),
                 model.getGroup(TypicalGroups.NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow());
         logic.execute("attendance clear id/A0234567Y w/4");
-        assertFeedback("attendance list w/4", "No attendance records have been recorded for Week 4.");
+        assertFeedback("attendance list w/4", "Attendance for T01, Week 4:\n"
+                + "Alice Tan | A0123456X | Not recorded\n"
+                + "Ben Lim | A0234567Y | Not recorded\n"
+                + "Carl Goh | A0345678Z | Not recorded");
     }
 
     @Test

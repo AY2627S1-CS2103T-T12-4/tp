@@ -1669,7 +1669,7 @@ label.
    1. Enter the clear command again.
       Expected: `Alice Tan has no attendance recorded for Week 4. Nothing changed.`, and the footer does not say
       `Changes saved.`
-   1. Enter `attendance list w/4`. Expected: `No attendance records have been recorded for Week 4.`
+   1. Enter `attendance list w/4`. Expected: every student shows `Not recorded`.
    1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
    1. Enter `attendance clear id/A0123456X w/4 s/present`.
       Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
