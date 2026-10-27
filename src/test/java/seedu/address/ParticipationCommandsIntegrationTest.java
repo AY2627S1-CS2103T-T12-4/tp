@@ -1,12 +1,15 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -65,10 +68,14 @@ public class ParticipationCommandsIntegrationTest {
                 "participation set id/A0123456X w/3 s/2.5", "participation set id/A0123456X w/3 s/" + "9".repeat(10000),
                 "participation set id/A0123456X w/3 s/4 s/5", "participation set id/A0123456X w/3 x/4",
                 "participation set id/A0123456X w/3s/4", "participation list", "participation list w/14",
-                "participation list w/3 w/4", "participation list w/3 s/4", "participation", "participation mark")) {
+                "participation list w/3 w/4", "participation list w/3 s/4", "participation", "participation mark",
+                "participation clear", "participation clear id/A0123456X", "participation clear w/3",
+                "participation clear id/A0123456X w/0", "participation clear id/A0123456X w/3 s/2",
+                "participation clear id/A0123456X w/3 w/4")) {
             assertRejected(command, ParseException.class);
         }
         assertRejected("participation set id/A999 w/3 s/4", CommandException.class);
+        assertRejected("participation clear id/A999 w/3", CommandException.class);
     }
 
     @Test
@@ -77,22 +84,56 @@ public class ParticipationCommandsIntegrationTest {
         app.storage.saveTAssist(app.model.getTAssist());
         assertRejected("participation list w/3", CommandException.class);
         assertRejected("participation set id/A0123456X w/3 s/2", CommandException.class);
+        assertRejected("participation clear id/A0123456X w/3", CommandException.class);
     }
 
     @Test
     public void init_participationHelp_registersWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "participation");
-        assertEquals(List.of("participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK"),
+        assertEquals(List.of("participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
+                "participation clear id/STUDENT_ID w/WEEK"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing participation commands.", "participation"),
                 app.logic.execute("help participation"));
+        List<String> feedback = new ArrayList<>();
         for (HelpEntry entry : entries) {
             for (String example : entry.getExamples()) {
-                app.logic.execute(example);
+                feedback.add(app.logic.execute(example).getFeedbackToUser());
             }
         }
-        assertEquals(2, app.model.getGroup(NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow()
-                .getParticipationRecord(3).orElseThrow());
+        // The set example records a score that the clear example then removes.
+        assertEquals("Cleared Alice Tan's participation score for Week 3: 2 to Not recorded.", feedback.getLast());
+        assertTrue(app.model.getGroup(NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow()
+                .getParticipationRecord(3).isEmpty());
+    }
+
+    @Test
+    public void execute_clearAndRestart_removesOnlyThatScore() throws Exception {
+        feedback("participation set id/A0123456X w/3 s/0");
+        feedback("participation set id/A0123456X w/4 s/5");
+        feedback("participation set id/A0234567Y w/3 s/2");
+
+        assertEquals("Cleared Alice Tan's participation score for Week 3: 0 to Not recorded.",
+                feedback("participation clear id/a0123456x w/3"));
+        restart();
+
+        assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | Not recorded"
+                + "\nBen Lim | A0234567Y | 2\nCarl Goh | A0345678Z | Not recorded",
+                feedback("participation list w/3"));
+        assertEquals(5, app.model.getActiveGroupStudentList().getFirst().getParticipationRecord(4).orElseThrow());
+    }
+
+    @Test
+    public void execute_clearUnrecordedWeek_leavesSavedFileUntouched() throws Exception {
+        feedback("participation set id/A0123456X w/3 s/2");
+        String saved = Files.readString(dataFile);
+
+        CommandResult result = app.logic.execute("participation clear id/A0123456X w/4");
+
+        assertEquals("Alice Tan has no participation score recorded for Week 4. Nothing changed.",
+                result.getFeedbackToUser());
+        assertFalse(result.hasSavedChanges());
+        assertEquals(saved, Files.readString(dataFile));
     }
 
     private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {

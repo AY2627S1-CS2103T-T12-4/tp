@@ -69,7 +69,8 @@ the command box.
 * **Attendance** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `attendance mark`, `attendance list`, and `attendance clear`; the Attendance screen remains a preview.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `participation set` and `participation list` to record and view real scores in the feedback box.
+  Use `participation set`, `participation list`, and `participation clear` to record, view, and remove real scores
+  in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
   It contains no simulated records. Use `assignment add`, `assignment submit`, `assignment grade`, and
   `assignment list`; the Assignments screen remains a preview.
@@ -399,6 +400,22 @@ Students without a score show `Not recorded`, even if no scores have been entere
 A recorded zero shows `0`. An empty group shows `No students in T01.`
 Listing does not change scores. Successful score changes are saved automatically and restored when you reopen TAssist.
 
+### Clearing a participation score: `participation clear`
+
+Removes one student's participation score for a week, so that the week shows `Not recorded` again. Use it when you
+entered a score for the wrong student or the wrong week. Setting the score to 0 is not the same: 0 is a real score.
+
+Format: `participation clear id/STUDENT_ID w/WEEK`
+
+* `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
+* Only that student's score for that week is removed. Other weeks, other students, and attendance are kept.
+
+Example: if Alice Tan was given 2 for week 3 by mistake, `participation clear id/A0123456X w/3` shows
+`Cleared Alice Tan's participation score for Week 3: 2 to Not recorded.` Entering it again shows
+`Alice Tan has no participation score recorded for Week 3. Nothing changed.`
+
+The change is saved automatically, and `participation list` and `group export` no longer show the score.
+
 #### Participation command errors
 
 Rejected input leaves the existing scores and saved data file unchanged.
@@ -409,7 +426,7 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digits only, without a sign or decimal point.
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
-Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
+Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing; `id/` and `w/` for clearing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
 
 ### Creating an assignment: `assignment add`
@@ -661,6 +678,7 @@ Action | Format, Examples
 **Clear attendance** | `attendance clear id/STUDENT_ID w/WEEK`<br> e.g., `attendance clear id/A0123456X w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
+**Clear participation** | `participation clear id/STUDENT_ID w/WEEK`<br> e.g., `participation clear id/A0123456X w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`

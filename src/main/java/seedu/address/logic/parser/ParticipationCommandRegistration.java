@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
+import seedu.address.logic.commands.ParticipationClearCommand;
 import seedu.address.logic.commands.ParticipationListCommand;
 import seedu.address.logic.commands.ParticipationSetCommand;
 import seedu.address.logic.help.HelpEntry;
@@ -32,5 +33,11 @@ public final class ParticipationCommandRegistration {
                         "List every student in the active group with their score for a week from 1 to 13. "
                                 + "Missing scores show Not recorded.",
                         List.of("participation list w/3")));
+        registry.register("participation", "clear", new ParticipationClearCommandParser(),
+                new HelpEntry("participation", ParticipationClearCommand.MESSAGE_USAGE,
+                        "Remove a student's score for a week from 1 to 13, so that the week shows Not recorded "
+                                + "again. Use it to correct a score entered for the wrong student or week, since 0 "
+                                + "is a real score. IDs ignore case.",
+                        List.of("participation clear id/A0123456X w/3")));
     }
 }

@@ -37,6 +37,7 @@ public class HelpIntegrationTest {
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "attendance clear id/STUDENT_ID w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
+            "participation clear id/STUDENT_ID w/WEEK",
             "assignment add a/ASSIGNMENT_NAME", "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
             "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE", "assignment list a/ASSIGNMENT_NAME");
 
