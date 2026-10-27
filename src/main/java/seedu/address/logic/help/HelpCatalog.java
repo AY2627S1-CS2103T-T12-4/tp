@@ -24,7 +24,8 @@ public final class HelpCatalog {
                     "Open this reference, or open it at the commands of one topic: "
                             + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
-            new HelpEntry("", "exit", "Close TAssist. Your data is already saved after each change.",
+            new HelpEntry("", "exit",
+                    "Close TAssist. Takes no parameters. Your data is already saved after each change.",
                     List.of("exit")));
 
     private HelpCatalog() {

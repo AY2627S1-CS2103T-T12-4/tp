@@ -26,6 +26,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.GroupName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -54,9 +55,30 @@ public class MainAppTest {
         assertEquals("Switched active group to T01.", app.logic.execute("group use g/t01").getFeedbackToUser());
         assertEquals("1. T01\n2. T02\nActive group: T01", app.logic.execute("group list").getFeedbackToUser());
         assertEquals(CommandResult.forHelp("Showing group commands.", "group"), app.logic.execute("help group"));
-        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export"),
+        assertEquals(List.of("group add g/GROUP_NAME", "group list",
+                "group use g/GROUP_NAME", "group export", "group rename g/GROUP_NAME n/NEW_NAME",
+                "group delete g/GROUP_NAME [f/yes]"),
                 HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "group").stream()
                         .map(HelpEntry::getCommandFormat).toList());
+    }
+
+    @Test
+    public void init_afterGroupRenameAndDelete_savesChanges() throws Exception {
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile);
+        app.init();
+        app.logic.execute("group add g/T 01");
+        app.logic.execute("group add g/T02");
+
+        assertEquals("Renamed tutorial group T 01 to T01.", app.logic.execute("group rename g/T 01 n/T01")
+                .getFeedbackToUser());
+        assertEquals("T01", new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getGroupList().get(0).getName().toString());
+
+        app.logic.execute("group delete g/T02");
+        assertEquals(1, new JsonTAssistStorage(dataFile).readTAssist().orElseThrow().getGroupList().size());
+        assertEquals(Optional.empty(), new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getActiveGroup());
     }
 
     @Test
@@ -85,7 +107,7 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null", "{\"activeGroup\":\"unknown\"}")) {
+        for (String invalidData : List.of("{", "null")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
@@ -211,9 +233,8 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_invalidDataFile_startsEmptyAndKeepsFile() throws Exception {
-        String unknownActiveGroup = "{ \"activeGroup\" : \"T09\", \"groups\" : [ ] }";
         String missingBrackets = "{ \"groups\" : [ { \"name\" : \"T01\" }";
-        for (String invalidData : List.of(unknownActiveGroup, missingBrackets, "null")) {
+        for (String invalidData : List.of(missingBrackets, "null")) {
             Files.writeString(dataFile(), invalidData);
 
             Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
@@ -222,6 +243,16 @@ public class MainAppTest {
             assertEquals(invalidData, Files.readString(dataFile()));
             assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
         }
+    }
+
+    @Test
+    public void initModelManager_unknownActiveGroup_loadsDataWithNoActiveGroup() throws Exception {
+        Files.writeString(dataFile(), "{ \"activeGroup\" : \"T09\", \"groups\" : [ { \"name\" : \"T01\" } ] }");
+
+        Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
+
+        assertTrue(model.hasGroup(new GroupName("T01")));
+        assertEquals(Optional.empty(), model.getActiveGroup());
     }
 
     private Path dataFile() {

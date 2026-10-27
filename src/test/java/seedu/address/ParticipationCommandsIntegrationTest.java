@@ -46,7 +46,7 @@ public class ParticipationCommandsIntegrationTest {
         assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 2"
                 + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
                 feedback("participation list w/3"));
-        assertEquals("Updated Alice Tan's participation score for Week 3 to 4.",
+        assertEquals("Updated Alice Tan's participation score for Week 3: 2 to 4.",
                 feedback("participation set id/A0123456X w/3 s/4"));
         feedback("participation set id/A0123456X w/13 s/0");
         TAssist expected = new TAssist(app.model.getTAssist());

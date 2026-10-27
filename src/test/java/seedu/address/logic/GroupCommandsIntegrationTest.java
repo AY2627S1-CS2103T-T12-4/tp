@@ -59,9 +59,10 @@ public class GroupCommandsIntegrationTest {
 
     @Test
     public void execute_invalidGroupNames_preservesModelAndFile() throws Exception {
-        for (String subcommand : List.of("add", "use")) {
+        for (String subcommand : List.of("add", "delete", "use")) {
             String command = "group " + subcommand;
-            String missingName = "Missing group name. Usage: " + command + " g/GROUP_NAME";
+            String usage = "delete".equals(subcommand) ? command + " g/GROUP_NAME [f/yes]" : command + " g/GROUP_NAME";
+            String missingName = "Missing group name. Usage: " + usage;
             assertRejected(command, ParseException.class, missingName);
             assertRejected(command + " g/   ", ParseException.class, missingName);
             for (String name : List.of("T_01", "a".repeat(61), "--")) {
@@ -72,21 +73,24 @@ public class GroupCommandsIntegrationTest {
 
     @Test
     public void execute_malformedArguments_preservesModelAndFile() throws Exception {
-        for (String subcommand : List.of("add", "use")) {
+        for (String subcommand : List.of("add", "delete", "use")) {
             String command = "group " + subcommand;
+            String allowedPrefixes = "delete".equals(subcommand) ? "g/ f/" : "g/";
             assertRejected(command + " g/T01 g/T02", ParseException.class,
                     Messages.getErrorMessageForDuplicatePrefixes(new Prefix("g/")));
             assertRejected(command + " n/T01", ParseException.class,
-                    String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "g/"));
+                    String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", allowedPrefixes));
             assertRejected(command + " T01", ParseException.class,
-                    String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "T01", "g/"));
+                    String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "T01", allowedPrefixes));
         }
+        assertRejected("group rename g/T01", ParseException.class,
+                "Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME");
         assertRejected("group list g/T01", ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
         assertRejected("group export g/T01", ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
         assertRejected("group", ParseException.class, String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
-                "group", "add, export, list, use", "group"));
+                "group", "add, delete, export, list, rename, use", "group"));
         assertRejected("group remove", ParseException.class, String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
-                "remove", "group", "add, export, list, use"));
+                "remove", "group", "add, delete, export, list, rename, use"));
     }
 
     @Test
@@ -95,6 +99,10 @@ public class GroupCommandsIntegrationTest {
         assertRejected("group add g/ tutorial   1 ", CommandException.class,
                 "A tutorial group named Tutorial 1 already exists.");
         assertRejected("group use g/T04", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group delete g/T04", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group rename g/T04 n/T05", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group rename g/T01 n/ t03 ", CommandException.class,
+                "A tutorial group named T03 already exists.");
     }
 
     @Test

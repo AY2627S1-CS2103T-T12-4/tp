@@ -111,6 +111,23 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Group removeGroup(GroupName name) {
+        requireNonNull(name);
+        Group removed = tAssist.removeGroup(name);
+        logger.info("Removed group " + removed.getName());
+        trackActiveGroup();
+        return removed;
+    }
+
+    @Override
+    public void renameGroup(GroupName name, GroupName newName) {
+        requireAllNonNull(name, newName);
+        tAssist.renameGroup(name, newName);
+        logger.info("Renamed group " + name + " to " + newName);
+        trackActiveGroup();
+    }
+
+    @Override
     public void setActiveGroup(GroupName name) {
         requireNonNull(name);
         tAssist.setActiveGroup(name);

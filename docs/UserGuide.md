@@ -5,7 +5,7 @@ title: User Guide
 
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
-You can create, list, and switch tutorial groups, add, list, and delete their students, record weekly attendance,
+You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
 record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
 
 * Table of Contents
@@ -105,7 +105,8 @@ first Up brings back the command before it. The history starts empty each time y
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* `exit` ignores extra input: `exit 123` is interpreted as `exit`. `group list` and `student list` reject extra input.
+* Commands that take no parameters, such as `exit`, `group list`, and `student list`, reject extra input like
+  `exit 123`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
@@ -201,18 +202,45 @@ Format: `group use g/GROUP_NAME`
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
 `group use g/t01` does the same.
 
+### Renaming a tutorial group: `group rename`
+
+Changes the name of an existing tutorial group, for example to fix a typo. The group keeps its students, records,
+position in the list, and active status.
+
+Format: `group rename g/GROUP_NAME n/NEW_NAME`
+
+* The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
+* Changing only the capitalization or spacing of a group's own name, such as `T01` to `t01`, is allowed.
+
+Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02-Thu.`
+
+### Deleting a tutorial group: `group delete`
+
+Deletes a tutorial group together with all its students and their records. **This cannot be undone**, so check the
+name with `group list` first. Other groups are unchanged. If the deleted group was active, no group is active
+afterwards; select one with `group use`.
+
+Format: `group delete g/GROUP_NAME [f/yes]`
+
+* TAssist first asks you to confirm. The prompt names the group and how many students will be deleted. Cancel is
+  selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+* Add `f/yes` to skip the prompt.
+
+Example: `group delete g/T02-Thu` asks whether to delete T02-Thu and its students. After you confirm, it shows
+`Deleted tutorial group T02-Thu and its 0 student(s).` To skip the question, enter `group delete g/T02-Thu f/yes`.
+
 #### Tutorial-group command errors
 
 Rejected group commands do not change the groups, the active selection, or the saved data file.
 
 Problem | Feedback and correction
 --------|------------------------
-Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`.
-Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`.
-Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use` usage). Supply a name after `g/`.
+Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`. This also applies to `group rename` when `n/` names another group.
+Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`. `group use`, `group rename`, and `group delete` all report it.
+Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
-Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `export`, `list`, and `use`.
+Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
 
 ### Adding a student: `student add`
 
@@ -332,16 +360,17 @@ Format: `attendance mark id/STUDENT_ID w/WEEK s/STATUS`
 
 * `WEEK` is a whole number from 1 to 13. `STATUS` is `present` or `absent`, ignoring case.
 * Student IDs ignore case. Supply each prefix exactly once, in any order, separated by spaces.
-* Repeating a mark for the same student and week replaces the earlier mark, even if the status is the same.
-  Other students, weeks, and participation records are preserved.
+* Repeating a mark for the same student and week replaces the earlier mark, and the feedback shows the old and
+  new status. Other students, weeks, and participation records are preserved.
 
 For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` shows
 `Recorded Alice Tan as present for Week 3.` Re-entering it with `s/absent` shows
-`Updated Alice Tan's attendance for Week 3 to absent.`
+`Updated Alice Tan's attendance for Week 3: present to absent.` Entering `s/absent` again shows
+`Alice Tan's attendance for Week 3 is already absent. Nothing changed.`
 
 Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
 an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
-`Student does not exist in the active group.` With no active group, use `group add g/GROUP_NAME` or
+`Student ID A0999999Z does not exist in T01.` With no active group, use `group add g/GROUP_NAME` or
 `group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
 
 ### Listing weekly attendance: `attendance list`
@@ -375,13 +404,14 @@ Format: `participation set id/STUDENT_ID w/WEEK s/SCORE`
 * `WEEK` is a whole number from 1 to 13. `SCORE` is a whole number from 0 to 5, including zero.
 * Student IDs ignore case. The ID must belong to the active group.
 * Supply each prefix exactly once, in any order, with spaces between parameters.
-* Setting the same student and week again replaces the score, including when the value is unchanged.
+* Setting the same student and week again replaces the score, and the feedback shows the old and new score.
   Other weeks, other students, and other groups are unaffected.
 
 Example: `participation set id/A0123456X w/3 s/2` shows
 `Recorded participation score 2 for Alice Tan in Week 3.`
 Then `participation set id/A0123456X w/3 s/4` shows
-`Updated Alice Tan's participation score for Week 3 to 4.`
+`Updated Alice Tan's participation score for Week 3: 2 to 4.`
+Setting the same score again shows `Alice Tan's participation score for Week 3 is already 4. Nothing changed.`
 
 ### Listing participation: `participation list`
 
@@ -408,7 +438,7 @@ Rejected input leaves the existing scores and saved data file unchanged.
 Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digits only, without a sign or decimal point.
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
@@ -484,7 +514,7 @@ Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spac
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
-Unknown student | `Student does not exist in the active group.` Check the ID and selected group.
+Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
@@ -539,6 +569,9 @@ Exits the program.
 
 Format: `exit`
 
+`exit` takes no parameters. Extra input, such as `exit now`, is rejected with
+`This command takes no parameters. Remove the extra input.` and TAssist stays open.
+
 ### Saving the data
 
 TAssist automatically saves your tutorial groups, their students, assignments and assignment records, attendance,
@@ -587,21 +620,23 @@ The file looks like this:
 }
 ```
 
-* `activeGroup` is the name of the active group, or `null` if no group is active. It must match the name of one of
-  the groups, ignoring case.
+* `activeGroup` is the name of the active group, or `null` if no group is active. It should match the name of one of
+  the groups, ignoring case. If it names no group, TAssist still loads every group and starts with no active group.
 * Each group needs a `name`. No two groups may have the same name, ignoring case.
 * A group's optional `assignments` list holds the assignment names, in creation order, such as `"PS1"`. Names follow
   the same rules as when you type them, and no two names in a group may be the same, ignoring case. An invalid,
   empty, or repeated name makes the file invalid. An omitted list means the group has no assignments.
 * A group's optional `assignmentRecords` list stores explicit records by assignment and student. Each entry needs an
   existing `assignmentName`, an existing `studentId`, and a boolean `submitted`; its optional `grade` must be a whole
-  number from 0 to 100 and requires `submitted` to be `true`. Duplicate assignment/student pairs and references to
-  missing assignments or students make the file invalid. Older files can omit this list.
+  number from 0 to 100 and requires `submitted` to be `true`. A fractional grade such as `87.5` makes the file
+  invalid, while `87.0` is read as `87`. Duplicate assignment/student pairs and references to missing assignments
+  or students make the file invalid. Older files can omit this list.
 * Each student needs a `name` and a `studentId`. No two students in a group may have the same student ID, ignoring
   case.
 * A student's optional `participation` map stores week numbers as keys and scores as values, such as `"3" : 2`.
-  Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A week or score outside that range makes the
-  file invalid. An omitted map means no scores have been recorded.
+  Weeks must be 1–13 and scores must be whole numbers from 0 to 5. A fractional score such as `4.5`, or a week or
+  score outside that range, makes the file invalid. A score such as `4.0` is read as `4`. An omitted map means no
+  scores have been recorded.
 * Group names, student names, and student IDs follow the same rules as when you type them in a command.
 * `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
   Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance
@@ -646,6 +681,8 @@ Action | Format, Examples
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
+**Rename group** | `group rename g/GROUP_NAME n/NEW_NAME`<br> e.g., `group rename g/T02 n/T02-Thu`
+**Delete group** | `group delete g/GROUP_NAME [f/yes]`<br> e.g., `group delete g/T02-Thu`
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`

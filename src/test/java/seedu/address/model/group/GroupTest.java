@@ -25,6 +25,7 @@ import seedu.address.model.student.StudentId;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
 import seedu.address.testutil.StudentBuilder;
+import seedu.address.testutil.TypicalAssignments;
 
 public class GroupTest {
 
@@ -224,6 +225,19 @@ public class GroupTest {
         Group differentName = new Group(new GroupName("T02"));
         differentName.addStudent(ALICE);
         assertFalse(group.equals(differentName));
+    }
+
+    @Test
+    public void withName_returnsCopyWithNewNameAndSameStudentsAndAssignments() {
+        group.addStudent(ALICE);
+        group.addAssignment(TypicalAssignments.PS1);
+
+        Group renamed = group.withName(new GroupName("T09"));
+
+        assertEquals(new GroupName("T09"), renamed.getName());
+        assertEquals(group.getStudentList(), renamed.getStudentList());
+        assertEquals(List.of(TypicalAssignments.PS1), renamed.getAssignmentList());
+        assertEquals(NAME_T01, group.getName());
     }
 
     @Test
