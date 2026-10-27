@@ -88,6 +88,51 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void parse_literalWords_keptInValueIgnoringCase() throws Exception {
+        TAssistArgumentParser literalParser = new TAssistArgumentParser(
+                List.of(PREFIX_NAME, PREFIX_ID), List.of(), List.of("s/o", "D/O"));
+
+        ArgumentMultimap values = literalParser.parse("n/Ravi s/o Kumar id/A1");
+        assertEquals("Ravi s/o Kumar", values.getValue(PREFIX_NAME).orElseThrow());
+        assertEquals("A1", values.getValue(PREFIX_ID).orElseThrow());
+        assertEquals("SITI D/O AHMAD s/o X", literalParser.parse("id/A1 n/SITI D/O AHMAD s/o X")
+                .getValue(PREFIX_NAME).orElseThrow());
+        assertEquals("Ravi\ts/o\tKumar", literalParser.parse("n/Ravi\ts/o\tKumar id/A1")
+                .getValue(PREFIX_NAME).orElseThrow());
+    }
+
+    @Test
+    public void parse_literalWordNotStandingAlone_throwsUnknownPrefix() {
+        TAssistArgumentParser literalParser = new TAssistArgumentParser(
+                List.of(PREFIX_NAME, PREFIX_ID), List.of(), List.of("s/o"));
+        for (String input : new String[] {"n/Ravi s/oKumar id/A1", "n/Ravi s/ o Kumar id/A1",
+            "n/Ravi s/o/ Kumar id/A1", "n/Ravi x/o Kumar id/A1"}) {
+            String prefix = input.contains("x/") ? "x/" : "s/";
+            assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, prefix,
+                    "n/ id/"), () -> literalParser.parse(input));
+        }
+        // Without declared literal words, s/o is still an unknown prefix.
+        assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/",
+                "n/ id/ g/"), () -> parser.parse("n/Ravi s/o Kumar id/A1"));
+    }
+
+    @Test
+    public void parse_literalWordBeforeFirstPrefix_throwsUnexpectedText() {
+        TAssistArgumentParser literalParser = new TAssistArgumentParser(
+                List.of(PREFIX_NAME), List.of(), List.of("s/o"));
+        assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "s/o",
+                "n/"), () -> literalParser.parse("s/o n/Kumar"));
+    }
+
+    @Test
+    public void constructor_invalidLiteralWords_throwsIllegalArgumentException() {
+        for (String literalWord : new String[] {"", "so", "s/", "/o", "s/o/x", "s o/x", "n/o"}) {
+            assertThrows(IllegalArgumentException.class, () ->
+                    new TAssistArgumentParser(List.of(PREFIX_NAME), List.of(), List.of(literalWord)));
+        }
+    }
+
+    @Test
     public void constructor_invalidOrRepeatedPrefixes_throwsIllegalArgumentException() {
         for (String prefix : new String[] {"", "N/", "n", "n /", "1/"}) {
             assertThrows(IllegalArgumentException.class, () ->
@@ -114,6 +159,7 @@ public class TAssistArgumentParserTest {
     public void nullInputs_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new TAssistArgumentParser(null, List.of()));
         assertThrows(NullPointerException.class, () -> new TAssistArgumentParser(List.of(), null));
+        assertThrows(NullPointerException.class, () -> new TAssistArgumentParser(List.of(), List.of(), null));
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
 

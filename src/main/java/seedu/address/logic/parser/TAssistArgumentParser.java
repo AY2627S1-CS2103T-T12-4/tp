@@ -6,6 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +17,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 /**
  * Parses TAssist prefix-value parameters and checks each command's declared parameter rules.
  * Prefixes start at the beginning of input or after whitespace. Each allowed prefix may appear at most once.
+ * A command may also declare literal words, such as {@code s/o} in a name, that look like a prefix followed by text
+ * but belong to a value.
  */
 public class TAssistArgumentParser {
     public static final String MESSAGE_UNKNOWN_PREFIX = "Unknown prefix '%s'. Allowed prefixes: %s.";
@@ -27,9 +30,12 @@ public class TAssistArgumentParser {
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
+    private static final Pattern LITERAL_WORD_FORMAT = Pattern.compile("[^\\s/]+/[^\\s/]+");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
+    /** Literal words in lowercase. */
+    private final Set<String> literalWords;
 
     /**
      * Creates a parser with required and optional single-valued prefixes.
@@ -39,8 +45,25 @@ public class TAssistArgumentParser {
      * @throws IllegalArgumentException if prefixes are invalid, repeated, or both required and optional.
      */
     public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes) {
+        this(requiredPrefixes, optionalPrefixes, List.of());
+    }
+
+    /**
+     * Creates a parser with required and optional single-valued prefixes, and words that stay part of a value.
+     * A literal word, such as {@code s/o}, is text rather than a prefix when it stands alone between spaces.
+     * Matching ignores case.
+     *
+     * @param requiredPrefixes The prefixes required exactly once.
+     * @param optionalPrefixes The prefixes permitted at most once.
+     * @param literalWords The words that look like a prefix followed by text but belong to a value.
+     * @throws IllegalArgumentException if prefixes are invalid, repeated, or both required and optional, or if a
+     *     literal word is not a single word with one slash inside it, or starts with an allowed prefix.
+     */
+    public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes,
+            Collection<String> literalWords) {
         requireNonNull(requiredPrefixes);
         requireNonNull(optionalPrefixes);
+        requireNonNull(literalWords);
         this.requiredPrefixes = List.copyOf(requiredPrefixes);
         allowedPrefixes = new LinkedHashSet<>();
         for (Prefix prefix : requiredPrefixes) {
@@ -48,6 +71,10 @@ public class TAssistArgumentParser {
         }
         for (Prefix prefix : optionalPrefixes) {
             addAllowedPrefix(prefix);
+        }
+        this.literalWords = new LinkedHashSet<>();
+        for (String literalWord : literalWords) {
+            addLiteralWord(literalWord);
         }
     }
 
@@ -80,6 +107,16 @@ public class TAssistArgumentParser {
         checkArgument(allowedPrefixes.add(prefix), "Prefix declared more than once: " + prefix);
     }
 
+    private void addLiteralWord(String literalWord) {
+        requireNonNull(literalWord);
+        checkArgument(LITERAL_WORD_FORMAT.matcher(literalWord).matches(),
+                "Literal words must be one word with a slash inside it: " + literalWord);
+        Prefix wordPrefix = new Prefix(literalWord.substring(0, literalWord.indexOf('/') + 1));
+        checkArgument(!allowedPrefixes.contains(wordPrefix),
+                "Literal word starts with an allowed prefix: " + literalWord);
+        literalWords.add(literalWord.toLowerCase(Locale.ROOT));
+    }
+
     private ArgumentMultimap tokenize(String arguments) throws ParseException {
         ArgumentMultimap values = new ArgumentMultimap();
         Matcher matcher = PREFIX_FORMAT.matcher(arguments);
@@ -88,6 +125,9 @@ public class TAssistArgumentParser {
         while (matcher.find()) {
             Prefix nextPrefix = new Prefix(matcher.group(1));
             if (!allowedPrefixes.contains(nextPrefix)) {
+                if (isLiteralWordAt(arguments, matcher.start())) {
+                    continue;
+                }
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_PREFIX, nextPrefix, formatAllowedPrefixes()));
             }
             values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
@@ -96,6 +136,17 @@ public class TAssistArgumentParser {
         }
         values.put(currentPrefix, arguments.substring(valueStart).trim());
         return values;
+    }
+
+    /**
+     * Returns true if the whitespace-delimited word that starts at {@code start} is a declared literal word.
+     */
+    private boolean isLiteralWordAt(String arguments, int start) {
+        int end = start;
+        while (end < arguments.length() && !Character.isWhitespace(arguments.charAt(end))) {
+            end++;
+        }
+        return literalWords.contains(arguments.substring(start, end).toLowerCase(Locale.ROOT));
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
