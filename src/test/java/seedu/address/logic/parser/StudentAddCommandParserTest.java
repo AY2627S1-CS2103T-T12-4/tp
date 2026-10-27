@@ -28,6 +28,33 @@ public class StudentAddCommandParserTest {
     }
 
     @Test
+    public void parse_slashParticleInName_keepsParticleInName() {
+        String[][] cases = {
+            {"n/Ravi s/o Kumar id/A0345678Z", "Ravi s/o Kumar"},
+            {"id/A0345678Z n/Siti D/O Ahmad", "Siti D/O Ahmad"},
+            {"n/Ahmad a/l Ismail id/A0345678Z", "Ahmad a/l Ismail"},
+            {"n/ Nur   a/p  Hassan  id/A0345678Z", "Nur a/p Hassan"}
+        };
+        for (String[] testCase : cases) {
+            assertParseSuccess(parser, testCase[0], new StudentAddCommand(new StudentBuilder()
+                    .withName(testCase[1]).withStudentId("A0345678Z").build()));
+        }
+    }
+
+    @Test
+    public void parse_misplacedSlashParticle_reportsNameConstraints() {
+        for (String name : new String[] {"Ravi s/o", "s/o Kumar", "Ravi s/o d/o Kumar"}) {
+            assertParseFailure(parser, "n/" + name + " id/A0345678Z", StudentName.MESSAGE_CONSTRAINTS);
+        }
+        // A particle joined to the next word is still read as a prefix, with a hint to separate it.
+        assertParseFailure(parser, "n/Ravi s/oKumar id/A0345678Z",
+                "Unknown prefix 's/'. Allowed prefixes: n/ id/. If s/o is part of the value, put a space before and "
+                        + "after it.");
+        assertParseFailure(parser, "s/o n/Kumar id/A0345678Z",
+                String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "s/o", "n/ id/"));
+    }
+
+    @Test
     public void parse_missingParameter_reportsUsage() {
         for (String input : new String[] {"", "n/Alice Tan", "id/A0123456X", "n/Aliceid/A0123456X"}) {
             assertParseFailure(parser, input, "Missing required parameter. Usage: " + StudentAddCommand.MESSAGE_USAGE);

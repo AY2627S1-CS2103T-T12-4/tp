@@ -25,6 +25,18 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_namesWithSlashParticles_addedAndRestored() throws Exception {
+        assertEquals("Added Ravi s/o Kumar to T01.", feedback("student add n/Ravi s/o Kumar id/A0345678Z"));
+        assertEquals("Added Siti D/O Ahmad to T01.", feedback("student add n/Siti D/O Ahmad id/A0456789W"));
+        restart();
+        assertEquals("Students in T01:\n1. Ravi s/o Kumar | A0345678Z\n2. Siti D/O Ahmad | A0456789W",
+                feedback("student list"));
+        // The particle does not change how the other commands of the group read their own s/ prefixes.
+        assertEquals("Recorded Ravi s/o Kumar as present for Week 3.",
+                feedback("attendance mark id/A0345678Z w/3 s/present"));
+    }
+
+    @Test
     public void execute_studentCommandsAndRestart_preservesRosterAndDeletion() throws Exception {
         assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/a0123456x"));
         assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. "
