@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +32,8 @@ public class TAssistArgumentParser {
             "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
     public static final String MESSAGE_SEPARATE_LITERAL_WORD =
             " If %s is part of the value, put a space before and after it.";
+    public static final String MESSAGE_MISSING_SPACE =
+            "Missing space before %s in '%s'. Put a space before each prefix.";
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
@@ -160,6 +163,27 @@ public class TAssistArgumentParser {
         }
     }
 
+    /**
+     * Checks that {@code missingPrefix}, which has no value in {@code values}, was not typed right after another
+     * value's text without a space, as {@code w/} is in {@code id/A0123456Xw/3}.
+     *
+     * @param values The mapping returned by {@link #parseWithoutExtraTextCheck(String)}.
+     * @param missingPrefix The allowed prefix that has no value.
+     * @throws ParseException if another value contains {@code missingPrefix} right after other text.
+     */
+    public void verifyNoMissingSpaceBefore(ArgumentMultimap values, Prefix missingPrefix) throws ParseException {
+        requireNonNull(values);
+        requireNonNull(missingPrefix);
+        assert values.getValue(missingPrefix).isEmpty() : "Only a missing prefix can be joined to another value";
+        Pattern joinedPrefix = Pattern.compile("\\S" + Pattern.quote(missingPrefix.getPrefix()));
+        for (Prefix prefix : allowedPrefixes) {
+            Optional<String> value = values.getValue(prefix);
+            if (value.isPresent() && joinedPrefix.matcher(value.get()).find()) {
+                throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix, prefix + value.get()));
+            }
+        }
+    }
+
     private void addAllowedPrefix(Prefix prefix) {
         checkArgument(TAssistParserUtil.isValidPrefix(prefix), "Prefixes must be lowercase words followed by '/'.");
         checkArgument(allowedPrefixes.add(prefix), "Prefix declared more than once: " + prefix);
@@ -231,12 +255,16 @@ public class TAssistArgumentParser {
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
-        String missingPrefixes = requiredPrefixes.stream()
+        List<Prefix> missingPrefixes = requiredPrefixes.stream()
                 .filter(prefix -> values.getValue(prefix).isEmpty())
-                .map(Prefix::toString)
-                .collect(Collectors.joining(" "));
+                .toList();
+        for (Prefix missingPrefix : missingPrefixes) {
+            verifyNoMissingSpaceBefore(values, missingPrefix);
+        }
         if (!missingPrefixes.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes));
+            throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes.stream()
+                    .map(Prefix::toString)
+                    .collect(Collectors.joining(" "))));
         }
     }
 

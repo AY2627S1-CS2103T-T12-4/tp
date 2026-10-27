@@ -156,7 +156,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X s/absent", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
         assertFailureUnchanged("attendance mark id/A0123456Xw/3 s/absent", ParseException.class,
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0123456Xw/3"));
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/absent s/present", ParseException.class,
                 Messages.MESSAGE_DUPLICATE_FIELDS + "s/");
         assertFailureUnchanged("attendance list w/3 x/value", ParseException.class,

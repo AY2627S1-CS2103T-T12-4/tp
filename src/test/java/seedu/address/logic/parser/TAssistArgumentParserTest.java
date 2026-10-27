@@ -61,6 +61,14 @@ public class TAssistArgumentParserTest {
         assertMissingParameters("g/T01", "n/ id/");
         assertMissingParameters("id/A1", "n/");
         assertMissingParameters("n/Alice", "id/");
+        assertMissingParameters("n/Alice g/T01-id", "id/");
+    }
+
+    @Test
+    public void parse_missingSpaceBeforePrefix_namesJoinedPrefix() {
+        assertMissingSpace("n/Aliceid/A1", "id/", "n/Aliceid/A1");
+        assertMissingSpace("id/A1n/Alice g/T01", "n/", "id/A1n/Alice");
+        assertMissingSpace("n/Alice g/T01,id/A1", "id/", "g/T01,id/A1");
     }
 
     @Test
@@ -211,6 +219,11 @@ public class TAssistArgumentParserTest {
     private void assertMissingParameters(String input, String missingPrefixes) {
         assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS,
                 missingPrefixes), () -> parser.parse(input));
+    }
+
+    private void assertMissingSpace(String input, String missingPrefix, String joinedText) {
+        assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, missingPrefix,
+                joinedText), () -> parser.parse(input));
     }
 
     private void assertExtraText(String input, String precedingText, String extraText) {

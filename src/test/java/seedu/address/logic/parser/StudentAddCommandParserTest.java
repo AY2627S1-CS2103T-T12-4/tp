@@ -56,9 +56,17 @@ public class StudentAddCommandParserTest {
 
     @Test
     public void parse_missingParameter_reportsUsage() {
-        for (String input : new String[] {"", "n/Alice Tan", "id/A0123456X", "n/Aliceid/A0123456X"}) {
+        for (String input : new String[] {"", "n/Alice Tan", "id/A0123456X"}) {
             assertParseFailure(parser, input, "Missing required parameter. Usage: " + StudentAddCommand.MESSAGE_USAGE);
         }
+    }
+
+    @Test
+    public void parse_missingSpaceBeforePrefix_reportsMissingSpace() {
+        assertParseFailure(parser, "n/Aliceid/A0123456X",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "n/Aliceid/A0123456X"));
+        assertParseFailure(parser, "id/A0123456Xn/Alice Tan",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "n/", "id/A0123456Xn/Alice Tan"));
     }
 
     @Test
