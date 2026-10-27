@@ -491,8 +491,8 @@ changes nothing when the week has no score.
   * Pros: Fixes any mistake, not only weekly records.
   * Cons: It only helps right after the mistake. A wrong mark noticed a week later stays in the data and the export.
 
-All three commands use the standard feedback box and keep the current screen selected. The Participation table remains
-a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+`participation set`, `participation list`, and `participation clear` use the standard feedback box and keep the
+current screen selected. The Participation table remains a preview and points users to the commands. Existing JSON storage already persists participation records, so the
 feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
 it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
 restart persistence, clearing a score, and rejected commands preserving existing records and the file. Command and
