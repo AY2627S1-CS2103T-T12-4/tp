@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.AttendanceClearCommand;
 import seedu.address.logic.commands.AttendanceListCommand;
 import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.commands.CommandResult;
@@ -17,7 +18,7 @@ import seedu.address.model.student.AttendanceStatus;
 
 public class AttendanceCommandRegistrationTest {
     @Test
-    public void registerCommands_dispatchesBothCommandsAndProvidesHelp() throws Exception {
+    public void registerCommands_dispatchesEveryCommandAndProvidesHelp() throws Exception {
         CommandRegistry registry = new CommandRegistry();
         AttendanceCommandRegistration.registerCommands(registry);
         TAssistParser parser = new TAssistParser(registry);
@@ -25,7 +26,10 @@ public class AttendanceCommandRegistrationTest {
         assertEquals(new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.PRESENT),
                 parser.parseCommand(" attendance   mark id/A0123456X w/3 s/present "));
         assertEquals(new AttendanceListCommand(3), parser.parseCommand("attendance list w/3"));
-        assertEquals(List.of(AttendanceMarkCommand.MESSAGE_USAGE, AttendanceListCommand.MESSAGE_USAGE),
+        assertEquals(new AttendanceClearCommand(ALICE.getStudentId(), 3),
+                parser.parseCommand("attendance clear id/a0123456x w/3"));
+        assertEquals(List.of(AttendanceMarkCommand.MESSAGE_USAGE, AttendanceListCommand.MESSAGE_USAGE,
+                        AttendanceClearCommand.MESSAGE_USAGE),
                 parser.getHelpEntries().stream().filter(entry -> entry.getTopic().equals("attendance"))
                         .map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing attendance commands.", "attendance"),

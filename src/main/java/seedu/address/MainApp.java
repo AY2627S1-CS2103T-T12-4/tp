@@ -4,8 +4,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -13,6 +18,7 @@ import seedu.address.commons.core.AppHome;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -128,13 +134,54 @@ public class MainApp extends Application {
             }
             initialData = tAssistOptional.orElseGet(TAssist::new);
         } catch (DataLoadingException e) {
-            dataLoadStatus = DataLoadStatus.FAILED;
+            dataLoadStatus = DataLoadStatus.failed(describeLoadFailure(e));
             logger.warning("Data file at " + dataFilePath + " could not be loaded: " + e.getCause().getMessage()
                     + " Starting with an empty TAssist.");
             initialData = new TAssist();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Returns a short reason that the saved data could not be loaded, which the TA can use to repair the file.
+     */
+    static String describeLoadFailure(DataLoadingException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof IllegalValueException) {
+            return Objects.toString(cause.getMessage(), "");
+        }
+        Optional<String> rejectedValue = findRejectedValueMessage(cause);
+        if (rejectedValue.isPresent()) {
+            return rejectedValue.get();
+        }
+        if (cause instanceof JsonProcessingException processingException) {
+            return "The file has a JSON syntax error or a value of the wrong type"
+                    + formatLocation(processingException.getLocation()) + ".";
+        }
+        return "The file could not be opened.";
+    }
+
+    /**
+     * Returns the message of a value that a JSON creator rejected, such as a repeated week, which Jackson wraps in a
+     * mapping exception. A week that is not a number is not included, as its message is not meant for the TA.
+     */
+    private static Optional<String> findRejectedValueMessage(Throwable cause) {
+        if (cause instanceof JsonMappingException && cause.getCause() instanceof IllegalArgumentException rejection
+                && !(rejection instanceof NumberFormatException) && rejection.getMessage() != null) {
+            return Optional.of(rejection.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns where Jackson stopped reading. Only the line is shown, as its column can point past an unknown word.
+     */
+    private static String formatLocation(JsonLocation location) {
+        if (location == null || location.getLineNr() < 1) {
+            return "";
+        }
+        return " near line " + location.getLineNr();
     }
 
     DataLoadStatus getDataLoadStatus() {

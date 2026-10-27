@@ -67,9 +67,10 @@ the command box.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
 * **Attendance** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `attendance mark` and `attendance list`; the Attendance screen remains a preview.
+  Use `attendance mark`, `attendance list`, and `attendance clear`; the Attendance screen remains a preview.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `participation set` and `participation list` to record and view real scores in the feedback box.
+  Use `participation set`, `participation list`, and `participation clear` to record, view, and remove real scores
+  in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
   It contains no simulated records. Use `assignment add`, `assignment submit`, `assignment grade`, and
   `assignment list`; the Assignments screen remains a preview.
@@ -105,8 +106,8 @@ first Up brings back the command before it. The history starts empty each time y
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* Commands that take no parameters, such as `exit`, `group list`, and `student list`, reject extra input like
-  `exit 123`.
+* Commands that take no parameters, such as `exit`, `group list`, `student list`, `undo`, and `redo`, reject extra
+  input like `exit 123`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
@@ -122,9 +123,9 @@ first Up brings back the command before it. The history starts empty each time y
 Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
 
-The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
-attendance, participation, and assignment commands, in the same order as their sections in this guide. Within a topic,
-commands appear in the order you would use them. The examples are written to follow on from each other: in a new
+The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group,
+student, attendance, participation, and assignment commands, in the same order as their sections in this guide.
+Within a topic, commands appear in the order you would use them. The examples are written to follow on from each other: in a new
 TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
 works.
 
@@ -240,6 +241,7 @@ Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or crea
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Extra text after a value | The feedback names the extra text after `f/yes` for `group delete`, and says that value cannot contain spaces. Remove the extra text.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
 
 ### Adding a student: `student add`
@@ -256,7 +258,9 @@ Format: `student add n/NAME id/STUDENT_ID`
   before and after them. Other slashes are not allowed.
 * IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
 * An ID must be unique within the active group. The same ID may occur in another group.
-  Students with the same name and different IDs are allowed.
+  Students with the same name and different IDs are allowed. If the active group already has a student with the same
+  name (ignoring case and extra spaces), the student is still added, and the feedback adds a warning so that you can
+  check the ID, for example `Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. Check that the student ID is correct.`
 * Supply each prefix exactly once, in either order, with a space before each parameter.
 
 Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
@@ -303,6 +307,7 @@ Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check t
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
@@ -325,7 +330,8 @@ For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` 
 Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
 an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
 `Student ID A0999999Z does not exist in T01.` With no active group, use `group add g/GROUP_NAME` or
-`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
+`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes, and extra text after
+a value such as `w/3 please`, are identified in the feedback.
 
 ### Listing weekly attendance: `attendance list`
 
@@ -333,21 +339,40 @@ Lists attendance for the active tutorial group in student order, without changin
 
 Format: `attendance list w/WEEK`
 
-For example, after the examples in this guide, which leave only Alice Tan in T01 and mark her present for week 3,
-`attendance list w/3` shows the following in the scrollable feedback box:
+For example, after `attendance mark id/A0123456X w/3 s/present`, with only Alice Tan in T01, `attendance list w/3`
+shows the following in the scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
 Alice Tan | A0123456X | Present
 ```
 
-Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
-week, including when the group has no students, the feedback is
-`No attendance records have been recorded for Week 3.` Records in other groups or weeks are not included.
+Each student appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student as
+`Not recorded`. An empty group shows `No students in T01.` Records in other groups or weeks are not included.
 Use `group use g/GROUP_NAME` to choose another group before listing it.
 
 Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
 invalid weeks and no active group have the same errors as `attendance mark`.
+
+### Clearing an attendance mark: `attendance clear`
+
+Removes one student's attendance mark for a week, so that the week shows `Not recorded` again. Use it when you marked
+the wrong student or the wrong week. To change a mark between present and absent, use `attendance mark` instead.
+
+Format: `attendance clear id/STUDENT_ID w/WEEK`
+
+* `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
+* Only that student's mark for that week is removed. Other weeks, other students, and participation scores are kept.
+
+Example: if Alice Tan was marked present for week 3 by mistake, `attendance clear id/A0123456X w/3` shows
+`Cleared Alice Tan's attendance for Week 3: present to Not recorded.` Entering it again shows
+`Alice Tan has no attendance recorded for Week 3. Nothing changed.`
+
+The change is saved automatically, and `attendance list` and `group export` no longer show the mark.
+Invalid weeks, unknown students, and no active group have the same errors as `attendance mark`. Only `id/` and `w/`
+are accepted, so a status such as `s/present` is rejected. For example, `attendance clear id/A0123456X w/3 s/present`
+shows `Unknown prefix 's/'. Allowed prefixes: id/ w/.`, and `attendance clear` with no parameters
+shows `Missing required parameter(s): id/ w/. Include each exactly once.`
 
 ### Recording participation: `participation set`
 
@@ -385,6 +410,22 @@ Students without a score show `Not recorded`, even if no scores have been entere
 A recorded zero shows `0`. An empty group shows `No students in T01.`
 Listing does not change scores. Successful score changes are saved automatically and restored when you reopen TAssist.
 
+### Clearing a participation score: `participation clear`
+
+Removes one student's participation score for a week, so that the week shows `Not recorded` again. Use it when you
+entered a score for the wrong student or the wrong week. Setting the score to 0 is not the same: 0 is a real score.
+
+Format: `participation clear id/STUDENT_ID w/WEEK`
+
+* `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
+* Only that student's score for that week is removed. Other weeks, other students, and attendance are kept.
+
+Example: if Alice Tan was given 2 for week 3 by mistake, `participation clear id/A0123456X w/3` shows
+`Cleared Alice Tan's participation score for Week 3: 2 to Not recorded.` Entering it again shows
+`Alice Tan has no participation score recorded for Week 3. Nothing changed.`
+
+The change is saved automatically, and `participation list` and `group export` no longer show the score.
+
 #### Participation command errors
 
 Rejected input leaves the existing scores and saved data file unchanged.
@@ -395,8 +436,9 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digits only, without a sign or decimal point.
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
-Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
+Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing; `id/` and `w/` for clearing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 
 ### Creating an assignment: `assignment add`
 
@@ -404,7 +446,8 @@ Creates an assignment in the active tutorial group. Create or select a group fir
 
 Format: `assignment add a/ASSIGNMENT_NAME`
 
-* Assignment names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Assignment names contain 1–60 letters, digits, spaces, hyphens, periods, colons, or parentheses, with at least one
+  letter or digit. For example, `PS1.5`, `Lab 2 (Graphs)` and `Kattis: Week 3` are valid.
 * Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
   The length limit applies after this normalization.
 * Names ignore case when matching, but keep the capitalization entered for display. `PS1` and `ps1` are duplicates,
@@ -464,13 +507,14 @@ Problem | Feedback and correction
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
 Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
-Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exporting a group's records: `group export`
@@ -517,6 +561,38 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
 Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
 
+### Undoing a change: `undo`
+
+Reverses your latest change to tutorial groups, students, attendance, participation scores, or assignments.
+Switching the active group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes,
+newest first.
+
+Format: `undo`
+
+* You can undo up to 20 changes made since TAssist was opened. Changes from before you last opened TAssist cannot be
+  undone.
+* Commands that were rejected or did not change any data, such as listing, `help`, `view`, or entering the same
+  attendance mark again, are skipped.
+* The data that `undo` restores is saved, just like any other change.
+
+For example, after `attendance mark id/A0123456X w/3 s/absent`, entering `undo` shows
+`Undone: attendance mark id/A0123456X w/3 s/absent` and restores Alice Tan's earlier Week 3 attendance.
+If there is nothing to undo, TAssist shows
+`Nothing to undo. TAssist can undo the last 20 changes made since it was opened.` and changes no data.
+
+### Redoing a change: `redo`
+
+Reapplies the latest change that you reversed with `undo`.
+
+Format: `redo`
+
+* Enter `redo` again to reapply further undone changes, in the order you made them.
+* Making a new change after `undo` clears the changes you can redo.
+
+Continuing the example above, entering `redo` shows `Redone: attendance mark id/A0123456X w/3 s/absent`.
+If there is nothing to redo, TAssist shows
+`Nothing to redo. Redo is available after undo, until you make another change.`
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -534,7 +610,9 @@ only after the save succeeds.
 Closing and reopening TAssist restores the last successfully saved state.
 
 Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
-selecting the already active group or entering the same attendance mark again, do not save either.
+selecting the already active group, entering the same attendance mark again, or clearing a week that has no record,
+do not save either.
+Undoing or redoing a change saves the restored data.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
 The command's changes are rolled back, including the active selection and roster. For a permission problem, the
@@ -595,12 +673,19 @@ The file looks like this:
 * `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
   Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance
   records for that student. Invalid weeks or statuses make the file invalid.
+* Within a student's `attendance` or `participation` map, each week may appear only once. A key such as `"01"`
+  is read as Week 1, but including both `"1"` and `"01"` in the same map makes the file invalid, even if their
+  values match. Remove the duplicate entry while TAssist is closed, keeping the intended value, then restart.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If the data file is unreadable or invalid, TAssist shows
-`Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+If the data file is unreadable or invalid, TAssist opens with no data and shows `Saved data could not be read.`,
+the reason, and `No changes were made to the saved file.` For example:
+`Saved data could not be read. Group T01 has more than one student with ID A1. No changes were made to the saved file.`
+For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
+The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
+file invalid; trailing spaces, tabs, and line breaks are allowed.
 The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` records the reason loading failed.
+and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>
@@ -632,6 +717,8 @@ Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
+**Undo** | `undo`
+**Redo** | `redo`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`
@@ -643,8 +730,10 @@ Action | Format, Examples
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
+**Clear attendance** | `attendance clear id/STUDENT_ID w/WEEK`<br> e.g., `attendance clear id/A0123456X w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
+**Clear participation** | `participation clear id/STUDENT_ID w/WEEK`<br> e.g., `participation clear id/A0123456X w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`

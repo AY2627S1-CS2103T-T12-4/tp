@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.parser.FastDeleteOption.PREFIX_FAST;
 
+import java.util.List;
+
 import seedu.address.logic.commands.GroupDeleteCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.group.GroupName;
@@ -14,9 +16,11 @@ public class GroupDeleteCommandParser implements Parser<GroupDeleteCommand> {
 
     @Override
     public GroupDeleteCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = GroupCommandParserUtil.parseValues(arguments, PREFIX_FAST);
+        TAssistArgumentParser parser = GroupCommandParserUtil.createParser(List.of(PREFIX_FAST), PREFIX_FAST);
+        ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         GroupName name = GroupCommandParserUtil.parseNameValue(values, GroupCommandParserUtil.PREFIX_GROUP,
                 "Missing group name.", GroupDeleteCommand.MESSAGE_USAGE);
+        parser.verifyNoExtraText(values);
         return new GroupDeleteCommand(name, FastDeleteOption.isPresent(values));
     }
 }

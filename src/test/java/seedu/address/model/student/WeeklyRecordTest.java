@@ -39,6 +39,26 @@ public class WeeklyRecordTest {
     }
 
     @Test
+    public void withoutRecord_recordedWeek_removesOnlyThatWeekWithoutChangingOriginal() {
+        WeeklyRecord<String> records = new WeeklyRecord<>(Map.of(1, "PRESENT", 4, "ABSENT", 13, "PRESENT"));
+
+        WeeklyRecord<String> cleared = records.withoutRecord(4);
+
+        assertEquals(Map.of(1, "PRESENT", 13, "PRESENT"), cleared.getRecords());
+        assertTrue(cleared.getRecord(4).isEmpty());
+        assertEquals(Map.of(1, "PRESENT", 4, "ABSENT", 13, "PRESENT"), records.getRecords());
+        assertEquals(new WeeklyRecord<String>(), new WeeklyRecord<>(Map.of(13, "PRESENT")).withoutRecord(13));
+    }
+
+    @Test
+    public void withoutRecord_unrecordedWeek_returnsEqualRecord() {
+        WeeklyRecord<String> records = new WeeklyRecord<>(Map.of(1, "PRESENT"));
+
+        assertEquals(records, records.withoutRecord(2));
+        assertEquals(new WeeklyRecord<String>(), new WeeklyRecord<String>().withoutRecord(1));
+    }
+
+    @Test
     public void constructor_invalidData_throwsException() {
         assertThrows(NullPointerException.class, () -> new WeeklyRecord<>(null));
         assertThrows(IllegalArgumentException.class, () -> new WeeklyRecord<>(Map.of(0, "PRESENT")));
@@ -54,13 +74,15 @@ public class WeeklyRecordTest {
     }
 
     @Test
-    public void getRecordOrWithRecord_invalidWeek_throwsException() {
+    public void getOrChangeRecord_invalidWeek_throwsException() {
         WeeklyRecord<String> records = new WeeklyRecord<>();
         assertThrows(IllegalArgumentException.class, () -> records.getRecord(0));
         assertThrows(IllegalArgumentException.class, () -> records.getRecord(14));
         assertThrows(IllegalArgumentException.class, () -> records.withRecord(0, "PRESENT"));
         assertThrows(IllegalArgumentException.class, () -> records.withRecord(14, "PRESENT"));
         assertThrows(NullPointerException.class, () -> records.withRecord(1, null));
+        assertThrows(IllegalArgumentException.class, () -> records.withoutRecord(0));
+        assertThrows(IllegalArgumentException.class, () -> records.withoutRecord(14));
     }
 
     @Test

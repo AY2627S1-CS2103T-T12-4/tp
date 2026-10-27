@@ -14,9 +14,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+
 import javafx.stage.Stage;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -107,11 +113,23 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null")) {
+        String weeklyRecordsData = """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",%s}]}]}
+                """;
+        String duplicateParticipation = weeklyRecordsData.formatted("\"participation\":{\"1\":3,\"01\":5}");
+        String duplicateAttendance = weeklyRecordsData
+                .formatted("\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}");
+        new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
+        String validData = Files.readString(dataFile());
+        for (String invalidData : List.of("{", "null", duplicateParticipation, duplicateAttendance,
+                validData + "\nTHIS IS INVALID JSON",
+                validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
 
+            assertTrue(app.getDataLoadStatus().isFailure());
             for (String command : List.of("help", "view storage", "group list")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
@@ -124,9 +142,52 @@ public class MainAppTest {
 
             MainApp reopened = new MainApp(prefsFile, dataFile());
             reopened.init();
-            assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
+            assertTrue(reopened.getDataLoadStatus().isFailure());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void init_distinctWeekAliases_loadsRecordsAndAllowsSaving() throws Exception {
+        Files.writeString(dataFile(), """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",
+                  "attendance":{"01":"PRESENT","13":"ABSENT"},
+                  "participation":{"01":3,"02":5}}]}]}
+                """);
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
+        app.init();
+
+        assertEquals(DataLoadStatus.LOADED, app.getDataLoadStatus());
+        assertEquals("Participation for T01, Week 1:\nAlice Tan | A1 | 3",
+                app.logic.execute("participation list w/1").getFeedbackToUser());
+        assertEquals("Participation for T01, Week 2:\nAlice Tan | A1 | 5",
+                app.logic.execute("participation list w/2").getFeedbackToUser());
+        assertEquals("Attendance for T01, Week 1:\nAlice Tan | A1 | Present",
+                app.logic.execute("attendance list w/1").getFeedbackToUser());
+        assertTrue(app.logic.execute("group add g/T02").hasSavedChanges());
+        app.stop();
+        assertEquals(app.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
+    }
+
+    @Test
+    public void init_trailingWhitespace_loadsDataAndAllowsSaving() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+        app.logic.execute("group add g/T01");
+        TAssist saved = new TAssist(app.model.getTAssist());
+        app.stop();
+        Files.writeString(dataFile(), Files.readString(dataFile()) + " \t\r\n");
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+
+        assertEquals(DataLoadStatus.LOADED, reopened.getDataLoadStatus());
+        assertEquals(saved, reopened.model.getTAssist());
+        assertTrue(reopened.logic.execute("group add g/T02").hasSavedChanges());
+        reopened.stop();
+        assertEquals(reopened.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
     }
 
     @Test
@@ -137,7 +198,7 @@ public class MainAppTest {
         MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), directory);
         app.init();
 
-        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertEquals(DataLoadStatus.failed("The file could not be opened."), app.getDataLoadStatus());
         assertThrows(CommandException.class,
                 LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
         app.stop();
@@ -241,8 +302,52 @@ public class MainAppTest {
 
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
-            assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
+            assertTrue(mainApp.getDataLoadStatus().isFailure());
         }
+    }
+
+    @Test
+    public void initModelManager_invalidDataFile_statusNamesReason() throws Exception {
+        String duplicateIds = "{ \"groups\" : [ { \"name\" : \"T01\", \"students\" : ["
+                + " { \"name\" : \"Alice Tan\", \"studentId\" : \"A1\" },"
+                + " { \"name\" : \"Ben Lim\", \"studentId\" : \"A1\" } ] } ] }";
+        assertLoadFailureReason(duplicateIds, "Group T01 has more than one student with ID A1.");
+        assertLoadFailureReason("{\n  \"groups\" : [ {",
+                "The file has a JSON syntax error or a value of the wrong type near line 2.");
+        assertLoadFailureReason("{ \"groups\" : \"T01\" }",
+                "The file has a JSON syntax error or a value of the wrong type near line 1.");
+        assertLoadFailureReason("{ \"groups\" : [] }\n\nextra",
+                "The file has a JSON syntax error or a value of the wrong type near line 3.");
+        assertLoadFailureReason("null", JsonUtil.MESSAGE_NULL_CONTENT);
+    }
+
+    @Test
+    public void initModelManager_duplicateWeekAlias_showsSpecificReason() throws Exception {
+        String data = """
+                {"groups":[{"name":"T01","students":[{"name":"Alice Tan","studentId":"A1",%s}]}]}
+                """;
+        String reason = "Duplicate weekly record for Week 1. Use only one entry per week.";
+        assertLoadFailureReason(data.formatted("\"participation\":{\"1\":3,\"01\":5}"), reason);
+        assertLoadFailureReason(data.formatted("\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}"), reason);
+        assertLoadFailureReason(data.formatted("\"attendance\":{\"x\":\"PRESENT\"}"),
+                "The file has a JSON syntax error or a value of the wrong type near line 1.");
+    }
+
+    @Test
+    public void describeLoadFailure_noJsonLocation_omitsLine() {
+        String reason = "The file has a JSON syntax error or a value of the wrong type.";
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException((JsonParser) null, "Unexpected end."))));
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException(null, "Unexpected end.", JsonLocation.NA))));
+    }
+
+    private void assertLoadFailureReason(String invalidData, String reason) throws Exception {
+        Files.writeString(dataFile(), invalidData);
+        mainApp.initModelManager(createStorage(), new UserPrefs());
+        assertEquals(DataLoadStatus.failed(reason), mainApp.getDataLoadStatus());
+        assertEquals(DataLoadStatus.MESSAGE_FAILED_PREFIX + " " + reason + " "
+                + DataLoadStatus.MESSAGE_FILE_UNCHANGED, mainApp.getDataLoadStatus().getMessage());
     }
 
     @Test

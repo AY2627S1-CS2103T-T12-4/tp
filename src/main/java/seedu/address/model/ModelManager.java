@@ -25,6 +25,7 @@ public class ModelManager implements Model {
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
+    private TAssistHistory history = new TAssistHistory();
 
     /**
      * Initializes a ModelManager with copies of the given tAssist and userPrefs.
@@ -154,6 +155,51 @@ public class ModelManager implements Model {
     public void setAssignment(GroupName groupName, Assignment assignment) {
         requireAllNonNull(groupName, assignment);
         tAssist.setAssignment(groupName, assignment);
+    }
+
+    //=========== Undo and redo =============================================================================
+
+    @Override
+    public void commitTAssist(ReadOnlyTAssist previousTAssist, String description) {
+        requireAllNonNull(previousTAssist, description);
+        history.record(previousTAssist, description);
+    }
+
+    @Override
+    public boolean canUndoTAssist() {
+        return history.canUndo();
+    }
+
+    @Override
+    public boolean canRedoTAssist() {
+        return history.canRedo();
+    }
+
+    @Override
+    public String undoTAssist() {
+        TAssistHistory.Version undone = history.undo(tAssist);
+        setTAssist(undone.data());
+        logger.info("Undid: " + undone.description());
+        return undone.description();
+    }
+
+    @Override
+    public String redoTAssist() {
+        TAssistHistory.Version redone = history.redo(tAssist);
+        setTAssist(redone.data());
+        logger.info("Redid: " + redone.description());
+        return redone.description();
+    }
+
+    @Override
+    public TAssistHistory getTAssistHistory() {
+        return new TAssistHistory(history);
+    }
+
+    @Override
+    public void setTAssistHistory(TAssistHistory history) {
+        requireNonNull(history);
+        this.history = new TAssistHistory(history);
     }
 
     //=========== Active Group Accessors =====================================================================

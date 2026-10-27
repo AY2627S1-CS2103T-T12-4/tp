@@ -27,6 +27,8 @@ public class TAssistArgumentParser {
     public static final String MESSAGE_UNEXPECTED_TEXT =
             "Unexpected text before parameters: '%s'. Start each parameter with an allowed prefix: %s.";
     public static final String MESSAGE_NO_PARAMETERS = "This command takes no parameters. Remove the extra input.";
+    public static final String MESSAGE_EXTRA_TEXT =
+            "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
     public static final String MESSAGE_SEPARATE_LITERAL_WORD =
             " If %s is part of the value, put a space before and after it.";
 
@@ -38,11 +40,12 @@ public class TAssistArgumentParser {
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
+    private final List<Prefix> singleWordPrefixes;
     /** Literal words in lowercase. */
     private final Set<String> literalWords;
 
     /**
-     * Creates a parser with required and optional single-valued prefixes.
+     * Creates a parser with required and optional single-valued prefixes, none of which is limited to one word.
      *
      * @param requiredPrefixes The prefixes required exactly once.
      * @param optionalPrefixes The prefixes permitted at most once.
@@ -53,20 +56,38 @@ public class TAssistArgumentParser {
     }
 
     /**
-     * Creates a parser with required and optional single-valued prefixes, and words that stay part of a value.
+     * Creates a parser with required and optional single-valued prefixes, some of which take a single word.
+     *
+     * @param requiredPrefixes The prefixes required exactly once.
+     * @param optionalPrefixes The prefixes permitted at most once.
+     * @param singleWordPrefixes The required or optional prefixes whose values cannot contain spaces.
+     * @throws IllegalArgumentException if prefixes are invalid, repeated, both required and optional, or if a
+     *         single-word prefix is not declared as required or optional.
+     */
+    public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes,
+            Collection<Prefix> singleWordPrefixes) {
+        this(requiredPrefixes, optionalPrefixes, singleWordPrefixes, List.of());
+    }
+
+    /**
+     * Creates a parser as {@link #TAssistArgumentParser(Collection, Collection, Collection)} does, with words that
+     * also stay part of a value.
      * A literal word, such as {@code s/o}, is text rather than a prefix when it stands alone between spaces.
      * Matching ignores case.
      *
      * @param requiredPrefixes The prefixes required exactly once.
      * @param optionalPrefixes The prefixes permitted at most once.
+     * @param singleWordPrefixes The required or optional prefixes whose values cannot contain spaces.
      * @param literalWords The words that look like a prefix followed by text but belong to a value.
-     * @throws IllegalArgumentException if prefixes are invalid, repeated, or both required and optional, or if a
-     *     literal word is not a single word with one slash inside it, or starts with an allowed prefix.
+     * @throws IllegalArgumentException if prefixes are invalid, repeated, both required and optional, if a
+     *         single-word prefix is not declared as required or optional, or if a literal word is not a single word
+     *         with one slash inside it, or starts with an allowed prefix.
      */
     public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes,
-            Collection<String> literalWords) {
+            Collection<Prefix> singleWordPrefixes, Collection<String> literalWords) {
         requireNonNull(requiredPrefixes);
         requireNonNull(optionalPrefixes);
+        requireNonNull(singleWordPrefixes);
         requireNonNull(literalWords);
         this.requiredPrefixes = List.copyOf(requiredPrefixes);
         allowedPrefixes = new LinkedHashSet<>();
@@ -76,6 +97,9 @@ public class TAssistArgumentParser {
         for (Prefix prefix : optionalPrefixes) {
             addAllowedPrefix(prefix);
         }
+        checkArgument(allowedPrefixes.containsAll(singleWordPrefixes),
+                "Single-word prefixes must be declared as required or optional.");
+        this.singleWordPrefixes = List.copyOf(singleWordPrefixes);
         this.literalWords = new LinkedHashSet<>();
         for (String literalWord : literalWords) {
             addLiteralWord(literalWord);
@@ -91,6 +115,21 @@ public class TAssistArgumentParser {
      * @throws ParseException if the arguments violate the declared parameter rules.
      */
     public ArgumentMultimap parse(String arguments) throws ParseException {
+        ArgumentMultimap values = parseWithoutExtraTextCheck(arguments);
+        verifyNoExtraText(values);
+        return values;
+    }
+
+    /**
+     * Parses parameters as {@link #parse(String)} does, except that it does not check for extra text after
+     * single-word values. A caller that reports its own missing parameters must run those checks and then call
+     * {@link #verifyNoExtraText(ArgumentMultimap)}, so that a missing parameter is reported before extra text.
+     *
+     * @param arguments The command's arguments, excluding both command keywords.
+     * @return The checked prefix-value mapping.
+     * @throws ParseException if the arguments violate the declared parameter rules other than extra text.
+     */
+    public ArgumentMultimap parseWithoutExtraTextCheck(String arguments) throws ParseException {
         requireNonNull(arguments);
         if (allowedPrefixes.isEmpty() && !arguments.trim().isEmpty()) {
             throw new ParseException(MESSAGE_NO_PARAMETERS);
@@ -106,6 +145,21 @@ public class TAssistArgumentParser {
         return values;
     }
 
+    /**
+     * Checks that no single-word value of {@code values} is followed by extra text.
+     *
+     * @param values The mapping returned by {@link #parseWithoutExtraTextCheck(String)}.
+     * @throws ParseException if a single-word value contains spaces.
+     */
+    public void verifyNoExtraText(ArgumentMultimap values) throws ParseException {
+        for (Prefix prefix : singleWordPrefixes) {
+            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
+            if (words.length > 1) {
+                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            }
+        }
+    }
+
     private void addAllowedPrefix(Prefix prefix) {
         checkArgument(TAssistParserUtil.isValidPrefix(prefix), "Prefixes must be lowercase words followed by '/'.");
         checkArgument(allowedPrefixes.add(prefix), "Prefix declared more than once: " + prefix);
@@ -115,7 +169,8 @@ public class TAssistArgumentParser {
         requireNonNull(literalWord);
         checkArgument(LITERAL_WORD_FORMAT.matcher(literalWord).matches(),
                 "Literal words must be one word with a slash inside it: " + literalWord);
-        Prefix wordPrefix = new Prefix(literalWord.substring(0, literalWord.indexOf('/') + 1));
+        Prefix wordPrefix = new Prefix(literalWord.substring(0, literalWord.indexOf('/') + 1)
+                .toLowerCase(Locale.ROOT));
         checkArgument(!allowedPrefixes.contains(wordPrefix),
                 "Literal word starts with an allowed prefix: " + literalWord);
         literalWords.add(literalWord.toLowerCase(Locale.ROOT));
@@ -155,17 +210,24 @@ public class TAssistArgumentParser {
 
     /**
      * Returns the error for the unknown {@code prefix} that starts {@code word}. If the word starts with a literal
-     * word joined to more text, such as {@code s/oKumar}, the error also says to separate the literal word.
+     * word glued to a name, such as {@code s/oKumar}, the error also says to separate the literal word. Text that
+     * continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not taken as a glued name.
      */
     private String createUnknownPrefixMessage(Prefix prefix, String word) {
         String message = String.format(MESSAGE_UNKNOWN_PREFIX, prefix, formatAllowedPrefixes());
-        String lowerCaseWord = word.toLowerCase(Locale.ROOT);
         return literalWords.stream()
-                .filter(lowerCaseWord::startsWith)
+                .filter(literalWord -> isGluedToName(word, literalWord))
                 .findFirst()
                 .map(literalWord -> message + String.format(MESSAGE_SEPARATE_LITERAL_WORD,
                         word.substring(0, literalWord.length())))
                 .orElse(message);
+    }
+
+    private static boolean isGluedToName(String word, String literalWord) {
+        if (!word.toLowerCase(Locale.ROOT).startsWith(literalWord) || word.length() == literalWord.length()) {
+            return false;
+        }
+        return !Character.isLowerCase(word.charAt(literalWord.length()));
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
