@@ -66,7 +66,7 @@ public class AssignmentGradeCommandTest {
         assertCommandFailure(new AssignmentGradeCommand(new AssignmentName("PS2"), ALICE_ID, 87), model,
                 "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
         assertCommandFailure(new AssignmentGradeCommand(NAME_PS1, new StudentId(UNKNOWN_STUDENT_ID), 87), model,
-                MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, UNKNOWN_STUDENT_ID, NAME_T01));
         assertEquals(PS1.withSubmissionStatus(ALICE_ID, true), model.getGroup(NAME_T01).getAssignmentList().getFirst());
     }
 

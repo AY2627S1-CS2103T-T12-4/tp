@@ -70,7 +70,7 @@ public class AttendanceMarkCommandTest {
     @Test
     public void execute_studentInAnotherGroup_failsWithoutChangingData() {
         assertCommandFailure(new AttendanceMarkCommand(DANIEL.getStudentId(), 3, AttendanceStatus.PRESENT), model,
-                MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
     }
 
     @Test

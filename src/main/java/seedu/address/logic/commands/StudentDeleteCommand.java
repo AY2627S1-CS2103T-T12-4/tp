@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -19,7 +20,6 @@ import seedu.address.model.student.StudentId;
 public class StudentDeleteCommand extends Command {
     public static final String MESSAGE_USAGE = "student delete id/STUDENT_ID [f/yes]";
     public static final String MESSAGE_SUCCESS = "Removed %s from %s.";
-    public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
     public static final String MESSAGE_CONFIRMATION =
             "Remove %s (%s) and all their attendance, participation, submission, and grade records from %s?";
 
