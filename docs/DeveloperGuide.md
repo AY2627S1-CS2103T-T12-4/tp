@@ -589,10 +589,10 @@ The confirmation distinguishes a first mark, an update (showing the old and new 
 Existing `LogicManager` persistence saves the result.
 
 `AttendanceListCommandParser` requires only `w/` and uses the same week validation. `AttendanceListCommand`
-selects attendance through `Group#getWeeklyRecordEntries`. If no student has a record for that week, it returns
-the no-records message. Otherwise, it formats each row with the student's name, ID, and capitalized status,
-using `WeeklyRecordEntry#formatValueOrNotRecorded` for missing values. The rows appear in the scrollable
-command feedback box; the Attendance workspace screen remains a preview.
+selects attendance through `Group#getWeeklyRecordEntries`. If the group has no students, it returns
+`No students in GROUP.` Otherwise, it lists every student, formatting each row with the student's name, ID, and
+capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
+The rows appear in the scrollable command feedback box; the Attendance workspace screen remains a preview.
 
 #### Where per-student records are stored
 
