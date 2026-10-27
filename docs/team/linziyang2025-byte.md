@@ -6,8 +6,9 @@ title: Lin Ziyang's Project Portfolio Page
 ### Project: TAssist
 
 TAssist is a desktop app for CS2040S teaching assistants to track tutorial attendance, class participation, and
-assignment submissions. The TA types commands, and a JavaFX GUI shows the results. It is written in Java and evolved
-from AddressBook-Level3.
+assignment submissions. The TA types commands, and a JavaFX GUI shows the results. Each tutorial group keeps its own
+roster and weekly records, saved to a local file after every change, so a TA can switch groups between tutorials
+without losing anything.
 
 Given below are my contributions to the project.
 
@@ -32,8 +33,8 @@ Given below are my contributions to the project.
 
 * **New Feature**: Showed the active group and its students in the GUI
   ([\#83](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/83)).
-  * Added the Students screen, the group strip, and the active group's name in the header. The feedback box grows to
-    fit its message, and help appears only on the Help screen.
+  * Added the Students screen and the group chips in the top bar, with the active group's name on the Students panel.
+    The feedback box grows to fit its message, and help appears only on the Help screen.
 
 * **Enhancements**:
   * Completed the in-app help for every MVP command, listed topics and commands in the order a TA uses them, and
@@ -57,10 +58,11 @@ Given below are my contributions to the project.
   * Developer Guide:
     * Wrote the use cases and non-functional requirements
       ([\#40](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/40)).
-    * Described the TAssist model, how the UI observes the active group, and how help is ordered and checked, with
-      the model class diagram, the active-group sequence diagram, and the help class diagram
-      ([\#75](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/75),
+    * Described the TAssist model, how the UI observes the active group, and how help is ordered and checked. Added
+      the model class diagram, the active-group sequence diagram, and the help class diagram, and updated the UI class
+      diagram for the Students screen ([\#75](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/75),
       [\#82](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/82),
+      [\#83](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/83),
       [\#96](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/96)).
     * Explained the `group export` design with a sequence diagram, and added the end-to-end acceptance walkthrough
       to the manual-testing appendix ([\#114](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/114),
@@ -72,7 +74,12 @@ Given below are my contributions to the project.
   * Ran the end-to-end acceptance pass across all features, and added an automated test of a TA's whole session:
     record a tutorial in every feature, restart, and find everything back
     ([\#113](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/113)).
-  * Alpha-tested the product and reported 5 bugs (#157 to #161).
+  * Alpha-tested the product and reported 5 bugs
+    ([\#157](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/157),
+    [\#158](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/158),
+    [\#159](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/159),
+    [\#160](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/160),
+    [\#161](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/161)).
 
 * **Review contributions**:
   * PRs reviewed: [\#37](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/37),
