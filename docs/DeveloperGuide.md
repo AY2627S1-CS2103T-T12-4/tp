@@ -1023,8 +1023,8 @@ The following extensions apply to every use case that changes or views records o
 1.  TA requests to list the students in the active group.
 2.  TAssist shows the name and student ID of every student in the group.
 3.  TA requests to delete a specific student by student ID.
-4.  TAssist shows the student, their student ID, and their records that will be removed, then asks for confirmation.
-    Cancel is selected by default.
+4.  TAssist shows the student, their student ID, and the kinds of records that will be removed (attendance,
+    participation, submissions and grades), then asks for confirmation. Cancel is selected by default.
 5.  TA confirms the deletion.
 6.  TAssist removes the student and their attendance, participation and assignment records from the group, and shows a
     confirmation.
@@ -1033,24 +1033,25 @@ The following extensions apply to every use case that changes or views records o
 
 **Extensions**
 
+* 2a. The group has no students.
+    * 2a1. TAssist shows that the group has no students and how to add one.
+
+      Use case ends.
+
+* 3a. No student in the active group has the given student ID.
+    * 3a1. TAssist shows an error message naming the student ID and the group.
+
+      Use case resumes at step 2.
+
+* 3b. TA includes `f/yes` in the delete command.
+    * 3b1. TAssist skips the confirmation and removes the student and all their records.
+
+      Use case ends.
+
 * 4a. TA cancels the prompt or closes it.
     * 4a1. TAssist leaves the student and all records unchanged.
 
       Use case ends.
-
-* 4b. TA includes `f/yes` in the delete command.
-    * 4b1. TAssist skips the prompt and removes the student and all their records.
-
-      Use case ends.
-
-* 2a. The group has no students.
-
-  Use case ends.
-
-* 3a. No student in the active group has the given student ID.
-    * 3a1. TAssist shows an error message stating that the student does not exist in the group.
-
-      Use case resumes at step 2.
 
 **Use case: UC05 - Take attendance during a tutorial**
 
