@@ -402,7 +402,8 @@ Creates an assignment in the active tutorial group. Create or select a group fir
 
 Format: `assignment add a/ASSIGNMENT_NAME`
 
-* Assignment names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Assignment names contain 1–60 letters, digits, spaces, hyphens, periods, colons, or parentheses, with at least one
+  letter or digit. For example, `PS1.5`, `Lab 2 (Graphs)` and `Kattis: Week 3` are valid.
 * Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
   The length limit applies after this normalization.
 * Names ignore case when matching, but keep the capitalization entered for display. `PS1` and `ps1` are duplicates,
@@ -462,7 +463,7 @@ Problem | Feedback and correction
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
 Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
-Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.

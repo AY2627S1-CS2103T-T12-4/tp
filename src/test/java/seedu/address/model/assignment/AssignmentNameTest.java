@@ -40,7 +40,9 @@ public class AssignmentNameTest {
         assertFalse(AssignmentName.isValidAssignmentName("--")); // hyphens only
         assertFalse(AssignmentName.isValidAssignmentName("PS1/PS2")); // contains a slash
         assertFalse(AssignmentName.isValidAssignmentName("PS1_A")); // contains an underscore
-        assertFalse(AssignmentName.isValidAssignmentName("PS1:")); // contains punctuation
+        assertFalse(AssignmentName.isValidAssignmentName("().:")); // punctuation only
+        assertFalse(AssignmentName.isValidAssignmentName("PS1,2")); // contains a comma
+        assertFalse(AssignmentName.isValidAssignmentName("PS1&2")); // contains an ampersand
         assertFalse(AssignmentName.isValidAssignmentName("a".repeat(AssignmentName.MAX_LENGTH + 1))); // too long
 
         // valid assignment names
@@ -48,6 +50,9 @@ public class AssignmentNameTest {
         assertTrue(AssignmentName.isValidAssignmentName("PS1")); // letters and digits
         assertTrue(AssignmentName.isValidAssignmentName("Mid-term")); // with a hyphen
         assertTrue(AssignmentName.isValidAssignmentName("Problem Set 1")); // with spaces
+        assertTrue(AssignmentName.isValidAssignmentName("PS1.5")); // with a period
+        assertTrue(AssignmentName.isValidAssignmentName("Lab 2 (Graphs)")); // with parentheses
+        assertTrue(AssignmentName.isValidAssignmentName("Kattis: Week 3")); // with a colon
         assertTrue(AssignmentName.isValidAssignmentName("  PS1  ")); // surrounding spaces are ignored
         assertTrue(AssignmentName.isValidAssignmentName("a".repeat(AssignmentName.MAX_LENGTH))); // maximum length
         assertTrue(AssignmentName.isValidAssignmentName(" " + "a".repeat(AssignmentName.MAX_LENGTH) + " "));
