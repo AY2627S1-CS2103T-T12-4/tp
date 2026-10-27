@@ -1023,8 +1023,8 @@ The following extensions apply to every use case that changes or views records o
 1.  TA requests to list the students in the active group.
 2.  TAssist shows the name and student ID of every student in the group.
 3.  TA requests to delete a specific student by student ID.
-4.  TAssist shows the student, their student ID, and the kinds of records that will be removed (attendance,
-    participation, submissions and grades), then asks for confirmation. Cancel is selected by default.
+4.  TAssist shows the student's name, student ID and group, and the kinds of records that will be removed
+    (attendance, participation, submission and grade), then asks for confirmation. Cancel is selected by default.
 5.  TA confirms the deletion.
 6.  TAssist removes the student and their attendance, participation and assignment records from the group, and shows a
     confirmation.
