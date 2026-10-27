@@ -82,6 +82,16 @@ public class Student {
                 participationRecords.withRecord(week, score));
     }
 
+    /** Returns a copy without an attendance value for {@code week}, so that the week shows as not recorded. */
+    public Student withoutAttendanceRecord(int week) {
+        return new Student(name, studentId, attendanceRecords.withoutRecord(week), participationRecords);
+    }
+
+    /** Returns a copy without a participation value for {@code week}, so that the week shows as not recorded. */
+    public Student withoutParticipationRecord(int week) {
+        return new Student(name, studentId, attendanceRecords, participationRecords.withoutRecord(week));
+    }
+
     /**
      * Returns true if both students have the same student ID.
      * This defines a weaker notion of equality between two students.
