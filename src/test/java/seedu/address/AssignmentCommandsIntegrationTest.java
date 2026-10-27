@@ -4,13 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -18,29 +15,19 @@ import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
-import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalAssignments;
 import seedu.address.testutil.TypicalGroups;
 
-public class AssignmentCommandsIntegrationTest {
+public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     private static final String LIST_PS1_IN_T01 = "PS1 records for T01:"
             + "\nAlice Tan | A0123456X | Not submitted | -"
             + "\nBen Lim | A0234567Y | Not submitted | -"
             + "\nCarl Goh | A0345678Z | Not submitted | -";
 
-    @TempDir
-    public Path temporaryFolder;
-
-    private MainApp app;
-    private Path dataFile;
-
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("tassist.json");
-        new JsonTAssistStorage(dataFile).saveTAssist(new TAssistBuilder(TypicalGroups.getTypicalTAssist())
-                .withActiveGroup(NAME_T01).build());
-        app = openApp();
+        app = openAppWith(new TAssistBuilder(TypicalGroups.getTypicalTAssist()).withActiveGroup(NAME_T01).build());
     }
 
     @Test
@@ -133,28 +120,5 @@ public class AssignmentCommandsIntegrationTest {
                 app.logic.execute(example);
             }
         }
-    }
-
-    private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
-        TAssist expected = new TAssist(app.model.getTAssist());
-        String saved = Files.readString(dataFile);
-        assertThrows(exceptionType, () -> app.logic.execute(command));
-        assertEquals(expected, app.model.getTAssist());
-        assertEquals(saved, Files.readString(dataFile));
-    }
-
-    private String feedback(String command) throws Exception {
-        return app.logic.execute(command).getFeedbackToUser();
-    }
-
-    private MainApp openApp() throws Exception {
-        MainApp opened = new MainApp(temporaryFolder.resolve("prefs.json"), dataFile);
-        opened.init();
-        return opened;
-    }
-
-    private void restart() throws Exception {
-        app.stop();
-        app = openApp();
     }
 }

@@ -32,6 +32,7 @@ public class HelpIntegrationTest {
     private static final List<String> EXPECTED_FORMATS = List.of(
             "view SCREEN", "help [TOPIC]", "undo", "redo", "exit",
             "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export",
+            "group rename g/GROUP_NAME n/NEW_NAME", "group delete g/GROUP_NAME [f/yes]",
             "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID [f/yes]",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
@@ -81,7 +82,9 @@ public class HelpIntegrationTest {
         }
 
         Group t01 = app.model.getGroup(new GroupName("T01"));
-        assertTrue(app.model.hasGroup(new GroupName("T02")));
+        // The group examples rename T02 to T02-Thu and then delete it.
+        assertFalse(app.model.hasGroup(new GroupName("T02")));
+        assertFalse(app.model.hasGroup(new GroupName("T02-Thu")));
         assertEquals(t01, app.model.getActiveGroup().orElseThrow());
         assertTrue(t01.hasStudent(new StudentId("A0123456X")));
         assertFalse(t01.hasStudent(new StudentId("A0234567Y")));

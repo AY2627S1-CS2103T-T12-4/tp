@@ -78,6 +78,25 @@ public abstract class UniqueList<T> implements Iterable<T> {
     }
 
     /**
+     * Replaces the item with the same identity as {@code target} with {@code replacement}, in the same position.
+     * The item must already exist in the list, and {@code replacement} must not have the same identity as any
+     * other item in the list.
+     */
+    public void replace(T target, T replacement) {
+        requireAllNonNull(target, replacement);
+        int index = indexOfSameItem(target);
+        if (index < 0) {
+            throw createNotFoundException();
+        }
+        for (int i = 0; i < internalList.size(); i++) {
+            if (i != index && isSameItem(internalList.get(i), replacement)) {
+                throw createDuplicateException();
+            }
+        }
+        internalList.set(index, replacement);
+    }
+
+    /**
      * Removes the item that is equal to {@code toRemove} from the list.
      * The item must exist in the list.
      */
@@ -143,6 +162,15 @@ public abstract class UniqueList<T> implements Iterable<T> {
     @Override
     public String toString() {
         return internalList.toString();
+    }
+
+    private int indexOfSameItem(T item) {
+        for (int i = 0; i < internalList.size(); i++) {
+            if (isSameItem(internalList.get(i), item)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

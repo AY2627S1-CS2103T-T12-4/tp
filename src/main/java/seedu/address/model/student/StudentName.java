@@ -46,6 +46,15 @@ public class StudentName {
         return normalized.length() <= MAX_LENGTH && normalized.matches(VALIDATION_REGEX);
     }
 
+    /**
+     * Returns true if both names are the same after ignoring capitalization.
+     * Spaces are already normalized, so extra spaces do not make names differ.
+     */
+    public boolean isSameName(StudentName otherName) {
+        requireNonNull(otherName);
+        return fullName.equalsIgnoreCase(otherName.fullName);
+    }
+
     @Override
     public String toString() {
         return fullName;

@@ -162,4 +162,32 @@ public class StringUtilTest {
         assertEquals("Alice Tan Wei", StringUtil.normalizeSpaces("Alice\tTan \t Wei"));
     }
 
+    //---------------- Tests for hashCodeIgnoreCase --------------------------------------
+
+    @Test
+    public void hashCodeIgnoreCase_nullGiven_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.hashCodeIgnoreCase(null));
+    }
+
+    @Test
+    public void hashCodeIgnoreCase_stringsEqualIgnoringCase_sameHashCode() {
+        String[][] equalPairs = {
+            {"PS1", "ps1"},
+            {"PSI", "psı"}, // dotless i
+            {"PSİ", "psi"}, // dotted capital I
+            {"Σ", "ς"}, // capital and final sigma
+            {"𐐀", "𐐨"} // supplementary Deseret letters
+        };
+
+        for (String[] pair : equalPairs) {
+            assertTrue(pair[0].equalsIgnoreCase(pair[1]));
+            assertEquals(StringUtil.hashCodeIgnoreCase(pair[0]), StringUtil.hashCodeIgnoreCase(pair[1]));
+        }
+    }
+
+    @Test
+    public void hashCodeIgnoreCase_differentStrings_differentHashCode() {
+        assertFalse(StringUtil.hashCodeIgnoreCase("PS1") == StringUtil.hashCodeIgnoreCase("PS2"));
+    }
+
 }

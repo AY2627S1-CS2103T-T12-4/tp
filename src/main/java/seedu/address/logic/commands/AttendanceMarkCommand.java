@@ -1,9 +1,9 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -19,8 +19,8 @@ import seedu.address.model.student.WeeklyRecord;
 public class AttendanceMarkCommand extends Command {
     public static final String MESSAGE_USAGE = "attendance mark id/STUDENT_ID w/WEEK s/STATUS";
     public static final String MESSAGE_RECORDED = "Recorded %s as %s for Week %d.";
-    public static final String MESSAGE_UPDATED = "Updated %s's attendance for Week %d to %s.";
-    public static final String MESSAGE_UNKNOWN_STUDENT = "Student does not exist in the active group.";
+    public static final String MESSAGE_UPDATED = "Updated %s's attendance for Week %d: %s to %s.";
+    public static final String MESSAGE_UNCHANGED = "%s's attendance for Week %d is already %s. Nothing changed.";
 
     private final StudentId studentId;
     private final int week;
@@ -39,16 +39,30 @@ public class AttendanceMarkCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
-        Student student = group.findStudent(studentId)
-                .orElseThrow(() -> new CommandException(MESSAGE_UNKNOWN_STUDENT));
-        boolean hasRecord = student.getAttendanceRecord(week).isPresent();
+        Group group = getActiveGroup(model);
+        Student student = getStudent(group, studentId);
+        Optional<String> oldStatus = student.getAttendanceRecord(week).map(AttendanceMarkCommand::toCommandValue);
 
         model.setStudent(group.getName(), student.withAttendanceRecord(week, status.name()));
-        String feedback = hasRecord
-                ? String.format(MESSAGE_UPDATED, student.getName(), week, status.getCommandValue())
-                : String.format(MESSAGE_RECORDED, student.getName(), status.getCommandValue(), week);
-        return new CommandResult(feedback);
+        return new CommandResult(createFeedback(student, oldStatus));
+    }
+
+    /**
+     * Returns feedback that shows the old and new status when an earlier mark exists.
+     */
+    private String createFeedback(Student student, Optional<String> oldStatus) {
+        String newStatus = status.getCommandValue();
+        if (oldStatus.isEmpty()) {
+            return String.format(MESSAGE_RECORDED, student.getName(), newStatus, week);
+        }
+        if (oldStatus.get().equals(newStatus)) {
+            return String.format(MESSAGE_UNCHANGED, student.getName(), week, newStatus);
+        }
+        return String.format(MESSAGE_UPDATED, student.getName(), week, oldStatus.get(), newStatus);
+    }
+
+    private static String toCommandValue(String storedStatus) {
+        return AttendanceStatus.fromValue(storedStatus).getCommandValue();
     }
 
     @Override

@@ -34,7 +34,8 @@ public final class HelpCatalog {
             new HelpEntry("", "redo",
                     "Redo the latest change reversed by undo. Making a new change clears the changes to redo.",
                     List.of("redo")),
-            new HelpEntry("", "exit", "Close TAssist. Your data is already saved after each change.",
+            new HelpEntry("", "exit",
+                    "Close TAssist. Takes no parameters. Your data is already saved after each change.",
                     List.of("exit")));
 
     private HelpCatalog() {

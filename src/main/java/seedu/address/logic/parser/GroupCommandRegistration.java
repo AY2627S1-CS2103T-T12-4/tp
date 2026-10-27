@@ -7,8 +7,10 @@ import java.util.List;
 
 import seedu.address.commons.core.AppHome;
 import seedu.address.logic.commands.GroupAddCommand;
+import seedu.address.logic.commands.GroupDeleteCommand;
 import seedu.address.logic.commands.GroupExportCommand;
 import seedu.address.logic.commands.GroupListCommand;
+import seedu.address.logic.commands.GroupRenameCommand;
 import seedu.address.logic.commands.GroupUseCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.storage.GroupRecordsCsvExporter;
@@ -61,5 +63,14 @@ public final class GroupCommandRegistration {
                                 + "opens in a spreadsheet. The file is in the exports folder next to TAssist and "
                                 + "is replaced by the next export of the same group. Takes no parameters.",
                         List.of("group export")));
+        registry.register("group", "rename", new GroupRenameCommandParser(),
+                new HelpEntry("group", GroupRenameCommand.MESSAGE_USAGE,
+                        "Rename a tutorial group. Its students and records stay with it.",
+                        List.of("group rename g/T02 n/T02-Thu")));
+        registry.register("group", "delete", new GroupDeleteCommandParser(),
+                new HelpEntry("group", GroupDeleteCommand.MESSAGE_USAGE,
+                        "Delete a tutorial group with all its students and records, after asking to confirm. "
+                                + "Add f/yes to skip the prompt. This cannot be undone.",
+                        List.of("group delete g/T02-Thu")));
     }
 }

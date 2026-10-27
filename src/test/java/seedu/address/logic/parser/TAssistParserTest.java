@@ -29,7 +29,8 @@ public class TAssistParserTest {
     @Test
     public void parseCommand_exit() throws Exception {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
-        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
+        assertThrows(ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS, () ->
+                parser.parseCommand(ExitCommand.COMMAND_WORD + " unexpected"));
     }
 
     @Test
@@ -86,7 +87,7 @@ public class TAssistParserTest {
 
         assertSame(groupList, featureParser.parseCommand("  group\t list  "));
         assertSame(studentAdd, featureParser.parseCommand("student\n add Alice Tan"));
-        assertTrue(featureParser.parseCommand("exit extra") instanceof ExitCommand);
+        assertTrue(featureParser.parseCommand("exit") instanceof ExitCommand);
         assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
                 featureParser.parseCommand("view attendance").execute(new ModelManager()));
     }
