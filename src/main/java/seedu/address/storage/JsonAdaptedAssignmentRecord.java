@@ -20,7 +20,7 @@ class JsonAdaptedAssignmentRecord {
     private final String studentId;
     @JsonProperty("submitted")
     private final Boolean isSubmitted;
-    private final Integer grade;
+    private final Number grade;
 
     /**
      * Creates an adapted record from JSON fields.
@@ -28,7 +28,7 @@ class JsonAdaptedAssignmentRecord {
     @JsonCreator
     public JsonAdaptedAssignmentRecord(@JsonProperty("assignmentName") String assignmentName,
             @JsonProperty("studentId") String studentId, @JsonProperty("submitted") Boolean isSubmitted,
-            @JsonProperty("grade") Integer grade) {
+            @JsonProperty("grade") Number grade) {
         this.assignmentName = assignmentName;
         this.studentId = studentId;
         this.isSubmitted = isSubmitted;
@@ -77,9 +77,23 @@ class JsonAdaptedAssignmentRecord {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "submitted"));
         }
         try {
-            return new AssignmentRecord(isSubmitted, Optional.ofNullable(grade));
+            return new AssignmentRecord(isSubmitted, toModelGrade());
         } catch (IllegalArgumentException exception) {
             throw new IllegalValueException(exception.getMessage(), exception);
         }
+    }
+
+    /**
+     * Returns the grade as a whole number, rejecting a fractional grade instead of truncating it.
+     */
+    private Optional<Integer> toModelGrade() throws IllegalValueException {
+        if (grade == null) {
+            return Optional.empty();
+        }
+        Optional<Integer> wholeGrade = JsonWholeNumber.toInt(grade);
+        if (wholeGrade.isEmpty()) {
+            throw new IllegalValueException(AssignmentRecord.MESSAGE_INVALID_GRADE);
+        }
+        return wholeGrade;
     }
 }

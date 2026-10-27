@@ -26,6 +26,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
 import seedu.address.testutil.GroupBuilder;
@@ -187,6 +188,35 @@ public class JsonTAssistStorageTest {
 
         assertEquals(String.format(JsonAdaptedGroup.MESSAGE_DUPLICATE_ASSIGNMENT, "T01", "Ps1"),
                 e.getCause().getMessage());
+    }
+
+    @Test
+    public void read_fractionalParticipationScore_exceptionThrown() throws Exception {
+        assertHandEditedFileRejected("""
+                {"groups":[{"name":"T01","students":[
+                  {"name":"Alice Tan","studentId":"A1","participation":{"1":5.9}}]}]}
+                """, JsonAdaptedStudent.MESSAGE_INVALID_PARTICIPATION_SCORE);
+    }
+
+    @Test
+    public void read_fractionalGrade_exceptionThrown() throws Exception {
+        assertHandEditedFileRejected("""
+                {"groups":[{"name":"T01","students":[{"name":"Alice Tan","studentId":"A1"}],
+                  "assignments":["PS1"],
+                  "assignmentRecords":[
+                    {"assignmentName":"PS1","studentId":"A1","submitted":true,"grade":100.9}]}]}
+                """, AssignmentRecord.MESSAGE_INVALID_GRADE);
+    }
+
+    /**
+     * Asserts that reading a data file containing {@code json} fails because of {@code expectedMessage}.
+     */
+    private void assertHandEditedFileRejected(String json, String expectedMessage) throws IOException {
+        Path filePath = testFolder.resolve("handEdited.json");
+        Files.writeString(filePath, json);
+        DataLoadingException e = Assertions.assertThrows(DataLoadingException.class, () ->
+                new JsonTAssistStorage(filePath).readTAssist());
+        assertEquals(expectedMessage, e.getCause().getMessage());
     }
 
     @Test
