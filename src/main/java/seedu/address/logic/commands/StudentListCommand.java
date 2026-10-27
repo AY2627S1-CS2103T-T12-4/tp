@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class StudentListCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Group group = model.getActiveGroup().orElseThrow(() -> new CommandException(MESSAGE_NO_ACTIVE_GROUP));
+        Group group = getActiveGroup(model);
         List<Student> students = group.getStudentList();
         if (students.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));

@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import seedu.address.model.TAssistHistory;
+
 /**
  * Combines built-in command help with entries registered by TAssist features.
  */
@@ -24,7 +26,16 @@ public final class HelpCatalog {
                     "Open this reference, or open it at the commands of one topic: "
                             + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
-            new HelpEntry("", "exit", "Close TAssist. Your data is already saved after each change.",
+            new HelpEntry("", "undo",
+                    "Undo the latest change to groups, students, attendance, participation, or assignments, including "
+                            + "switching groups. Repeat to undo up to " + TAssistHistory.MAX_CHANGES
+                            + " changes made since TAssist was opened. The restored data is saved.",
+                    List.of("undo")),
+            new HelpEntry("", "redo",
+                    "Redo the latest change reversed by undo. Making a new change clears the changes to redo.",
+                    List.of("redo")),
+            new HelpEntry("", "exit",
+                    "Close TAssist. Takes no parameters. Your data is already saved after each change.",
                     List.of("exit")));
 
     private HelpCatalog() {

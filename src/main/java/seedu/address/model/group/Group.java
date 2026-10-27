@@ -14,6 +14,7 @@ import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.UniqueAssignmentList;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.UniqueStudentList;
 import seedu.address.model.student.WeeklyRecord;
 import seedu.address.model.student.WeeklyRecordEntry;
@@ -43,6 +44,16 @@ public class Group {
         this(requireNonNull(toCopy).name);
         students.setStudents(toCopy.getStudentList());
         assignments.setAssignments(toCopy.getAssignmentList());
+    }
+
+    /**
+     * Returns a copy of this group with the given {@code newName}, and the same students and assignments.
+     */
+    public Group withName(GroupName newName) {
+        Group renamed = new Group(newName);
+        renamed.students.setStudents(getStudentList());
+        renamed.assignments.setAssignments(getAssignmentList());
+        return renamed;
     }
 
     public GroupName getName() {
@@ -75,7 +86,7 @@ public class Group {
             Function<Student, WeeklyRecord<T>> recordSelector) {
         WeeklyRecord.validateWeek(week);
         requireNonNull(recordSelector);
-        return students.asUnmodifiableObservableList().stream()
+        return getStudentList().stream()
                 .map(student -> new WeeklyRecordEntry<>(student,
                         requireNonNull(recordSelector.apply(student)).getRecord(week)))
                 .toList();
@@ -86,6 +97,14 @@ public class Group {
      */
     public boolean hasStudent(StudentId studentId) {
         return students.contains(studentId);
+    }
+
+    /**
+     * Returns true if a student named {@code name}, ignoring capitalization, is in this group.
+     */
+    public boolean hasStudentNamed(StudentName name) {
+        return getStudentList().stream()
+                .anyMatch(student -> student.getName().isSameName(name));
     }
 
     /**

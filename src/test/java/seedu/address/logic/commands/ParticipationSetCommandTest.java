@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -53,10 +54,10 @@ public class ParticipationSetCommandTest {
         expected.setStudent(NAME_T01, BEN.withParticipationRecord(3, 4));
 
         assertCommandSuccess(new ParticipationSetCommand(BEN.getStudentId(), 3, 4), model,
-                "Updated Ben Lim's participation score for Week 3 to 4.", expected);
+                "Updated Ben Lim's participation score for Week 3: 0 to 4.", expected);
         assertEquals(BEN.getStudentId(), model.getActiveGroupStudentList().get(1).getStudentId());
         assertCommandSuccess(new ParticipationSetCommand(BEN.getStudentId(), 3, 4), model,
-                "Updated Ben Lim's participation score for Week 3 to 4.", expected);
+                "Ben Lim's participation score for Week 3 is already 4. Nothing changed.", expected);
     }
 
     @Test
@@ -73,10 +74,10 @@ public class ParticipationSetCommandTest {
     @Test
     public void execute_missingStudentOrActiveGroup_preservesData() {
         assertCommandFailure(new ParticipationSetCommand(FIONA.getStudentId(), 3, 2), model,
-                ParticipationSetCommand.MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, FIONA.getStudentId(), NAME_T01));
         model.setActiveGroup(NAME_T02);
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), model,
-                ParticipationSetCommand.MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, ALICE.getStudentId(), NAME_T02));
         assertCommandFailure(new ParticipationSetCommand(ALICE.getStudentId(), 3, 2), new ModelManager(),
                 Messages.MESSAGE_NO_ACTIVE_GROUP);
     }

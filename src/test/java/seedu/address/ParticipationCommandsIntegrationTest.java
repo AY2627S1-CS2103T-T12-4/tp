@@ -1,17 +1,13 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -19,23 +15,13 @@ import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
-import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
 
-public class ParticipationCommandsIntegrationTest {
-    @TempDir
-    public Path temporaryFolder;
-
-    private MainApp app;
-    private Path dataFile;
-
+public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("tassist.json");
-        new JsonTAssistStorage(dataFile).saveTAssist(new TAssistBuilder(TypicalGroups.getTypicalTAssist())
-                .withActiveGroup(NAME_T01).build());
-        app = openApp();
+        app = openAppWith(new TAssistBuilder(TypicalGroups.getTypicalTAssist()).withActiveGroup(NAME_T01).build());
     }
 
     @Test
@@ -46,7 +32,7 @@ public class ParticipationCommandsIntegrationTest {
         assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 2"
                 + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
                 feedback("participation list w/3"));
-        assertEquals("Updated Alice Tan's participation score for Week 3 to 4.",
+        assertEquals("Updated Alice Tan's participation score for Week 3: 2 to 4.",
                 feedback("participation set id/A0123456X w/3 s/4"));
         feedback("participation set id/A0123456X w/13 s/0");
         TAssist expected = new TAssist(app.model.getTAssist());
@@ -93,30 +79,5 @@ public class ParticipationCommandsIntegrationTest {
         }
         assertEquals(2, app.model.getGroup(NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow()
                 .getParticipationRecord(3).orElseThrow());
-    }
-
-    private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
-        TAssist expected = new TAssist(app.model.getTAssist());
-        String saved = Files.readString(dataFile);
-        assertThrows(exceptionType, () -> app.logic.execute(command));
-        assertEquals(expected, app.model.getTAssist());
-        assertEquals(saved, Files.readString(dataFile));
-        assertEquals(expected.getActiveGroup().map(group -> List.copyOf(group.getStudentList())).orElse(List.of()),
-                app.logic.getActiveGroupStudentList());
-    }
-
-    private String feedback(String command) throws Exception {
-        return app.logic.execute(command).getFeedbackToUser();
-    }
-
-    private MainApp openApp() throws Exception {
-        MainApp opened = new MainApp(temporaryFolder.resolve("prefs.json"), dataFile);
-        opened.init();
-        return opened;
-    }
-
-    private void restart() throws Exception {
-        app.stop();
-        app = openApp();
     }
 }

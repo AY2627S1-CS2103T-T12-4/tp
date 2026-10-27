@@ -31,6 +31,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/limenxi07.png" width="200px">
 
 [[github](https://github.com/limenxi07)]
+[[portfolio](team/limenxi07.md)]
 
 * Role: Testing
 * Responsibilities: Ensure testing is done properly and on time

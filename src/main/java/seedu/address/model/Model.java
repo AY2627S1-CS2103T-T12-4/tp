@@ -57,6 +57,23 @@ public interface Model {
     Group getGroup(GroupName name);
 
     /**
+     * Removes the group named {@code name}, with its students, and returns the removed group.
+     * If it is the active group, no group is active afterwards.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.
+     */
+    Group removeGroup(GroupName name);
+
+    /**
+     * Renames the group named {@code name} to {@code newName}, keeping its students and active status.
+     * No other group may have {@code newName}, ignoring case.
+     *
+     * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no group named {@code name}.
+     * @throws seedu.address.model.group.exceptions.DuplicateGroupException if another group has {@code newName}.
+     */
+    void renameGroup(GroupName name, GroupName newName);
+
+    /**
      * Makes the group named {@code name} the active group.
      *
      * @throws seedu.address.model.group.exceptions.GroupNotFoundException if there is no such group.
@@ -98,6 +115,40 @@ public interface Model {
      * The group and assignment must already exist.
      */
     void setAssignment(GroupName groupName, Assignment assignment);
+
+    /**
+     * Records that the change described by {@code description} replaced {@code previousTAssist} with the current
+     * data, so that it can be undone. Changes that were undone can no longer be redone.
+     */
+    void commitTAssist(ReadOnlyTAssist previousTAssist, String description);
+
+    /** Returns true if there is a change that can be undone. */
+    boolean canUndoTAssist();
+
+    /** Returns true if there is an undone change that can be redone. */
+    boolean canRedoTAssist();
+
+    /**
+     * Restores the data from before the latest change, including which group is active,
+     * and returns the description of the undone change.
+     * There must be a change to undo.
+     */
+    String undoTAssist();
+
+    /**
+     * Restores the data from after the latest undone change, including which group is active,
+     * and returns the description of the redone change.
+     * There must be an undone change to redo.
+     */
+    String redoTAssist();
+
+    /** Returns a copy of the undo and redo history. */
+    TAssistHistory getTAssistHistory();
+
+    /**
+     * Replaces the undo and redo history with a copy of {@code history}.
+     */
+    void setTAssistHistory(TAssistHistory history);
 
     /**
      * Returns the active group as an observable value, which is empty when no group is active.

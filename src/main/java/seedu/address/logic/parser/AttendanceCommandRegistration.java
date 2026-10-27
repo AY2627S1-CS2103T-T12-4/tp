@@ -32,7 +32,7 @@ public final class AttendanceCommandRegistration {
         registry.register("attendance", "list", new AttendanceListCommandParser(),
                 new HelpEntry("attendance", AttendanceListCommand.MESSAGE_USAGE,
                         "List the active group's attendance for a week from 1 to 13. Students without a mark show "
-                                + "Not recorded. If no one has a mark that week, TAssist says so.",
+                                + "Not recorded. A group with no students shows a message saying so.",
                         List.of("attendance list w/3")));
     }
 }

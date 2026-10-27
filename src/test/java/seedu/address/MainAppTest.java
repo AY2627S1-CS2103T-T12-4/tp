@@ -14,9 +14,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+
 import javafx.stage.Stage;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -26,6 +32,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.group.GroupName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -54,9 +61,30 @@ public class MainAppTest {
         assertEquals("Switched active group to T01.", app.logic.execute("group use g/t01").getFeedbackToUser());
         assertEquals("1. T01\n2. T02\nActive group: T01", app.logic.execute("group list").getFeedbackToUser());
         assertEquals(CommandResult.forHelp("Showing group commands.", "group"), app.logic.execute("help group"));
-        assertEquals(List.of("group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export"),
+        assertEquals(List.of("group add g/GROUP_NAME", "group list",
+                "group use g/GROUP_NAME", "group export", "group rename g/GROUP_NAME n/NEW_NAME",
+                "group delete g/GROUP_NAME [f/yes]"),
                 HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "group").stream()
                         .map(HelpEntry::getCommandFormat).toList());
+    }
+
+    @Test
+    public void init_afterGroupRenameAndDelete_savesChanges() throws Exception {
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile);
+        app.init();
+        app.logic.execute("group add g/T 01");
+        app.logic.execute("group add g/T02");
+
+        assertEquals("Renamed tutorial group T 01 to T01.", app.logic.execute("group rename g/T 01 n/T01")
+                .getFeedbackToUser());
+        assertEquals("T01", new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getGroupList().get(0).getName().toString());
+
+        app.logic.execute("group delete g/T02");
+        assertEquals(1, new JsonTAssistStorage(dataFile).readTAssist().orElseThrow().getGroupList().size());
+        assertEquals(Optional.empty(), new JsonTAssistStorage(dataFile).readTAssist().orElseThrow()
+                .getActiveGroup());
     }
 
     @Test
@@ -85,11 +113,15 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null", "{\"activeGroup\":\"unknown\"}")) {
+        new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
+        String validData = Files.readString(dataFile());
+        for (String invalidData : List.of("{", "null", validData + "\nTHIS IS INVALID JSON",
+                validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
 
+            assertTrue(app.getDataLoadStatus().isFailure());
             for (String command : List.of("help", "view storage", "group list")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
@@ -102,9 +134,29 @@ public class MainAppTest {
 
             MainApp reopened = new MainApp(prefsFile, dataFile());
             reopened.init();
-            assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
+            assertTrue(reopened.getDataLoadStatus().isFailure());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void init_trailingWhitespace_loadsDataAndAllowsSaving() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+        app.logic.execute("group add g/T01");
+        TAssist saved = new TAssist(app.model.getTAssist());
+        app.stop();
+        Files.writeString(dataFile(), Files.readString(dataFile()) + " \t\r\n");
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+
+        assertEquals(DataLoadStatus.LOADED, reopened.getDataLoadStatus());
+        assertEquals(saved, reopened.model.getTAssist());
+        assertTrue(reopened.logic.execute("group add g/T02").hasSavedChanges());
+        reopened.stop();
+        assertEquals(reopened.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
     }
 
     @Test
@@ -115,7 +167,7 @@ public class MainAppTest {
         MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), directory);
         app.init();
 
-        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertEquals(DataLoadStatus.failed("The file could not be opened."), app.getDataLoadStatus());
         assertThrows(CommandException.class,
                 LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
         app.stop();
@@ -211,17 +263,58 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_invalidDataFile_startsEmptyAndKeepsFile() throws Exception {
-        String unknownActiveGroup = "{ \"activeGroup\" : \"T09\", \"groups\" : [ ] }";
         String missingBrackets = "{ \"groups\" : [ { \"name\" : \"T01\" }";
-        for (String invalidData : List.of(unknownActiveGroup, missingBrackets, "null")) {
+        for (String invalidData : List.of(missingBrackets, "null")) {
             Files.writeString(dataFile(), invalidData);
 
             Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
 
             assertEquals(new TAssist(), model.getTAssist(), invalidData);
             assertEquals(invalidData, Files.readString(dataFile()));
-            assertEquals(DataLoadStatus.FAILED, mainApp.getDataLoadStatus());
+            assertTrue(mainApp.getDataLoadStatus().isFailure());
         }
+    }
+
+    @Test
+    public void initModelManager_invalidDataFile_statusNamesReason() throws Exception {
+        String duplicateIds = "{ \"groups\" : [ { \"name\" : \"T01\", \"students\" : ["
+                + " { \"name\" : \"Alice Tan\", \"studentId\" : \"A1\" },"
+                + " { \"name\" : \"Ben Lim\", \"studentId\" : \"A1\" } ] } ] }";
+        assertLoadFailureReason(duplicateIds, "Group T01 has more than one student with ID A1.");
+        assertLoadFailureReason("{\n  \"groups\" : [ {",
+                "The file has a JSON syntax error or a value of the wrong type near line 2.");
+        assertLoadFailureReason("{ \"groups\" : \"T01\" }",
+                "The file has a JSON syntax error or a value of the wrong type near line 1.");
+        assertLoadFailureReason("{ \"groups\" : [] }\n\nextra",
+                "The file has a JSON syntax error or a value of the wrong type near line 3.");
+        assertLoadFailureReason("null", JsonUtil.MESSAGE_NULL_CONTENT);
+    }
+
+    @Test
+    public void describeLoadFailure_noJsonLocation_omitsLine() {
+        String reason = "The file has a JSON syntax error or a value of the wrong type.";
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException((JsonParser) null, "Unexpected end."))));
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException(null, "Unexpected end.", JsonLocation.NA))));
+    }
+
+    private void assertLoadFailureReason(String invalidData, String reason) throws Exception {
+        Files.writeString(dataFile(), invalidData);
+        mainApp.initModelManager(createStorage(), new UserPrefs());
+        assertEquals(DataLoadStatus.failed(reason), mainApp.getDataLoadStatus());
+        assertEquals(DataLoadStatus.MESSAGE_FAILED_PREFIX + " " + reason + " "
+                + DataLoadStatus.MESSAGE_FILE_UNCHANGED, mainApp.getDataLoadStatus().getMessage());
+    }
+
+    @Test
+    public void initModelManager_unknownActiveGroup_loadsDataWithNoActiveGroup() throws Exception {
+        Files.writeString(dataFile(), "{ \"activeGroup\" : \"T09\", \"groups\" : [ { \"name\" : \"T01\" } ] }");
+
+        Model model = mainApp.initModelManager(createStorage(), new UserPrefs());
+
+        assertTrue(model.hasGroup(new GroupName("T01")));
+        assertEquals(Optional.empty(), model.getActiveGroup());
     }
 
     private Path dataFile() {

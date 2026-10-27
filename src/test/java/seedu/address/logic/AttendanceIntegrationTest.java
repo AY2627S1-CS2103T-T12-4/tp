@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AttendanceCommandParserUtil;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -56,7 +56,7 @@ public class AttendanceIntegrationTest {
         assertFeedback("attendance mark id/A0123456X w/1 s/present", "Recorded Alice Tan as present for Week 1.");
         assertFeedback("attendance mark id/A0123456X w/3 s/present", "Recorded Alice Tan as present for Week 3.");
         assertFeedback("attendance mark id/A0123456X w/3 s/absent",
-                "Updated Alice Tan's attendance for Week 3 to absent.");
+                "Updated Alice Tan's attendance for Week 3: present to absent.");
         restart();
 
         assertFeedback("attendance list w/3", "Attendance for T01, Week 3:\n"
@@ -68,7 +68,10 @@ public class AttendanceIntegrationTest {
                         .findStudent(ALICE.getStudentId()).orElseThrow());
 
         logic.execute("group use g/T02");
-        assertFeedback("attendance list w/3", "No attendance records have been recorded for Week 3.");
+        assertFeedback("attendance list w/3", "Attendance for T02, Week 3:\n"
+                + "Daniel Ong | A0456789W | Not recorded\n"
+                + "Elle Teo | A0567890U | Not recorded\n"
+                + "Alice Tan | A0123456X | Not recorded");
         logic.execute("attendance mark id/A0123456X w/13 s/present");
         restart();
         assertFeedback("attendance list w/13", "Attendance for T02, Week 13:\n"
@@ -91,7 +94,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/late",
                 ParseException.class, AttendanceStatus.MESSAGE_CONSTRAINTS);
         assertFailureUnchanged("attendance mark id/A0456789W w/3 s/present",
-                CommandException.class, AttendanceMarkCommand.MESSAGE_UNKNOWN_STUDENT);
+                CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
     }
 
     @Test

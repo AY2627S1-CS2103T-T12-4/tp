@@ -77,4 +77,21 @@ public class StringUtil {
         requireNonNull(s);
         return s.trim().replaceAll("\\s+", " ");
     }
+
+    /**
+     * Returns a hash code for {@code s} that ignores case, so that strings equal under
+     * {@link String#equalsIgnoreCase(String)} have the same hash code.
+     * Each Unicode code point is converted to uppercase and then lowercase, as {@code equalsIgnoreCase} does,
+     * e.g. {@code "PSI"} and {@code "psı"} (with a dotless i) have the same hash code.
+     *
+     * @throws NullPointerException if {@code s} is null.
+     */
+    public static int hashCodeIgnoreCase(String s) {
+        requireNonNull(s);
+        int hash = 0;
+        for (int codePoint : s.codePoints().toArray()) {
+            hash = 31 * hash + Character.toLowerCase(Character.toUpperCase(codePoint));
+        }
+        return hash;
+    }
 }

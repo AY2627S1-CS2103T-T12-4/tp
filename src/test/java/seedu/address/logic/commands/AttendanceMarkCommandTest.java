@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -56,14 +57,26 @@ public class AttendanceMarkCommandTest {
         expected.setStudent(TypicalGroups.NAME_T01, recorded.withAttendanceRecord(3, "ABSENT"));
 
         AttendanceMarkCommand command = new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.ABSENT);
-        assertCommandSuccess(command, model, "Updated Alice Tan's attendance for Week 3 to absent.", expected);
-        assertCommandSuccess(command, model, "Updated Alice Tan's attendance for Week 3 to absent.", expected);
+        assertCommandSuccess(command, model, "Updated Alice Tan's attendance for Week 3: present to absent.",
+                expected);
+        assertCommandSuccess(command, model, "Alice Tan's attendance for Week 3 is already absent. Nothing changed.",
+                expected);
+    }
+
+    @Test
+    public void execute_absentToPresent_showsOldAndNewStatus() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "ABSENT"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+
+        assertCommandSuccess(new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.PRESENT), model,
+                "Updated Alice Tan's attendance for Week 3: absent to present.", expected);
     }
 
     @Test
     public void execute_studentInAnotherGroup_failsWithoutChangingData() {
         assertCommandFailure(new AttendanceMarkCommand(DANIEL.getStudentId(), 3, AttendanceStatus.PRESENT), model,
-                AttendanceMarkCommand.MESSAGE_UNKNOWN_STUDENT);
+                String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
     }
 
     @Test

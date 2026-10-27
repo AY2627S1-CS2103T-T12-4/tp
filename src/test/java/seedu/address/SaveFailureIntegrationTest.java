@@ -7,11 +7,9 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -27,15 +25,12 @@ import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
-public class SaveFailureIntegrationTest {
-    @TempDir
-    public Path temporaryFolder;
-
+public class SaveFailureIntegrationTest extends AppIntegrationTest {
     private IOException saveFailure = new IOException("Disk write failed.");
 
     @Test
     public void execute_saveFailuresAcrossFeatures_restoreLastSavedState() throws Exception {
-        MainApp app = openApp();
+        app = openApp();
         for (String command : List.of("group add g/T01", "student add n/Alice id/A1",
                 "attendance mark id/A1 w/1 s/present", "participation set id/A1 w/1 s/2",
                 "assignment add a/PS1", "assignment submit a/PS1 id/A1 s/yes",
@@ -43,8 +38,8 @@ public class SaveFailureIntegrationTest {
             assertTrue(app.logic.execute(command).hasSavedChanges());
         }
         TAssist lastSaved = new TAssist(app.model.getTAssist());
-        String savedContents = Files.readString(dataFile());
-        injectFailingStorage(app);
+        String savedContents = Files.readString(dataFile);
+        injectFailingStorage();
 
         for (String command : List.of("group add g/T03", "group use g/T02", "student add n/Ben id/A2",
                 "student delete id/A1", "attendance mark id/A1 w/1 s/absent", "participation set id/A1 w/1 s/5")) {
@@ -53,13 +48,13 @@ public class SaveFailureIntegrationTest {
             assertEquals(lastSaved.getActiveGroup(), app.logic.activeGroupProperty().get(), command);
             assertEquals(lastSaved.getActiveGroup().orElseThrow().getStudentList(),
                     app.logic.getActiveGroupStudentList(), command);
-            assertEquals(savedContents, Files.readString(dataFile()), command);
+            assertEquals(savedContents, Files.readString(dataFile), command);
         }
         for (String command : List.of("assignment submit a/PS1 id/A1 s/no",
                 "assignment grade a/PS1 id/A1 m/91")) {
             assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> app.logic.execute(command));
             assertEquals(lastSaved, app.model.getTAssist(), command);
-            assertEquals(savedContents, Files.readString(dataFile()), command);
+            assertEquals(savedContents, Files.readString(dataFile), command);
         }
         for (String command : List.of("group list", "student list", "attendance list w/1",
                 "participation list w/1", "assignment list a/PS1", "help", "view storage")) {
@@ -71,12 +66,12 @@ public class SaveFailureIntegrationTest {
 
     @Test
     public void execute_failedFirstSave_canRetryAndRestart() throws Exception {
-        MainApp app = openApp();
-        injectFailingStorage(app);
+        app = openApp();
+        injectFailingStorage();
         assertThrows(CommandException.class,
                 LogicManager.MESSAGE_SAVE_FAILURE, () -> app.logic.execute("group add g/T01"));
         assertEquals(new TAssist(), app.model.getTAssist());
-        assertFalse(Files.exists(dataFile()));
+        assertFalse(Files.exists(dataFile));
 
         saveFailure = null;
         assertTrue(app.logic.execute("group add g/T01").hasSavedChanges());
@@ -90,18 +85,8 @@ public class SaveFailureIntegrationTest {
         assertEquals(app.model.getTAssist(), openApp().model.getTAssist());
     }
 
-    private MainApp openApp() throws Exception {
-        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
-        app.init();
-        return app;
-    }
-
-    private Path dataFile() {
-        return temporaryFolder.resolve("data").resolve("tassist.json");
-    }
-
-    private void injectFailingStorage(MainApp app) {
-        JsonTAssistStorage dataStorage = new JsonTAssistStorage(dataFile()) {
+    private void injectFailingStorage() {
+        JsonTAssistStorage dataStorage = new JsonTAssistStorage(dataFile) {
             @Override
             public void saveTAssist(ReadOnlyTAssist tAssist) throws IOException {
                 if (saveFailure != null) {

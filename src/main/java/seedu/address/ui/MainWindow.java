@@ -152,7 +152,7 @@ public class MainWindow extends UiPart<Stage> {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.initOwner(owner);
         dialog.setTitle("Confirm destructive action");
-        dialog.setHeaderText("This action cannot be undone.");
+        dialog.setHeaderText("You can reverse this later with undo.");
         dialog.setContentText(prompt);
         ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);

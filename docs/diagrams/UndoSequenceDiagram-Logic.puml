@@ -1,47 +1,64 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-title Proposed undo: successful restoration and save
 
+box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":UndoRedoHistory" as History LOGIC_COLOR
-participant ":Model" as Model MODEL_COLOR
+participant ":TAssistParser" as TAssistParser LOGIC_COLOR
+participant "u:UndoCommand" as UndoCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
 participant ":Storage" as Storage STORAGE_COLOR
+end box
 
-[-> LogicManager : handle undo request
+[-> LogicManager : execute("undo")
 activate LogicManager
-note over LogicManager, History
-  Proposed flow, not implemented.
-  Precondition: a previous entry exists and the data
-  file loaded, so saving is allowed.
-  The pre-command model copy is retained for recovery.
-end note
 
-LogicManager -> History : peekUndo()
-activate History
-History --> LogicManager : target snapshot copy
-deactivate History
+LogicManager -> TAssistParser : parseCommand("undo")
+activate TAssistParser
 
-LogicManager -> Model : setTAssist(target)
+create UndoCommand
+TAssistParser -> UndoCommand
+activate UndoCommand
+
+UndoCommand --> TAssistParser
+deactivate UndoCommand
+
+TAssistParser --> LogicManager : u
+deactivate TAssistParser
+
+LogicManager -> Model : getTAssistHistory()
 activate Model
-Model --> LogicManager
+
+Model --> LogicManager : previousHistory
 deactivate Model
 
-LogicManager -> Storage : saveTAssist(target)
+LogicManager -> UndoCommand : execute(m)
+activate UndoCommand
+
+UndoCommand -> Model : undoTAssist()
+activate Model
+
+Model --> UndoCommand : description
+deactivate Model
+
+UndoCommand --> LogicManager : result
+deactivate UndoCommand
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+UndoCommand -[hidden]-> LogicManager
+destroy UndoCommand
+
+LogicManager -> Storage : saveTAssist(data)
 activate Storage
-Storage --> LogicManager : save succeeds
+
+Storage --> LogicManager
 deactivate Storage
 
-LogicManager -> History : confirmUndo()
-activate History
-History --> LogicManager : index moved to previous entry
-deactivate History
-
-[<-- LogicManager : saved confirmation with command description
+[<--LogicManager : result
 deactivate LogicManager
-
-note over LogicManager, Storage
-  On save failure, restore the pre-command model.
-  Leave the file, history entries, and index unchanged.
-end note
 @enduml

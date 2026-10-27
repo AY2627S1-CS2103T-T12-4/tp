@@ -19,13 +19,16 @@ public class AssignmentAddCommandParserTest {
         assertParseSuccess(parser, "a/PS1", new AssignmentAddCommand(NAME_PS1));
         assertParseSuccess(parser, "  a/  PS1  ", new AssignmentAddCommand(NAME_PS1));
         assertParseSuccess(parser, "a/Problem   Set-1", new AssignmentAddCommand(new AssignmentName("Problem Set-1")));
+        assertParseSuccess(parser, "a/PS1.5", new AssignmentAddCommand(new AssignmentName("PS1.5")));
+        assertParseSuccess(parser, "a/Lab 2 (Graphs)", new AssignmentAddCommand(new AssignmentName("Lab 2 (Graphs)")));
+        assertParseSuccess(parser, "a/Kattis: Week 3", new AssignmentAddCommand(new AssignmentName("Kattis: Week 3")));
         assertParseSuccess(parser, "a/" + "a".repeat(AssignmentName.MAX_LENGTH),
                 new AssignmentAddCommand(new AssignmentName("a".repeat(AssignmentName.MAX_LENGTH))));
     }
 
     @Test
     public void parse_invalidName_reportsConstraints() {
-        for (String name : new String[] {"", "   ", "-", "PS1_A", "PS1/PS2", "PS1!", "a".repeat(61)}) {
+        for (String name : new String[] {"", "   ", "-", "PS1_A", "PS1/PS2", "PS1!", "PS1,2", "().:", "a".repeat(61)}) {
             assertParseFailure(parser, "a/" + name, AssignmentName.MESSAGE_CONSTRAINTS);
         }
     }

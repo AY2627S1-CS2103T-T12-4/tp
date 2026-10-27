@@ -22,9 +22,11 @@ import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
 import seedu.address.testutil.StudentBuilder;
+import seedu.address.testutil.TypicalAssignments;
 
 public class GroupTest {
 
@@ -71,6 +73,14 @@ public class GroupTest {
         assertTrue(group.hasStudent(new StudentId("a0123456x")));
         assertEquals(Optional.of(ALICE), group.findStudent(ALICE.getStudentId()));
         assertFalse(group.hasStudent(BEN.getStudentId()));
+    }
+
+    @Test
+    public void hasStudentNamed_ignoresCaseAndExtraSpaces() {
+        group.addStudent(ALICE);
+        assertTrue(group.hasStudentNamed(new StudentName("alice  TAN")));
+        assertFalse(group.hasStudentNamed(new StudentName("Alice")));
+        assertFalse(group.hasStudentNamed(BEN.getName()));
     }
 
     @Test
@@ -224,6 +234,19 @@ public class GroupTest {
         Group differentName = new Group(new GroupName("T02"));
         differentName.addStudent(ALICE);
         assertFalse(group.equals(differentName));
+    }
+
+    @Test
+    public void withName_returnsCopyWithNewNameAndSameStudentsAndAssignments() {
+        group.addStudent(ALICE);
+        group.addAssignment(TypicalAssignments.PS1);
+
+        Group renamed = group.withName(new GroupName("T09"));
+
+        assertEquals(new GroupName("T09"), renamed.getName());
+        assertEquals(group.getStudentList(), renamed.getStudentList());
+        assertEquals(List.of(TypicalAssignments.PS1), renamed.getAssignmentList());
+        assertEquals(NAME_T01, group.getName());
     }
 
     @Test
