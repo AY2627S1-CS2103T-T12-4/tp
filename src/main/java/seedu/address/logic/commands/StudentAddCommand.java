@@ -16,6 +16,8 @@ import seedu.address.model.student.Student;
 public class StudentAddCommand extends Command {
     public static final String MESSAGE_USAGE = "student add n/NAME id/STUDENT_ID";
     public static final String MESSAGE_SUCCESS = "Added %s to %s.";
+    public static final String MESSAGE_SAME_NAME_WARNING =
+            " Warning: %s already has a student named %s. Check that the student ID is correct.";
     public static final String MESSAGE_DUPLICATE_STUDENT = "Student ID %s already exists in %s.";
 
     private static final Logger logger = LogsCenter.getLogger(StudentAddCommand.class);
@@ -37,10 +39,15 @@ public class StudentAddCommand extends Command {
                     student.getStudentId(), group.getName()));
         }
 
+        boolean hasSameName = group.hasStudentNamed(student.getName());
         model.addStudent(group.getName(), student);
         assert group.hasStudent(student.getStudentId()) : "The added student must belong to the active group";
         logger.fine("Added a student to " + group.getName());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), group.getName()));
+        String message = String.format(MESSAGE_SUCCESS, student.getName(), group.getName());
+        if (hasSameName) {
+            message += String.format(MESSAGE_SAME_NAME_WARNING, group.getName(), student.getName());
+        }
+        return new CommandResult(message);
     }
 
     @Override
