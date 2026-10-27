@@ -107,11 +107,19 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null")) {
+        String weeklyRecordsData = """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",%s}]}]}
+                """;
+        String duplicateParticipation = weeklyRecordsData.formatted("\"participation\":{\"1\":3,\"01\":5}");
+        String duplicateAttendance = weeklyRecordsData
+                .formatted("\"attendance\":{\"1\":\"PRESENT\",\"01\":\"ABSENT\"}");
+        for (String invalidData : List.of("{", "null", duplicateParticipation, duplicateAttendance)) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
 
+            assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
             for (String command : List.of("help", "view storage", "group list")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
@@ -127,6 +135,29 @@ public class MainAppTest {
             assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void init_distinctWeekAliases_loadsRecordsAndAllowsSaving() throws Exception {
+        Files.writeString(dataFile(), """
+                {"activeGroup":"T01","groups":[{"name":"T01","students":[{
+                  "name":"Alice Tan","studentId":"A1",
+                  "attendance":{"01":"PRESENT","13":"ABSENT"},
+                  "participation":{"01":3,"02":5}}]}]}
+                """);
+        MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
+        app.init();
+
+        assertEquals(DataLoadStatus.LOADED, app.getDataLoadStatus());
+        assertEquals("Participation for T01, Week 1:\nAlice Tan | A1 | 3",
+                app.logic.execute("participation list w/1").getFeedbackToUser());
+        assertEquals("Participation for T01, Week 2:\nAlice Tan | A1 | 5",
+                app.logic.execute("participation list w/2").getFeedbackToUser());
+        assertEquals("Attendance for T01, Week 1:\nAlice Tan | A1 | Present",
+                app.logic.execute("attendance list w/1").getFeedbackToUser());
+        assertTrue(app.logic.execute("group add g/T02").hasSavedChanges());
+        app.stop();
+        assertEquals(app.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
     }
 
     @Test

@@ -591,6 +591,9 @@ The file looks like this:
 * `attendance` maps week numbers (`"1"` through `"13"`) to `"PRESENT"` or `"ABSENT"`.
   Status values ignore case and surrounding spaces when loaded. An omitted attendance map means no attendance
   records for that student. Invalid weeks or statuses make the file invalid.
+* Within a student's `attendance` or `participation` map, each week may appear only once. A key such as `"01"`
+  is read as Week 1, but including both `"1"` and `"01"` in the same map makes the file invalid, even if their
+  values match. Remove the duplicate entry while TAssist is closed, keeping the intended value, then restart.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If the data file is unreadable or invalid, TAssist shows

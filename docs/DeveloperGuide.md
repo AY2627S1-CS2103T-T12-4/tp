@@ -725,6 +725,11 @@ for a student or assignment that no longer exists (see [Where per-student record
 spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
 so the existing storage error handling reports the invalid file before commands use its records.
 
+Its Jackson factory keeps week keys as strings until it can check for duplicates during integer conversion.
+Two aliases for the same week, such as `"1"` and `"01"`, are rejected within an attendance or participation map,
+even if their values match. Jackson wraps this rejection as a loading error, activating startup file protection.
+A single alias remains valid and is saved using the canonical week number.
+
 In the same forgiving way, `JsonAdaptedStudent` and `JsonAdaptedAssignmentRecord` read a participation score or
 grade written with a zero fractional part, such as `5.0`, as the whole number `5`. A fractional mark such as `4.5`
 becomes an `IllegalValueException` instead of being truncated, so a hand-edited mark is never changed silently.
@@ -1439,6 +1444,13 @@ label.
    1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
+
+   1. Close the app and restore a valid file containing a student in T01. Set their participation map to
+      `{"1":3,"01":5}`, launch the app, and enter `group add g/T02`.<br>
+      Expected: The same startup warning appears, the command is rejected, and the file remains unchanged after exit.
+      The log identifies the duplicate Week 1 record. Repeat with `{"1":"PRESENT","01":"ABSENT"}` in attendance;
+      expect the same protection. Keep only the intended entry while the app is closed and restart; normal loading
+      and saving should resume.
 
    1. Close the app and replace the file with the example content from
       [Saving and loading TAssist data](#saving-and-loading-tassist-data). Change Alice Tan's Week 1 participation
