@@ -105,8 +105,8 @@ first Up brings back the command before it. The history starts empty each time y
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* Commands that take no parameters, such as `exit`, `group list`, and `student list`, reject extra input like
-  `exit 123`.
+* Commands that take no parameters, such as `exit`, `group list`, `student list`, `undo`, and `redo`, reject extra
+  input like `exit 123`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
@@ -122,9 +122,9 @@ first Up brings back the command before it. The history starts empty each time y
 Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
 
-The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
-attendance, participation, and assignment commands, in the same order as their sections in this guide. Within a topic,
-commands appear in the order you would use them. The examples are written to follow on from each other: in a new
+The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group,
+student, attendance, participation, and assignment commands, in the same order as their sections in this guide.
+Within a topic, commands appear in the order you would use them. The examples are written to follow on from each other: in a new
 TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
 works.
 
@@ -515,6 +515,38 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
 Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
 
+### Undoing a change: `undo`
+
+Reverses your latest change to tutorial groups, students, attendance, participation scores, or assignments.
+Switching the active group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes,
+newest first.
+
+Format: `undo`
+
+* You can undo up to 20 changes made since TAssist was opened. Changes from before you last opened TAssist cannot be
+  undone.
+* Commands that were rejected or did not change any data, such as listing, `help`, `view`, or entering the same
+  attendance mark again, are skipped.
+* The data that `undo` restores is saved, just like any other change.
+
+For example, after `attendance mark id/A0123456X w/3 s/absent`, entering `undo` shows
+`Undone: attendance mark id/A0123456X w/3 s/absent` and restores Alice Tan's earlier Week 3 attendance.
+If there is nothing to undo, TAssist shows
+`Nothing to undo. TAssist can undo the last 20 changes made since it was opened.` and changes no data.
+
+### Redoing a change: `redo`
+
+Reapplies the latest change that you reversed with `undo`.
+
+Format: `redo`
+
+* Enter `redo` again to reapply further undone changes, in the order you made them.
+* Making a new change after `undo` clears the changes you can redo.
+
+Continuing the example above, entering `redo` shows `Redone: attendance mark id/A0123456X w/3 s/absent`.
+If there is nothing to redo, TAssist shows
+`Nothing to redo. Redo is available after undo, until you make another change.`
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -533,6 +565,7 @@ Closing and reopening TAssist restores the last successfully saved state.
 
 Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
 selecting the already active group or entering the same attendance mark again, do not save either.
+Undoing or redoing a change saves the restored data.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
 The command's changes are rolled back, including the active selection and roster. For a permission problem, the
@@ -634,6 +667,8 @@ Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
+**Undo** | `undo`
+**Redo** | `redo`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`

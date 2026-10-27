@@ -30,7 +30,7 @@ import seedu.address.model.student.StudentId;
 public class HelpIntegrationTest {
     /** Every command format, in the order the Help screen shows them. */
     private static final List<String> EXPECTED_FORMATS = List.of(
-            "view SCREEN", "help [TOPIC]", "exit",
+            "view SCREEN", "help [TOPIC]", "undo", "redo", "exit",
             "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export",
             "group rename g/GROUP_NAME n/NEW_NAME", "group delete g/GROUP_NAME [f/yes]",
             "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID [f/yes]",

@@ -9,7 +9,7 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* The proposed undo/redo design adapts the snapshot-history idea from the
+* The undo/redo design adapts the snapshot-history idea from the
   [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
   The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
 
@@ -757,109 +757,103 @@ records have been entered.
   * Pros: Each feature owns its file.
   * Cons: A manual edit to one file, such as renaming a group, can leave records in another file that point to nothing. Loading must check every file against the others.
 
-### \[Proposed\] Undo/redo feature
+### Undo and redo
 
-**Status: optional future work, not implemented in the current release.** This proposal is tracked in
-[issue #63](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/63). The `undo` and `redo` commands,
-`UndoRedoHistory`, `HistoryEntry`, and the history operations below are proposed additions. Existing TAssist
-classes are named to show where the design would fit; this section does not describe working commands.
+`undo` reverses the latest change to TAssist data, and `redo` reapplies the latest change that was undone. A change
+is any successful command that changes and saves the data, across groups, students, attendance, participation, and
+assignments. This includes `group use`, since the active group is saved too. Each version holds the complete data,
+so undoing `student delete` also restores that student's records.
 
-#### Proposed implementation
+#### Implementation
 
-The TA would use `undo` to reverse the latest successful data change and `redo` to restore the change just undone.
-The proposal would cover changes across tutorial groups, students, attendance, participation, and assignments.
-A snapshot would contain the complete `TAssist` data, including the active group, so restoring a deleted student
-would also restore that student's records in the correct group. GUI preferences would remain outside the history.
+The history is kept by `TAssistHistory` in the `Model` component. It holds two stacks of `TAssistHistory.Version`,
+each a copy of the TAssist data together with the command that changed it, as the user entered it:
 
-`LogicManager` would own an `UndoRedoHistory` containing an ordered list of `HistoryEntry` objects and a
-`currentIndex`. Each entry would hold a private `TAssist` snapshot and, except for the initial entry, a description
-of the command that produced it. Copies would use the existing `TAssist(ReadOnlyTAssist)` constructor; neither
-live model changes nor a restored model could modify a retained snapshot.
+* the **undo stack** holds the data from before each recent change, newest on top, and
+* the **redo stack** holds the data from after each change that was undone, newest on top.
 
-<img src="images/UndoRedoHistoryClassDiagram.png" width="650" alt="Proposed undo/redo history structure" />
+`ModelManager` exposes the history through `Model#commitTAssist`, `Model#undoTAssist`, `Model#redoTAssist`,
+`Model#canUndoTAssist` and `Model#canRedoTAssist`. The history is kept in memory only, so it starts empty each time
+TAssist opens. At most `TAssistHistory.MAX_CHANGES` (20) changes are kept; the oldest is dropped after that.
 
-At startup, the history would contain only a copy of the loaded data. History would be kept in memory for the
-current session; restarting would retain the saved data but clear the ability to undo earlier commands.
-The implementation would bound the number of retained entries and discard the oldest entries when full,
-adjusting `currentIndex` to keep pointing to the retained current entry.
+`LogicManager` records a change after the command's data has been saved, and only if the data changed. Commands
+that fail, and commands that leave the data unchanged (listing, help, viewing a screen, or selecting the group that
+is already active), are not recorded. `Command#isUndoable` returns false for `UndoCommand` and `RedoCommand`, so they
+move through the history without recording themselves. Recording a new change empties the redo stack, as it no
+longer makes sense to redo a change made before the new one.
 
-**Recording a change.** The existing `LogicManager` already copies the model before execution, saves changed
-data, and restores the copy if a command or save fails (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
-The proposal would add a history entry only after this save succeeds. At that point, it would discard entries
-after `currentIndex`, append a copy of the new data with its command description, and advance the index.
-A rejected command, a failed save, or a command that leaves the data unchanged would preserve the entire history,
-including any entries available for redo.
+<img src="images/CommitActivityDiagram.png" width="300" />
 
-This rule would also cover `group use` when it changes the active group, because that selection is part of the
-saved data. Read-only commands such as `student list`, `help`, and `view students` would not add history entries.
+Given below is an example of how the stacks change.
 
-<img src="images/CommitActivityDiagram.png" width="650" alt="Proposed history recording after a normal command" />
+Step 1. The TA opens TAssist. Both stacks are empty, so `undo` and `redo` report that there is nothing to undo or
+redo, without changing data.
 
-The activity diagram covers ordinary commands. Undo and redo would follow a separate path, so restoring a
-snapshot would not itself append a new entry or discard redo history.
+Step 2. The TA enters `attendance mark id/A0123456X w/3 s/absent`, which changes data. `LogicManager` saves the data,
+then calls `Model#commitTAssist` with a copy of the data from before the command. The undo stack now holds one
+version, described as `attendance mark id/A0123456X w/3 s/absent`.
 
-**Restoring a change.** `TAssistParser` would recognize the one-word `undo` and `redo` commands beside `help`,
-`exit`, and `view`, because `CommandRegistry` only dispatches input of the form `feature subcommand`.
-The commands would return a proposed history-action request in `CommandResult`, leaving `LogicManager` to
-coordinate restoration and persistence. `LogicManager` would check for this request as soon as the command returns,
-before the existing check that skips saving when the data is unchanged. An undo request leaves the model unchanged
-at that point, so without this order the snapshot would never be restored or saved. The proposed flow would be:
+Step 3. The TA realizes the student was present and enters `undo`. `UndoCommand` calls `Model#undoTAssist`. The
+history pops the version from the undo stack and pushes a copy of the current data onto the redo stack, with the
+same description. `ModelManager` then restores the popped data, including the active group. `LogicManager` sees that
+the data changed and saves it, so the data file holds the restored data. The feedback is
+`Undone: attendance mark id/A0123456X w/3 s/absent`.
 
-1. Check that a previous or next entry exists. If none exists, return a specific message such as
-   `Nothing to undo.` or `Nothing to redo.` without changing data or history.
-2. Keep a copy of the current model and obtain a copy of the target snapshot without moving `currentIndex`.
-3. Restore the target through the existing `Model#setTAssist`, which also refreshes the observable group and
-   student views, and save it through `Storage#saveTAssist`.
-4. Only after saving succeeds, move `currentIndex` to the target and return a saved-change confirmation naming
-   the affected command, for example `Undid: student delete id/A0123456X`.
+The following sequence diagram shows how `undo` goes through the `Logic` component:
 
-If saving fails, restore the pre-command model and leave the index and history unchanged. The existing atomic
-save mechanism preserves the previous file. The startup protection for unreadable data must also continue to
-reject changes without attempting a save. Redo would restore the recorded snapshot, including its active group,
-rather than parse and execute the original command again.
+![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
 
-<img src="images/UndoSequenceDiagram-Logic.png" width="750" alt="Proposed successful undo and save sequence" />
+And how `Model#undoTAssist` uses the history in the `Model` component:
 
-The sequence diagram omits parsing and shows the successful path after an undo request is recognized.
-`peekUndo()` would return a copy without moving the index; `confirmUndo()` would move it only after saving.
-Redo would use equivalent next-entry operations. These history methods do not exist yet.
+![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-#### Example history
+Step 4. `redo` does the opposite: it pops the redo stack, pushes the current data onto the undo stack, and restores
+the popped data. If the TA enters another change instead, such as `attendance mark id/A0123456X w/3 s/present`, the
+redo stack is emptied.
 
-Suppose T01 is active and contains Alice (`A0123456X`) when the app starts. Let S0 be that initial snapshot.
-The following illustrates the proposed behavior; `undo` and `redo` cannot yet be run in the app.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If saving fails after `undo` or
+`redo`, `LogicManager` restores both the data and a copy of the history taken before the command, so the change can
+be undone again once the save problem is fixed.
 
-| Step | Command | Retained snapshots | Current snapshot and result |
-| --- | --- | --- | --- |
-| 1 | `attendance mark id/A0123456X w/3 s/present` | S0, S1 | S1: Alice is present in week 3. |
-| 2 | `student delete id/A0123456X` | S0, S1, S2 | S2: Alice and her records are removed. |
-| 3 | `undo` | S0, S1, S2 | S1: Alice and her attendance are restored. |
-| 4 | `redo` | S0, S1, S2 | S2: Alice is removed again. |
-| 5 | `undo`, then `student list` | S0, S1, S2 | S1: listing leaves the history unchanged. |
-| 6 | `participation set id/A0123456X w/3 s/2` | S0, S1, S3 | S3: the new score is saved; S2 is no longer available for redo. |
+</div>
 
-Each data-changing step assumes saving succeeds. A failed step would retain the previous model, saved file,
-and history position. Undo at the oldest retained entry and redo at the newest entry would report that no
-further change is available.
+`TAssistHistoryTest` covers the stacks and the size limit, `ModelManagerTest` covers restoring the active group, and
+`LogicManagerTest` checks saving, failed and read-only commands, and a failed save during `undo`.
 
 #### Design considerations
 
-**Aspect: How to represent changes**
+**Aspect: How undo and redo restore data**
 
-* **Alternative 1 (proposed choice):** Keep complete TAssist snapshots.
-  * Pros: One mechanism restores groups, students, records, and active selection together. It reuses the model's
-    copy and restore operations and does not require a different inverse operation for each command.
-  * Cons: Each entry copies the data. A bounded history limits memory use but also limits how far the TA can undo.
-* **Alternative 2:** Store an inverse operation for each command.
-  * Pros: Small changes can use less memory than a complete snapshot.
-  * Cons: Each command needs its own restoration logic, including dependent records when a student is deleted.
+* **Alternative 1 (current choice):** Keep a copy of the whole TAssist data for each change.
+  * Pros: Simple and works the same for every command, including commands added later. Each copy is small for a
+    TA's few groups of about 20 students, and the number of copies is limited.
+  * Cons: Uses more memory than storing only what changed.
 
-**Aspect: When to move the history position**
+* **Alternative 2:** Each command knows how to reverse itself (for example, `student delete` keeps the deleted student).
+  * Pros: Uses less memory.
+  * Cons: Every data-changing command needs its own correct reverse operation and tests.
 
-* **Proposed choice:** Update history only after a successful save. A storage error can then leave the model,
-  file, and history at the last successful state, and the TA can retry the same undo or redo.
-* **Alternative:** Move the index before saving. This would require rolling back both the model and history on
-  failure, adding another opportunity for them to disagree.
+**Aspect: What is recorded**
+
+* **Alternative 1 (current choice):** `LogicManager` records a change after a successful save whenever the data
+  differs.
+  * Pros: Commands need no extra code, and failed or unchanged commands can never be recorded.
+  * Cons: Undo and redo need `Command#isUndoable` so that they are not recorded themselves.
+
+* **Alternative 2:** Each command calls `Model#commitTAssist` itself, as AB3's proposed design did.
+  * Pros: Each command decides whether it is undoable.
+  * Cons: Easy to forget in a new command, and a change could be recorded even if saving it then fails.
+
+**Aspect: When the history moves during undo and redo**
+
+* **Alternative 1 (current choice):** `UndoCommand` moves the history through `Model#undoTAssist`, and
+  `LogicManager` restores a copy of the history if saving then fails.
+  * Pros: Undo and redo stay ordinary commands that use the model, like every other command.
+  * Cons: `LogicManager` must copy the history before each command so it can roll back.
+
+* **Alternative 2:** `LogicManager` owns the history, peeks at the target version, and moves only after saving.
+  * Pros: No rollback of the history is needed.
+  * Cons: Undo and redo need a special path in `LogicManager` instead of going through `Command#execute`.
 
 ### \[Proposed\] Data archiving
 
@@ -939,6 +933,7 @@ Priority 1 = Must have in MVP, Priority 2 = Nice to have, Priority 3 = Stretch
 | 38 | P1 | TA | have my data stored on my own laptop | keep student records private |
 | 39 | P2 | TA | export a group's records to CSV | hand figures to the course coordinator |
 | 40 | P3 | TA | import partial records from another TA's export | take over a group mid-semester |
+| 41 | P3 | busy TA | undo and redo my latest changes | recover quickly from a command entered by mistake |
 
 
 ### Use cases
@@ -1639,6 +1634,28 @@ Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSO
 save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
 and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
 parameter errors, empty groups, week boundaries, and display formatting.
+
+### Undoing and redoing changes
+
+1. Prerequisites: Open TAssist with T01 active and Alice Tan (`A0123456X`) in it, as for the attendance tests.
+
+1. Undoing and redoing
+
+   1. Enter `undo` before making any change. Expected: `Nothing to undo. TAssist can undo the last 20 changes made
+      since it was opened.` No data changes.
+   1. Enter `attendance mark id/A0123456X w/3 s/absent`, then `undo`.
+      Expected: `Undone: attendance mark id/A0123456X w/3 s/absent`, and `attendance list w/3` shows Alice's
+      earlier status.
+   1. Enter `redo`. Expected: `Redone: attendance mark id/A0123456X w/3 s/absent`, and Alice is absent again.
+   1. Enter `group add g/T09`, then `undo`. Expected: T09 is removed and T01 is the active group again.
+   1. Close and reopen TAssist. Expected: The data matches the state after the last undo or redo, and `undo` says
+      there is nothing to undo.
+
+1. Commands that are not undone
+
+   1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
+      Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
+   1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
 
 ### Testing the workspace
 

@@ -21,11 +21,17 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
+import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
+import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.Prefix;
+import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.logic.parser.TAssistArgumentParser;
 import seedu.address.logic.parser.TAssistParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -129,7 +135,7 @@ public class LogicManagerTest {
         };
         logic = new LogicManager(model, createStorage(storage), registry);
 
-        for (String command : List.of("help", "group list", "student list", "view students", "exit")) {
+        for (String command : List.of("help", "group list", "student list", "view students", "undo", "redo", "exit")) {
             assertFalse(logic.execute(command).hasSavedChanges());
         }
         assertFalse(Files.exists(storage.getTAssistFilePath()));
@@ -223,6 +229,109 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_undoAndRedo_restoresAndSavesData() throws Exception {
+        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(temporaryFolder.resolve("undo.json"));
+        logic = new LogicManager(model, createStorage(tAssistStorage), createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        TAssist afterGroupAdd = new TAssist(model.getTAssist());
+        logic.execute("student   add n/Alice Tan  id/A0123456X ");
+        TAssist afterStudentAdd = new TAssist(model.getTAssist());
+
+        CommandResult undone = logic.execute("undo");
+        assertEquals("Undone: student add n/Alice Tan id/A0123456X", undone.getFeedbackToUser());
+        assertTrue(undone.hasSavedChanges());
+        assertEquals(afterGroupAdd, model.getTAssist());
+        assertEquals(afterGroupAdd, new TAssist(tAssistStorage.readTAssist().orElseThrow()));
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+
+        CommandResult redone = logic.execute("redo");
+        assertEquals("Redone: student add n/Alice Tan id/A0123456X", redone.getFeedbackToUser());
+        assertEquals(afterStudentAdd, new TAssist(tAssistStorage.readTAssist().orElseThrow()));
+        assertEquals(1, logic.getActiveGroupStudentList().size());
+        assertEquals(RedoCommand.MESSAGE_NOTHING_TO_REDO, logic.execute("redo").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_failedAndReadOnlyCommands_notUndone() throws Exception {
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("history.json"))),
+                createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        assertThrows(CommandException.class, () -> logic.execute("group add g/t01"));
+        assertThrows(ParseException.class, () -> logic.execute("student add n/Alice"));
+        logic.execute("group list");
+        logic.execute("group use g/T01");
+
+        assertEquals("Undone: group add g/T01", logic.execute("undo").getFeedbackToUser());
+        assertEquals(new TAssist(), model.getTAssist());
+        CommandResult nothingToUndo = logic.execute("undo");
+        assertEquals(UndoCommand.MESSAGE_NOTHING_TO_UNDO, nothingToUndo.getFeedbackToUser());
+        assertFalse(nothingToUndo.hasSavedChanges());
+    }
+
+    @Test
+    public void execute_undoStudentDelete_restoresStudentWithRecords() throws Exception {
+        CommandRegistry registry = createGroupAndStudentRegistry();
+        AttendanceCommandRegistration.registerCommands(registry);
+        ParticipationCommandRegistration.registerCommands(registry);
+        AssignmentCommandRegistration.registerCommands(registry);
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("all.json"))),
+                registry);
+        for (String command : List.of("group add g/T01", "student add n/Alice Tan id/A0123456X",
+                "attendance mark id/A0123456X w/3 s/present", "participation set id/A0123456X w/3 s/4",
+                "assignment add a/PS1", "assignment submit a/PS1 id/A0123456X s/yes",
+                "assignment grade a/PS1 id/A0123456X m/8")) {
+            logic.execute(command);
+        }
+        TAssist withRecords = new TAssist(model.getTAssist());
+
+        logic.execute("student delete id/A0123456X f/yes");
+        assertTrue(logic.getActiveGroupStudentList().isEmpty());
+
+        assertEquals("Undone: student delete id/A0123456X f/yes", logic.execute("undo").getFeedbackToUser());
+        assertEquals(withRecords, model.getTAssist());
+        assertEquals(1, logic.getActiveGroupStudentList().size());
+    }
+
+    @Test
+    public void execute_newChangeAfterUndo_clearsRedo() throws Exception {
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("redo.json"))),
+                createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        logic.execute("undo");
+        logic.execute("group add g/T02");
+
+        assertEquals(RedoCommand.MESSAGE_NOTHING_TO_REDO, logic.execute("redo").getFeedbackToUser());
+        assertEquals("Undone: group add g/T02", logic.execute("undo").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_undoNotSaved_keepsDataAndHistory() throws Exception {
+        boolean[] isSaveFailing = {false};
+        JsonTAssistStorage storage = new JsonTAssistStorage(temporaryFolder.resolve("unsaved.json")) {
+            @Override
+            public void saveTAssist(ReadOnlyTAssist tAssist) throws IOException {
+                if (isSaveFailing[0]) {
+                    throw DUMMY_IO_EXCEPTION;
+                }
+                super.saveTAssist(tAssist);
+            }
+        };
+        logic = new LogicManager(model, createStorage(storage), createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        TAssist afterGroupAdd = new TAssist(model.getTAssist());
+
+        isSaveFailing[0] = true;
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute("undo"));
+        assertEquals(afterGroupAdd, model.getTAssist());
+        assertTrue(model.canUndoTAssist());
+        assertFalse(model.canRedoTAssist());
+
+        isSaveFailing[0] = false;
+        assertEquals("Undone: group add g/T01", logic.execute("undo").getFeedbackToUser());
+        assertEquals(new TAssist(), model.getTAssist());
+    }
+
+    @Test
     public void getGroupList_groupAdded_showsGroup() {
         model.setTAssist(TypicalGroups.getTypicalTAssist());
         assertEquals(TypicalGroups.getTypicalGroups(), logic.getGroupList());
@@ -274,6 +383,13 @@ public class LogicManagerTest {
         CommandResult result = logic.execute(inputCommand);
         assertEquals(expectedMessage, result.getFeedbackToUser());
         assertEquals(expectedModel, model);
+    }
+
+    private CommandRegistry createGroupAndStudentRegistry() {
+        CommandRegistry registry = new CommandRegistry();
+        GroupCommandRegistration.registerCommands(registry);
+        StudentCommandRegistration.registerCommands(registry);
+        return registry;
     }
 
     private CommandRegistry createFeatureRegistry() {

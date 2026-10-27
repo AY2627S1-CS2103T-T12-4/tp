@@ -14,6 +14,8 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
@@ -31,7 +33,7 @@ public class TAssistParser {
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
     private static final Set<String> BUILT_IN_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
-            HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD);
+            HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD, UndoCommand.COMMAND_WORD, RedoCommand.COMMAND_WORD);
 
     private final CommandRegistry commandRegistry;
     private final List<HelpEntry> helpEntries;
@@ -52,7 +54,7 @@ public class TAssistParser {
     public TAssistParser(CommandRegistry commandRegistry) {
         requireNonNull(commandRegistry);
         checkArgument(BUILT_IN_COMMAND_WORDS.stream().noneMatch(commandRegistry::hasFeature),
-                "Feature keywords must not conflict with the help, view and exit commands.");
+                "Feature keywords must not conflict with the help, view, undo, redo and exit commands.");
         this.commandRegistry = new CommandRegistry(commandRegistry);
         helpEntries = HelpCatalog.getEntries(commandRegistry.getHelpEntries());
     }
@@ -92,8 +94,22 @@ public class TAssistParser {
             case ExitCommand.COMMAND_WORD -> new ExitCommandParser().parse(arguments);
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
+            case UndoCommand.COMMAND_WORD -> withoutParameters(arguments, new UndoCommand());
+            case RedoCommand.COMMAND_WORD -> withoutParameters(arguments, new RedoCommand());
             default -> commandRegistry.parseCommand(commandWord, arguments);
         };
+    }
+
+    /**
+     * Returns {@code command} if {@code arguments} is blank.
+     *
+     * @throws ParseException if there is any input after the command word.
+     */
+    private static Command withoutParameters(String arguments, Command command) throws ParseException {
+        if (!arguments.isBlank()) {
+            throw new ParseException(TAssistArgumentParser.MESSAGE_NO_PARAMETERS);
+        }
+        return command;
     }
 
 }
