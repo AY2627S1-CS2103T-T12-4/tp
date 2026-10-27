@@ -14,6 +14,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/linziyang2025-byte.png" width="200px">
 
 [[github](https://github.com/linziyang2025-byte)]
+[[portfolio](team/linziyang2025-byte.md)]
 
 * Role: Developer
 
