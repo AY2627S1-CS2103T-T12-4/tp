@@ -299,6 +299,7 @@ Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check t
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
+Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
@@ -321,7 +322,8 @@ For Alice Tan in active group T01, `attendance mark id/A0123456X w/3 s/present` 
 Invalid commands do not change or save data. An invalid week shows `Invalid week. Enter a number from 1 to 13.`;
 an invalid status shows `Invalid attendance status. Use present or absent.` An unknown student shows
 `Student ID A0999999Z does not exist in T01.` With no active group, use `group add g/GROUP_NAME` or
-`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes are identified in the feedback.
+`group use g/GROUP_NAME` first. Missing, repeated, or unknown prefixes, and extra text after
+a value such as `w/3 please`, are identified in the feedback.
 
 ### Listing weekly attendance: `attendance list`
 
@@ -393,6 +395,7 @@ Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digi
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
+Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
 
 ### Creating an assignment: `assignment add`
 
@@ -467,6 +470,7 @@ Grade before submission | `Cannot record a grade for an unsubmitted assignment. 
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
+Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exporting a group's records: `group export`

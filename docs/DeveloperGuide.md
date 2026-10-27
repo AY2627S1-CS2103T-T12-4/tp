@@ -297,9 +297,10 @@ Prefixes contain lowercase letters followed by `/`, and start at the beginning o
 Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
 parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
-produce specific errors. Optional parameters may appear at most once. Empty values are retained for the value
-validator to report a value error instead of a missing-parameter error. A command declaring no prefixes rejects
-extra input.
+produce specific errors. Extra words after the single-word values of `id/`, `w/`, `s/`, `m/`, and `f/` are also
+reported, naming the text, instead of being joined onto the value. Optional parameters may appear at most once.
+Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
+A command declaring no prefixes rejects extra input.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and

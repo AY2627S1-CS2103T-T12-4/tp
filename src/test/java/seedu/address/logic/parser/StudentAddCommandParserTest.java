@@ -39,7 +39,7 @@ public class StudentAddCommandParserTest {
         for (String name : new String[] {"", "123", "--", "A".repeat(61), "Alice!"}) {
             assertParseFailure(parser, "n/" + name + " id/A0123456X", StudentName.MESSAGE_CONSTRAINTS);
         }
-        for (String id : new String[] {"", "ABC", "A 1", "A1!", "1".repeat(21), "A1n/Alice"}) {
+        for (String id : new String[] {"", "ABC", "A1!", "1".repeat(21), "A1n/Alice"}) {
             assertParseFailure(parser, "n/Alice id/" + id, StudentId.MESSAGE_CONSTRAINTS);
         }
     }

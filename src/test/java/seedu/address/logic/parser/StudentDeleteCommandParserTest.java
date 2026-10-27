@@ -29,7 +29,7 @@ public class StudentDeleteCommandParserTest {
     @Test
     public void parse_missingOrInvalidId_reportsSpecificError() {
         assertParseFailure(parser, "", "Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);
-        for (String id : new String[] {"", "ABC", "A 1", "A1!", "1".repeat(21)}) {
+        for (String id : new String[] {"", "ABC", "A1!", "1".repeat(21)}) {
             assertParseFailure(parser, "id/" + id, StudentId.MESSAGE_CONSTRAINTS);
         }
     }
@@ -47,5 +47,13 @@ public class StudentDeleteCommandParserTest {
     @Test
     public void parse_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_extraTextAfterValue_reportsExtraText() {
+        assertParseFailure(parser, "id/A0123456X now",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "id/A0123456X", "now"));
+        assertParseFailure(parser, "id/A0123456X f/yes now",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "f/yes", "now"));
     }
 }

@@ -24,6 +24,11 @@ public class TAssistArgumentParser {
     public static final String MESSAGE_UNEXPECTED_TEXT =
             "Unexpected text before parameters: '%s'. Start each parameter with an allowed prefix: %s.";
     public static final String MESSAGE_NO_PARAMETERS = "This command takes no parameters. Remove the extra input.";
+    public static final String MESSAGE_EXTRA_TEXT = "Unexpected extra text after '%s': '%s'. Remove it.";
+
+    /** Prefixes whose values are a single word, so any text after that word is not part of the value. */
+    private static final Set<Prefix> SINGLE_WORD_PREFIXES = Set.of(
+            new Prefix("id/"), new Prefix("w/"), new Prefix("s/"), new Prefix("m/"), new Prefix("f/"));
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
@@ -90,12 +95,22 @@ public class TAssistArgumentParser {
             if (!allowedPrefixes.contains(nextPrefix)) {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_PREFIX, nextPrefix, formatAllowedPrefixes()));
             }
-            values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
+            putValue(values, currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
             valueStart = matcher.end();
         }
-        values.put(currentPrefix, arguments.substring(valueStart).trim());
+        putValue(values, currentPrefix, arguments.substring(valueStart).trim());
         return values;
+    }
+
+    private void putValue(ArgumentMultimap values, Prefix prefix, String value) throws ParseException {
+        if (SINGLE_WORD_PREFIXES.contains(prefix)) {
+            String[] words = value.split("\\s+", 2);
+            if (words.length > 1) {
+                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            }
+        }
+        values.put(prefix, value);
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
