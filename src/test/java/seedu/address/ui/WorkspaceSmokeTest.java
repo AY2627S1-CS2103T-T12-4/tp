@@ -4,14 +4,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+import static seedu.address.testutil.TypicalStudents.CARL;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
@@ -23,10 +30,15 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -34,6 +46,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -41,12 +54,15 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -54,6 +70,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
 import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
@@ -588,6 +605,220 @@ public class WorkspaceSmokeTest {
             enter(input, "student list");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId(),
                     "Commands that do not open a screen keep the current screen");
+        });
+    }
+
+    @Test
+    public void commandBox_fillTemplate_preparesNewDraftWithoutExecuting() throws Exception {
+        runOnFx(() -> {
+            List<String> executed = new ArrayList<>();
+            CommandBox box = new CommandBox(command -> {
+                executed.add(command);
+                return new CommandResult("Recorded");
+            });
+            Stage templateStage = new Stage();
+            templateStage.setScene(new Scene(box.getRoot()));
+            templateStage.show();
+            try {
+                TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+                String template = "attendance mark id/A1 w/";
+                field.setText("unfinished previous draft");
+                field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+                box.fillTemplate(template);
+                assertEquals(template, field.getText());
+                assertEquals(template.length(), field.getCaretPosition());
+                assertEquals(field, templateStage.getScene().getFocusOwner());
+                assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertTrue(executed.isEmpty());
+
+                field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+                box.fillTemplate(template);
+                assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertThrows(NullPointerException.class, () -> box.fillTemplate(null));
+                assertEquals(template, field.getText());
+                String completed = template + "1 s/present";
+                enter(field, completed);
+                assertEquals(List.of(completed), executed);
+                assertTrue(field.getText().isEmpty());
+
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
+                        false, false, false, false));
+                box.fillTemplate(template);
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.UP,
+                        false, false, false, false));
+                assertEquals(completed, field.getText());
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
+                        false, false, false, false));
+                assertEquals(template, field.getText());
+                assertEquals(List.of(completed), executed);
+            } finally {
+                templateStage.close();
+            }
+        });
+    }
+
+    @Test
+    public void fillTemplate_afterFailedEnter_keepsInputEditable() throws Exception {
+        runOnFx(() -> {
+            CommandBox box = new CommandBox(command -> {
+                throw new ParseException("Complete the attendance template first.");
+            });
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            String template = "attendance mark id/A1 w/";
+            box.fillTemplate(template);
+            field.fireEvent(new ActionEvent());
+            assertEquals(template, field.getText());
+            assertTrue(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            box.fillTemplate(template);
+            assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(template.length(), field.getCaretPosition());
+        });
+    }
+
+    @Test
+    public void studentClick_preparesTemplateAndRequiresEnter_preservesDataUntilCompleted() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                String saved = Files.readString(data);
+                TAssist previousData = new TAssist(model.getTAssist());
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                String previousFeedback = feedback.getText();
+                input.setText("unfinished draft");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                String template = "attendance mark id/A0123456X w/";
+                assertEquals(template, input.getText());
+                assertEquals(template.length(), input.getCaretPosition());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                assertEquals(previousFeedback, feedback.getText());
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+
+                input.fireEvent(new ActionEvent());
+                assertEquals(template, input.getText());
+                assertTrue(input.getStyleClass().contains("error"));
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+                input.appendText("1 s/present");
+                input.fireEvent(new ActionEvent());
+                assertTrue(input.getText().isEmpty());
+                assertEquals("PRESENT", model.getActiveGroupStudentList().getFirst()
+                        .getAttendanceRecord(1).orElseThrow());
+                assertFalse(saved.equals(Files.readString(data)));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    private TableRow<?> tableRow(TableView<?> table, int index) {
+        table.applyCss();
+        table.layout();
+        return table.lookupAll(".table-row-cell").stream()
+                .filter(node -> node instanceof TableRow<?>)
+                .map(node -> (TableRow<?>) node)
+                .filter(row -> row.getIndex() == index)
+                .findFirst().orElseThrow();
+    }
+
+    private void clickRow(TableRow<?> row, MouseButton button) {
+        row.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, button, 1,
+                false, false, false, false, false, false, false, false, false, true, null));
+    }
+
+    @Test
+    public void studentClick_repeatedAndIgnoredActions_preservesDraftAndHistory() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                String saved = Files.readString(data);
+                TAssist previousData = new TAssist(model.getTAssist());
+                input.setText("unfinished draft");
+                studentTable().getSelectionModel().select(0);
+                studentTable().requestFocus();
+                studentTable().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DOWN,
+                        false, false, false, false));
+                assertEquals(1, studentTable().getSelectionModel().getSelectedIndex());
+                assertEquals("unfinished draft", input.getText());
+                clickRow(tableRow(studentTable(), 0), MouseButton.SECONDARY);
+                clickRow(tableRow(studentTable(), 0), MouseButton.MIDDLE);
+                TableRow<?> emptyRow = tableRow(studentTable(), studentTable().getItems().size());
+                assertTrue(emptyRow.isEmpty());
+                clickRow(emptyRow, MouseButton.PRIMARY);
+                assertEquals("unfinished draft", input.getText());
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                input.appendText("3 s/present");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                String template = "attendance mark id/A0123456X w/";
+                assertEquals(template, input.getText());
+                assertEquals(template.length(), input.getCaretPosition());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                pressKey(KeyCode.UP);
+                assertEquals(template + "3 s/present", input.getText());
+                pressKey(KeyCode.UP);
+                assertEquals("unfinished draft", input.getText());
+                pressKey(KeyCode.UP);
+                assertEquals("group use g/T01", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals("unfinished draft", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals(template + "3 s/present", input.getText());
+                pressKey(KeyCode.DOWN);
+                assertEquals(template, input.getText());
+                assertEquals(previousData, model.getTAssist());
+                assertEquals(saved, Files.readString(data));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentClick_groupAndRosterChanges_usesCurrentRowStudent() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                enter(input, "group use g/T02");
+                assertTrue(input.getText().isEmpty(), "Changing groups does not fill a template automatically");
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                assertEquals("attendance mark id/A0456789W w/", input.getText());
+                model.removeStudent(TypicalGroups.NAME_T02,
+                        model.getActiveGroupStudentList().getFirst().getStudentId());
+                clickRow(tableRow(studentTable(), 0), MouseButton.PRIMARY);
+                assertEquals("attendance mark id/A0567890U w/", input.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentClick_transformedList_usesDisplayedStudentInsteadOfRosterIndex() throws Exception {
+        runOnFx(() -> {
+            FilteredList<Student> filtered = new FilteredList<>(FXCollections.observableArrayList(ALICE, BEN, CARL),
+                    student -> !student.equals(ALICE));
+            SortedList<Student> sorted = new SortedList<>(filtered,
+                    Comparator.comparing((Student student) -> student.getStudentId().toString()).reversed());
+            List<Student> clicked = new ArrayList<>();
+            StudentListPanel panel = new StudentListPanel(
+                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), sorted, clicked::add);
+            Stage transformedStage = new Stage();
+            transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
+            transformedStage.show();
+            try {
+                TableView<?> table = (TableView<?>) panel.getRoot().lookup("#studentTable");
+                clickRow(tableRow(table, 0), MouseButton.PRIMARY);
+                assertEquals(List.of(CARL), clicked);
+                filtered.setPredicate(student -> student.equals(ALICE));
+                clickRow(tableRow(table, 0), MouseButton.PRIMARY);
+                assertEquals(List.of(CARL, ALICE), clicked);
+            } finally {
+                transformedStage.close();
+            }
         });
     }
 

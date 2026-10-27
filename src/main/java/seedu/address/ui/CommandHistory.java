@@ -26,6 +26,19 @@ class CommandHistory {
     private int position;
 
     /**
+     * Starts a new draft, discarding edits to recalled entries. A non-blank {@code unfinishedDraft} that differs
+     * from the newest command is kept as the newest entry, so Up can recall it after the new draft replaces it.
+     */
+    void startNewDraft(String unfinishedDraft) {
+        requireNonNull(unfinishedDraft);
+        if (!unfinishedDraft.isBlank() && (commands.isEmpty() || !commands.getLast().equals(unfinishedDraft))) {
+            commands.add(unfinishedDraft);
+        }
+        position = commands.size();
+        editedTexts.clear();
+    }
+
+    /**
      * Adds {@code command} as the newest entry and stops recalling, so the next Up recalls this command.
      * Edits to recalled commands are discarded, and the stored commands stay as they were entered.
      */

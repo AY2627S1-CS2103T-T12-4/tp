@@ -101,6 +101,12 @@ group's name, and says "No active group" when none is active. When there are no 
 table, and says whether no group is active or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
+`StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
+is passed through a callback in `WorkspacePanel` to `MainWindow`, which fills the template built by
+`AttendanceMarkCommand.buildTemplate` using its ID.
+This callback calls `CommandBox.fillTemplate` rather than Logic; only Enter follows the execution and save path.
+Keyboard or programmatic selection does not prepare a template, and empty rows and other mouse buttons are ignored.
+
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` saves only when the persisted model changes, so
 navigation and other read-only commands do not write data. `CommandResult.hasSavedChanges()` tells the UI whether
@@ -124,6 +130,11 @@ Both methods skip positions whose text matches the text in the box. A failed com
 newest entry, so without this the first Up after a failure would appear to do nothing. The history is kept in
 memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
 that it can be unit tested.
+
+`CommandBox.fillTemplate` replaces the current draft without executing it or adding it to history.
+It starts a fresh history position, returns focus to the input, and places the caret at the end.
+A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
+an incomplete template stays editable after its validation error.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -1735,6 +1746,23 @@ parameter errors, empty groups, week boundaries, and display formatting.
    1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
       Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
    1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
+
+### Preparing a command from a student row
+
+1. Open a group with at least two students. Type an unfinished command, then click a populated row.
+   Expect an attendance template containing that row's ID, focus in the command box, and the cursor after `w/`.
+   The previous draft is replaced and can be recalled with Up, while feedback, attendance records, and the saved file
+   stay unchanged.
+2. Complete the week and status, then click the same row again. Expect the incomplete template to replace the draft.
+   Press Up and Down; the completed draft, the last submitted command, and the new template should remain
+   available without execution.
+3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
+   Selecting another row with the keyboard must also leave the command box alone.
+4. Submit the incomplete template with Enter. Expect the missing-parameter error
+   `Missing required parameter(s): s/. Include each exactly once.`, retained text, and unchanged records.
+   Complete it with a valid week and status, then press Enter; only then should attendance be saved.
+5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.
+   The JavaFX regression also checks filtered and sorted observable lists to prevent using a stale roster index.
 
 ### Testing the workspace
 
