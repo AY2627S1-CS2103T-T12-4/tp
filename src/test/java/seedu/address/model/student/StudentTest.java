@@ -45,6 +45,25 @@ public class StudentTest {
     }
 
     @Test
+    public void withoutWeeklyRecord_removesOnlyThatKindAndWeek() {
+        Student recorded = ALICE.withAttendanceRecord(3, "PRESENT").withAttendanceRecord(4, "ABSENT")
+                .withParticipationRecord(4, 2);
+
+        Student withoutAttendance = recorded.withoutAttendanceRecord(4);
+        Student withoutParticipation = recorded.withoutParticipationRecord(4);
+
+        assertTrue(withoutAttendance.getAttendanceRecord(4).isEmpty());
+        assertEquals("PRESENT", withoutAttendance.getAttendanceRecord(3).orElseThrow());
+        assertEquals(2, withoutAttendance.getParticipationRecord(4).orElseThrow());
+        assertTrue(withoutParticipation.getParticipationRecord(4).isEmpty());
+        assertEquals("ABSENT", withoutParticipation.getAttendanceRecord(4).orElseThrow());
+        assertEquals("ABSENT", recorded.getAttendanceRecord(4).orElseThrow());
+        assertEquals(ALICE, ALICE.withoutAttendanceRecord(1).withoutParticipationRecord(1));
+        assertThrows(IllegalArgumentException.class, () -> ALICE.withoutAttendanceRecord(14));
+        assertThrows(IllegalArgumentException.class, () -> ALICE.withoutParticipationRecord(0));
+    }
+
+    @Test
     public void builder_copyPreservesWeeklyRecords() {
         Student recordedStudent = ALICE.withAttendanceRecord(2, "ABSENT").withParticipationRecord(2, 3);
         assertEquals(recordedStudent, new StudentBuilder(recordedStudent).build());

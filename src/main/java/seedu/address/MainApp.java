@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -150,11 +151,27 @@ public class MainApp extends Application {
         if (cause instanceof IllegalValueException) {
             return Objects.toString(cause.getMessage(), "");
         }
+        Optional<String> rejectedValue = findRejectedValueMessage(cause);
+        if (rejectedValue.isPresent()) {
+            return rejectedValue.get();
+        }
         if (cause instanceof JsonProcessingException processingException) {
             return "The file has a JSON syntax error or a value of the wrong type"
                     + formatLocation(processingException.getLocation()) + ".";
         }
         return "The file could not be opened.";
+    }
+
+    /**
+     * Returns the message of a value that a JSON creator rejected, such as a repeated week, which Jackson wraps in a
+     * mapping exception. A week that is not a number is not included, as its message is not meant for the TA.
+     */
+    private static Optional<String> findRejectedValueMessage(Throwable cause) {
+        if (cause instanceof JsonMappingException && cause.getCause() instanceof IllegalArgumentException rejection
+                && !(rejection instanceof NumberFormatException) && rejection.getMessage() != null) {
+            return Optional.of(rejection.getMessage());
+        }
+        return Optional.empty();
     }
 
     /**

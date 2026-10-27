@@ -308,9 +308,12 @@ Prefixes contain lowercase letters followed by `/`, and start at the beginning o
 Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
 parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
-produce specific errors. Optional parameters may appear at most once. Empty values are retained for the value
-validator to report a value error instead of a missing-parameter error. A command declaring no prefixes rejects
-extra input.
+produce specific errors. Each command parser passes the prefixes whose values are a single word (for example `id/`
+and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
+`parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
+Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
+A command declaring no prefixes rejects extra input.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and
@@ -453,7 +456,8 @@ unchanged and that storage is never called.
 
 ### Participation commands
 
-`ParticipationCommandRegistration` registers `participation set` and `participation list` and their help entries
+`ParticipationCommandRegistration` registers `participation set`, `participation list` and `participation clear`
+and their help entries
 before `LogicManager` is created. Their parsers use `TAssistArgumentParser` for prefix validation and
 `TAssistParserUtil` for IDs, weeks 1–13, and whole-number scores 0–5. Command constructors also reject invalid weeks
 or scores defensively, even when called without a parser.
@@ -481,12 +485,33 @@ The `parse participation set` reference frame is shown below. `CommandRegistry` 
 `ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
 the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
 
-Both commands use the standard feedback box and keep the current screen selected. The Participation table remains
-a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+Because zero is an actual score, setting a score to 0 cannot undo a score entered by mistake.
+`ParticipationClearCommand` removes the week's score with `withoutParticipationRecord`, so the week shows
+`Not recorded` again. It works like `attendance clear`: it takes only `id/` and `w/`, names the score it removed, and
+changes nothing when the week has no score.
+
+**Aspect: How a TA removes a wrong weekly record**
+
+* **Alternative 1 (current choice):** A `clear` subcommand for each record kind, such as
+  `attendance clear id/A0123456X w/4`.
+  * Pros: The command says what it does. It takes only the student and week, so it cannot be confused with a mark,
+    and both record kinds use the same word.
+  * Cons: Two more commands to learn and document.
+* **Alternative 2:** A special value in the existing commands, such as `attendance mark ... s/none`.
+  * Pros: No new commands.
+  * Cons: `none` would become a third status for attendance and a non-number for participation, which every
+    validator, list, and export would have to treat as missing. A typo could also clear a record by accident.
+* **Alternative 3:** Rely on a general undo command.
+  * Pros: Fixes any mistake, not only weekly records.
+  * Cons: It only helps right after the mistake. A wrong mark noticed a week later stays in the data and the export.
+
+`participation set`, `participation list`, and `participation clear` use the standard feedback box and keep the
+current screen selected. The Participation table remains a preview and points users to the commands. Existing JSON storage already persists participation records, so the
 feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
 it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
-restart persistence, and rejected commands preserving existing records and the file. Command and parser unit tests
-cover boundaries, corrections, group isolation, missing values, and malformed input. `WorkspaceSmokeTest` checks
+restart persistence, clearing a score, and rejected commands preserving existing records and the file. Command and
+parser unit tests cover boundaries, corrections, clearing a recorded or missing score, group isolation, missing
+values, and malformed input. `WorkspaceSmokeTest` checks
 participation feedback and failed-input retention through the JavaFX command box.
 
 ### Student commands
@@ -569,8 +594,9 @@ TAssist's own data is modelled by the classes below. `ModelManager` holds the `T
 #### Shared weekly record mechanism
 
 `WeeklyRecord<T>` stores values in a week-keyed map and accepts weeks 1 through 13. Its `withRecord` method returns a
-copy, replacing the value when that week already exists. A `Student` owns separate attendance and participation
-records; `withAttendanceRecord` and `withParticipationRecord` return updated student copies. `Model#setStudent`
+copy, replacing the value when that week already exists, and `withoutRecord` returns a copy without that week's
+value. A `Student` owns separate attendance and participation records; `withAttendanceRecord`,
+`withParticipationRecord`, `withoutAttendanceRecord` and `withoutParticipationRecord` return updated student copies. `Model#setStudent`
 replaces that copy in its group while preserving the student's position.
 
 `Group#getWeeklyRecordEntries` creates one row for each student, in group order, and selects the requested record
@@ -604,6 +630,13 @@ selects attendance through `Group#getWeeklyRecordEntries`. If the group has no s
 `No students in GROUP.` Otherwise, it lists every student, formatting each row with the student's name, ID, and
 capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
 The rows appear in the scrollable command feedback box; the Attendance workspace screen remains a preview.
+
+`AttendanceClearCommandParser` requires `id/` and `w/` exactly once, with the same validation as marking. It does not
+accept `s/`, so a status copied from a mark command is reported instead of being ignored. `AttendanceClearCommand`
+finds the student in the active group, then replaces them through `Model#setStudent` with a copy from
+`withoutAttendanceRecord`. The feedback names the status it removed, such as `present to Not recorded`, so a TA who
+cleared the wrong week can mark it again. If the week has no mark, the command changes nothing and says so. The data
+is then unchanged, so `LogicManager` does not save, just as for a repeated mark.
 
 #### Where per-student records are stored
 
@@ -746,6 +779,12 @@ for a student or assignment that no longer exists (see [Where per-student record
 `JsonAdaptedStudent` also validates attendance statuses with `AttendanceStatus`, accepting case and surrounding
 spaces and storing the canonical `PRESENT` or `ABSENT` value. An invalid status becomes an `IllegalValueException`
 so the existing storage error handling reports the invalid file before commands use its records.
+
+Its Jackson factory keeps week keys as strings until it can check for duplicates during integer conversion.
+Two aliases for the same week, such as `"1"` and `"01"`, are rejected within an attendance or participation map,
+even if their values match. Jackson wraps this rejection as a loading error, so `MainApp#describeLoadFailure` reads
+the original message from it. The startup warning then names the duplicate week and activates startup file protection.
+A single alias remains valid and is saved using the canonical week number.
 
 In the same forgiving way, `JsonAdaptedStudent` and `JsonAdaptedAssignmentRecord` read a participation score or
 grade written with a zero fractional part, such as `5.0`, as the whole number `5`. A fractional mark such as `4.5`
@@ -1113,6 +1152,12 @@ The following extensions apply to every use case that changes or views records o
 
       Use case ends.
 
+* 5b. TA notices a mark for a student or week that should have none (e.g. the TA marked the wrong week).
+    * 5b1. TA requests to clear that student's attendance for that week.
+    * 5b2. TAssist removes the mark and shows the status it removed.
+
+      Use case resumes at step 4.
+
 **Use case: UC06 - Record class participation**
 
 **Preconditions:** The active group has at least one student.
@@ -1147,6 +1192,12 @@ The following extensions apply to every use case that changes or views records o
     * 4a1. TAssist shows those students as not recorded.
 
       Use case ends.
+
+* 4b. TA notices a score for a student or week that should have none (e.g. the TA scored the wrong student).
+    * 4b1. TA requests to clear that student's score for that week.
+    * 4b2. TAssist removes the score and shows the score it removed.
+
+      Use case resumes at step 3.
 
 **Use case: UC07 - Track an assignment**
 
@@ -1457,6 +1508,13 @@ label.
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
+   1. Close the app and restore a valid file containing a student in T01. Set their participation map to
+      `{"1":3,"01":5}`, launch the app, and enter `group add g/T02`.<br>
+      Expected: A startup warning appears, the command is rejected, and the file remains unchanged after exit.
+      The warning says `Duplicate weekly record for Week 1. Use only one entry per week.` Repeat with
+      `{"1":"PRESENT","01":"ABSENT"}` in attendance; expect the same protection. Keep only the intended entry while
+      the app is closed and restart; normal loading and saving should resume.
+
    1. Close the app and restore a valid data file. Append `THIS IS INVALID JSON` after its final closing brace,
       then launch the app and enter `group add g/T02`.<br>
       Expected: The same kind of startup message appears, naming the line of the appended text. The command is
@@ -1497,8 +1555,14 @@ label.
    `participation set id/A0123456X w/3 s/2.5`, `participation set id/A999 w/3 s/2`,
    `participation set id/A0123456X w/3`, and `participation list w/3 w/4`.
    Expect specific week, score, student, missing-prefix, and duplicate-prefix errors without changing any record or file.
-5. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
-   With no active group, both commands must ask you to create or select a group first.
+5. Enter `participation clear id/A0123456X w/3`. Expect
+   `Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` List Week 3; Alice shows `Not recorded`.
+   Enter the clear command again. Expect `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
+   Close and reopen, then list Weeks 3 and 13. Expect `Not recorded` and 5.
+6. Try `participation clear id/A0123456X w/3 s/2` and `participation clear w/3`. Expect unknown-prefix and
+   missing-prefix errors without changing any record.
+7. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
+   With no active group, all three commands must ask you to create or select a group first.
 
 ### Creating assignments and listing their records
 
@@ -1625,6 +1689,18 @@ label.
       `Not recorded`.
    1. Close and reopen the app. Enter `attendance list w/3`. Expected: Alice is still absent.
 
+1. Clearing a mark
+
+   1. Enter `attendance mark id/A0123456X w/4 s/present`, then `attendance clear id/a0123456x w/4`.
+      Expected: `Cleared Alice Tan's attendance for Week 4: present to Not recorded.`
+   1. Enter the clear command again.
+      Expected: `Alice Tan has no attendance recorded for Week 4. Nothing changed.`, and the footer does not say
+      `Changes saved.`
+   1. Enter `attendance list w/4`. Expected: every student shows `Not recorded`.
+   1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
+   1. Enter `attendance clear id/A0123456X w/4 s/present`.
+      Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
+
 1. Rejected commands
 
    1. Enter `attendance mark id/A0123456X w/0 s/present`, then `attendance list w/14`.
@@ -1635,11 +1711,11 @@ label.
       Expected: `Student ID <ID> does not exist in T01.`, naming the ID you entered.
    1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
    1. Verify that records and the saved file remain unchanged after each rejection.
-   1. Close the app, set `activeGroup` to `null` in the file, and reopen it. Both attendance commands must
+   1. Close the app, set `activeGroup` to `null` in the file, and reopen it. All three attendance commands must
       report no active group and suggest `group add` or `group use`, without changing data.
 
 Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSON storage. It covers correction,
-save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
+clearing, save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
 and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
 parameter errors, empty groups, week boundaries, and display formatting.
 

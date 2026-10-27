@@ -14,7 +14,8 @@ public class AttendanceMarkCommandParser implements Parser<AttendanceMarkCommand
     private static final Prefix PREFIX_STATUS = new Prefix("s/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
-            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK, PREFIX_STATUS), List.of());
+            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK, PREFIX_STATUS), List.of(),
+            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK, PREFIX_STATUS));
 
     @Override
     public AttendanceMarkCommand parse(String arguments) throws ParseException {
