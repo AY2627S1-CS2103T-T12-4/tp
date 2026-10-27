@@ -361,8 +361,10 @@ Example: if Alice Tan was marked present for week 3 by mistake, `attendance clea
 `Alice Tan has no attendance recorded for Week 3. Nothing changed.`
 
 The change is saved automatically, and `attendance list` and `group export` no longer show the mark.
-Invalid weeks, unknown students, no active group, and missing, repeated, or unknown prefixes have the same errors as
-`attendance mark`. A status such as `s/present` is not accepted here.
+Invalid weeks, unknown students, and no active group have the same errors as `attendance mark`. Only `id/` and `w/`
+are accepted, so a status such as `s/present` is rejected. For example, `attendance clear id/A0123456X w/3 s/present`
+shows `Unknown prefix 's/'. Allowed prefixes: id/ w/.`, and `attendance clear` with no parameters
+shows `Missing required parameter(s): id/ w/. Include each exactly once.`
 
 ### Recording participation: `participation set`
 
