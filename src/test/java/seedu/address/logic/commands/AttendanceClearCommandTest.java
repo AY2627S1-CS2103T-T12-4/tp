@@ -66,6 +66,16 @@ public class AttendanceClearCommandTest {
     }
 
     @Test
+    public void execute_unrecognizedStoredStatus_clearsMarkWithoutFailing() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "LATE"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(TypicalGroups.NAME_T01, ALICE);
+
+        assertCommandSuccess(new AttendanceClearCommand(ALICE.getStudentId(), 3), model,
+                "Cleared Alice Tan's attendance for Week 3: late to Not recorded.", expected);
+    }
+
+    @Test
     public void execute_twice_secondChangesNothing() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "ABSENT"));
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());

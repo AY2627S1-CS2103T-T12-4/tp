@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -43,17 +44,17 @@ public class AttendanceClearCommand extends Command {
         requireNonNull(model);
         Group group = getActiveGroup(model);
         Student student = getStudent(group, studentId);
-        Optional<String> oldStatus = student.getAttendanceRecord(week);
-        if (oldStatus.isEmpty()) {
+        Optional<String> storedStatus = student.getAttendanceRecord(week);
+        if (storedStatus.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_NOT_RECORDED, student.getName(), week));
         }
 
+        String oldStatus = AttendanceStatus.formatStoredValue(storedStatus.get()).toLowerCase(Locale.ROOT);
         Student cleared = student.withoutAttendanceRecord(week);
         model.setStudent(group.getName(), cleared);
         assert cleared.getAttendanceRecord(week).isEmpty() : "The week must no longer have a mark";
         logger.fine("Cleared attendance for Week " + week + " in " + group.getName());
-        return new CommandResult(String.format(MESSAGE_CLEARED, student.getName(), week,
-                AttendanceStatus.fromValue(oldStatus.get()).getCommandValue()));
+        return new CommandResult(String.format(MESSAGE_CLEARED, student.getName(), week, oldStatus));
     }
 
     @Override
