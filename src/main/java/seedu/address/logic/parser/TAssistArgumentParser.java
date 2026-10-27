@@ -33,6 +33,8 @@ public class TAssistArgumentParser {
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
     private static final Pattern LITERAL_WORD_FORMAT = Pattern.compile("[^\\s/]+/[^\\s/]+");
+    /** A word as the prefix pattern sees it: text up to the next whitespace. */
+    private static final Pattern WORD_FORMAT = Pattern.compile("\\S*");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
@@ -145,11 +147,10 @@ public class TAssistArgumentParser {
      * Returns the whitespace-delimited word of {@code arguments} that starts at {@code start}.
      */
     private static String getWordAt(String arguments, int start) {
-        int end = start;
-        while (end < arguments.length() && !Character.isWhitespace(arguments.charAt(end))) {
-            end++;
-        }
-        return arguments.substring(start, end);
+        Matcher word = WORD_FORMAT.matcher(arguments).region(start, arguments.length());
+        boolean isFound = word.lookingAt();
+        assert isFound : "A possibly empty word always matches";
+        return word.group();
     }
 
     /**
