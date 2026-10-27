@@ -1092,12 +1092,7 @@ The following extensions apply to every use case that changes or views records o
 
       Use case resumes at step 3.
 
-* 4a. No attendance has been recorded for that week.
-    * 4a1. TAssist informs the TA that there are no attendance records for that week.
-
-      Use case ends.
-
-* 5a. Some students have no attendance record for that week.
+* 5a. Some or all students have no attendance record for that week.
     * 5a1. TAssist shows those students as not recorded.
 
       Use case ends.
@@ -1601,7 +1596,8 @@ label.
       Expected: `Alice Tan's attendance for Week 3 is already absent. Nothing changed.`
    1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:` and
       `Alice Tan | A0123456X | Absent`. Other students, if present, show `Not recorded`.
-   1. Enter `attendance list w/13`. Expected: `No attendance records have been recorded for Week 13.`
+   1. Enter `attendance list w/13`. Expected: `Attendance for T01, Week 13:`, with every student shown as
+      `Not recorded`.
    1. Close and reopen the app. Enter `attendance list w/3`. Expected: Alice is still absent.
 
 1. Rejected commands
