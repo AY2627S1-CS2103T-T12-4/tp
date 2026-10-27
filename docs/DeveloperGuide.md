@@ -738,7 +738,8 @@ so the existing storage error handling reports the invalid file before commands 
 
 Its Jackson factory keeps week keys as strings until it can check for duplicates during integer conversion.
 Two aliases for the same week, such as `"1"` and `"01"`, are rejected within an attendance or participation map,
-even if their values match. Jackson wraps this rejection as a loading error, activating startup file protection.
+even if their values match. Jackson wraps this rejection as a loading error, so `MainApp#describeLoadFailure` reads
+the original message from it. The startup warning then names the duplicate week and activates startup file protection.
 A single alias remains valid and is saved using the canonical week number.
 
 In the same forgiving way, `JsonAdaptedStudent` and `JsonAdaptedAssignmentRecord` read a participation score or
@@ -1462,10 +1463,10 @@ label.
 
    1. Close the app and restore a valid file containing a student in T01. Set their participation map to
       `{"1":3,"01":5}`, launch the app, and enter `group add g/T02`.<br>
-      Expected: The same startup warning appears, the command is rejected, and the file remains unchanged after exit.
-      The log identifies the duplicate Week 1 record. Repeat with `{"1":"PRESENT","01":"ABSENT"}` in attendance;
-      expect the same protection. Keep only the intended entry while the app is closed and restart; normal loading
-      and saving should resume.
+      Expected: A startup warning appears, the command is rejected, and the file remains unchanged after exit.
+      The warning says `Duplicate weekly record for Week 1. Use only one entry per week.` Repeat with
+      `{"1":"PRESENT","01":"ABSENT"}` in attendance; expect the same protection. Keep only the intended entry while
+      the app is closed and restart; normal loading and saving should resume.
 
    1. Close the app and restore a valid data file. Append `THIS IS INVALID JSON` after its final closing brace,
       then launch the app and enter `group add g/T02`.<br>
