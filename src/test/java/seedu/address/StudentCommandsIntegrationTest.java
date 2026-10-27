@@ -86,6 +86,11 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
                         + "and grade records from T01?"),
                 app.logic.getConfirmationPrompt("student delete id/A1"));
         assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("student delete id/A1 f/yes"));
+        assertEquals(app.logic.getConfirmationPrompt("student delete id/A1"),
+                app.logic.getConfirmationPrompt("STUDENT DeLeTe id/A1"));
+        assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("STUDENT DELETE id/A1 f/yes"));
+        assertEquals(app.logic.getConfirmationPrompt("group delete g/T01"),
+                app.logic.getConfirmationPrompt("GROUP DeLeTe g/T01"));
         assertEquals(previousData, app.model.getTAssist());
         assertEquals(savedFile, Files.readString(dataFile));
     }

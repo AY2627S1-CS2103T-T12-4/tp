@@ -295,6 +295,12 @@ using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. 
 whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
 validator normalizes them; parameter prefixes remain lowercase.
 
+`HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
+lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
+that mixed-case undo and redo work. For manual testing, enter `GROUP add g/T04`, `group ADD g/T05`, and
+`attendance Mark id/A0123456X w/5 s/present` with that student in the active group; each should work as its
+lowercase form.
+
 Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
 
 ```java

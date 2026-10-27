@@ -258,7 +258,7 @@ public class WorkspaceSmokeTest {
                 enter(input, "group use g/T02");
                 assertStudentsShown("T02");
                 assertEquals(TypicalGroups.getT02().getStudentList(), studentTable().getItems());
-                enter(input, "group add g/ Thursday   1 ");
+                enter(input, "GROUP AdD g/ Thursday   1 ");
                 Label status = (Label) root.lookup("#saveLocationStatus");
                 assertTrue(status.getText().startsWith("Changes saved."));
                 assertStudentsShown("Thursday 1");
@@ -279,7 +279,7 @@ public class WorkspaceSmokeTest {
                 assertStudentsShown("Thursday 1");
                 enter(input, "group use g/T01");
                 assertEquals(TypicalGroups.getT01().getStudentList(), studentTable().getItems());
-                enter(input, "help group");
+                enter(input, "HeLp group");
                 assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
                 assertEquals("Showing group commands.", ((TextArea) root.lookup("#resultDisplay")).getText());
             });
@@ -598,7 +598,7 @@ public class WorkspaceSmokeTest {
             enter(input, "help");
             assertEquals(HelpCommand.MESSAGE_SHOWING_HELP, feedbackArea.getText());
             assertEquals(helpScrollPane.getVmin(), helpScrollPane.getVvalue());
-            enter(input, "view help");
+            enter(input, "ViEw help");
             VBox commands = (VBox) root.lookup("#commands");
             assertTrue(commands.getChildren().stream().anyMatch(node -> node instanceof Label label
                     && label.getText().equals("Student commands")));
