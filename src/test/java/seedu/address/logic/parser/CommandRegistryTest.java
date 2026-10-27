@@ -9,12 +9,14 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.testutil.HelpEntryBuilder;
@@ -117,6 +119,21 @@ public class CommandRegistryTest {
             return new StubCommand();
         });
         registry.parseCommand("student", " \tadd \n n/Alice   Tan\t id/a123  ");
+        registry.parseCommand("STUDENT", " \tAdD \n n/Alice   Tan\t id/a123  ");
+    }
+
+    @Test
+    public void parseCommand_turkishLocale_matchesUppercaseKeywords() throws Exception {
+        StubCommand command = new StubCommand();
+        registry.register("participation", "list", args -> command);
+        Locale previousLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            assertSame(command, registry.parseCommand("PARTICIPATION", "LIST"));
+            assertTrue(new TAssistParser().parseCommand("EXIT") instanceof ExitCommand);
+        } finally {
+            Locale.setDefault(previousLocale);
+        }
     }
 
     @Test
@@ -141,7 +158,7 @@ public class CommandRegistryTest {
         String missingMessage = String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
                 "group", "add, list", "group");
         assertThrows(ParseException.class, missingMessage, () -> registry.parseCommand("group", " \t "));
-        for (String subcommand : new String[] {"unknown", "LIST", "n/T01"}) {
+        for (String subcommand : new String[] {"unknown", "LiSts", "n/T01"}) {
             String unknownMessage = String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
                     subcommand, "group", "add, list");
             assertThrows(ParseException.class, unknownMessage, () -> registry.parseCommand("group", subcommand));

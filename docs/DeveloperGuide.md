@@ -290,9 +290,10 @@ an example that continues the session, and matching User Guide text before its t
 For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
 produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.
-Unknown feature keywords report an unknown command. Both keywords use lowercase letters; surrounding whitespace
-and repeated whitespace between keywords are ignored. Argument values retain their capitalization and spacing
-until their value validator normalizes them.
+Unknown feature keywords report an unknown command. User-entered command words and subcommands ignore case,
+using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. Surrounding whitespace and repeated
+whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
+validator normalizes them; parameter prefixes remain lowercase.
 
 Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
 

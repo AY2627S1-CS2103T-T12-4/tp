@@ -5,6 +5,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -90,7 +91,7 @@ public class TAssistParser {
         // Lower level log messages are used sparingly to minimize noise in the code.
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
-        return switch (commandWord) {
+        return switch (commandWord.toLowerCase(Locale.ROOT)) {
             case ExitCommand.COMMAND_WORD -> new ExitCommandParser().parse(arguments);
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
