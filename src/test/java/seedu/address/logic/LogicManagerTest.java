@@ -18,7 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
+import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.RedoCommand;
@@ -329,6 +331,39 @@ public class LogicManagerTest {
         isSaveFailing[0] = false;
         assertEquals("Undone: group add g/T01", logic.execute("undo").getFeedbackToUser());
         assertEquals(new TAssist(), model.getTAssist());
+    }
+
+    @Test
+    public void execute_savedDataUnreadable_rejectsCommandsThatNeedIt() throws Exception {
+        Path dataFile = temporaryFolder.resolve("unreadable.json");
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)),
+                createGroupAndStudentRegistry(), DataLoadStatus.FAILED);
+
+        for (String command : List.of("group list", "student list", "group add g/T01", "undo")) {
+            assertCommandException(command, LogicManager.MESSAGE_DATA_PROTECTED);
+        }
+        assertEquals(CommandResult.forHelp(HelpCommand.MESSAGE_SHOWING_HELP, ""), logic.execute("help"));
+        assertEquals(WorkspaceView.GROUPS, logic.execute("view groups").getView().orElseThrow());
+        assertTrue(logic.execute("exit").isExit());
+        assertFalse(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_savedDataUnreadableAndCommandChangesData_rejectsChange() {
+        Command changeWithoutSavedData = new StubCommand(model -> model.addGroup(TypicalGroups.getT01())) {
+            @Override
+            public boolean canRunWithoutSavedData() {
+                return true;
+            }
+        };
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "change", args -> changeWithoutSavedData);
+        Path dataFile = temporaryFolder.resolve("protected.json");
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)), registry,
+                DataLoadStatus.FAILED);
+
+        assertCommandException("group change", LogicManager.MESSAGE_DATA_PROTECTED);
+        assertFalse(Files.exists(dataFile));
     }
 
     @Test

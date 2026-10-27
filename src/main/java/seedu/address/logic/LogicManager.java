@@ -85,6 +85,7 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         Command command = tAssistParser.parseCommand(commandText);
+        rejectIfSavedDataUnreadable(command);
         TAssist previousData = new TAssist(model.getTAssist());
         TAssistHistory previousHistory = model.getTAssistHistory();
         try {
@@ -101,6 +102,17 @@ public class LogicManager implements Logic {
     public Optional<String> getConfirmationPrompt(String commandText) throws ParseException {
         requireNonNull(commandText);
         return tAssistParser.parseCommand(commandText).getConfirmationPrompt(model);
+    }
+
+    /**
+     * Rejects {@code command} if it needs the saved data and that data could not be read at startup.
+     * Running it on the empty data would report that nothing exists and suggest creating records it cannot save.
+     */
+    private void rejectIfSavedDataUnreadable(Command command) throws CommandException {
+        if (dataLoadStatus.isFailure() && !command.canRunWithoutSavedData()) {
+            logger.info("Rejected a command because the saved data could not be read at startup");
+            throw new CommandException(MESSAGE_DATA_PROTECTED);
+        }
     }
 
     private CommandResult executeAndSave(Command command, TAssist previousData, String description)

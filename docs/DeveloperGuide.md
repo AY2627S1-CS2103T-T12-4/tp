@@ -782,9 +782,11 @@ their previous state. The UI shows the error and retains the rejected input. A s
 JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
 is allowed. This prevents a later save from silently removing appended content.
 
-`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
-change data and restores the snapshot without attempting a save. Read-only commands remain available. This
-protection lasts until restart, including if the user repairs the file while the app is running. The user must
+`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects every command except
+`help`, `view`, and `exit` before running it. On the empty model, a listing command would otherwise report that no
+groups exist and suggest creating records that cannot be saved. A command opts in by overriding
+`Command#canRunWithoutSavedData()`, which returns false by default. As a safeguard, logic also rejects any command
+that changes data and restores the snapshot without attempting a save. This protection lasts until restart, including if the user repairs the file while the app is running. The user must
 close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
 protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
 permission errors are reported rather than treated as missing data.
@@ -1531,8 +1533,9 @@ label.
       `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
       stopped, then `No changes were made to the saved file.` The log also records the cause.
 
-   1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
-      Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
+   1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
+      Expected: Both `group list` and the mutation are rejected with recovery guidance, help remains available, and
+      the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
    1. Close the app and restore a valid file containing a student in T01. Set their participation map to

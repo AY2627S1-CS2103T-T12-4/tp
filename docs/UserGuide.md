@@ -704,8 +704,9 @@ the reason, and `No changes were made to the saved file.` For example:
 For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
 The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
 file invalid; trailing spaces, tabs, and line breaks are allowed.
-The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
+The file is protected for that session: only `help`, `view`, and `exit` work. Every other command, including
+listing commands such as `group list`, is rejected with a reminder to repair the file and restart, because the
+data it would show or change was not loaded. The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>

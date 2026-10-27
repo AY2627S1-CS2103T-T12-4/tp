@@ -29,4 +29,9 @@ public class ViewCommand extends Command {
         requireNonNull(model);
         return new CommandResult("Showing " + view.getKeyword() + ".", view);
     }
+
+    @Override
+    public boolean canRunWithoutSavedData() {
+        return true;
+    }
 }
