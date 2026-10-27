@@ -303,10 +303,9 @@ extra input.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and
-grades (whole numbers 0–100). Assignment names follow the group name rules, and also allow periods, colons, and
-parentheses: 1–60 letters, digits, spaces, hyphens, periods, colons, or parentheses after whitespace normalization,
-with at least one letter or digit. They retain the entered capitalization
-and are compared ignoring case. Numeric input is trimmed, accepts digits including leading zeros,
+grades (whole numbers 0–100). Assignment names contain 1–60 letters, digits, spaces, hyphens, periods, colons, or
+parentheses after whitespace normalization, with at least one letter or digit. They retain the entered
+capitalization and are compared ignoring case. Numeric input is trimmed, accepts digits including leading zeros,
 and rejects signs, decimals, out-of-range values, and integer overflow with a field-specific `ParseException`.
 
 Parsers only validate and construct commands. `LogicManager` executes after parsing succeeds and saves data changes;
