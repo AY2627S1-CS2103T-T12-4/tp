@@ -96,11 +96,12 @@ first Up brings back the command before it. The history starts empty each time y
 ### Preparing an attendance command by clicking a student
 
 On the Students screen, click a student's row with the primary mouse button to fill the command box with their ID:
-`attendance mark id/A0123456X w/`. The click replaces any unfinished command, returns focus to the command box,
+`attendance mark id/A0123456X w/`. The click replaces any unfinished command, which you can bring back with **Up**, returns focus to the command box,
 and puts the cursor after `w/`. It does not execute a command or save data.
 
 Complete the week and status, for example `attendance mark id/A0123456X w/3 s/present`, then press **Enter**.
-Pressing Enter before completing the template reports a validation error and leaves the text editable.
+Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once.`
+and leaves the text editable.
 You can type the same command yourself; clicking is only a shortcut for entering the ID.
 Clicking the same row again prepares a fresh template, even if that row is already selected.
 Empty table space and other mouse buttons leave the command box unchanged.

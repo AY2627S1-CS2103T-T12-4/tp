@@ -94,6 +94,11 @@ public class CommandHistoryTest {
     }
 
     @Test
+    public void startNewDraft_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> history.startNewDraft(null));
+    }
+
+    @Test
     public void previousAndNext_null_throwNullPointerException() {
         assertThrows(NullPointerException.class, () -> history.previous(null));
         assertThrows(NullPointerException.class, () -> history.next(null));
@@ -105,21 +110,33 @@ public class CommandHistoryTest {
     }
 
     @Test
-    public void startNewDraft_whileRecalling_keepsCommandsAndReplacesDraft() {
+    public void startNewDraft_unfinishedDraft_keepsDraftAsNewestCommand() {
         addBothCommands();
         history.previous("old draft");
         history.previous("edited recalled command");
-        history.startNewDraft();
+        history.startNewDraft("edited recalled command");
         String template = "attendance mark id/A1 w/";
-        assertEquals(Optional.of(SECOND_COMMAND), history.previous(template));
+        assertEquals(Optional.of("edited recalled command"), history.previous(template));
+        assertEquals(Optional.of(SECOND_COMMAND), history.previous("edited recalled command"));
         assertEquals(Optional.of(FIRST_COMMAND), history.previous(SECOND_COMMAND));
         assertEquals(Optional.of(SECOND_COMMAND), history.next(FIRST_COMMAND));
-        assertEquals(Optional.of(template), history.next(SECOND_COMMAND));
+        assertEquals(Optional.of("edited recalled command"), history.next(SECOND_COMMAND));
+        assertEquals(Optional.of(template), history.next("edited recalled command"));
+    }
+
+    @Test
+    public void startNewDraft_blankOrRepeatedDraft_doesNotCreateHistoryEntry() {
+        addBothCommands();
+        history.startNewDraft("  ");
+        history.startNewDraft(SECOND_COMMAND);
+        assertEquals(Optional.of(SECOND_COMMAND), history.previous("template"));
+        assertEquals(Optional.of(FIRST_COMMAND), history.previous(SECOND_COMMAND));
+        assertEquals(Optional.empty(), history.previous(FIRST_COMMAND));
     }
 
     @Test
     public void startNewDraft_emptyHistory_doesNotCreateHistoryEntry() {
-        history.startNewDraft();
+        history.startNewDraft("");
         assertEquals(Optional.empty(), history.previous("attendance mark id/A1 w/"));
         assertEquals(Optional.empty(), history.next("attendance mark id/A1 w/"));
     }

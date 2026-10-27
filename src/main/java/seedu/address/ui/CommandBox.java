@@ -49,11 +49,12 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Replaces the current draft with {@code template}, ready for editing without executing or recording it.
+     * Replaces the current draft with {@code template}, ready for editing without executing it. The replaced
+     * draft stays in the command history so that Up can recall it.
      */
     public void fillTemplate(String template) {
         requireNonNull(template);
-        commandHistory.startNewDraft();
+        commandHistory.startNewDraft(commandTextField.getText());
         focus();
         showRecalledCommand(template);
         setStyleToDefault();

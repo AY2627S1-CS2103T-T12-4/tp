@@ -24,6 +24,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.Logic;
+import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -120,7 +121,7 @@ public class MainWindow extends UiPart<Stage> {
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
-                        "attendance mark id/" + student.getStudentId() + " w/"));
+                        AttendanceMarkCommand.buildTemplate(student.getStudentId())));
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
