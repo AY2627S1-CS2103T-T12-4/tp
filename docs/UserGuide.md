@@ -253,7 +253,9 @@ Format: `student add n/NAME id/STUDENT_ID`
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
 * IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
 * An ID must be unique within the active group. The same ID may occur in another group.
-  Students with the same name and different IDs are allowed.
+  Students with the same name and different IDs are allowed. If the active group already has a student with the same
+  name (ignoring case and extra spaces), the student is still added, and the feedback adds a warning so that you can
+  check the ID, for example `Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. Check that the student ID is correct.`
 * Supply each prefix exactly once, in either order, with a space before each parameter.
 
 Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
@@ -596,10 +598,14 @@ The file looks like this:
   values match. Remove the duplicate entry while TAssist is closed, keeping the intended value, then restart.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If the data file is unreadable or invalid, TAssist shows
-`Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+If the data file is unreadable or invalid, TAssist opens with no data and shows `Saved data could not be read.`,
+the reason, and `No changes were made to the saved file.` For example:
+`Saved data could not be read. Group T01 has more than one student with ID A1. No changes were made to the saved file.`
+For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
+The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
+file invalid; trailing spaces, tabs, and line breaks are allowed.
 The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` records the reason loading failed.
+and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>

@@ -39,16 +39,28 @@ public class StudentAddCommandTest {
     }
 
     @Test
-    public void execute_sameNameOrIdInAnotherGroup_succeeds() {
-        Student sameName = new StudentBuilder(FIONA).withName("Alice Tan").build();
-        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
-        expected.addStudent(NAME_T01, sameName);
-        assertCommandSuccess(new StudentAddCommand(sameName), model, "Added Alice Tan to T01.", expected);
-
+    public void execute_sameNameOrIdInAnotherGroup_succeedsWithoutWarning() {
         model.setActiveGroup(NAME_T02);
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         expected.setActiveGroup(NAME_T02);
         expected.addStudent(NAME_T02, ALICE);
         assertCommandSuccess(new StudentAddCommand(ALICE), model, "Added Alice Tan to T02.", expected);
+    }
+
+    @Test
+    public void execute_sameNameDifferentId_addsStudentWithWarning() {
+        Student sameName = new StudentBuilder(FIONA).withName("Alice Tan").build();
+        Student sameNameOtherCase = new StudentBuilder(FIONA).withName("alice  TAN")
+                .withStudentId("A0999999Z").build();
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.addStudent(NAME_T01, sameName);
+        String warning = "Warning: T01 already has a student named Alice Tan. Check that the student ID is correct.";
+        assertCommandSuccess(new StudentAddCommand(sameName), model, "Added Alice Tan to T01. " + warning, expected);
+
+        expected.addStudent(NAME_T01, sameNameOtherCase);
+        warning = "Warning: T01 already has a student named alice TAN. Check that the student ID is correct.";
+        assertCommandSuccess(new StudentAddCommand(sameNameOtherCase), model,
+                "Added alice TAN to T01. " + warning, expected);
     }
 
     @Test
