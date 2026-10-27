@@ -44,7 +44,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -81,7 +81,7 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
@@ -141,7 +141,7 @@ The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The 
 * The mock-up shows only the Attendance screen. Students, Help, Storage, and the group bar use live data.
   Groups, Attendance, Participation, and Assignments are **Coming soon** previews.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -152,7 +152,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -182,7 +182,7 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `ViewCommandParser` and `HelpCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
@@ -196,7 +196,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
@@ -487,7 +487,9 @@ prefixes with the command's usage. Present but blank values go through the exist
 name or ID reports its value constraints. Listing accepts no parameters.
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
-`StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
+`StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique. If
+`Group.hasStudentNamed` finds a student with the same name (ignoring case) before the add, the command still adds the
+student and appends a warning to its success message.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
 same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
@@ -724,9 +726,17 @@ their previous state. The UI shows the error and retains the rejected input. A s
 * If the file does not exist, the app starts with an empty `TAssist` and shows
   `No saved data found. Starting with an empty database.` The first successful data change creates the file.
 * If the file cannot be read, is not valid JSON, or holds invalid data, loading throws a `DataLoadingException`.
-  `MainApp` logs the reason and starts with an empty model. The UI shows
-  `Saved data could not be read. No changes were made to the saved file.`
+  `MainApp` logs the reason and starts with an empty model. It also turns the cause into a short reason with
+  `describeLoadFailure` and builds the status with `DataLoadStatus#failed`, so the UI shows
+  `Saved data could not be read.`, the reason, and `No changes were made to the saved file.` An
+  `IllegalValueException` gives its own message, such as `Group T01 has more than one student with ID A1.` A JSON
+  syntax error or a value of the wrong type names the line Jackson reports. The column is left out because Jackson
+  can report one past the end of an unknown word. Any other read error says the file could not be opened.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
+
+`JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
+JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
+is allowed. This prevents a later save from silently removing appended content.
 
 `MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
 change data and restores the snapshot without attempting a save. Read-only commands remain available. This
@@ -737,7 +747,8 @@ permission errors are reported rather than treated as missing data.
 
 `JsonTAssistStorageTest` injects partial-write and atomic-replacement failures to check file preservation and
 temporary-file cleanup. `SaveFailureIntegrationTest` checks rollback across all implemented mutations, retry,
-and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data and protection through shutdown.
+and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data, the reason shown for each kind of failure, and
+protection through shutdown.
 `WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
 `toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, and a fractional or out-of-range grade or a grade for an unsubmitted assignment. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, an `activeGroup` that matches no group is ignored with a logged warning and no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
@@ -1038,8 +1049,10 @@ The following extensions apply to every use case that changes or views records o
 
       Use case ends.
 
-* 1c. A student with the same name but a different student ID exists in the active group.
-    * 1c1. TAssist adds the student as a separate student.
+* 1c. A student with the same name (ignoring case and extra spaces) but a different student ID exists in the active
+  group.
+    * 1c1. TAssist adds the student as a separate student and warns that the name already exists, so that the TA can
+      check the student ID.
 
       Use case resumes at step 2.
 
@@ -1421,7 +1434,8 @@ through the real parsers, model and JSON storage, but the steps below also check
 
 1. Removing a student
 
-   1. Enter `group use g/T01` and `student delete id/a0234567y`, then restart.<br>
+   1. Enter `group use g/T01` and `student delete id/a0234567y`. In the confirmation dialog, choose Continue (Cancel is
+      selected by default, so pressing Enter cancels the deletion). Then restart.<br>
       Expected: Ben and his attendance and assignment records are gone from T01. T02 still has its Alice.
 
 1. Window sizes
@@ -1460,18 +1474,26 @@ label.
    1. Prerequisites: Close the app. In `data/tassist.json`, delete a closing brace.
 
    1. Launch the app.<br>
-      Expected: The app starts empty and shows
-      `Saved data could not be read. No changes were made to the saved file.` The log records the cause.
+      Expected: The app starts empty and shows `Saved data could not be read.`, then
+      `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
+      stopped, then `No changes were made to the saved file.` The log also records the cause.
 
    1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
+   1. Close the app and restore a valid data file. Append `THIS IS INVALID JSON` after its final closing brace,
+      then launch the app and enter `group add g/T02`.<br>
+      Expected: The same kind of startup message appears, naming the line of the appended text. The command is
+      rejected, and the file remains unchanged after exit.
+      Repeat with a second JSON object appended instead of the text; expect the same protection. Restore the valid
+      file and append only spaces, tabs, or line breaks; expect normal loading and saving.
+
    1. Close the app and replace the file with the example content from
       [Saving and loading TAssist data](#saving-and-loading-tassist-data). Change Alice Tan's Week 1 participation
       score from `4` to `4.5`, then launch the app.<br>
-      Expected: The same startup message appears, and the log records
-      `Participation score must be a whole number from 0 to 5.` Close the app, change the score to `4.0`, and launch
+      Expected: The startup message names the reason, `Participation score must be a whole number from 0 to 5.`, and
+      the log records it too. Close the app, change the score to `4.0`, and launch
       it again. The file loads, and `participation list w/1` shows Alice Tan's score as `4`.
 
 1. Dealing with a save failure
@@ -1568,7 +1590,9 @@ label.
 1. With no active group, enter `student list`, `student add n/Alice Tan id/A0123456X`, and
    `student delete id/A0123456X`. Each should ask you to create or select a group, without changing data.
 2. Create T01 with `group add g/T01`. Add Alice using the command above, then enter
-   `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows.
+   `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows. The second feedback
+   ends with a warning that T01 already has a student named Alice Tan. Enter `student add n/alice  tan id/A3` to see
+   the same warning for a name that differs only in case and spacing.
 3. Enter `student list`. Expect numbered rows with both IDs. Close and reopen the app; both students remain.
 4. Try `student add n/Other Name id/a0123456x`, `student add n/Alice`, `student add n/Alice id/ABC`,
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves

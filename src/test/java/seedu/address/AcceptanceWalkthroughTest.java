@@ -7,12 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.logic.LogicManager;
@@ -24,7 +22,7 @@ import seedu.address.model.TAssist;
  * JAR: record a tutorial in every feature, restart, and check that everything is restored. Each restart opens a new
  * app on the same files, so the checks go through the real parsers, model and JSON storage.
  */
-public class AcceptanceWalkthroughTest {
+public class AcceptanceWalkthroughTest extends AppIntegrationTest {
     /** Commands of one tutorial, covering every feature, in the order a TA would enter them. */
     private static final List<String> TUTORIAL_SESSION = List.of(
             "group add g/T01",
@@ -47,15 +45,8 @@ public class AcceptanceWalkthroughTest {
             "attendance mark id/A0123456X w/1 s/present",
             "group use g/T01");
 
-    @TempDir
-    public Path temporaryFolder;
-
-    private Path dataFile;
-    private MainApp app;
-
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("data").resolve("tassist.json");
         app = openApp();
     }
 
@@ -135,7 +126,7 @@ public class AcceptanceWalkthroughTest {
 
         restart();
 
-        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertTrue(app.getDataLoadStatus().isFailure());
         assertEquals(new TAssist(), app.model.getTAssist());
         assertThrows(CommandException.class, LogicManager.MESSAGE_DATA_PROTECTED, () ->
                 app.logic.execute("group add g/T01"));
@@ -168,19 +159,5 @@ public class AcceptanceWalkthroughTest {
         assertEquals("PS1 records for T01:\nAlice Tan | A0123456X | Submitted | 87\n"
                 + "Ben Lim | A0234567Y | Submitted | -\nChloe O'Neil-Ng | A0345678Z | Not submitted | -",
                 feedback("assignment list a/PS1"));
-    }
-
-    private String feedback(String command) throws Exception {
-        return app.logic.execute(command).getFeedbackToUser();
-    }
-
-    private MainApp openApp() throws Exception {
-        MainApp opened = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile);
-        opened.init();
-        return opened;
-    }
-
-    private void restart() throws Exception {
-        app = openApp();
     }
 }

@@ -12,7 +12,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.GroupExportCommand;
@@ -24,16 +23,9 @@ import seedu.address.model.TAssist;
 import seedu.address.model.student.Student;
 import seedu.address.storage.GroupRecordsCsvExporter;
 
-public class StudentCommandsIntegrationTest {
-    @TempDir
-    public Path temporaryFolder;
-
-    private MainApp app;
-    private Path dataFile;
-
+public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("tassist.json");
         app = openApp();
         app.logic.execute("group add g/T01");
     }
@@ -41,7 +33,8 @@ public class StudentCommandsIntegrationTest {
     @Test
     public void execute_studentCommandsAndRestart_preservesRosterAndDeletion() throws Exception {
         assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/a0123456x"));
-        assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/A2"));
+        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. "
+                + "Check that the student ID is correct.", feedback("student add n/Alice Tan id/A2"));
         assertEquals(2, app.logic.getActiveGroupStudentList().size());
         restart();
         assertEquals("Students in T01:\n1. Alice Tan | A0123456X\n2. Alice Tan | A2", feedback("student list"));
@@ -189,30 +182,5 @@ public class StudentCommandsIntegrationTest {
                 .map(student -> student.getStudentId().toString()).toList());
         restart();
         assertEquals("Students in T01:\n1. Ben Lim | B2\n2. Alice Tan | A1", feedback("student list"));
-    }
-
-    private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
-        TAssist expected = new TAssist(app.model.getTAssist());
-        String saved = Files.readString(dataFile);
-        assertThrows(exceptionType, () -> app.logic.execute(command));
-        assertEquals(expected, app.model.getTAssist());
-        assertEquals(saved, Files.readString(dataFile));
-        assertEquals(expected.getActiveGroup().map(group -> List.copyOf(group.getStudentList())).orElse(List.of()),
-                app.logic.getActiveGroupStudentList());
-    }
-
-    private String feedback(String command) throws Exception {
-        return app.logic.execute(command).getFeedbackToUser();
-    }
-
-    private MainApp openApp() throws Exception {
-        MainApp opened = new MainApp(temporaryFolder.resolve("prefs.json"), dataFile);
-        opened.init();
-        return opened;
-    }
-
-    private void restart() throws Exception {
-        app.stop();
-        app = openApp();
     }
 }
