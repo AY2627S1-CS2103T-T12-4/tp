@@ -70,7 +70,7 @@ public final class GroupCommandRegistration {
         registry.register("group", "delete", new GroupDeleteCommandParser(),
                 new HelpEntry("group", GroupDeleteCommand.MESSAGE_USAGE,
                         "Delete a tutorial group with all its students and records, after asking to confirm. "
-                                + "Add f/yes to skip the prompt. This cannot be undone.",
+                                + "Add f/yes to skip the prompt. Undo reverses it until TAssist is closed.",
                         List.of("group delete g/T02-Thu")));
     }
 }
