@@ -240,6 +240,7 @@ Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or crea
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Extra text after a value | The feedback names the extra text after `f/yes` for `group delete`, and says that value cannot contain spaces. Remove the extra text.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
 
 ### Adding a student: `student add`
@@ -299,7 +300,7 @@ Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check t
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
-Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
@@ -395,7 +396,7 @@ Invalid or blank week | `Invalid week. Enter a number from 1 to 13.` Supply digi
 Invalid or blank score | `Invalid participation score. Enter a whole number from 0 to 5.` Supply one of 0, 1, 2, 3, 4, or 5.
 Missing parameter | The feedback names the missing prefixes. Include `id/`, `w/`, and `s/` for setting; `w/` for listing.
 Repeated or unknown prefix | The feedback names the prefix. Use only the documented prefixes, once each.
-Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 
 ### Creating an assignment: `assignment add`
 
@@ -470,7 +471,7 @@ Grade before submission | `Cannot record a grade for an unsubmitted assignment. 
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
-Extra text after a value | The feedback names the extra text after `id/`, `w/`, `s/`, `m/`, or `f/`. Remove it; these values are a single word.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exporting a group's records: `group export`

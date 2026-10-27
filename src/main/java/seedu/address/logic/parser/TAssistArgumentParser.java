@@ -24,28 +24,41 @@ public class TAssistArgumentParser {
     public static final String MESSAGE_UNEXPECTED_TEXT =
             "Unexpected text before parameters: '%s'. Start each parameter with an allowed prefix: %s.";
     public static final String MESSAGE_NO_PARAMETERS = "This command takes no parameters. Remove the extra input.";
-    public static final String MESSAGE_EXTRA_TEXT = "Unexpected extra text after '%s': '%s'. Remove it.";
-
-    /** Prefixes whose values are a single word, so any text after that word is not part of the value. */
-    private static final Set<Prefix> SINGLE_WORD_PREFIXES = Set.of(
-            new Prefix("id/"), new Prefix("w/"), new Prefix("s/"), new Prefix("m/"), new Prefix("f/"));
+    public static final String MESSAGE_EXTRA_TEXT =
+            "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
+    private final List<Prefix> singleWordPrefixes;
 
     /**
-     * Creates a parser with required and optional single-valued prefixes.
+     * Creates a parser with required and optional single-valued prefixes, none of which is limited to one word.
      *
      * @param requiredPrefixes The prefixes required exactly once.
      * @param optionalPrefixes The prefixes permitted at most once.
      * @throws IllegalArgumentException if prefixes are invalid, repeated, or both required and optional.
      */
     public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes) {
+        this(requiredPrefixes, optionalPrefixes, List.of());
+    }
+
+    /**
+     * Creates a parser with required and optional single-valued prefixes, some of which take a single word.
+     *
+     * @param requiredPrefixes The prefixes required exactly once.
+     * @param optionalPrefixes The prefixes permitted at most once.
+     * @param singleWordPrefixes The required or optional prefixes whose values cannot contain spaces.
+     * @throws IllegalArgumentException if prefixes are invalid, repeated, both required and optional, or if a
+     *         single-word prefix is not declared as required or optional.
+     */
+    public TAssistArgumentParser(Collection<Prefix> requiredPrefixes, Collection<Prefix> optionalPrefixes,
+            Collection<Prefix> singleWordPrefixes) {
         requireNonNull(requiredPrefixes);
         requireNonNull(optionalPrefixes);
+        requireNonNull(singleWordPrefixes);
         this.requiredPrefixes = List.copyOf(requiredPrefixes);
         allowedPrefixes = new LinkedHashSet<>();
         for (Prefix prefix : requiredPrefixes) {
@@ -54,6 +67,9 @@ public class TAssistArgumentParser {
         for (Prefix prefix : optionalPrefixes) {
             addAllowedPrefix(prefix);
         }
+        checkArgument(allowedPrefixes.containsAll(singleWordPrefixes),
+                "Single-word prefixes must be declared as required or optional.");
+        this.singleWordPrefixes = List.copyOf(singleWordPrefixes);
     }
 
     /**
@@ -77,6 +93,7 @@ public class TAssistArgumentParser {
         }
         values.verifyNoDuplicatePrefixesFor(allowedPrefixes.toArray(Prefix[]::new));
         verifyRequiredPrefixes(values);
+        verifySingleWordValues(values);
         return values;
     }
 
@@ -95,22 +112,12 @@ public class TAssistArgumentParser {
             if (!allowedPrefixes.contains(nextPrefix)) {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_PREFIX, nextPrefix, formatAllowedPrefixes()));
             }
-            putValue(values, currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
+            values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
             valueStart = matcher.end();
         }
-        putValue(values, currentPrefix, arguments.substring(valueStart).trim());
+        values.put(currentPrefix, arguments.substring(valueStart).trim());
         return values;
-    }
-
-    private void putValue(ArgumentMultimap values, Prefix prefix, String value) throws ParseException {
-        if (SINGLE_WORD_PREFIXES.contains(prefix)) {
-            String[] words = value.split("\\s+", 2);
-            if (words.length > 1) {
-                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
-            }
-        }
-        values.put(prefix, value);
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
@@ -120,6 +127,15 @@ public class TAssistArgumentParser {
                 .collect(Collectors.joining(" "));
         if (!missingPrefixes.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes));
+        }
+    }
+
+    private void verifySingleWordValues(ArgumentMultimap values) throws ParseException {
+        for (Prefix prefix : singleWordPrefixes) {
+            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
+            if (words.length > 1) {
+                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            }
         }
     }
 

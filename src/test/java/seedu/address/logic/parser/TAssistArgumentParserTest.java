@@ -18,7 +18,8 @@ public class TAssistArgumentParserTest {
     private static final Prefix PREFIX_GROUP = new Prefix("g/");
 
     private final TAssistArgumentParser parser = new TAssistArgumentParser(
-            List.of(PREFIX_NAME, PREFIX_ID), List.of(PREFIX_GROUP));
+            List.of(PREFIX_NAME, PREFIX_ID), List.of(PREFIX_GROUP),
+            List.of(PREFIX_ID));
 
     @Test
     public void parse_validParameters_trimsValuesAndAllowsAnyOrder() throws Exception {
@@ -85,6 +86,12 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void parse_extraTextAndMissingParameter_reportsMissingParameterFirst() {
+        String message = String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "n/");
+        assertThrows(ParseException.class, message, () -> parser.parse("id/A1 now"));
+    }
+
+    @Test
     public void parse_spacesInFreeTextValue_preservesValue() throws Exception {
         assertEquals("Alice Tan", parser.parse("n/Alice Tan id/A1").getValue(PREFIX_NAME).orElseThrow());
     }
@@ -111,6 +118,8 @@ public class TAssistArgumentParserTest {
                 new TAssistArgumentParser(List.of(PREFIX_NAME), List.of(PREFIX_NAME)));
         assertThrows(IllegalArgumentException.class, () ->
                 new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_NAME)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new TAssistArgumentParser(List.of(PREFIX_NAME), List.of(), List.of(PREFIX_ID)));
     }
 
     @Test

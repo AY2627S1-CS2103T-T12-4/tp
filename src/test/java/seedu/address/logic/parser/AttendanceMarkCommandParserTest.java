@@ -60,6 +60,12 @@ public class AttendanceMarkCommandParserTest {
     }
 
     @Test
+    public void parse_forgottenPrefixBeforeExtraText_reportsMissingPrefix() {
+        assertParseFailure(parser, "id/A0123456X w/3 present",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+    }
+
+    @Test
     public void parse_extraTextAfterValue_reportsExtraText() {
         assertParseFailure(parser, "id/A0123456X w/3 s/present today",
                 String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "s/present", "today"));

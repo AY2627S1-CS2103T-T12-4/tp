@@ -16,8 +16,8 @@ public class StudentDeleteCommandParser implements Parser<StudentDeleteCommand> 
 
     @Override
     public StudentDeleteCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(PREFIX_ID, PREFIX_FAST))
-                .parse(arguments);
+        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(PREFIX_ID, PREFIX_FAST),
+                List.of(PREFIX_ID, PREFIX_FAST)).parse(arguments);
         if (values.getValue(PREFIX_ID).isEmpty()) {
             throw new ParseException("Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);
         }
