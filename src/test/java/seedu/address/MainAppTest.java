@@ -14,9 +14,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+
 import javafx.stage.Stage;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
@@ -283,6 +288,15 @@ public class MainAppTest {
         assertLoadFailureReason("{ \"groups\" : [] }\n\nextra",
                 "The file has a JSON syntax error or a value of the wrong type near line 3.");
         assertLoadFailureReason("null", JsonUtil.MESSAGE_NULL_CONTENT);
+    }
+
+    @Test
+    public void describeLoadFailure_noJsonLocation_omitsLine() {
+        String reason = "The file has a JSON syntax error or a value of the wrong type.";
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException((JsonParser) null, "Unexpected end."))));
+        assertEquals(reason, MainApp.describeLoadFailure(
+                new DataLoadingException(new JsonParseException(null, "Unexpected end.", JsonLocation.NA))));
     }
 
     private void assertLoadFailureReason(String invalidData, String reason) throws Exception {

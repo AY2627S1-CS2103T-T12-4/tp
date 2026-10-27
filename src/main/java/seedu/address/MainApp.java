@@ -145,7 +145,7 @@ public class MainApp extends Application {
     /**
      * Returns a short reason that the saved data could not be loaded, which the TA can use to repair the file.
      */
-    private static String describeLoadFailure(DataLoadingException e) {
+    static String describeLoadFailure(DataLoadingException e) {
         Throwable cause = e.getCause();
         if (cause instanceof IllegalValueException) {
             return Objects.toString(cause.getMessage(), "");

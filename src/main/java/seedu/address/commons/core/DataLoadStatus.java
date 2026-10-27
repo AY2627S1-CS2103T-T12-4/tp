@@ -42,21 +42,17 @@ public final class DataLoadStatus {
         return isFailure;
     }
 
+    /**
+     * Returns true if {@code other} is a status with the same message. A message belongs to only one kind of outcome.
+     */
     @Override
     public boolean equals(Object other) {
         return other == this
-                || other instanceof DataLoadStatus otherStatus
-                && message.equals(otherStatus.message)
-                && isFailure == otherStatus.isFailure;
+                || other instanceof DataLoadStatus otherStatus && message.equals(otherStatus.message);
     }
 
     @Override
     public int hashCode() {
         return message.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return message;
     }
 }
