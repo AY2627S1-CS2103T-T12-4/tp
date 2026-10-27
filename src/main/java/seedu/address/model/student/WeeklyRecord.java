@@ -51,6 +51,17 @@ public final class WeeklyRecord<T> {
         return new WeeklyRecord<>(updatedRecords);
     }
 
+    /**
+     * Returns a new weekly record without the record for {@code week}, so that the week is no longer recorded.
+     * Returns an equal weekly record if {@code week} has no record.
+     */
+    public WeeklyRecord<T> withoutRecord(int week) {
+        validateWeek(week);
+        Map<Integer, T> updatedRecords = new TreeMap<>(records);
+        updatedRecords.remove(week);
+        return new WeeklyRecord<>(updatedRecords);
+    }
+
     /** Returns an unmodifiable, week-ordered view of all records. */
     public Map<Integer, T> getRecords() {
         return records;
