@@ -11,6 +11,8 @@ import static seedu.address.testutil.TypicalAssignments.PS1;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
@@ -44,15 +46,45 @@ public class AssignmentSubmitCommandTest {
 
     @Test
     public void execute_no_replacesSubmissionAndClearsGrade() {
-        Assignment prior = PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 87);
+        for (int grade : List.of(0, 87)) {
+            Assignment prior = PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, grade);
+            Model model = modelWithAssignment();
+            model.setAssignment(NAME_T01, prior);
+            Model expected = modelWithAssignment();
+            expected.setAssignment(NAME_T01, prior.withSubmissionStatus(ALICE_ID, false));
+
+            assertCommandSuccess(new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, false), model,
+                    "Updated Alice Tan's PS1 submission status to not submitted; the recorded grade was cleared.",
+                    expected);
+        }
+    }
+
+    @Test
+    public void execute_noAlreadyNotSubmitted_reportsNoChanges() {
+        for (Assignment prior : List.of(PS1, PS1.withSubmissionStatus(ALICE_ID, false))) {
+            Model model = modelWithAssignment();
+            model.setAssignment(NAME_T01, prior);
+            Model expected = modelWithAssignment();
+            expected.setAssignment(NAME_T01, prior);
+            AssignmentSubmitCommand command = new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, false);
+
+            for (int i = 0; i < 2; i++) {
+                assertCommandSuccess(command, model,
+                        "Alice Tan's PS1 submission status is already not submitted. Nothing changed.", expected);
+            }
+        }
+    }
+
+    @Test
+    public void execute_noWithoutGrade_updatesStatusWithoutClearingGradeMessage() {
+        Assignment prior = PS1.withSubmissionStatus(ALICE_ID, true);
         Model model = modelWithAssignment();
         model.setAssignment(NAME_T01, prior);
         Model expected = modelWithAssignment();
         expected.setAssignment(NAME_T01, prior.withSubmissionStatus(ALICE_ID, false));
 
         assertCommandSuccess(new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, false), model,
-                "Updated Alice Tan's PS1 submission status to not submitted; any recorded grade was cleared.",
-                expected);
+                "Updated Alice Tan's PS1 submission status to not submitted.", expected);
     }
 
     @Test

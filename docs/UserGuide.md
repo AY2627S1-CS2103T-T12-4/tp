@@ -94,6 +94,20 @@ edits to recalled commands are kept while you move through the history, and the 
 you entered it. Up and Down skip any command that matches the text already in the box, so after a command fails, the
 first Up brings back the command before it. The history starts empty each time you open TAssist.
 
+### Preparing an attendance command by clicking a student
+
+On the Students screen, click a student's row with the primary mouse button to fill the command box with their ID:
+`attendance mark id/A0123456X w/`. The click replaces any unfinished command, which you can bring back with **Up**, returns focus to the command box,
+and puts the cursor after `w/`. It does not execute a command or save data.
+
+Complete the week and status, for example `attendance mark id/A0123456X w/3 s/present`, then press **Enter**.
+Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once.`
+and leaves the text editable.
+You can type the same command yourself; clicking is only a shortcut for entering the ID.
+Clicking the same row again prepares a fresh template, even if that row is already selected.
+Empty table space and other mouse buttons leave the command box unchanged.
+Selecting rows with the keyboard does not replace your draft.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">
@@ -253,6 +267,9 @@ Format: `student add n/NAME id/STUDENT_ID`
 
 * Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
+* Names may also contain `s/o`, `d/o`, `a/l`, or `a/p` (in any case) as a separate word between two parts of the
+  name, as on official records. TAssist reads these as part of the name, not as prefixes, as long as there is a space
+  before and after them. Other slashes are not allowed.
 * IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
 * An ID must be unique within the active group. The same ID may occur in another group.
   Students with the same name and different IDs are allowed. If the active group already has a student with the same
@@ -261,7 +278,8 @@ Format: `student add n/NAME id/STUDENT_ID`
 * Supply each prefix exactly once, in either order, with a space before each parameter.
 
 Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
-`student add n/Ben Lim id/A0234567Y` then adds a second student.
+`student add n/Ben Lim id/A0234567Y` then adds a second student. `student add n/Ravi s/o Kumar id/A0345678Z` adds
+`Ravi s/o Kumar`, keeping `s/o` in the name.
 
 ### Listing students: `student list`
 
@@ -506,17 +524,23 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 ### Recording a submission: `assignment submit`
 
 Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
-and `no` for not submitted. Marking a submission as not submitted clears its grade.
+and `no` for not submitted. Marking a submission as not submitted clears its grade, if one is recorded.
+If it is already not submitted, the command reports that nothing changed and leaves the data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
 Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
 `Updated Alice Tan's PS1 submission status to submitted.`
 
+If Ben Lim (`A0234567Y`) is in the active group and has never submitted PS1, running
+`assignment submit a/PS1 id/A0234567Y s/no` shows
+`Ben Lim's PS1 submission status is already not submitted. Nothing changed.`
+
 ### Recording a grade: `assignment grade`
 
 Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
-`assignment submit`. Entering `s/no` clears any recorded grade and the feedback says so.
+`assignment submit`. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
+a grade was recorded.
 
 Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 

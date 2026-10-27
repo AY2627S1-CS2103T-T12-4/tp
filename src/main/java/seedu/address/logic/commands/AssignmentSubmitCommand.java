@@ -10,6 +10,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -20,8 +21,10 @@ import seedu.address.model.student.StudentId;
 public class AssignmentSubmitCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS";
     public static final String MESSAGE_SUCCESS = "Updated %s's %s submission status to %s.";
+    public static final String MESSAGE_UNCHANGED =
+            "%s's %s submission status is already not submitted. Nothing changed.";
     public static final String MESSAGE_SUCCESS_WITHDRAWN =
-            "Updated %s's %s submission status to not submitted; any recorded grade was cleared.";
+            "Updated %s's %s submission status to not submitted; the recorded grade was cleared.";
 
     private static final Logger logger = LogsCenter.getLogger(AssignmentSubmitCommand.class);
 
@@ -44,16 +47,21 @@ public class AssignmentSubmitCommand extends Command {
         Group group = getActiveGroup(model);
         Assignment assignment = getAssignment(group, assignmentName);
         Student student = getStudent(group, studentId);
+        AssignmentRecord previousRecord = assignment.getStudentRecord(studentId);
+
+        if (!isSubmitted && !previousRecord.isSubmitted()) {
+            return new CommandResult(String.format(MESSAGE_UNCHANGED, student.getName(), assignment.getName()));
+        }
 
         model.setAssignment(group.getName(), assignment.withSubmissionStatus(studentId, isSubmitted));
         logger.fine("Updated an assignment submission for " + student.getStudentId()
                 + " in " + group.getName());
-        if (!isSubmitted) {
+        if (!isSubmitted && previousRecord.getGrade().isPresent()) {
             return new CommandResult(String.format(MESSAGE_SUCCESS_WITHDRAWN,
                     student.getName(), assignment.getName()));
         }
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                student.getName(), assignment.getName(), "submitted"));
+                student.getName(), assignment.getName(), isSubmitted ? "submitted" : "not submitted"));
     }
 
     @Override

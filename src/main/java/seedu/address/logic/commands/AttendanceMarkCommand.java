@@ -17,7 +17,11 @@ import seedu.address.model.student.WeeklyRecord;
  * Records or replaces one student's attendance in the active group for a teaching week.
  */
 public class AttendanceMarkCommand extends Command {
-    public static final String MESSAGE_USAGE = "attendance mark id/STUDENT_ID w/WEEK s/STATUS";
+    public static final String PREFIX_STUDENT_ID = "id/";
+    public static final String PREFIX_WEEK = "w/";
+    public static final String PREFIX_STATUS = "s/";
+    public static final String MESSAGE_USAGE = "attendance mark " + PREFIX_STUDENT_ID + "STUDENT_ID "
+            + PREFIX_WEEK + "WEEK " + PREFIX_STATUS + "STATUS";
     public static final String MESSAGE_RECORDED = "Recorded %s as %s for Week %d.";
     public static final String MESSAGE_UPDATED = "Updated %s's attendance for Week %d: %s to %s.";
     public static final String MESSAGE_UNCHANGED = "%s's attendance for Week %d is already %s. Nothing changed.";
@@ -34,6 +38,14 @@ public class AttendanceMarkCommand extends Command {
         WeeklyRecord.validateWeek(week);
         this.week = week;
         this.status = requireNonNull(status);
+    }
+
+    /**
+     * Returns an incomplete command for {@code studentId} that the TA finishes by entering the week and status.
+     */
+    public static String buildTemplate(StudentId studentId) {
+        requireNonNull(studentId);
+        return "attendance mark " + PREFIX_STUDENT_ID + studentId + " " + PREFIX_WEEK;
     }
 
     @Override

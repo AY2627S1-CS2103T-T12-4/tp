@@ -30,6 +30,12 @@ public class AttendanceMarkCommandTest {
     }
 
     @Test
+    public void buildTemplate_studentId_endsAtWeekPrefix() {
+        assertEquals("attendance mark id/A0123456X w/", AttendanceMarkCommand.buildTemplate(ALICE.getStudentId()));
+        assertThrows(NullPointerException.class, () -> AttendanceMarkCommand.buildTemplate(null));
+    }
+
+    @Test
     public void execute_firstMark_recordsBothStatusesAtWeekBoundaries() {
         for (int week : new int[] {1, 13}) {
             for (AttendanceStatus status : AttendanceStatus.values()) {

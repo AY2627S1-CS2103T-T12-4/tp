@@ -101,6 +101,12 @@ group's name, and says "No active group" when none is active. When there are no 
 table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
+`StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
+is passed through a callback in `WorkspacePanel` to `MainWindow`, which fills the template built by
+`AttendanceMarkCommand.buildTemplate` using its ID.
+This callback calls `CommandBox.fillTemplate` rather than Logic; only Enter follows the execution and save path.
+Keyboard or programmatic selection does not prepare a template, and empty rows and other mouse buttons are ignored.
+
 `view SCREEN` follows the normal command/parser pattern and returns a `WorkspaceView` in `CommandResult`.
 `MainWindow` selects the corresponding screen. `LogicManager` saves only when the persisted model changes, so
 navigation and other read-only commands do not write data. `CommandResult.hasSavedChanges()` tells the UI whether
@@ -124,6 +130,11 @@ Both methods skip positions whose text matches the text in the box. A failed com
 newest entry, so without this the first Up after a failure would appear to do nothing. The history is kept in
 memory only, because it is a typing aid rather than TAssist data, and `CommandHistory` has no JavaFX dependency so
 that it can be unit tested.
+
+`CommandBox.fillTemplate` replaces the current draft without executing it or adding it to history.
+It starts a fresh history position, returns focus to the input, and places the caret at the end.
+A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
+an incomplete template stays editable after its validation error.
 
 The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
 future increments must connect domain models, commands and persistence before enabling their controls.
@@ -303,6 +314,29 @@ instead of being joined onto the value. A parser that checks its own optional-bu
 `parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
+
+A parser may also declare **literal words**: words such as `s/o` that look like a prefix followed by text but belong
+to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
+`n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
+when it stands alone between whitespace, ignoring case. `s/oKumar` is still an unknown prefix, and the error adds
+`If s/o is part of the value, put a space before and after it.` The hint appears only when the text after the
+literal word does not start with a lowercase letter, so `a/lee` is reported as an unknown prefix without it. A literal
+word also may not start with one of the parser's own prefixes (ignoring case), which would make the input ambiguous. Commands that declare no literal
+words parse exactly as before, so `s/` in `attendance mark` is unaffected.
+
+**Aspect: Reading `s/o` in a name**
+
+* **Alternative 1 (current choice):** `student add` declares a short list of literal words.
+  * Pros: Only the command that takes a name changes, and only for these particles. Every other prefix check,
+    including typos such as `x/`, still reports a specific error.
+  * Cons: A particle that is not in the list, or one joined to the next word, is still read as a prefix.
+* **Alternative 2:** Treat every unknown prefix after `n/` as part of the name.
+  * Pros: Accepts any slash in a name.
+  * Cons: A mistyped prefix, such as `i/` in `n/Alice i/A1`, would be swallowed into the name and reported as an
+    invalid name or a missing ID, which hides the real mistake.
+* **Alternative 3:** Ask users to write the particle without the slash, such as `so`.
+  * Pros: No parser change.
+  * Cons: The roster no longer matches the official name that the TA reads from the class list.
 
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and
@@ -509,7 +543,9 @@ participation feedback and failed-input retention through the JavaFX command box
 `student delete`, including their help formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
-name or ID reports its value constraints. Listing accepts no parameters.
+name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
+and `a/p` only as a separate word between two parts of a name, and the add parser keeps them in the name as literal
+words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique. If
@@ -580,8 +616,10 @@ one row per student in roster order: name, student ID, submission status, and gr
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
-recorded grade and the success message calls out that loss. Removing a student removes only that student's records
-from every assignment in the group.
+recorded grade and the success message calls out that loss only when a grade existed. If `s/no` is requested for an
+already unsubmitted record, `AssignmentSubmitCommand` returns unchanged feedback without updating the model.
+This also covers a student with no explicit record, so the command does not create a record or save the file.
+Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
 `assignmentRecords` list. The list can be absent in older data files. During loading, records must refer to an
@@ -1586,14 +1624,18 @@ label.
    Select T01 with `group use g/T01`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
 2. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
    and `Ben Lim | A0234567Y | Not submitted | -`.
+   Enter `assignment submit a/PS1 id/A0234567Y s/no` twice. Each time, expect
+   `Ben Lim's PS1 submission status is already not submitted. Nothing changed.` without `Changes saved.`
+   The model and saved file should remain unchanged.
 3. Enter `assignment grade a/PS1 id/A0234567Y m/87`. Expect an error with the exact command
    `assignment submit a/PS1 id/A0234567Y s/yes`. Then submit Alice with
    `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
    `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
    as 87.
 4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`; the list should now show 91. Withdraw her
-   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say any recorded grade was
+   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say the recorded grade was
    cleared, and the list should show `Not submitted | -` for Alice.
+   Repeat the command; expect unchanged feedback with no mention of a grade being cleared and no save confirmation.
 5. Submit Alice again and record grade 87 so the saved file contains a complete record. Close and reopen the app,
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
    is closed; the group should have `"assignments" : [ "PS1" ]` and an `"assignmentRecords"` entry with the
@@ -1660,6 +1702,11 @@ label.
 6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
    again; expect an unknown-ID error.
    Close and reopen; T01 stays empty and T02 still contains Alice.
+7. In T01, enter `student add n/Ravi s/o Kumar id/A0345678Z` and `student add n/SITI D/O AHMAD id/A0456789W`.
+   Expect `Added Ravi s/o Kumar to T01.` and `Added SITI D/O AHMAD to T01.` Close and reopen; both names are unchanged.
+   Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
+   `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, an unknown prefix `s/` with a hint to
+   put spaces around `s/o` for the second, and an unknown prefix `x/` for the third.
 
 ### Managing tutorial groups
 
@@ -1787,6 +1834,23 @@ parameter errors, empty groups, week boundaries, and display formatting.
    1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
       Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
    1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
+
+### Preparing a command from a student row
+
+1. Open a group with at least two students. Type an unfinished command, then click a populated row.
+   Expect an attendance template containing that row's ID, focus in the command box, and the cursor after `w/`.
+   The previous draft is replaced and can be recalled with Up, while feedback, attendance records, and the saved file
+   stay unchanged.
+2. Complete the week and status, then click the same row again. Expect the incomplete template to replace the draft.
+   Press Up and Down; the completed draft, the last submitted command, and the new template should remain
+   available without execution.
+3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
+   Selecting another row with the keyboard must also leave the command box alone.
+4. Submit the incomplete template with Enter. Expect the missing-parameter error
+   `Missing required parameter(s): s/. Include each exactly once.`, retained text, and unchanged records.
+   Complete it with a valid week and status, then press Enter; only then should attendance be saved.
+5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.
+   The JavaFX regression also checks filtered and sorted observable lists to prevent using a stale roster index.
 
 ### Testing the workspace
 

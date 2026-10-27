@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javafx.beans.binding.Bindings;
@@ -16,8 +17,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.group.Group;
@@ -56,11 +59,13 @@ public class StudentListPanel extends UiPart<Region> {
      * Creates a table of the active group's students that follows {@code activeGroup} and {@code students}.
      */
     public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> roster,
-            ObservableList<Student> students, ObservableBooleanValue hasStudentFilter) {
+            ObservableList<Student> students, ObservableBooleanValue hasStudentFilter,
+            Consumer<Student> studentClickHandler) {
         super(FXML);
-        requireAllNonNull(activeGroup, roster, students, hasStudentFilter);
+        requireAllNonNull(activeGroup, roster, students, hasStudentFilter, studentClickHandler);
 
         studentTable.setItems(students);
+        setUpStudentClicks(studentClickHandler);
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
                 .setMaxWidth(ROW_NUMBER_WIDTH);
         addColumn("NAME", NAME_COLUMN_WIDTH, student -> student.getName().toString());
@@ -85,6 +90,21 @@ public class StudentListPanel extends UiPart<Region> {
         emptyHint.textProperty().bind(Bindings.createStringBinding(() ->
                 describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get()), activeGroup, hasStudentFilter));
         showEmptyStateInsteadOfTable(students);
+    }
+
+    /**
+     * Handles explicit primary-button clicks on populated rows, including an already selected student.
+     */
+    private void setUpStudentClicks(Consumer<Student> studentClickHandler) {
+        studentTable.setRowFactory(table -> {
+            TableRow<Student> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY && !row.isEmpty()) {
+                    studentClickHandler.accept(row.getItem());
+                }
+            });
+            return row;
+        });
     }
 
     /**

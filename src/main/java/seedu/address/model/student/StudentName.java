@@ -3,6 +3,10 @@ package seedu.address.model.student;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import seedu.address.commons.util.StringUtil;
 
 /**
@@ -10,19 +14,35 @@ import seedu.address.commons.util.StringUtil;
  * Guarantees: immutable; is valid as declared in {@link #isValidStudentName(String)}.
  * Leading and trailing spaces are removed and repeated internal spaces are treated as one space.
  * The capitalization entered by the user is kept.
+ * Besides ordinary words, a name may contain the particles in {@link #SLASH_PARTICLES}, such as {@code s/o} in
+ * {@code Ravi s/o Kumar}, as they appear on official records.
  */
 public class StudentName {
 
     public static final int MAX_LENGTH = 60;
 
-    public static final String MESSAGE_CONSTRAINTS =
-            "Invalid student name. Use 1-" + MAX_LENGTH + " letters, spaces, apostrophes, or hyphens.";
+    /**
+     * Name particles that contain a slash: s/o (son of), d/o (daughter of), a/l (anak lelaki, son of) and
+     * a/p (anak perempuan, daughter of). Each stands between two parts of a name, and matching ignores case.
+     */
+    public static final List<String> SLASH_PARTICLES = List.of("s/o", "d/o", "a/l", "a/p");
+
+    public static final String MESSAGE_CONSTRAINTS = "Invalid student name. Use 1-" + MAX_LENGTH
+            + " letters, spaces, apostrophes, or hyphens. Between two parts of a name, you may also use "
+            + "s/o, d/o, a/l, or a/p.";
+
+    /** One word: letters (including accented letters), apostrophes (straight or curly) and hyphens. */
+    private static final String WORD_REGEX = "[\\p{L}\\p{M}'’-]+";
+
+    private static final String SLASH_PARTICLE_REGEX = SLASH_PARTICLES.stream().map(Pattern::quote)
+            .collect(Collectors.joining("|", "(?i:", ")"));
 
     /*
-     * Letters (including accented letters), spaces, apostrophes (straight or curly) and hyphens,
-     * with at least one letter.
+     * Words separated by single spaces, where a slash particle may stand alone between two words, with at least one
+     * letter outside the particles. Only the particles contain slashes, so a letter not next to a slash is in a word.
      */
-    public static final String VALIDATION_REGEX = "(?=.*\\p{L})[\\p{L}\\p{M} '’-]+";
+    public static final String VALIDATION_REGEX = "(?=.*(?<!/)\\p{L}(?!/))" + WORD_REGEX
+            + "(?: (?:" + SLASH_PARTICLE_REGEX + " )?" + WORD_REGEX + ")*";
 
     public final String fullName;
 
