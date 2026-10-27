@@ -16,9 +16,11 @@ public class GroupDeleteCommandParser implements Parser<GroupDeleteCommand> {
 
     @Override
     public GroupDeleteCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = GroupCommandParserUtil.parseValues(arguments, List.of(PREFIX_FAST), PREFIX_FAST);
+        TAssistArgumentParser parser = GroupCommandParserUtil.createParser(List.of(PREFIX_FAST), PREFIX_FAST);
+        ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         GroupName name = GroupCommandParserUtil.parseNameValue(values, GroupCommandParserUtil.PREFIX_GROUP,
                 "Missing group name.", GroupDeleteCommand.MESSAGE_USAGE);
+        parser.verifyNoExtraText(values);
         return new GroupDeleteCommand(name, FastDeleteOption.isPresent(values));
     }
 }

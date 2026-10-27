@@ -34,6 +34,11 @@ public class GroupDeleteCommandParserTest {
     }
 
     @Test
+    public void parse_missingNameBeforeExtraText_reportsMissingName() {
+        assertParseFailure(parser, "f/yes T01", "Missing group name. Usage: group delete g/GROUP_NAME [f/yes]");
+    }
+
+    @Test
     public void parse_invalidName_reportsConstraints() {
         assertParseFailure(parser, "g/T_01", GroupName.MESSAGE_CONSTRAINTS);
     }

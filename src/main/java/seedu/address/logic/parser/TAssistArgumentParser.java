@@ -81,6 +81,21 @@ public class TAssistArgumentParser {
      * @throws ParseException if the arguments violate the declared parameter rules.
      */
     public ArgumentMultimap parse(String arguments) throws ParseException {
+        ArgumentMultimap values = parseWithoutExtraTextCheck(arguments);
+        verifyNoExtraText(values);
+        return values;
+    }
+
+    /**
+     * Parses parameters as {@link #parse(String)} does, except that it does not check for extra text after
+     * single-word values. A caller that reports its own missing parameters must run those checks and then call
+     * {@link #verifyNoExtraText(ArgumentMultimap)}, so that a missing parameter is reported before extra text.
+     *
+     * @param arguments The command's arguments, excluding both command keywords.
+     * @return The checked prefix-value mapping.
+     * @throws ParseException if the arguments violate the declared parameter rules other than extra text.
+     */
+    public ArgumentMultimap parseWithoutExtraTextCheck(String arguments) throws ParseException {
         requireNonNull(arguments);
         if (allowedPrefixes.isEmpty() && !arguments.trim().isEmpty()) {
             throw new ParseException(MESSAGE_NO_PARAMETERS);
@@ -93,8 +108,22 @@ public class TAssistArgumentParser {
         }
         values.verifyNoDuplicatePrefixesFor(allowedPrefixes.toArray(Prefix[]::new));
         verifyRequiredPrefixes(values);
-        verifySingleWordValues(values);
         return values;
+    }
+
+    /**
+     * Checks that no single-word value of {@code values} is followed by extra text.
+     *
+     * @param values The mapping returned by {@link #parseWithoutExtraTextCheck(String)}.
+     * @throws ParseException if a single-word value contains spaces.
+     */
+    public void verifyNoExtraText(ArgumentMultimap values) throws ParseException {
+        for (Prefix prefix : singleWordPrefixes) {
+            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
+            if (words.length > 1) {
+                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            }
+        }
     }
 
     private void addAllowedPrefix(Prefix prefix) {
@@ -127,15 +156,6 @@ public class TAssistArgumentParser {
                 .collect(Collectors.joining(" "));
         if (!missingPrefixes.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes));
-        }
-    }
-
-    private void verifySingleWordValues(ArgumentMultimap values) throws ParseException {
-        for (Prefix prefix : singleWordPrefixes) {
-            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
-            if (words.length > 1) {
-                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
-            }
         }
     }
 

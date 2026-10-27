@@ -56,4 +56,10 @@ public class StudentDeleteCommandParserTest {
         assertParseFailure(parser, "id/A0123456X f/yes now",
                 String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "f/yes", "now"));
     }
+
+    @Test
+    public void parse_missingIdBeforeExtraText_reportsMissingParameter() {
+        assertParseFailure(parser, "f/yes A0123456X",
+                "Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);
+    }
 }

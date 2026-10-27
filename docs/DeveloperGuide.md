@@ -299,7 +299,8 @@ parameters, and URL schemes such as `https://` are retained as values. Parameter
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
 produce specific errors. Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
-instead of being joined onto the value. Optional parameters may appear at most once.
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
+`parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
 
