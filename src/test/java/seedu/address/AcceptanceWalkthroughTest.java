@@ -126,7 +126,7 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
 
         restart();
 
-        assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
+        assertTrue(app.getDataLoadStatus().isFailure());
         assertEquals(new TAssist(), app.model.getTAssist());
         assertThrows(CommandException.class, LogicManager.MESSAGE_DATA_PROTECTED, () ->
                 app.logic.execute("group add g/T01"));

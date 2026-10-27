@@ -106,8 +106,8 @@ first Up brings back the command before it. The history starts empty each time y
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
 
-* Commands that take no parameters, such as `exit`, `group list`, and `student list`, reject extra input like
-  `exit 123`.
+* Commands that take no parameters, such as `exit`, `group list`, `student list`, `undo`, and `redo`, reject extra
+  input like `exit 123`.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
@@ -123,9 +123,9 @@ first Up brings back the command before it. The history starts empty each time y
 Opens the **Help** screen, which lists the format, rules, and examples of every available command.
 The feedback box confirms with `Showing the command reference.`
 
-The reference starts with the general commands (`view`, `help`, and `exit`), followed by the group, student,
-attendance, participation, and assignment commands, in the same order as their sections in this guide. Within a topic,
-commands appear in the order you would use them. The examples are written to follow on from each other: in a new
+The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group,
+student, attendance, participation, and assignment commands, in the same order as their sections in this guide.
+Within a topic, commands appear in the order you would use them. The examples are written to follow on from each other: in a new
 TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
 works.
 
@@ -254,7 +254,9 @@ Format: `student add n/NAME id/STUDENT_ID`
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
 * IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
 * An ID must be unique within the active group. The same ID may occur in another group.
-  Students with the same name and different IDs are allowed.
+  Students with the same name and different IDs are allowed. If the active group already has a student with the same
+  name (ignoring case and extra spaces), the student is still added, and the feedback adds a warning so that you can
+  check the ID, for example `Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. Check that the student ID is correct.`
 * Supply each prefix exactly once, in either order, with a space before each parameter.
 
 Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.` when T01 is active.
@@ -338,9 +340,8 @@ Attendance for T01, Week 3:
 Alice Tan | A0123456X | Present
 ```
 
-Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
-week, including when the group has no students, the feedback is
-`No attendance records have been recorded for Week 3.` Records in other groups or weeks are not included.
+Each student appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student as
+`Not recorded`. An empty group shows `No students in T01.` Records in other groups or weeks are not included.
 Use `group use g/GROUP_NAME` to choose another group before listing it.
 
 Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
@@ -437,7 +438,8 @@ Creates an assignment in the active tutorial group. Create or select a group fir
 
 Format: `assignment add a/ASSIGNMENT_NAME`
 
-* Assignment names contain 1–60 letters, digits, spaces, or hyphens, with at least one letter or digit.
+* Assignment names contain 1–60 letters, digits, spaces, hyphens, periods, colons, or parentheses, with at least one
+  letter or digit. For example, `PS1.5`, `Lab 2 (Graphs)` and `Kattis: Week 3` are valid.
 * Leading and trailing spaces are removed, and repeated spaces inside a name count as one space.
   The length limit applies after this normalization.
 * Names ignore case when matching, but keep the capitalization entered for display. `PS1` and `ps1` are duplicates,
@@ -497,7 +499,7 @@ Problem | Feedback and correction
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
 Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
-Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
@@ -550,6 +552,38 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
 Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
 
+### Undoing a change: `undo`
+
+Reverses your latest change to tutorial groups, students, attendance, participation scores, or assignments.
+Switching the active group with `group use` counts as a change too. Enter `undo` again to reverse earlier changes,
+newest first.
+
+Format: `undo`
+
+* You can undo up to 20 changes made since TAssist was opened. Changes from before you last opened TAssist cannot be
+  undone.
+* Commands that were rejected or did not change any data, such as listing, `help`, `view`, or entering the same
+  attendance mark again, are skipped.
+* The data that `undo` restores is saved, just like any other change.
+
+For example, after `attendance mark id/A0123456X w/3 s/absent`, entering `undo` shows
+`Undone: attendance mark id/A0123456X w/3 s/absent` and restores Alice Tan's earlier Week 3 attendance.
+If there is nothing to undo, TAssist shows
+`Nothing to undo. TAssist can undo the last 20 changes made since it was opened.` and changes no data.
+
+### Redoing a change: `redo`
+
+Reapplies the latest change that you reversed with `undo`.
+
+Format: `redo`
+
+* Enter `redo` again to reapply further undone changes, in the order you made them.
+* Making a new change after `undo` clears the changes you can redo.
+
+Continuing the example above, entering `redo` shows `Redone: attendance mark id/A0123456X w/3 s/absent`.
+If there is nothing to redo, TAssist shows
+`Nothing to redo. Redo is available after undo, until you make another change.`
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -569,6 +603,7 @@ Closing and reopening TAssist restores the last successfully saved state.
 Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
 selecting the already active group, entering the same attendance mark again, or clearing a week that has no record,
 do not save either.
+Undoing or redoing a change saves the restored data.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
 The command's changes are rolled back, including the active selection and roster. For a permission problem, the
@@ -631,10 +666,14 @@ The file looks like this:
   records for that student. Invalid weeks or statuses make the file invalid.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If the data file is unreadable or invalid, TAssist shows
-`Saved data could not be read. No changes were made to the saved file.` and opens with no data.
+If the data file is unreadable or invalid, TAssist opens with no data and shows `Saved data could not be read.`,
+the reason, and `No changes were made to the saved file.` For example:
+`Saved data could not be read. Group T01 has more than one student with ID A1. No changes were made to the saved file.`
+For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
+The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
+file invalid; trailing spaces, tabs, and line breaks are allowed.
 The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` records the reason loading failed.
+and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>
@@ -666,6 +705,8 @@ Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
 **View** | `view SCREEN`<br> e.g., `view attendance`
+**Undo** | `undo`
+**Redo** | `redo`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
 **List groups** | `group list`
 **Switch group** | `group use g/GROUP_NAME`<br> e.g., `group use g/T01`

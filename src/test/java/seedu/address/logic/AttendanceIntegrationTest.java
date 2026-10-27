@@ -70,7 +70,10 @@ public class AttendanceIntegrationTest {
                         .findStudent(ALICE.getStudentId()).orElseThrow());
 
         logic.execute("group use g/T02");
-        assertFeedback("attendance list w/3", "No attendance records have been recorded for Week 3.");
+        assertFeedback("attendance list w/3", "Attendance for T02, Week 3:\n"
+                + "Daniel Ong | A0456789W | Not recorded\n"
+                + "Elle Teo | A0567890U | Not recorded\n"
+                + "Alice Tan | A0123456X | Not recorded");
         logic.execute("attendance mark id/A0123456X w/13 s/present");
         restart();
         assertFeedback("attendance list w/13", "Attendance for T02, Week 13:\n"
