@@ -2,16 +2,13 @@ package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -20,16 +17,9 @@ import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
 
-public class StudentCommandsIntegrationTest {
-    @TempDir
-    public Path temporaryFolder;
-
-    private MainApp app;
-    private Path dataFile;
-
+public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     @BeforeEach
     public void setUp() throws Exception {
-        dataFile = temporaryFolder.resolve("tassist.json");
         app = openApp();
         app.logic.execute("group add g/T01");
     }
@@ -99,30 +89,5 @@ public class StudentCommandsIntegrationTest {
                 app.logic.execute(example);
             }
         }
-    }
-
-    private void assertRejected(String command, Class<? extends Exception> exceptionType) throws Exception {
-        TAssist expected = new TAssist(app.model.getTAssist());
-        String saved = Files.readString(dataFile);
-        assertThrows(exceptionType, () -> app.logic.execute(command));
-        assertEquals(expected, app.model.getTAssist());
-        assertEquals(saved, Files.readString(dataFile));
-        assertEquals(expected.getActiveGroup().map(group -> List.copyOf(group.getStudentList())).orElse(List.of()),
-                app.logic.getActiveGroupStudentList());
-    }
-
-    private String feedback(String command) throws Exception {
-        return app.logic.execute(command).getFeedbackToUser();
-    }
-
-    private MainApp openApp() throws Exception {
-        MainApp opened = new MainApp(temporaryFolder.resolve("prefs.json"), dataFile);
-        opened.init();
-        return opened;
-    }
-
-    private void restart() throws Exception {
-        app.stop();
-        app = openApp();
     }
 }
