@@ -107,11 +107,15 @@ public class MainAppTest {
     @Test
     public void init_corruptData_commandsAndRestartKeepFileUntouched() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
-        for (String invalidData : List.of("{", "null")) {
+        new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
+        String validData = Files.readString(dataFile());
+        for (String invalidData : List.of("{", "null", validData + "\nTHIS IS INVALID JSON",
+                validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
             MainApp app = new MainApp(prefsFile, dataFile());
             app.init();
 
+            assertEquals(DataLoadStatus.FAILED, app.getDataLoadStatus());
             for (String command : List.of("help", "view storage", "group list")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
@@ -127,6 +131,26 @@ public class MainAppTest {
             assertEquals(DataLoadStatus.FAILED, reopened.getDataLoadStatus());
             assertEquals(invalidData, Files.readString(dataFile()));
         }
+    }
+
+    @Test
+    public void init_trailingWhitespace_loadsDataAndAllowsSaving() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+        app.logic.execute("group add g/T01");
+        TAssist saved = new TAssist(app.model.getTAssist());
+        app.stop();
+        Files.writeString(dataFile(), Files.readString(dataFile()) + " \t\r\n");
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+
+        assertEquals(DataLoadStatus.LOADED, reopened.getDataLoadStatus());
+        assertEquals(saved, reopened.model.getTAssist());
+        assertTrue(reopened.logic.execute("group add g/T02").hasSavedChanges());
+        reopened.stop();
+        assertEquals(reopened.model.getTAssist(), new JsonTAssistStorage(dataFile()).readTAssist().orElseThrow());
     }
 
     @Test
