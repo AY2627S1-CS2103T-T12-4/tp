@@ -33,10 +33,8 @@ class JsonAdaptedStudent {
     /**
      * Constructs a {@code JsonAdaptedStudent} with the given student details.
      */
-    @JsonCreator
-    public JsonAdaptedStudent(@JsonProperty("name") String name, @JsonProperty("studentId") String studentId,
-            @JsonProperty("attendance") Map<Integer, String> attendance,
-            @JsonProperty("participation") Map<Integer, Number> participation) {
+    public JsonAdaptedStudent(String name, String studentId, Map<Integer, String> attendance,
+            Map<Integer, Number> participation) {
         this.name = name;
         this.studentId = studentId;
         this.attendance = attendance == null ? Map.of() : new TreeMap<>(attendance);
@@ -58,6 +56,31 @@ class JsonAdaptedStudent {
         studentId = source.getStudentId().value;
         attendance = new TreeMap<>(source.getAttendanceRecords().getRecords());
         participation = new TreeMap<>(source.getParticipationRecords().getRecords());
+    }
+
+    /**
+     * Creates an adapted student from JSON without discarding duplicate week aliases.
+     *
+     * @throws IllegalArgumentException if a week key is not an integer or multiple keys refer to the same week.
+     */
+    @JsonCreator
+    public static JsonAdaptedStudent fromJson(@JsonProperty("name") String name,
+            @JsonProperty("studentId") String studentId, @JsonProperty("attendance") Map<String, String> attendance,
+            @JsonProperty("participation") Map<String, Number> participation) {
+        return new JsonAdaptedStudent(name, studentId, parseWeekKeys(attendance), parseWeekKeys(participation));
+    }
+
+    private static <T> Map<Integer, T> parseWeekKeys(Map<String, T> records) {
+        Map<Integer, T> normalizedRecords = new TreeMap<>();
+        if (records != null) {
+            records.forEach((weekKey, value) -> {
+                int week = Integer.parseInt(weekKey);
+                checkArgument(!normalizedRecords.containsKey(week),
+                        "Duplicate weekly record for Week " + week + ". Use only one entry per week.");
+                normalizedRecords.put(week, value);
+            });
+        }
+        return normalizedRecords;
     }
 
     /**
