@@ -308,8 +308,9 @@ A parser may also declare **literal words**: words such as `s/o` that look like 
 to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
 `n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
 when it stands alone between whitespace, ignoring case. `s/oKumar` is still an unknown prefix, and the error adds
-`If s/o is part of the value, put a space before and after it.` A literal word also may not
-start with one of the parser's own prefixes, which would make the input ambiguous. Commands that declare no literal
+`If s/o is part of the value, put a space before and after it.` The hint appears only when the text after the
+literal word does not start with a lowercase letter, so `a/lee` is reported as an unknown prefix without it. A literal
+word also may not start with one of the parser's own prefixes (ignoring case), which would make the input ambiguous. Commands that declare no literal
 words parse exactly as before, so `s/` in `attendance mark` is unaffected.
 
 **Aspect: Reading `s/o` in a name**
