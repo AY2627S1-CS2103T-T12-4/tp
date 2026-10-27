@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AttendanceCommandParserUtil;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
@@ -80,6 +82,54 @@ public class AttendanceIntegrationTest {
     }
 
     @Test
+    public void execute_clearAndReload_removesOnlyThatMark() throws Exception {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withParticipationRecord(4, 3));
+        logic.execute("attendance mark id/A0123456X w/3 s/present");
+        logic.execute("attendance mark id/A0123456X w/4 s/present");
+        logic.execute("attendance mark id/A0234567Y w/4 s/absent");
+
+        assertFeedback("attendance clear id/a0123456x w/4",
+                "Cleared Alice Tan's attendance for Week 4: present to Not recorded.");
+        restart();
+
+        assertFeedback("attendance list w/4", "Attendance for T01, Week 4:\n"
+                + "Alice Tan | A0123456X | Not recorded\n"
+                + "Ben Lim | A0234567Y | Absent\n"
+                + "Carl Goh | A0345678Z | Not recorded");
+        assertEquals(ALICE.withAttendanceRecord(3, "PRESENT").withParticipationRecord(4, 3),
+                model.getGroup(TypicalGroups.NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow());
+        logic.execute("attendance clear id/A0234567Y w/4");
+        assertFeedback("attendance list w/4", "No attendance records have been recorded for Week 4.");
+    }
+
+    @Test
+    public void execute_clearUnrecordedWeek_leavesSavedFileUntouched() throws Exception {
+        logic.execute("attendance mark id/A0123456X w/3 s/present");
+        String savedData = Files.readString(dataFile);
+
+        CommandResult result = logic.execute("attendance clear id/A0123456X w/4");
+
+        assertEquals("Alice Tan has no attendance recorded for Week 4. Nothing changed.", result.getFeedbackToUser());
+        assertFalse(result.hasSavedChanges());
+        assertEquals(savedData, Files.readString(dataFile));
+    }
+
+    @Test
+    public void execute_rejectedClear_preservesModelAndFile() throws Exception {
+        logic.execute("attendance mark id/A0123456X w/3 s/present");
+        for (String week : new String[] {"0", "14", "3.5", ""}) {
+            assertFailureUnchanged("attendance clear id/A0123456X w/" + week,
+                    ParseException.class, AttendanceCommandParserUtil.MESSAGE_INVALID_WEEK);
+        }
+        assertFailureUnchanged("attendance clear id/A0123456X", ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+        assertFailureUnchanged("attendance clear id/A0123456X w/3 s/present", ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "id/ w/"));
+        assertFailureUnchanged("attendance clear id/A0456789W w/3",
+                CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
+    }
+
+    @Test
     public void execute_invalidValuesAndStudent_preservesModelAndFile() throws Exception {
         logic.execute("attendance mark id/A0123456X w/3 s/present");
         for (String week : new String[] {"0", "14", "-1", "3.5", "three", "9".repeat(1000)}) {
@@ -114,6 +164,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/present",
                 CommandException.class, MESSAGE_NO_ACTIVE_GROUP);
         assertFailureUnchanged("attendance list w/3", CommandException.class, MESSAGE_NO_ACTIVE_GROUP);
+        assertFailureUnchanged("attendance clear id/A0123456X w/3", CommandException.class, MESSAGE_NO_ACTIVE_GROUP);
     }
 
     private Logic createLogic() {

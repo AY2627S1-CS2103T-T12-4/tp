@@ -67,7 +67,7 @@ the command box.
 * **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
   box, and `group add` or `group use` to change the active group shown in the top bar.
 * **Attendance** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `attendance mark` and `attendance list`; the Attendance screen remains a preview.
+  Use `attendance mark`, `attendance list`, and `attendance clear`; the Attendance screen remains a preview.
 * **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
   Use `participation set` and `participation list` to record and view real scores in the feedback box.
 * **Assignments** shows a planned layout with a **Coming soon** label.
@@ -329,8 +329,8 @@ Lists attendance for the active tutorial group in student order, without changin
 
 Format: `attendance list w/WEEK`
 
-For example, after the examples in this guide, which leave only Alice Tan in T01 and mark her present for week 3,
-`attendance list w/3` shows the following in the scrollable feedback box:
+For example, after `attendance mark id/A0123456X w/3 s/present`, with only Alice Tan in T01, `attendance list w/3`
+shows the following in the scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
@@ -344,6 +344,24 @@ Use `group use g/GROUP_NAME` to choose another group before listing it.
 
 Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
 invalid weeks and no active group have the same errors as `attendance mark`.
+
+### Clearing an attendance mark: `attendance clear`
+
+Removes one student's attendance mark for a week, so that the week shows `Not recorded` again. Use it when you marked
+the wrong student or the wrong week. To change a mark between present and absent, use `attendance mark` instead.
+
+Format: `attendance clear id/STUDENT_ID w/WEEK`
+
+* `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
+* Only that student's mark for that week is removed. Other weeks, other students, and participation scores are kept.
+
+Example: if Alice Tan was marked present for week 3 by mistake, `attendance clear id/A0123456X w/3` shows
+`Cleared Alice Tan's attendance for Week 3: present to Not recorded.` Entering it again shows
+`Alice Tan has no attendance recorded for Week 3. Nothing changed.`
+
+The change is saved automatically, and `attendance list` and `group export` no longer show the mark.
+Invalid weeks, unknown students, no active group, and missing, repeated, or unknown prefixes have the same errors as
+`attendance mark`. A status such as `s/present` is not accepted here.
 
 ### Recording participation: `participation set`
 
@@ -530,7 +548,8 @@ only after the save succeeds.
 Closing and reopening TAssist restores the last successfully saved state.
 
 Help, listing, navigation, export, and exit commands do not save data. Commands that leave the data unchanged, such as
-selecting the already active group or entering the same attendance mark again, do not save either.
+selecting the already active group, entering the same attendance mark again, or clearing a week that has no record,
+do not save either.
 
 If saving fails, the feedback shows `Unable to save changes. Your previous saved data is unchanged.`
 The command's changes are rolled back, including the active selection and roster. For a permission problem, the
@@ -639,6 +658,7 @@ Action | Format, Examples
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
+**Clear attendance** | `attendance clear id/STUDENT_ID w/WEEK`<br> e.g., `attendance clear id/A0123456X w/3`
 **Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`

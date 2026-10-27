@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
+import seedu.address.logic.commands.AttendanceClearCommand;
 import seedu.address.logic.commands.AttendanceListCommand;
 import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.help.HelpEntry;
@@ -32,5 +33,11 @@ public final class AttendanceCommandRegistration {
                         "List the active group's attendance for a week from 1 to 13. Students without a mark show "
                                 + "Not recorded. If no one has a mark that week, TAssist says so.",
                         List.of("attendance list w/3")));
+        registry.register("attendance", "clear", new AttendanceClearCommandParser(),
+                new HelpEntry("attendance", AttendanceClearCommand.MESSAGE_USAGE,
+                        "Remove a student's attendance mark for a week from 1 to 13, so that the week shows "
+                                + "Not recorded again. Use it to correct a mark entered for the wrong student or week. "
+                                + "IDs ignore case.",
+                        List.of("attendance clear id/A0123456X w/3")));
     }
 }
