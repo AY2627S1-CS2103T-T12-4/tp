@@ -553,8 +553,10 @@ one row per student in roster order: name, student ID, submission status, and gr
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
-recorded grade and the success message calls out that loss. Removing a student removes only that student's records
-from every assignment in the group.
+recorded grade and the success message calls out that loss only when a grade existed. If `s/no` is requested for an
+already unsubmitted record, `AssignmentSubmitCommand` returns unchanged feedback without updating the model.
+This also covers a student with no explicit record, so the command does not create a record or save the file.
+Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
 `assignmentRecords` list. The list can be absent in older data files. During loading, records must refer to an
@@ -1559,14 +1561,18 @@ label.
    Select T01 with `group use g/T01`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
 2. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
    and `Ben Lim | A0234567Y | Not submitted | -`.
+   Enter `assignment submit a/PS1 id/A0234567Y s/no` twice. Each time, expect
+   `Ben Lim's PS1 submission status is already not submitted. Nothing changed.` without `Changes saved.`
+   The model and saved file should remain unchanged.
 3. Enter `assignment grade a/PS1 id/A0234567Y m/87`. Expect an error with the exact command
    `assignment submit a/PS1 id/A0234567Y s/yes`. Then submit Alice with
    `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
    `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
    as 87.
 4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`; the list should now show 91. Withdraw her
-   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say any recorded grade was
+   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say the recorded grade was
    cleared, and the list should show `Not submitted | -` for Alice.
+   Repeat the command; expect unchanged feedback with no mention of a grade being cleared and no save confirmation.
 5. Submit Alice again and record grade 87 so the saved file contains a complete record. Close and reopen the app,
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
    is closed; the group should have `"assignments" : [ "PS1" ]` and an `"assignmentRecords"` entry with the
