@@ -35,6 +35,7 @@ public class StudentNameTest {
         assertFalse(StudentName.isValidStudentName("'-")); // no letters
         assertFalse(StudentName.isValidStudentName("Alice 2")); // contains a digit
         assertFalse(StudentName.isValidStudentName("Alice*")); // contains a symbol
+        assertFalse(StudentName.isValidStudentName("Alice/Tan")); // a slash outside a particle
         assertFalse(StudentName.isValidStudentName("a".repeat(StudentName.MAX_LENGTH + 1))); // too long
 
         // valid names
@@ -44,6 +45,27 @@ public class StudentNameTest {
         assertTrue(StudentName.isValidStudentName("Mary O’Neil")); // curly apostrophe
         assertTrue(StudentName.isValidStudentName("José Ng")); // accented letter
         assertTrue(StudentName.isValidStudentName("a".repeat(StudentName.MAX_LENGTH))); // maximum length (boundary)
+        assertTrue(StudentName.isValidStudentName("A s/o " + "b".repeat(StudentName.MAX_LENGTH - 6))); // with particle
+        assertFalse(StudentName.isValidStudentName("A s/o " + "b".repeat(StudentName.MAX_LENGTH - 5))); // too long
+    }
+
+    @Test
+    public void isValidStudentName_slashParticles() {
+        // valid: each particle, in any case, between two parts of a name
+        for (String name : new String[] {"Ravi s/o Kumar", "Siti d/o Ahmad", "Ahmad a/l Ismail", "Nur a/p Hassan",
+            "RAVI S/O KUMAR", "Ravi S/o Kumar", "Ravi s/o Kumar s/o Raman", "Mary-Jane d/o O'Neil",
+            "  Ravi   s/o   Kumar  "}) {
+            assertTrue(StudentName.isValidStudentName(name), name);
+        }
+
+        // invalid: misplaced, repeated, joined or unknown particles, and slashes elsewhere
+        for (String name : new String[] {"s/o Kumar", "Ravi s/o", "s/o", "Ravi s/o d/o Kumar", "Ravi s/oKumar",
+            "Ravi s/ o Kumar", "Ravi s / o Kumar", "Ravi x/o Kumar", "Ravi w/o Kumar", "Ravi/Kumar", "' s/o -",
+            "Ravi s//o Kumar"}) {
+            assertFalse(StudentName.isValidStudentName(name), name);
+        }
+
+        assertEquals("Ravi S/O Kumar", new StudentName(" Ravi  S/O Kumar ").fullName);
     }
 
     @Test
