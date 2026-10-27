@@ -301,6 +301,27 @@ produce specific errors. Optional parameters may appear at most once. Empty valu
 validator to report a value error instead of a missing-parameter error. A command declaring no prefixes rejects
 extra input.
 
+A parser may also declare **literal words**: words such as `s/o` that look like a prefix followed by text but belong
+to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
+`n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
+when it stands alone between whitespace, ignoring case, so `s/oKumar` is still an unknown prefix. It also may not
+start with one of the parser's own prefixes, which would make the input ambiguous. Commands that declare no literal
+words parse exactly as before, so `s/` in `attendance mark` is unaffected.
+
+**Aspect: Reading `s/o` in a name**
+
+* **Alternative 1 (current choice):** `student add` declares a short list of literal words.
+  * Pros: Only the command that takes a name changes, and only for these particles. Every other prefix check,
+    including typos such as `x/`, still reports a specific error.
+  * Cons: A particle that is not in the list, or one joined to the next word, is still read as a prefix.
+* **Alternative 2:** Treat every unknown prefix after `n/` as part of the name.
+  * Pros: Accepts any slash in a name.
+  * Cons: A mistyped prefix, such as `i/` in `n/Alice i/A1`, would be swallowed into the name and reported as an
+    invalid name or a missing ID, which hides the real mistake.
+* **Alternative 3:** Ask users to write the particle without the slash, such as `so`.
+  * Pros: No parser change.
+  * Cons: The roster no longer matches the official name that the TA reads from the class list.
+
 `TAssistParserUtil` reuses `StudentName`, `StudentId`, and `GroupName` validation and normalization.
 It also validates assignment names, weeks (whole numbers 1–13), participation scores (whole numbers 0–5), and
 grades (whole numbers 0–100). Assignment names follow the same rules as group names: 1–60 letters, digits, spaces
@@ -484,7 +505,9 @@ participation feedback and failed-input retention through the JavaFX command box
 formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
-name or ID reports its value constraints. Listing accepts no parameters.
+name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
+and `a/p` only as a separate word between two parts of a name, and the add parser keeps them in the name as literal
+words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique.
@@ -1523,6 +1546,11 @@ label.
 6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
    again; expect an unknown-ID error.
    Close and reopen; T01 stays empty and T02 still contains Alice.
+7. In T01, enter `student add n/Ravi s/o Kumar id/A0345678Z` and `student add n/SITI D/O AHMAD id/A0456789W`.
+   Expect `Added Ravi s/o Kumar to T01.` and `Added SITI D/O AHMAD to T01.` Close and reopen; both names are unchanged.
+   Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
+   `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, and an unknown prefix `s/` or `x/` for
+   the others.
 
 ### Managing tutorial groups
 
