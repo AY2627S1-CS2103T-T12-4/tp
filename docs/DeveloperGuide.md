@@ -1394,7 +1394,8 @@ through the real parsers, model and JSON storage, but the steps below also check
 
 1. Removing a student
 
-   1. Enter `group use g/T01` and `student delete id/a0234567y`, then restart.<br>
+   1. Enter `group use g/T01` and `student delete id/a0234567y`. In the confirmation dialog, choose Continue (Cancel is
+      selected by default, so pressing Enter cancels the deletion). Then restart.<br>
       Expected: Ben and his attendance and assignment records are gone from T01. T02 still has its Alice.
 
 1. Window sizes
