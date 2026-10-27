@@ -48,10 +48,13 @@ public class AttendanceListCommandTest {
     }
 
     @Test
-    public void execute_noRecordsForSelectedWeek_showsNoRecordsMessage() {
+    public void execute_noRecordsForSelectedWeek_listsEveryoneAsNotRecorded() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
         for (int week : new int[] {1, 13}) {
-            assertListingUnchanged(week, "No attendance records have been recorded for Week " + week + ".");
+            assertListingUnchanged(week, "Attendance for T01, Week " + week + ":\n"
+                    + "Alice Tan | A0123456X | Not recorded\n"
+                    + "Ben Lim | A0234567Y | Not recorded\n"
+                    + "Carl Goh | A0345678Z | Not recorded");
         }
     }
 
@@ -59,9 +62,15 @@ public class AttendanceListCommandTest {
     public void execute_otherActiveGroup_doesNotListAnotherGroupsRecords() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
         model.setActiveGroup(TypicalGroups.NAME_T02);
-        assertListingUnchanged(3, "No attendance records have been recorded for Week 3.");
+        assertListingUnchanged(3, "Attendance for T02, Week 3:\n"
+                + "Daniel Ong | A0456789W | Not recorded\n"
+                + "Elle Teo | A0567890U | Not recorded");
+    }
+
+    @Test
+    public void execute_emptyGroup_showsNoStudentsMessage() {
         model.setActiveGroup(TypicalGroups.NAME_T03);
-        assertListingUnchanged(3, "No attendance records have been recorded for Week 3.");
+        assertListingUnchanged(3, "No students in T03.");
     }
 
     @Test

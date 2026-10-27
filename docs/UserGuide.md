@@ -339,9 +339,8 @@ Attendance for T01, Week 3:
 Alice Tan | A0123456X | Present
 ```
 
-Each student appears with `Present`, `Absent`, or `Not recorded`. If no attendance has been recorded for that
-week, including when the group has no students, the feedback is
-`No attendance records have been recorded for Week 3.` Records in other groups or weeks are not included.
+Each student appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student as
+`Not recorded`. An empty group shows `No students in T01.` Records in other groups or weeks are not included.
 Use `group use g/GROUP_NAME` to choose another group before listing it.
 
 Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;

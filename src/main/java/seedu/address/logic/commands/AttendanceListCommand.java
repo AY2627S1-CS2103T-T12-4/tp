@@ -14,12 +14,12 @@ import seedu.address.model.student.WeeklyRecord;
 import seedu.address.model.student.WeeklyRecordEntry;
 
 /**
- * Lists every student's attendance for one week in the active tutorial group.
+ * Lists every student's attendance, including missing records, for one week in the active tutorial group.
  */
 public class AttendanceListCommand extends Command {
     public static final String MESSAGE_USAGE = "attendance list w/WEEK";
     public static final String MESSAGE_HEADER = "Attendance for %s, Week %d:";
-    public static final String MESSAGE_NO_RECORDS = "No attendance records have been recorded for Week %d.";
+    public static final String MESSAGE_NO_STUDENTS = "No students in %s.";
 
     private final int week;
 
@@ -36,8 +36,8 @@ public class AttendanceListCommand extends Command {
         requireNonNull(model);
         Group group = getActiveGroup(model);
         List<WeeklyRecordEntry<String>> entries = group.getWeeklyRecordEntries(week, Student::getAttendanceRecords);
-        if (entries.stream().noneMatch(entry -> entry.getRecord().isPresent())) {
-            return new CommandResult(String.format(MESSAGE_NO_RECORDS, week));
+        if (entries.isEmpty()) {
+            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
         String rows = entries.stream().map(AttendanceListCommand::formatRow).collect(Collectors.joining("\n"));
