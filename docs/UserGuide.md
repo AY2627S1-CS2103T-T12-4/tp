@@ -146,6 +146,7 @@ works.
 Format: `help [TOPIC]`
 
 * `TOPIC` is one of `group`, `student`, `attendance`, `participation`, or `assignment`. It is not case-sensitive.
+  The plural forms `groups`, `students`, and `assignments` are also accepted.
 * With a `TOPIC`, the Help screen opens at that topic's commands, for example `Showing student commands.`
   If no command of that topic exists yet, TAssist says so and opens the Help screen from the top.
 * An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
@@ -155,6 +156,7 @@ Examples:
 * `help`
 * `help student`
 * `help assignment` shows `Showing assignment commands.` and opens the Help screen at the assignment commands.
+  `help assignments` opens the same topic with the same feedback.
 
 
 ### Opening a screen: `view`

@@ -24,7 +24,8 @@ public final class HelpCatalog {
                     List.of("view attendance")),
             new HelpEntry("", "help [TOPIC]",
                     "Open this reference, or open it at the commands of one topic: "
-                            + String.join(", ", TOPICS) + ". F1 also opens Help; Escape returns to the command box.",
+                            + String.join(", ", TOPICS) + ". Groups, students, and assignments are also accepted. "
+                            + "F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
             new HelpEntry("", "undo",
                     "Undo the latest change to groups, students, attendance, participation, or assignments, including "

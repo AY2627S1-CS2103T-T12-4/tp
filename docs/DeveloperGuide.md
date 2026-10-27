@@ -256,7 +256,8 @@ Logic logic = new LogicManager(model, storage, registry);
 
 * The built-in commands `help`, `view` and `exit` keep their `HelpEntry` objects in `HelpCatalog`. `TAssistParser` combines
   them with the registered feature entries, and `Logic#getHelpEntries()` exposes the combined list.
-* `HelpCommandParser` accepts an optional topic. `HelpCatalog.TOPICS` lists the valid topics, and an unknown topic
+* `HelpCommandParser` accepts an optional topic and maps `groups`, `students`, and `assignments` to their singular
+  topics before validation. `HelpCatalog.TOPICS` lists the canonical topics, and an unknown topic
   throws a `ParseException` with the message required for unknown topics. A feature's `HelpEntry` topic must equal
   its feature keyword, so a feature appears under `help TOPIC` only if its keyword is listed in `HelpCatalog.TOPICS`.
 * `HelpCommand` does not format the entries. It returns `CommandResult.forHelp(...)` with a one-line confirmation and,
