@@ -304,7 +304,8 @@ extra input.
 A parser may also declare **literal words**: words such as `s/o` that look like a prefix followed by text but belong
 to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
 `n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
-when it stands alone between whitespace, ignoring case, so `s/oKumar` is still an unknown prefix. It also may not
+when it stands alone between whitespace, ignoring case. `s/oKumar` is still an unknown prefix, and the error adds
+`If s/o is part of the value, put a space before and after it.` A literal word also may not
 start with one of the parser's own prefixes, which would make the input ambiguous. Commands that declare no literal
 words parse exactly as before, so `s/` in `attendance mark` is unaffected.
 
@@ -1549,8 +1550,8 @@ label.
 7. In T01, enter `student add n/Ravi s/o Kumar id/A0345678Z` and `student add n/SITI D/O AHMAD id/A0456789W`.
    Expect `Added Ravi s/o Kumar to T01.` and `Added SITI D/O AHMAD to T01.` Close and reopen; both names are unchanged.
    Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
-   `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, and an unknown prefix `s/` or `x/` for
-   the others.
+   `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, an unknown prefix `s/` with a hint to
+   put spaces around `s/o` for the second, and an unknown prefix `x/` for the third.
 
 ### Managing tutorial groups
 

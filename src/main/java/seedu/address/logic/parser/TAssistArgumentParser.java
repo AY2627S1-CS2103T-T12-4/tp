@@ -27,6 +27,8 @@ public class TAssistArgumentParser {
     public static final String MESSAGE_UNEXPECTED_TEXT =
             "Unexpected text before parameters: '%s'. Start each parameter with an allowed prefix: %s.";
     public static final String MESSAGE_NO_PARAMETERS = "This command takes no parameters. Remove the extra input.";
+    public static final String MESSAGE_SEPARATE_LITERAL_WORD =
+            " If %s is part of the value, put a space before and after it.";
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
@@ -125,10 +127,11 @@ public class TAssistArgumentParser {
         while (matcher.find()) {
             Prefix nextPrefix = new Prefix(matcher.group(1));
             if (!allowedPrefixes.contains(nextPrefix)) {
-                if (isLiteralWordAt(arguments, matcher.start())) {
+                String word = getWordAt(arguments, matcher.start());
+                if (literalWords.contains(word.toLowerCase(Locale.ROOT))) {
                     continue;
                 }
-                throw new ParseException(String.format(MESSAGE_UNKNOWN_PREFIX, nextPrefix, formatAllowedPrefixes()));
+                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word));
             }
             values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
@@ -139,14 +142,29 @@ public class TAssistArgumentParser {
     }
 
     /**
-     * Returns true if the whitespace-delimited word that starts at {@code start} is a declared literal word.
+     * Returns the whitespace-delimited word of {@code arguments} that starts at {@code start}.
      */
-    private boolean isLiteralWordAt(String arguments, int start) {
+    private static String getWordAt(String arguments, int start) {
         int end = start;
         while (end < arguments.length() && !Character.isWhitespace(arguments.charAt(end))) {
             end++;
         }
-        return literalWords.contains(arguments.substring(start, end).toLowerCase(Locale.ROOT));
+        return arguments.substring(start, end);
+    }
+
+    /**
+     * Returns the error for the unknown {@code prefix} that starts {@code word}. If the word starts with a literal
+     * word joined to more text, such as {@code s/oKumar}, the error also says to separate the literal word.
+     */
+    private String createUnknownPrefixMessage(Prefix prefix, String word) {
+        String message = String.format(MESSAGE_UNKNOWN_PREFIX, prefix, formatAllowedPrefixes());
+        String lowerCaseWord = word.toLowerCase(Locale.ROOT);
+        return literalWords.stream()
+                .filter(lowerCaseWord::startsWith)
+                .findFirst()
+                .map(literalWord -> message + String.format(MESSAGE_SEPARATE_LITERAL_WORD,
+                        word.substring(0, literalWord.length())))
+                .orElse(message);
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {

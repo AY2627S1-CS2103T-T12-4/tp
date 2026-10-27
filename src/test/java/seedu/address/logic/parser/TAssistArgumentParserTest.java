@@ -105,11 +105,17 @@ public class TAssistArgumentParserTest {
     public void parse_literalWordNotStandingAlone_throwsUnknownPrefix() {
         TAssistArgumentParser literalParser = new TAssistArgumentParser(
                 List.of(PREFIX_NAME, PREFIX_ID), List.of(), List.of("s/o"));
-        for (String input : new String[] {"n/Ravi s/oKumar id/A1", "n/Ravi s/ o Kumar id/A1",
-            "n/Ravi s/o/ Kumar id/A1", "n/Ravi x/o Kumar id/A1"}) {
+        for (String input : new String[] {"n/Ravi s/ o Kumar id/A1", "n/Ravi x/o Kumar id/A1"}) {
             String prefix = input.contains("x/") ? "x/" : "s/";
             assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, prefix,
                     "n/ id/"), () -> literalParser.parse(input));
+        }
+        // A literal word joined to more text gets a hint to separate it, naming it as typed.
+        String[][] joined = {{"n/Ravi s/oKumar id/A1", "s/", "s/o"}, {"n/Ravi S/O/ Kumar id/A1", "S/", "S/O"}};
+        for (String[] testCase : joined) {
+            assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, testCase[1],
+                    "n/ id/") + String.format(TAssistArgumentParser.MESSAGE_SEPARATE_LITERAL_WORD, testCase[2]), () ->
+                    literalParser.parse(testCase[0]));
         }
         // Without declared literal words, s/o is still an unknown prefix.
         assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/",

@@ -252,7 +252,8 @@ Format: `student add n/NAME id/STUDENT_ID`
 * Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
 * Names may also contain `s/o`, `d/o`, `a/l`, or `a/p` (in any case) as a separate word between two parts of the
-  name, as on official records. TAssist reads these as part of the name, not as prefixes. Other slashes are not allowed.
+  name, as on official records. TAssist reads these as part of the name, not as prefixes, as long as there is a space
+  before and after them. Other slashes are not allowed.
 * IDs contain 1–20 letters and digits, including at least one digit. IDs ignore case and are displayed in uppercase.
 * An ID must be unique within the active group. The same ID may occur in another group.
   Students with the same name and different IDs are allowed.

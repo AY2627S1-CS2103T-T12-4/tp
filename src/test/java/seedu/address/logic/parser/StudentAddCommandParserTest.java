@@ -46,9 +46,10 @@ public class StudentAddCommandParserTest {
         for (String name : new String[] {"Ravi s/o", "s/o Kumar", "Ravi s/o d/o Kumar"}) {
             assertParseFailure(parser, "n/" + name + " id/A0345678Z", StudentName.MESSAGE_CONSTRAINTS);
         }
-        // A particle written without its own word is still read as a prefix.
+        // A particle joined to the next word is still read as a prefix, with a hint to separate it.
         assertParseFailure(parser, "n/Ravi s/oKumar id/A0345678Z",
-                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "n/ id/"));
+                "Unknown prefix 's/'. Allowed prefixes: n/ id/. If s/o is part of the value, put a space before and "
+                        + "after it.");
         assertParseFailure(parser, "s/o n/Kumar id/A0345678Z",
                 String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "s/o", "n/ id/"));
     }
