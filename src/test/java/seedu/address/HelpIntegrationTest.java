@@ -17,8 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.WorkspaceView;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
+import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.StudentId;
@@ -60,6 +63,30 @@ public class HelpIntegrationTest {
     @Test
     public void getHelpEntries_listsEveryCommandInHelpOrder() {
         assertEquals(EXPECTED_FORMATS, app.logic.getHelpEntries().stream().map(HelpEntry::getCommandFormat).toList());
+    }
+
+    @Test
+    public void execute_singularAndPluralNavigation_preservesDataAndSavedFile() throws Exception {
+        app.logic.execute("group add g/T01");
+        app.logic.execute("student add n/Alice Tan id/A1");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        String savedFile = Files.readString(dataFile);
+
+        for (WorkspaceView view : List.of(WorkspaceView.GROUPS, WorkspaceView.STUDENTS, WorkspaceView.ASSIGNMENTS)) {
+            String plural = view.getKeyword();
+            String topic = plural.substring(0, plural.length() - 1);
+            for (String name : List.of(topic, plural)) {
+                CommandResult viewResult = app.logic.execute("view " + name);
+                assertEquals(new CommandResult("Showing " + plural + ".", view), viewResult);
+                assertFalse(viewResult.hasSavedChanges());
+                CommandResult helpResult = app.logic.execute("help " + name);
+                assertEquals(CommandResult.forHelp("Showing " + topic + " commands.", topic), helpResult);
+                assertFalse(helpResult.hasSavedChanges());
+                assertEquals(previousData, app.model.getTAssist());
+                assertEquals(savedFile, Files.readString(dataFile));
+            }
+        }
     }
 
     @Test

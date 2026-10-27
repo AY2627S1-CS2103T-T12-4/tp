@@ -165,6 +165,7 @@ Format: `view SCREEN`
 
 `SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
 Screen names ignore case. Specify exactly one screen name. Opening a screen does not change any data.
+The singular forms `student`, `group`, and `assignment` open the same screens as their plural forms.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
 an invalid command format and show the expected syntax.
 

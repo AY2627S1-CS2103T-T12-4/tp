@@ -1827,7 +1827,9 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
-4. Enter `help group`. Verify that Help opens at the group commands and the feedback box shows one line.
+4. Enter `view group`, `view student`, and `view assignment`, then repeat with their plural forms.
+   Verify that each pair opens the same screen. Enter `help group`, `help student`, and `help assignment`, then
+   repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
 5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
    the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
    Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at

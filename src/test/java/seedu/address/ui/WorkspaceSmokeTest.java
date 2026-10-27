@@ -591,6 +591,14 @@ public class WorkspaceSmokeTest {
         runOnFx(() -> {
             TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
             ScrollPane helpScrollPane = (ScrollPane) root.lookup("#helpScrollPane");
+            for (String topic : List.of("group", "student")) {
+                enter(input, "view " + topic);
+                assertEquals(topic + "s", tabs.getSelectionModel().getSelectedItem().getId());
+                enter(input, "help " + topic + "s");
+                assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("Showing " + topic + " commands.", feedbackArea.getText());
+                assertTrue(helpScrollPane.getVvalue() > helpScrollPane.getVmin(), "Help scrolls to the topic");
+            }
             enter(input, "help student");
             assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
             assertEquals("Showing student commands.", feedbackArea.getText());
