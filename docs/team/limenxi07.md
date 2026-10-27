@@ -65,16 +65,23 @@ Given below are my contributions to the project.
     * Updated the UI component section and UI class diagram
       ([\#74](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/74),
       [\#108](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/108)), and wrote the implementation and manual-testing
-      notes for the student and participation commands.
+      notes for the student and participation commands
+      ([\#91](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/91),
+      [\#92](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/92)).
     * Added the `participation set` sequence diagram
       ([\#103](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/103)).
     * Rewrote the proposed undo/redo design for TAssist, with new class, sequence, and activity diagrams
       ([\#100](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/100)).
 
 * **Team-based tasks**:
-  * Alpha-tested the v1.4 JAR and reported 10 bugs (#115 to #124).
-  * Opened follow-up tasks for code quality and authorship (#139, #141, #142) and a PPP task for each member (#143 to
-    #147).
+  * Alpha-tested the v1.4 JAR and reported 10 bugs ([\#115](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/115)
+    to [\#124](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/124)).
+  * Opened follow-up tasks for code quality and authorship
+    ([\#139](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/139),
+    [\#141](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/141),
+    [\#142](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/142)), and tasks for four members' PPPs and removing
+    the AB3 template ([\#143](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/143) to
+    [\#147](https://github.com/AY2627S1-CS2103T-T12-4/tp/issues/147)).
   * Tagged lines from a co-authored commit with `@@author` so that RepoSense credits them correctly
     ([\#140](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/140)).
 
