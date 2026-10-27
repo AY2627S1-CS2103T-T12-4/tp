@@ -9,6 +9,7 @@ import java.util.function.Function;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -57,10 +58,11 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Creates a table of the active group's students that follows {@code activeGroup} and {@code students}.
      */
-    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
+    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> roster,
+            ObservableList<Student> students, ObservableBooleanValue hasStudentFilter,
             Consumer<Student> studentClickHandler) {
         super(FXML);
-        requireAllNonNull(activeGroup, students, studentClickHandler);
+        requireAllNonNull(activeGroup, roster, students, hasStudentFilter, studentClickHandler);
 
         studentTable.setItems(students);
         setUpStudentClicks(studentClickHandler);
@@ -80,12 +82,13 @@ public class StudentListPanel extends UiPart<Region> {
                 activeGroup);
         studentCount.visibleProperty().bind(hasActiveGroup);
         studentCount.managedProperty().bind(hasActiveGroup);
-        studentCount.textProperty().bind(Bindings.createStringBinding(() -> describeCount(students.size()),
-                students));
-        emptyTitle.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyTitle(activeGroup.getValue()),
-                activeGroup));
-        emptyHint.textProperty().bind(Bindings.createStringBinding(() -> describeEmptyHint(activeGroup.getValue()),
-                activeGroup));
+        studentCount.textProperty().bind(Bindings.createStringBinding(() ->
+                hasStudentFilter.get() ? students.size() + " of " + describeCount(roster.size())
+                        : describeCount(students.size()), students, roster, hasStudentFilter));
+        emptyTitle.textProperty().bind(Bindings.createStringBinding(() ->
+                describeEmptyTitle(activeGroup.getValue(), hasStudentFilter.get()), activeGroup, hasStudentFilter));
+        emptyHint.textProperty().bind(Bindings.createStringBinding(() ->
+                describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get()), activeGroup, hasStudentFilter));
         showEmptyStateInsteadOfTable(students);
     }
 
@@ -147,7 +150,10 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Returns the title shown in place of the table when there are no students to show.
      */
-    static String describeEmptyTitle(Optional<Group> activeGroup) {
+    static String describeEmptyTitle(Optional<Group> activeGroup, boolean hasStudentFilter) {
+        if (activeGroup.isPresent() && hasStudentFilter) {
+            return "No matching students";
+        }
         return activeGroup.map(group -> String.format(EMPTY_GROUP_TITLE_FORMAT, group.getName()))
                 .orElse(NO_ACTIVE_GROUP);
     }
@@ -155,7 +161,10 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Returns the hint shown in place of the table when there are no students to show.
      */
-    static String describeEmptyHint(Optional<Group> activeGroup) {
+    static String describeEmptyHint(Optional<Group> activeGroup, boolean hasStudentFilter) {
+        if (activeGroup.isPresent() && hasStudentFilter) {
+            return "Use student list to show all students.";
+        }
         return activeGroup.map(group -> String.format(EMPTY_GROUP_HINT_FORMAT, group.getName()))
                 .orElse(NO_ACTIVE_GROUP_HINT);
     }

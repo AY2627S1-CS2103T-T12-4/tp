@@ -283,7 +283,8 @@ Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.`
 
 ### Listing students: `student list`
 
-Lists the active group's students in roster order in the feedback box. It takes no parameters.
+Clears search and sorting, opens the Students screen, and lists all students in the active group in roster order
+in the feedback box. It takes no parameters.
 
 Format: `student list`
 
@@ -295,6 +296,55 @@ Students in T01:
 
 An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
 Long rosters can be scrolled in the feedback box or viewed on the Students screen with `view students`.
+
+### Finding students: `student find`
+
+Shows students in the active group whose names or IDs contain the supplied fragments, ignoring case.
+The Students screen opens with matching rows and a count. While a search is active, the count
+is shown as, for example, `2 of 20 students`, even when every student matches.
+
+Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
+
+* Include at least one filter. If both are supplied, a student must match **both**.
+* Name fragments match anywhere in the name, including across words. Repeated spaces are treated as one space.
+* ID fragments can be incomplete and need not contain a digit. Accents remain significant.
+* Each search replaces the previous search and keeps the current sort order. Blank, repeated, and unknown filters are rejected.
+* Deleting the last student keeps the search active: the pane shows `No matching students` and `0 of 0 students`.
+  Later additions still need to match; use `student list` to clear the search.
+* Adding or deleting students updates the matching rows immediately. Other record commands and CSV export
+  continue to use the complete group.
+* Switching to a different group or restarting clears search and sorting. Selecting the already active group keeps them.
+* Searching does not change the roster or saved file. Use `student list` to show all students again.
+
+Examples: `student find n/alice` finds Alice Tan; `student find id/0123` matches A0123456X.
+`student find n/alice id/0123` requires both fragments to match the same student.
+
+No matches shows `No matching students in T01. Use student list to show all students.`
+The table also explains how to restore the full roster. An empty name or ID filter reports which filter is blank.
+If the group has no students, finding reports the empty roster and how to add a student instead.
+It leaves the existing search and sort settings unchanged, so it does not apply a new filter to future students.
+
+### Sorting students: `student sort`
+
+Sorts the displayed students in ascending order and opens the Students screen. The current search is kept.
+
+Format: `student sort by/FIELD`
+
+* `FIELD` is `name` or `id`, ignoring case. Supply `by/` exactly once.
+* `student sort by/name` orders names without considering capitalization. Students with the same name are
+  ordered by student ID, since names need not be unique.
+* `student sort by/id` orders IDs alphabetically as text, so `A10` comes before `A2`.
+* Accented letters follow Java's case-insensitive text ordering; sorting does not use a language-specific alphabet.
+* Newly added students appear in the correct sorted position if they match the search. A new search keeps the sort.
+* Sorting affects only the display. Saved roster order, attendance, participation, assignment lists, and CSV export
+  are unchanged. Sorting does not write the data file.
+* Use `student list` to clear search and sorting and restore roster order. Switching to a different group or
+  restarting also resets both.
+
+For example, enter `student find n/alice`, then `student sort by/id` to order only matching students by ID.
+An unsupported or blank field shows `Invalid sort field. Use by/name or by/id.`
+Sorting zero displayed students reports, for example, `Sorted 0 student(s) in T01 by name.`
+The chosen order remains active for later matches or additions; sorting does not clear an existing search.
 
 ### Deleting a student: `student delete`
 
@@ -747,6 +797,8 @@ Action | Format, Examples
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
 **List students** | `student list`
+**Find students** | `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`<br> e.g., `student find n/alice`
+**Sort students** | `student sort by/FIELD`<br> e.g., `student sort by/name`
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
 **Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`

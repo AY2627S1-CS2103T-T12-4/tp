@@ -6,7 +6,9 @@ import java.util.List;
 
 import seedu.address.logic.commands.StudentAddCommand;
 import seedu.address.logic.commands.StudentDeleteCommand;
+import seedu.address.logic.commands.StudentFindCommand;
 import seedu.address.logic.commands.StudentListCommand;
+import seedu.address.logic.commands.StudentSortCommand;
 import seedu.address.logic.help.HelpEntry;
 
 /**
@@ -30,8 +32,19 @@ public final class StudentCommandRegistration {
                         List.of("student add n/Alice Tan id/A0123456X", "student add n/Ben Lim id/A0234567Y")));
         registry.register("student", "list", new StudentListCommandParser(),
                 new HelpEntry("student", StudentListCommand.MESSAGE_USAGE,
-                        "List the active group's students in roster order. Takes no parameters.",
+                        "Clear search and sorting, and show all students in roster order. Takes no parameters.",
                         List.of("student list")));
+        registry.register("student", "find", new StudentFindCommandParser(),
+                new HelpEntry("student", StudentFindCommand.MESSAGE_USAGE,
+                        "Find students in the active group by name or ID fragments, ignoring case. "
+                                + "Include at least one filter; both filters must match when combined. "
+                                + "Use student list to show all students again.",
+                        List.of("student find n/alice", "student find id/0123", "student find n/alice id/0123")));
+        registry.register("student", "sort", new StudentSortCommandParser(),
+                new HelpEntry("student", StudentSortCommand.MESSAGE_USAGE,
+                        "Sort the displayed students by name or ID, ascending and ignoring case. "
+                                + "FIELD is name or id. Keep the current search; use student list to reset both.",
+                        List.of("student sort by/name", "student sort by/id")));
         registry.register("student", "delete", new StudentDeleteCommandParser(),
                 new HelpEntry("student", StudentDeleteCommand.MESSAGE_USAGE,
                         "Remove a student and their records from the active group after confirmation. "

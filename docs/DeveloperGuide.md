@@ -94,11 +94,11 @@ keyboard focus away from the command box, so the UI stays usable by mouse while 
 All inherit from `UiPart`, which loads their FXML. `TAssist.css` defines the shared visual style and compact layout.
 
 The `GroupStrip` and the Students screen (`StudentListPanel`) observe the
-views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getActiveGroupStudentList()` (see
+views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getDisplayedStudentList()` (see
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
 the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
 group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
-table, and says whether no group is active or the active group has no students yet. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
@@ -539,8 +539,8 @@ participation feedback and failed-input retention through the JavaFX command box
 
 ### Student commands
 
-`StudentCommandRegistration` registers `student add`, `student list`, and `student delete`, including their help
-formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
+`StudentCommandRegistration` registers `student add`, `student list`, `student find`, `student sort`, and
+`student delete`, including their help formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
 name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
@@ -553,7 +553,8 @@ Each command obtains the active group at execution time and throws `CommandExcep
 student and appends a warning to its success message.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
-same ID. `StudentListCommand` reads the group's roster and returns numbered rows or an empty-roster hint.
+same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
+numbered roster or an empty-roster hint.
 
 Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
 affected data without changing it; cancelling skips execution and persistence. Student deletion names the student,
@@ -565,6 +566,32 @@ normalization, confirmation details, feedback, uniqueness, group isolation, and 
 `StudentCommandsIntegrationTest` exercises the real startup registration, help examples, add/delete persistence
 across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
 that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
+
+#### Student search and sorting
+
+`StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
+at least one nonblank fragment. Fragments are not validated as complete names or IDs. `StudentSearchPredicate`
+uses case-insensitive substring matching and combines the supplied filters with AND.
+`StudentFindCommand` checks for an empty roster before applying a new predicate. In that case it reports the
+empty roster and preserves the existing display settings, allowing a later addition to follow those settings.
+
+`ModelManager` maintains a `FilteredList` over the active group's live roster, wraps it in a `SortedList`,
+and exposes an unmodifiable `getDisplayedStudentList()` through Logic. The Students table binds to this display; `getActiveGroupStudentList()`
+continues to expose the complete roster. Searching changes only the predicate and sorting changes only the
+comparator, so `LogicManager` does not save them.
+Each search replaces the previous one while preserving sorting, and sorting preserves the current filter.
+`student list` clears both. Switching to a different group resets both; rebinding the same group after a failed
+command preserves them. `LogicManager` also snapshots `StudentDisplayState` and restores it on command failure,
+including a group switch whose save fails. Restarting constructs an unfiltered view in roster order.
+The table observes the read-only `studentFilterActiveProperty()` exposed by Model and Logic, which follows
+whether a predicate is installed. Empty-state captions and counts use this property rather than roster size.
+An active search always shows the matching count against the total, including `0 of 0 students`.
+
+`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `StudentSortField` supplies
+ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
+lexicographic comparison of their normalized uppercase values. Sorting is exposed through the CLI; table headers
+remain non-sortable. These transformations keep the original roster order and all record/export commands intact.
+Sort feedback reports the displayed count even when it is zero, without suggesting that the sort be reset.
 
 ### Assignment commands
 
@@ -1623,6 +1650,37 @@ label.
 8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
    belong to one group.
    With no active group, both commands must ask you to create or select a group first.
+
+### Finding and sorting students
+
+1. Create an empty group and add Zoe (Z3), Alice Tan (A2), and alice Tan (A1), in that order.
+2. Enter `student find n/ALI id/a`. Expect only the two Alice rows, a `2 of 3 students` count, and the Students screen.
+   Enter `student sort by/name`; expect A1 before A2, with row numbers starting at 1. Try `student sort by/id` too.
+3. Enter `student find n/nobody`. Expect a no-matches message and a hint to use `student list`.
+   Enter `student list`; expect all three students in their insertion order, with Zoe first.
+4. Search for Alice again and sort by ID. Add Alice Tan (A0); expect A0 before A1 and A2. Delete A1; it disappears.
+   Enter `student find n/`, `student find n/Alice n/Zoe`, and `student sort by/grade`.
+   Each must report its error and preserve the displayed rows, order, and saved file.
+5. While Alice is the search, mark Zoe's attendance and participation and list those records. Zoe must still be
+   addressable, and record lists and `group export` must include the complete roster in insertion order.
+6. Select a different group and return. Expect the complete roster in insertion order. Repeat a search and sort,
+   then restart; expect the same reset. Compare the data file before and after search/sort to confirm no writes.
+7. Create a new empty group T04. Enter `student find n/alice` and expect the empty-roster hint,
+   rather than a no-matches message. Check that the saved file is unchanged by the query.
+   Add Zoe (Z2), who does not match the attempted search; Zoe must appear immediately.
+   Delete Zoe, then repeat the query with an ID fragment and check the same behavior.
+   This distinguishes an empty roster from an existing roster with no matching students.
+8. With T04 empty again, enter `student sort by/name`. Expect `Sorted 0 student(s) in T04 by name.`
+   Add Zoe (Z2), then Alice (A1); expect Alice before Zoe on screen, while the saved roster keeps insertion order.
+   Run `student find n/missing`, then `student sort by/id`; expect a sort result for zero displayed students.
+   The search must remain active, and the sort message must not suggest resetting it.
+   Add Missing Two (M2), then Missing One (M1); expect only M1 and M2, ordered by ID.
+   Restart and list students; the full saved roster must remain in insertion order.
+9. While `student find n/missing` is active, delete every student in the group.
+   Expect `No matching students`, the hint to use `student list`, and `0 of 0 students`.
+   Add Zoe; she stays hidden by the existing search, and the count becomes `0 of 1 student`.
+   Enter `student list`; Zoe appears and the count becomes `1 student`.
+
 
 ### Managing students
 

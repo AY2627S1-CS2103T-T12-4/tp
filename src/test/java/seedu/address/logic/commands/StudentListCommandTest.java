@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalStudents.BEN;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -23,7 +24,8 @@ public class StudentListCommandTest {
         model.removeStudent(NAME_T01, BEN.getStudentId());
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         assertCommandSuccess(new StudentListCommand(), model,
-                "Students in T01:\n1. Alice Tan | A0123456X\n2. Carl Goh | A0345678Z", expected);
+                new CommandResult("Students in T01:\n1. Alice Tan | A0123456X\n2. Carl Goh | A0345678Z",
+                        WorkspaceView.STUDENTS), expected);
     }
 
     @Test
@@ -32,7 +34,8 @@ public class StudentListCommandTest {
         model.setActiveGroup(NAME_T03);
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         assertCommandSuccess(new StudentListCommand(), model,
-                "No students in T03. Add one using: student add n/NAME id/STUDENT_ID", expected);
+                new CommandResult("No students in T03. Add one using: student add n/NAME id/STUDENT_ID",
+                        WorkspaceView.STUDENTS), expected);
     }
 
     @Test

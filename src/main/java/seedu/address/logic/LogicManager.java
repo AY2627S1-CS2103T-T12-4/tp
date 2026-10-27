@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.DataLoadStatus;
@@ -21,6 +22,7 @@ import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.TAssistParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.StudentDisplayState;
 import seedu.address.model.TAssist;
 import seedu.address.model.TAssistHistory;
 import seedu.address.model.group.Group;
@@ -86,11 +88,13 @@ public class LogicManager implements Logic {
 
         Command command = tAssistParser.parseCommand(commandText);
         TAssist previousData = new TAssist(model.getTAssist());
+        StudentDisplayState previousDisplay = model.getStudentDisplayState();
         TAssistHistory previousHistory = model.getTAssistHistory();
         try {
             return executeAndSave(command, previousData, describe(commandText));
         } catch (CommandException e) {
             model.setTAssist(previousData);
+            model.setStudentDisplayState(previousDisplay);
             model.setTAssistHistory(previousHistory);
             assert previousData.equals(model.getTAssist()) : "A failed command must leave data unchanged";
             throw e;
@@ -160,6 +164,16 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Student> getActiveGroupStudentList() {
         return model.getActiveGroupStudentList();
+    }
+
+    @Override
+    public ObservableList<Student> getDisplayedStudentList() {
+        return model.getDisplayedStudentList();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty studentFilterActiveProperty() {
+        return model.studentFilterActiveProperty();
     }
 
     @Override
