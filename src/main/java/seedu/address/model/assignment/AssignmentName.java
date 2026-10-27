@@ -17,13 +17,14 @@ public class AssignmentName {
     public static final int MAX_LENGTH = 60;
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Invalid assignment name. Use 1-" + MAX_LENGTH + " letters, digits, spaces, or hyphens.";
+            "Invalid assignment name. Use 1-" + MAX_LENGTH
+                    + " letters, digits, spaces, hyphens, periods, colons, or parentheses.";
 
     /*
-     * Only letters, digits, spaces and hyphens, with at least one letter or digit,
-     * so that names such as "-" or "--" are rejected.
+     * Only letters, digits, spaces, hyphens, periods, colons and parentheses, with at least one letter or digit,
+     * so that names such as "-" or "()" are rejected.
      */
-    public static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{Nd}])[\\p{L}\\p{Nd} -]+";
+    public static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{Nd}])[\\p{L}\\p{Nd} .():-]+";
 
     public final String fullName;
 
