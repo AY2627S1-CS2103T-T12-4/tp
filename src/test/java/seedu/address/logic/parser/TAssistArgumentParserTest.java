@@ -69,6 +69,16 @@ public class TAssistArgumentParserTest {
         assertMissingSpace("n/Aliceid/A1", "id/", "n/Aliceid/A1");
         assertMissingSpace("id/A1n/Alice g/T01", "n/", "id/A1n/Alice");
         assertMissingSpace("n/Alice g/T01,id/A1", "id/", "g/T01,id/A1");
+        assertMissingSpace("id/A1n/Alice Tan Wei Ming", "n/", "id/A1n/Alice");
+    }
+
+    @Test
+    public void parse_unknownPrefixEndingWithMissingPrefix_hintsMissingSpace() {
+        String unknownPrefix = String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "Tanid/", "n/ id/ g/");
+        assertThrows(ParseException.class, unknownPrefix
+                + String.format(TAssistArgumentParser.MESSAGE_SEPARATE_PREFIX, "id/"), () ->
+                parser.parse("n/Alice Tanid/A1"));
+        assertThrows(ParseException.class, unknownPrefix, () -> parser.parse("n/Alice Tanid/A1 id/A2"));
     }
 
     @Test

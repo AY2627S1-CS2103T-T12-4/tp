@@ -32,6 +32,7 @@ public class TAssistArgumentParser {
             "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
     public static final String MESSAGE_SEPARATE_LITERAL_WORD =
             " If %s is part of the value, put a space before and after it.";
+    public static final String MESSAGE_SEPARATE_PREFIX = " If %s starts a new parameter, put a space before it.";
     public static final String MESSAGE_MISSING_SPACE =
             "Missing space before %s in '%s'. Put a space before each prefix.";
 
@@ -177,9 +178,10 @@ public class TAssistArgumentParser {
         assert values.getValue(missingPrefix).isEmpty() : "Only a missing prefix can be joined to another value";
         Pattern joinedPrefix = Pattern.compile("\\S" + Pattern.quote(missingPrefix.getPrefix()));
         for (Prefix prefix : allowedPrefixes) {
-            Optional<String> value = values.getValue(prefix);
-            if (value.isPresent() && joinedPrefix.matcher(value.get()).find()) {
-                throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix, prefix + value.get()));
+            // A later word with a slash is read as a prefix of its own, so only a value's first word can hide one.
+            String firstWord = values.getValue(prefix).orElse("").split("\\s+", 2)[0];
+            if (joinedPrefix.matcher(firstWord).find()) {
+                throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix, prefix + firstWord));
             }
         }
     }
@@ -212,7 +214,7 @@ public class TAssistArgumentParser {
                 if (literalWords.contains(word.toLowerCase(Locale.ROOT))) {
                     continue;
                 }
-                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word));
+                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word, arguments));
             }
             values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
@@ -233,18 +235,37 @@ public class TAssistArgumentParser {
     }
 
     /**
-     * Returns the error for the unknown {@code prefix} that starts {@code word}. If the word starts with a literal
-     * word glued to a name, such as {@code s/oKumar}, the error also says to separate the literal word. Text that
-     * continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not taken as a glued name.
+     * Returns the error for the unknown {@code prefix} that starts {@code word} in {@code arguments}. If the word
+     * starts with a literal word glued to a name, such as {@code s/oKumar}, the error also says to separate the
+     * literal word. Text that continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not
+     * taken as a glued name. Otherwise, the error may add a hint from {@link #findJoinedPrefixHint(Prefix, String)}.
      */
-    private String createUnknownPrefixMessage(Prefix prefix, String word) {
+    private String createUnknownPrefixMessage(Prefix prefix, String word, String arguments) {
         String message = String.format(MESSAGE_UNKNOWN_PREFIX, prefix, formatAllowedPrefixes());
-        return literalWords.stream()
+        Optional<String> literalWordHint = literalWords.stream()
                 .filter(literalWord -> isGluedToName(word, literalWord))
                 .findFirst()
-                .map(literalWord -> message + String.format(MESSAGE_SEPARATE_LITERAL_WORD,
-                        word.substring(0, literalWord.length())))
-                .orElse(message);
+                .map(literalWord -> String.format(MESSAGE_SEPARATE_LITERAL_WORD,
+                        word.substring(0, literalWord.length())));
+        return message + literalWordHint.or(() -> findJoinedPrefixHint(prefix, arguments)).orElse("");
+    }
+
+    /**
+     * Returns a hint to put a space before the allowed prefix that ends the unknown {@code prefix}, as {@code id/}
+     * ends {@code Tanid/}, if {@code arguments} has no parameter with that allowed prefix.
+     */
+    private Optional<String> findJoinedPrefixHint(Prefix prefix, String arguments) {
+        String unknownPrefix = prefix.getPrefix();
+        return allowedPrefixes.stream()
+                .filter(allowedPrefix -> unknownPrefix.length() > allowedPrefix.getPrefix().length()
+                        && unknownPrefix.endsWith(allowedPrefix.getPrefix()))
+                .filter(allowedPrefix -> !hasParameter(arguments, allowedPrefix))
+                .findFirst()
+                .map(allowedPrefix -> String.format(MESSAGE_SEPARATE_PREFIX, allowedPrefix));
+    }
+
+    private static boolean hasParameter(String arguments, Prefix prefix) {
+        return Pattern.compile("(?<!\\S)" + Pattern.quote(prefix.getPrefix())).matcher(arguments).find();
     }
 
     private static boolean isGluedToName(String word, String literalWord) {
