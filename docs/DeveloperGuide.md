@@ -786,7 +786,8 @@ is allowed. This prevents a later save from silently removing appended content.
 `help`, `view`, and `exit` before running it. On the empty model, a listing command would otherwise report that no
 groups exist and suggest creating records that cannot be saved. A command opts in by overriding
 `Command#canRunWithoutSavedData()`, which returns false by default. As a safeguard, logic also rejects any command
-that changes data and restores the snapshot without attempting a save. This protection lasts until restart, including if the user repairs the file while the app is running. The user must
+that changes data and restores the snapshot without attempting a save.
+This protection lasts until restart, including if the user repairs the file while the app is running. The user must
 close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
 protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
 permission errors are reported rather than treated as missing data.

@@ -38,7 +38,7 @@ public class LogicManager implements Logic {
             + " Please check that the application has permission to write to its data folder.";
 
     public static final String MESSAGE_DATA_PROTECTED = DataLoadStatus.FAILED.getMessage()
-            + " Close TAssist, repair or move the unreadable data file, and restart before making changes.";
+            + " Close TAssist, repair or move the unreadable data file, and restart to see or change your records.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
