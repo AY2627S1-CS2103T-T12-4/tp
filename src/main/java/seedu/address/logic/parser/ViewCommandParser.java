@@ -3,6 +3,8 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.Locale;
+
 import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -19,8 +21,14 @@ public class ViewCommandParser implements Parser<ViewCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
         }
 
+        String screenKeyword = switch (screenName.toLowerCase(Locale.ROOT)) {
+            case "group" -> "groups";
+            case "student" -> "students";
+            case "assignment" -> "assignments";
+            default -> screenName.toLowerCase(Locale.ROOT);
+        };
         for (WorkspaceView view : WorkspaceView.values()) {
-            if (view.getKeyword().equalsIgnoreCase(screenName)) {
+            if (view.getKeyword().equals(screenKeyword)) {
                 return new ViewCommand(view);
             }
         }
