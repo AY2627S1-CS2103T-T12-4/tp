@@ -234,6 +234,9 @@ public class GroupTest {
         Group differentName = new Group(new GroupName("T02"));
         differentName.addStudent(ALICE);
         assertFalse(group.equals(differentName));
+
+        // same name in a different case -> returns false
+        assertFalse(group.equals(sameGroup.withName(new GroupName("t01"))));
     }
 
     @Test

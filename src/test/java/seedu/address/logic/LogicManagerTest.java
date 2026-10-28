@@ -305,6 +305,23 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_renameOnlyChangesCase_savesAndUndoesOnlyRename() throws Exception {
+        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(temporaryFolder.resolve("rename.json"));
+        logic = new LogicManager(model, createStorage(tAssistStorage), createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        logic.execute("group add g/T02");
+        TAssist beforeRename = new TAssist(model.getTAssist());
+
+        assertTrue(logic.execute("group rename g/T01 n/t01").hasSavedChanges());
+        ReadOnlyTAssist saved = tAssistStorage.readTAssist().orElseThrow();
+        assertEquals("t01", saved.getGroupList().get(0).getName().toString());
+
+        assertEquals("Undone: group rename g/T01 n/t01", logic.execute("undo").getFeedbackToUser());
+        assertEquals(beforeRename, model.getTAssist());
+        assertEquals(beforeRename, new TAssist(tAssistStorage.readTAssist().orElseThrow()));
+    }
+
+    @Test
     public void execute_undoNotSaved_keepsDataAndHistory() throws Exception {
         boolean[] isSaveFailing = {false};
         JsonTAssistStorage storage = new JsonTAssistStorage(temporaryFolder.resolve("unsaved.json")) {
