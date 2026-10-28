@@ -384,6 +384,8 @@ therefore have the same hash code, while display capitalization is preserved.
 * `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
   `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
   and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
+  `GroupName` equality ignores case, but `Group#equals` compares the name's exact capitalization, so `LogicManager`
+  sees a case-only rename as a change. It is saved and recorded for undo like any other rename.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
@@ -1740,6 +1742,9 @@ label.
 
    1. With groups T01 and T02 and T02 active, enter `group rename g/t02 n/T02-Thu`.
       Expected: `Renamed tutorial group T02 to T02-Thu.`, and the top bar highlights T02-Thu with its students intact.
+   1. Enter `group rename g/T01 n/t01`. Expected: `Renamed tutorial group T01 to t01.` with `Changes saved.`, and
+      the chip shows t01. Enter `undo`. Expected: `Undone: group rename g/T01 n/t01`, and the chip shows T01 again,
+      with T02-Thu unchanged.
    1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
       that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
       removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
