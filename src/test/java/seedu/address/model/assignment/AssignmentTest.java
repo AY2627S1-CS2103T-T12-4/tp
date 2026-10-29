@@ -104,7 +104,7 @@ public class AssignmentTest {
                 .getStudentRecord(aliceId));
         assertThrows(NullPointerException.class, () -> original.getStudentRecord(null));
         assertThrows(NullPointerException.class, () -> original.withoutStudentRecord(null));
-        assertThrows(IllegalArgumentException.class, () -> original.withGrade(aliceId, 87));
+        assertEquals(graded, original.withGrade(aliceId, 87));
     }
 
     @Test

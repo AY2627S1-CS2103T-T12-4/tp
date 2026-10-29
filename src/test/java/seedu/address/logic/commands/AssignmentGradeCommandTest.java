@@ -17,6 +17,7 @@ import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.student.StudentId;
@@ -26,11 +27,15 @@ public class AssignmentGradeCommandTest {
     private static final StudentId ALICE_ID = ALICE.getStudentId();
     private static final String UNKNOWN_STUDENT_ID = "A0999999Z";
 
-    private Model modelWithSubmittedAssignment() {
+    private Model modelWithAssignment(Assignment assignment) {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(NAME_T01);
-        model.addAssignment(NAME_T01, PS1.withSubmissionStatus(ALICE_ID, true));
+        model.addAssignment(NAME_T01, assignment);
         return model;
+    }
+
+    private Model modelWithSubmittedAssignment() {
+        return modelWithAssignment(PS1.withSubmissionStatus(ALICE_ID, true));
     }
 
     @Test
@@ -59,15 +64,13 @@ public class AssignmentGradeCommandTest {
     }
 
     @Test
-    public void execute_unsubmittedAssignment_reportsErrorWithoutChanges() {
-        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
-        model.setActiveGroup(NAME_T01);
-        model.addAssignment(NAME_T01, PS1);
+    public void execute_unsubmittedAssignment_recordsGradeAndMarksSubmitted() {
+        Model model = modelWithAssignment(PS1);
+        // Grading marks PS1 as submitted too, so Alice's expected record is submitted and graded.
+        Model expected = modelWithAssignment(PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 87));
 
-        assertCommandFailure(new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87), model,
-                String.format(AssignmentGradeCommand.MESSAGE_NOT_SUBMITTED, "PS1", ALICE_ID));
-        assertEquals(AssignmentRecord.notSubmitted(), model.getGroup(NAME_T01).findAssignment(NAME_PS1)
-                .orElseThrow().getStudentRecord(ALICE_ID));
+        assertCommandSuccess(new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87), model,
+                "Recorded grade 87 for Alice Tan's PS1. " + AssignmentGradeCommand.MESSAGE_ALSO_SUBMITTED, expected);
     }
 
     @Test

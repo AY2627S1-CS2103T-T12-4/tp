@@ -73,10 +73,9 @@ public class Assignment {
     }
 
     /**
-     * Returns a copy with the student's grade added or replaced.
+     * Returns a copy with the student's grade added or replaced, marking the assignment as submitted.
      *
-     * @throws IllegalArgumentException if the student has not submitted the assignment or {@code grade} is not
-     *         from 0 through 100.
+     * @throws IllegalArgumentException if {@code grade} is not from 0 through 100.
      */
     public Assignment withGrade(StudentId studentId, int grade) {
         return withRecord(studentId, getStudentRecord(studentId).withGrade(grade));

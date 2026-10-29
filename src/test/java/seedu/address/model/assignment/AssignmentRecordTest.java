@@ -32,11 +32,11 @@ public class AssignmentRecordTest {
     }
 
     @Test
-    public void withGrade_submittedRecord_updatesGrade() {
+    public void withGrade_anyRecord_updatesGradeAndMarksSubmitted() {
         AssignmentRecord submitted = AssignmentRecord.notSubmitted().withSubmissionStatus(true);
-        assertEquals(Optional.of(87), submitted.withGrade(87).getGrade());
-        assertThrows(IllegalArgumentException.class, "Cannot grade an unsubmitted assignment.", () ->
-                AssignmentRecord.notSubmitted().withGrade(87));
+        AssignmentRecord graded = new AssignmentRecord(true, Optional.of(87));
+        assertEquals(graded, submitted.withGrade(87));
+        assertEquals(graded, AssignmentRecord.notSubmitted().withGrade(87));
         assertThrows(IllegalArgumentException.class, AssignmentRecord.MESSAGE_INVALID_GRADE, () ->
                 submitted.withGrade(101));
     }

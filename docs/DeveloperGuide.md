@@ -678,12 +678,11 @@ within one group.
 `AssignmentAddCommand` finds the active group and rejects a name that the group already holds, then calls
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
 capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
-assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
-checks that the record is submitted. Each failed command leaves the model unchanged. With `a/`,
-`AssignmentListCommand` returns one row per student in roster order: name, student ID, submission status, and grade;
-missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
-creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
-form.
+assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. Each failed command
+leaves the model unchanged. With `a/`, `AssignmentListCommand` returns one row per student in roster order: name,
+student ID, submission status, and grade; missing records show `Not submitted` and `-`. Without `a/`, it numbers the
+names of the active group's assignments in creation order, so the TA can recover the exact names after a restart.
+The unknown-assignment message points to this form.
 
 `AssignmentDeleteCommand` overrides `Command#getConfirmationPrompt`, like `StudentDeleteCommand` and
 `GroupDeleteCommand`, so the UI asks before deleting unless `f/yes` is given. `AssignmentDeleteCommandParser` and
@@ -716,6 +715,10 @@ the recorded one, `AssignmentSubmitCommand` returns unchanged feedback without u
 also covers a student with no explicit record, so the command does not create a record or save the file.
 Like `participation set`, `AssignmentGradeCommand` feedback distinguishes a first grade, a replacement (showing the
 old and new grade, such as `87 to 60`), and a grade equal to the existing one, which says nothing changed.
+`AssignmentRecord#withGrade` always returns a submitted record, so grading a student who is not yet marked as
+submitted also marks the assignment as submitted, and the feedback adds `Also marked as submitted.` This keeps the
+invariant that a graded record is a submitted record, and since both changes come from one `Model#setAssignment`
+call, a single `undo` reverses them together. The TA can grade a group with one command per student.
 Unlike `AssignmentSubmitCommand`, the grade command still calls `Model.setAssignment` for an equal grade, and
 `LogicManager` skips saving because the data is unchanged.
 Removing a student removes only that student's records from every assignment in the group.
@@ -1403,18 +1406,18 @@ The following extensions apply to every use case that changes or views records o
 
       Use case resumes at step 3.
 
+* 3d. TA requests to record a grade for a student's assignment without marking it as submitted first.
+    * 3d1. TAssist records the grade, marks the assignment as submitted, and shows a confirmation that says so.
+
+      Use case resumes at step 7.
+
 * 5a. The grade is not a whole number from 0 to 100.
     * 5a1. TAssist shows an error message stating the valid range of grades.
 
       Use case resumes at step 5.
 
-* 5b. The student's assignment has not been marked as submitted.
-    * 5b1. TAssist shows an error message asking the TA to mark the assignment as submitted first.
-
-      Use case resumes at step 3.
-
-* 5c. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
-    * 5c1. TAssist replaces the previous grade with the new grade and shows both grades.
+* 5b. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
+    * 5b1. TAssist replaces the previous grade with the new grade and shows both grades.
 
       Use case resumes at step 6.
 
@@ -1748,11 +1751,12 @@ label.
    Enter `assignment submit a/PS1 id/A0234567Y s/no` twice. Each time, expect
    `Ben Lim's PS1 submission status is already not submitted. Nothing changed.` without `Changes saved.`
    The model and saved file should remain unchanged.
-3. Enter `assignment grade a/PS1 id/A0234567Y m/87`. Expect an error with the exact command
-   `assignment submit a/PS1 id/A0234567Y s/yes`. Then submit Alice with
-   `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
-   `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
-   as 87.
+3. Enter `assignment grade a/PS1 id/A0234567Y m/87`. Expect
+   `Recorded grade 87 for Ben Lim's PS1. Also marked as submitted.`, and the list should show
+   `Submitted | 87` for Ben. Enter `undo`; the list should show `Not submitted | -` for Ben again. Then submit Alice
+   with `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
+   `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages, without `Also marked as submitted.`,
+   and verify the list shows Alice's grade as 87.
 4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`. Expect
    `Updated Alice Tan's PS1 grade: 87 to 91.`, and the list should now show 91. Repeat the command and the
    submission `assignment submit a/PS1 id/A0123456X s/yes`; expect `Nothing changed.` feedback for each, without

@@ -18,16 +18,14 @@ import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
 /**
- * Records or replaces the grade for one student's submitted assignment.
+ * Records or replaces the grade for one student's assignment, marking it as submitted if it was not.
  */
 public class AssignmentGradeCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE";
     public static final String MESSAGE_SUCCESS = "Recorded grade %d for %s's %s.";
     public static final String MESSAGE_UPDATED = "Updated %s's %s grade: %d to %d.";
     public static final String MESSAGE_UNCHANGED = "%s's %s grade is already %d. Nothing changed.";
-    public static final String MESSAGE_NOT_SUBMITTED =
-            "Cannot record a grade for an unsubmitted assignment. Record it first with: "
-                    + "assignment submit a/%s id/%s s/yes";
+    public static final String MESSAGE_ALSO_SUBMITTED = "Also marked as submitted.";
 
     private static final Logger logger = LogsCenter.getLogger(AssignmentGradeCommand.class);
 
@@ -52,21 +50,28 @@ public class AssignmentGradeCommand extends Command {
         Assignment assignment = getAssignment(group, assignmentName);
         Student student = getStudent(group, studentId);
         AssignmentRecord previousRecord = assignment.getStudentRecord(studentId);
-        if (!previousRecord.isSubmitted()) {
-            throw new CommandException(String.format(MESSAGE_NOT_SUBMITTED,
-                    assignment.getName(), student.getStudentId()));
-        }
 
         model.setAssignment(group.getName(), assignment.withGrade(studentId, grade));
         logger.fine("Recorded an assignment grade for " + student.getStudentId()
                 + " in " + group.getName());
-        return new CommandResult(createFeedback(student, assignment, previousRecord.getGrade()));
+        return new CommandResult(createFeedback(student, assignment, previousRecord));
+    }
+
+    /**
+     * Returns feedback on the grade that also says when grading marked the assignment as submitted.
+     */
+    private String createFeedback(Student student, Assignment assignment, AssignmentRecord previousRecord) {
+        String gradeFeedback = createGradeFeedback(student, assignment, previousRecord.getGrade());
+        if (previousRecord.isSubmitted()) {
+            return gradeFeedback;
+        }
+        return gradeFeedback + " " + MESSAGE_ALSO_SUBMITTED;
     }
 
     /**
      * Returns feedback that reports a new grade, an unchanged grade, or the old and new grade.
      */
-    private String createFeedback(Student student, Assignment assignment, Optional<Integer> oldGrade) {
+    private String createGradeFeedback(Student student, Assignment assignment, Optional<Integer> oldGrade) {
         if (oldGrade.isEmpty()) {
             return String.format(MESSAGE_SUCCESS, grade, student.getName(), assignment.getName());
         }
