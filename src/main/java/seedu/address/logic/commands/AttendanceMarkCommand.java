@@ -1,7 +1,10 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -14,19 +17,19 @@ import seedu.address.model.student.StudentId;
 import seedu.address.model.student.WeeklyRecord;
 
 /**
- * Records or replaces one student's attendance in the active group for a teaching week.
+ * Records or replaces the attendance of one or more students in the active group for a teaching week.
  */
 public class AttendanceMarkCommand extends Command {
     public static final String PREFIX_STUDENT_ID = "id/";
     public static final String PREFIX_WEEK = "w/";
     public static final String PREFIX_STATUS = "s/";
     public static final String MESSAGE_USAGE = "attendance mark " + PREFIX_STUDENT_ID + "STUDENT_ID "
-            + PREFIX_WEEK + "WEEK " + PREFIX_STATUS + "STATUS";
+            + "[" + PREFIX_STUDENT_ID + "STUDENT_ID]... " + PREFIX_WEEK + "WEEK " + PREFIX_STATUS + "STATUS";
     public static final String MESSAGE_RECORDED = "Recorded %s as %s for Week %d.";
     public static final String MESSAGE_UPDATED = "Updated %s's attendance for Week %d: %s to %s.";
     public static final String MESSAGE_UNCHANGED = "%s's attendance for Week %d is already %s. Nothing changed.";
 
-    private final StudentId studentId;
+    private final List<StudentId> studentIds;
     private final int week;
     private final AttendanceStatus status;
 
@@ -34,7 +37,17 @@ public class AttendanceMarkCommand extends Command {
      * Creates a command to mark the given student present or absent for a valid teaching week.
      */
     public AttendanceMarkCommand(StudentId studentId, int week, AttendanceStatus status) {
-        this.studentId = requireNonNull(studentId);
+        this(List.of(requireNonNull(studentId)), week, status);
+    }
+
+    /**
+     * Creates a command to mark the given students present or absent for a valid teaching week.
+     * The list must not be empty.
+     */
+    public AttendanceMarkCommand(List<StudentId> studentIds, int week, AttendanceStatus status) {
+        requireNonNull(studentIds);
+        checkArgument(!studentIds.isEmpty(), "At least one student ID is required.");
+        this.studentIds = List.copyOf(studentIds);
         WeeklyRecord.validateWeek(week);
         this.week = week;
         this.status = requireNonNull(status);
@@ -52,11 +65,15 @@ public class AttendanceMarkCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Group group = getActiveGroup(model);
-        Student student = getStudent(group, studentId);
-        Optional<String> oldStatus = student.getAttendanceRecord(week).map(AttendanceMarkCommand::toCommandValue);
+        List<Student> students = getStudents(group, studentIds);
 
-        model.setStudent(group.getName(), student.withAttendanceRecord(week, status.name()));
-        return new CommandResult(createFeedback(student, oldStatus));
+        List<String> feedback = new ArrayList<>();
+        for (Student student : students) {
+            Optional<String> oldStatus = student.getAttendanceRecord(week).map(AttendanceMarkCommand::toCommandValue);
+            model.setStudent(group.getName(), student.withAttendanceRecord(week, status.name()));
+            feedback.add(createFeedback(student, oldStatus));
+        }
+        return new CommandResult(String.join("\n", feedback));
     }
 
     /**
@@ -80,12 +97,12 @@ public class AttendanceMarkCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof AttendanceMarkCommand otherCommand
-                && studentId.equals(otherCommand.studentId)
+                && studentIds.equals(otherCommand.studentIds)
                 && week == otherCommand.week && status == otherCommand.status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(studentId, week, status);
+        return Objects.hash(studentIds, week, status);
     }
 }

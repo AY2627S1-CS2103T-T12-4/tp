@@ -4,6 +4,9 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +23,13 @@ public class ParticipationSetCommandParserTest {
                 new ParticipationSetCommand(ALICE.getStudentId(), 3, 2));
         assertParseSuccess(parser, "s/0 w/1 id/A0123456X", new ParticipationSetCommand(ALICE.getStudentId(), 1, 0));
         assertParseSuccess(parser, "w/13 id/A0123456X s/5", new ParticipationSetCommand(ALICE.getStudentId(), 13, 5));
+    }
+
+    @Test
+    public void parse_repeatedId_setsEveryStudentOnceInGivenOrder() {
+        assertParseSuccess(parser, "id/A0123456X id/a0234567y w/3 s/2 id/A0123456X",
+                new ParticipationSetCommand(List.of(ALICE.getStudentId(), BEN.getStudentId()), 3, 2));
+        assertParseFailure(parser, "id/A0123456X id/ w/3 s/2", StudentId.MESSAGE_CONSTRAINTS);
     }
 
     @Test
@@ -47,7 +57,7 @@ public class ParticipationSetCommandParserTest {
 
     @Test
     public void parse_malformedParameters_reportsSpecificError() {
-        for (String parameter : new String[] {"id/A1", "w/3", "s/2"}) {
+        for (String parameter : new String[] {"w/3", "s/2"}) {
             Prefix prefix = new Prefix(parameter.substring(0, parameter.indexOf('/') + 1));
             assertParseFailure(parser, "id/A0123456X w/3 s/2 " + parameter,
                     Messages.getErrorMessageForDuplicatePrefixes(prefix));

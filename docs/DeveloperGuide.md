@@ -544,11 +544,12 @@ before `LogicManager` is created. Their parsers use `TAssistArgumentParser` for 
 `TAssistParserUtil` for IDs, weeks 1–13, and whole-number scores 0–5. Command constructors also reject invalid weeks
 or scores defensively, even when called without a parser.
 
-`ParticipationSetCommand` finds the student in the active group before changing anything. It reads that week's
-existing value, if any, creates an immutable copy with `Student.withParticipationRecord`, and passes the copy to
-`Model.setStudent`. Feedback distinguishes a first entry, a replacement (showing the old and new score, such as
-`2 to 4`), and an entry equal to the existing score, which says nothing changed. The replacement preserves roster
-order, attendance, and scores for other weeks; students in other groups are untouched.
+`ParticipationSetCommand` finds every named student in the active group before changing anything, so an unknown ID
+leaves all scores unchanged. For each student, it reads that week's existing value, if any, creates an immutable copy
+with `Student.withParticipationRecord`, and passes the copy to `Model.setStudent`. Feedback distinguishes a first
+entry, a replacement (showing the old and new score, such as `2 to 4`), and an entry equal to the existing score,
+which says nothing changed. The replacement preserves roster order, attendance, and scores for other weeks; students
+in other groups are untouched.
 
 The sequence diagram below shows how `LogicManager` executes the input `participation set id/A0123456X w/3 s/2`
 while T01 is the active group. The command replaces the student with the updated copy `u` instead of changing the
@@ -767,12 +768,16 @@ These classes follow the rules in our feature specification:
 #### Recording attendance
 
 `AttendanceCommandRegistration` registers the attendance parsers and their offline help in `MainApp`.
-`AttendanceMarkCommandParser` uses `TAssistArgumentParser` to require `id/`, `w/`, and `s/` exactly once.
+`AttendanceMarkCommandParser` uses `TAssistArgumentParser` to require `id/`, `w/`, and `s/`. `w/` and `s/` must
+appear exactly once, while `id/` is declared with `allowRepeated` so that one command can mark several students.
+`TAssistParserUtil#parseStudentIds` drops repeated IDs, ignoring case, and keeps the order of first appearance.
+`ParticipationSetCommandParser` treats `id/` the same way.
 `AttendanceCommandParserUtil` reuses the shared week parser with the attendance error message;
 `AttendanceStatus` accepts present or absent, ignoring case and surrounding spaces.
 
-`AttendanceMarkCommand` checks the active group and finds the student in that group before changing data.
-It reads the week's existing record, if any, creates an updated student through
+`AttendanceMarkCommand` checks the active group and finds every named student in that group before changing data,
+through `Command#getStudents`. If any ID is unknown, no student is marked. For each student, it reads the week's
+existing record, if any, creates an updated student through
 `withAttendanceRecord`, and replaces it through `Model#setStudent`. The stored status is `PRESENT` or `ABSENT`.
 The confirmation distinguishes a first mark, an update (showing the old and new status, such as
 `present to absent`), and a mark equal to the existing one, which says nothing changed.
@@ -1273,8 +1278,8 @@ The following extensions apply to every use case that changes or views records o
 
 **MSS**
 
-1.  TA requests to mark a student as present or absent for a given week.
-2.  TAssist records the attendance and shows a confirmation.
+1.  TA requests to mark one or more students as present or absent for a given week.
+2.  TAssist records the attendance and shows a confirmation for each student.
 3.  TA repeats steps 1-2 until every student in the group has been marked.
 4.  TA requests to view the group's attendance for that week.
 5.  TAssist shows the attendance status of every student in the group for that week.
@@ -2040,7 +2045,7 @@ parameter errors, empty groups, week boundaries, and display formatting.
 3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
    Selecting another row with the keyboard must also leave the command box alone.
 4. Submit the incomplete template with Enter. Expect the missing-parameter error
-   `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID w/WEEK s/STATUS`,
+   `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/STATUS`,
    retained text, and unchanged records.
    Complete it with a valid week and status, then press Enter; only then should attendance be saved.
 5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.

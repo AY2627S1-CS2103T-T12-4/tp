@@ -2,7 +2,10 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.assignment.AssignmentName;
@@ -64,6 +67,21 @@ public class TAssistParserUtil {
             throw new ParseException(StudentId.MESSAGE_CONSTRAINTS);
         }
         return new StudentId(studentId);
+    }
+
+    /**
+     * Parses student IDs as {@link #parseStudentId(String)} does, keeping the first of any IDs that are the same
+     * once case is ignored.
+     *
+     * @throws ParseException if any ID is invalid.
+     */
+    public static List<StudentId> parseStudentIds(List<String> studentIds) throws ParseException {
+        requireNonNull(studentIds);
+        Set<StudentId> parsedIds = new LinkedHashSet<>();
+        for (String studentId : studentIds) {
+            parsedIds.add(parseStudentId(studentId));
+        }
+        return List.copyOf(parsedIds);
     }
 
     /**

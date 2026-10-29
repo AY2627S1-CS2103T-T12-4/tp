@@ -8,7 +8,10 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 import static seedu.address.testutil.TypicalStudents.DANIEL;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.student.AttendanceStatus;
 import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.TypicalGroups;
 
 public class AttendanceMarkCommandTest {
@@ -74,6 +78,28 @@ public class AttendanceMarkCommandTest {
     }
 
     @Test
+    public void execute_severalStudents_marksAllAndReportsEachInOrder() {
+        model.setStudent(TypicalGroups.NAME_T01, BEN.withAttendanceRecord(3, "ABSENT"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+        expected.setStudent(TypicalGroups.NAME_T01, BEN.withAttendanceRecord(3, "PRESENT"));
+
+        assertCommandSuccess(new AttendanceMarkCommand(List.of(ALICE.getStudentId(), BEN.getStudentId()), 3,
+                        AttendanceStatus.PRESENT), model,
+                "Recorded Alice Tan as present for Week 3.\n"
+                        + "Updated Ben Lim's attendance for Week 3: absent to present.", expected);
+    }
+
+    @Test
+    public void execute_oneUnknownStudent_failsWithoutMarkingAnyone() {
+        Model unchanged = new ModelManager(model.getTAssist(), new UserPrefs());
+        assertCommandFailure(new AttendanceMarkCommand(List.of(ALICE.getStudentId(), DANIEL.getStudentId()), 3,
+                        AttendanceStatus.PRESENT), model,
+                String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
+        assertEquals(unchanged, model);
+    }
+
+    @Test
     public void execute_studentInAnotherGroup_failsWithoutChangingData() {
         assertCommandFailure(new AttendanceMarkCommand(DANIEL.getStudentId(), 3, AttendanceStatus.PRESENT), model,
                 String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
@@ -88,10 +114,16 @@ public class AttendanceMarkCommandTest {
 
     @Test
     public void invalidConstruction_throwsException() {
-        assertThrows(NullPointerException.class, () -> new AttendanceMarkCommand(null, 3, AttendanceStatus.PRESENT));
+        assertThrows(NullPointerException.class, () -> new AttendanceMarkCommand((StudentId) null, 3,
+                AttendanceStatus.PRESENT));
+        assertThrows(NullPointerException.class, () -> new AttendanceMarkCommand((List<StudentId>) null, 3,
+                AttendanceStatus.PRESENT));
         assertThrows(NullPointerException.class, () -> new AttendanceMarkCommand(ALICE.getStudentId(), 3, null));
         assertThrows(IllegalArgumentException.class, () -> {
             new AttendanceMarkCommand(ALICE.getStudentId(), 14, AttendanceStatus.PRESENT);
+        });
+        assertThrows(IllegalArgumentException.class, () -> {
+            new AttendanceMarkCommand(List.of(), 3, AttendanceStatus.PRESENT);
         });
     }
 
@@ -103,6 +135,8 @@ public class AttendanceMarkCommandTest {
         assertEquals(command, equal);
         assertEquals(command.hashCode(), equal.hashCode());
         assertNotEquals(command, new AttendanceMarkCommand(DANIEL.getStudentId(), 3, AttendanceStatus.PRESENT));
+        assertNotEquals(command, new AttendanceMarkCommand(
+                List.of(ALICE.getStudentId(), BEN.getStudentId()), 3, AttendanceStatus.PRESENT));
         assertNotEquals(command, new AttendanceMarkCommand(ALICE.getStudentId(), 4, AttendanceStatus.PRESENT));
         assertNotEquals(command, new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.ABSENT));
         assertNotEquals(command, null);

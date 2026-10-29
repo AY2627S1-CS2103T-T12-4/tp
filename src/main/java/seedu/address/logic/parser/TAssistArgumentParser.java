@@ -17,7 +17,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
  * Parses TAssist prefix-value parameters and checks each command's declared parameter rules.
- * Prefixes start at the beginning of input or after whitespace. Each allowed prefix may appear at most once.
+ * Prefixes start at the beginning of input or after whitespace. Each allowed prefix may appear at most once, unless
+ * the command declares it repeatable with {@link #allowRepeated(Prefix)}.
  * A command may also declare literal words, such as {@code s/o} in a name, that look like a prefix followed by text
  * but belong to a value.
  */
@@ -46,6 +47,7 @@ public class TAssistArgumentParser {
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
     private final List<Prefix> singleWordPrefixes;
+    private final Set<Prefix> repeatablePrefixes = new LinkedHashSet<>();
     /** Literal words in lowercase. */
     private final Set<String> literalWords;
 
@@ -112,6 +114,22 @@ public class TAssistArgumentParser {
     }
 
     /**
+     * Lets {@code prefix} appear more than once, so that a command can take several values for it.
+     * The prefix still needs a value, and each of its values is checked like a single value.
+     *
+     * @param prefix The required or optional prefix to allow more than once.
+     * @return This parser.
+     * @throws IllegalArgumentException if the prefix is not required or optional.
+     */
+    public TAssistArgumentParser allowRepeated(Prefix prefix) {
+        requireNonNull(prefix);
+        checkArgument(allowedPrefixes.contains(prefix),
+                "Repeatable prefixes must be declared as required or optional.");
+        repeatablePrefixes.add(prefix);
+        return this;
+    }
+
+    /**
      * Parses parameters and checks unknown prefixes, unexpected text, duplicates, and missing parameters.
      * Empty values are retained so a feature's value validator can report their constraints.
      *
@@ -162,7 +180,9 @@ public class TAssistArgumentParser {
             throw new ParseException(String.format(MESSAGE_UNEXPECTED_TEXT, values.getPreamble(),
                     formatAllowedPrefixes()));
         }
-        values.verifyNoDuplicatePrefixesFor(allowedPrefixes.toArray(Prefix[]::new));
+        values.verifyNoDuplicatePrefixesFor(allowedPrefixes.stream()
+                .filter(prefix -> !repeatablePrefixes.contains(prefix))
+                .toArray(Prefix[]::new));
         verifyRequiredPrefixes(values, usage);
         return values;
     }
@@ -175,9 +195,11 @@ public class TAssistArgumentParser {
      */
     public void verifyNoExtraText(ArgumentMultimap values) throws ParseException {
         for (Prefix prefix : singleWordPrefixes) {
-            String[] words = values.getValue(prefix).orElse("").split("\\s+", 2);
-            if (words.length > 1) {
-                throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+            for (String value : values.getAllValues(prefix)) {
+                String[] words = value.split("\\s+", 2);
+                if (words.length > 1) {
+                    throw new ParseException(String.format(MESSAGE_EXTRA_TEXT, prefix + words[0], words[1]));
+                }
             }
         }
     }
@@ -196,10 +218,13 @@ public class TAssistArgumentParser {
         assert values.getValue(missingPrefix).isEmpty() : "Only a missing prefix can be joined to another value";
         Pattern joinedPrefix = Pattern.compile("\\S" + Pattern.quote(missingPrefix.getPrefix()));
         for (Prefix prefix : allowedPrefixes) {
-            // A later word with a slash is read as a prefix of its own, so only a value's first word can hide one.
-            String firstWord = values.getValue(prefix).orElse("").split("\\s+", 2)[0];
-            if (joinedPrefix.matcher(firstWord).find()) {
-                throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix, prefix + firstWord));
+            for (String value : values.getAllValues(prefix)) {
+                // A later word with a slash is read as a prefix of its own, so only a value's first word can hide one.
+                String firstWord = value.split("\\s+", 2)[0];
+                if (joinedPrefix.matcher(firstWord).find()) {
+                    throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix,
+                            prefix + firstWord));
+                }
             }
         }
     }
