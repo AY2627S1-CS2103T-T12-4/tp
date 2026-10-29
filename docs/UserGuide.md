@@ -248,12 +248,13 @@ group is active afterwards; select one with `group use`, or create one with `gro
 
 Format: `group delete g/GROUP_NAME [f/yes]`
 
-* TAssist first asks you to confirm. The prompt names the group and how many students and assignments will be deleted. Cancel is
-  selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+* TAssist first asks you to confirm. The prompt names the group and how many students and assignments will be deleted.
+  Cancel is selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
 * Add `f/yes` to skip the prompt.
 
-Example: `group delete g/T02-Thu` asks whether to delete T02-Thu, its students, and its assignments. After you confirm, it shows
-`Deleted tutorial group T02-Thu and its 0 student(s).` To skip the question, enter `group delete g/T02-Thu f/yes`.
+Example: `group delete g/T02-Thu` asks whether to delete T02-Thu, its students, and its assignments. After you confirm,
+it shows `Deleted tutorial group T02-Thu and its 0 student(s).` To skip the question, enter
+`group delete g/T02-Thu f/yes`.
 
 #### Tutorial-group command errors
 
