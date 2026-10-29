@@ -9,6 +9,9 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
+* TAssist is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by
+  [SE-EDU](https://se-education.org).
+
 * The undo/redo design adapts the snapshot-history idea from the
   [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
   The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
@@ -18,6 +21,16 @@ title: Developer Guide
   with the group chips, and a navigation bar that opens the screens, replace the mock-up's dark header with a menu bar
   and its separate group strip. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or
   additional libraries are bundled.
+
+* Libraries used: [JavaFX](https://openjfx.io/) (GUI), [Jackson](https://github.com/FasterXML/jackson) (JSON storage),
+  and [JUnit 5](https://github.com/junit-team/junit5) (testing). Build and quality tools: [Gradle](https://gradle.org/),
+  [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
+  [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
+
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic),
+  [Codex](https://openai.com/codex/) (OpenAI) and [Cursor](https://cursor.com/) (SpaceX), AI coding assistants, to
+  help with some code, tests and documentation. Team members reviewed, tested and take responsibility for all
+  submitted work.
 
 --------------------------------------------------------------------------------------------------------------------
 
