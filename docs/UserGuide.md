@@ -316,7 +316,7 @@ Problem | Feedback and correction
 Duplicate name | `A tutorial group named T01 already exists.` Use a different name, or switch with `group use g/T01`. This also applies to `group rename` when `n/` names another group.
 Unknown group | `Tutorial group T03 does not exist. See groups with: group list` Check `group list`, or create it with `group add g/T03`. `group use`, `group rename`, and `group delete` all report it.
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
-Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
+Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens, with at least one letter or digit.` Follow the naming rules above.
 Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix, for example `Repeated parameter(s): g/. Include each only once.` Use `g/` exactly once (and `n/` once for `group rename`).
 Extra text after a value | The feedback names the extra text after `f/yes` for `group delete`, and says that value cannot contain spaces. Remove the extra text.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
@@ -329,7 +329,8 @@ Create or select a group first with `group add` or `group use`.
 
 Format: `student add n/NAME id/STUDENT_ID`
 
-* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
+* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens,
+  with at least one letter outside the slash particles.
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
 * Names may also contain `s/o`, `d/o`, `a/l`, or `a/p` (in any case) as a separate word between two parts of the
   name, as on official records. TAssist reads these as part of the name, not as prefixes, as long as there is a space
@@ -666,7 +667,7 @@ Problem | Feedback and correction
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01.` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
 Unknown assignment | `Assignment PS2 does not exist in T01. See the group's assignments with: assignment list`, then on the next line `Or create it with: assignment add a/PS2` Check the name against `assignment list`. Assignments belong to one group, so also check the active group.
-Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
+Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses, with at least one letter or digit.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.

@@ -28,7 +28,8 @@ public class AssignmentAddCommandParserTest {
 
     @Test
     public void parse_invalidName_reportsConstraints() {
-        for (String name : new String[] {"", "   ", "-", "PS1_A", "PS1/PS2", "PS1!", "PS1,2", "().:", "a".repeat(61)}) {
+        for (String name : new String[] {"", "   ", "-", "PS1_A", "PS1/PS2", "PS1!", "PS1,2", "(...)", "().:",
+                "a".repeat(61)}) {
             assertParseFailure(parser, "a/" + name, AssignmentName.MESSAGE_CONSTRAINTS);
         }
     }
