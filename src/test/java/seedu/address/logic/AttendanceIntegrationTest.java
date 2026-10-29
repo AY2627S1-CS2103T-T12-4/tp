@@ -131,6 +131,8 @@ public class AttendanceIntegrationTest {
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
         assertFailureUnchanged("attendance clear id/A0123456X w/3 s/present", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "id/ w/"));
+        assertFailureUnchanged("attendance clear id/A0123456X w/3 now", ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "w/3", "now"));
         assertFailureUnchanged("attendance clear id/A0456789W w/3",
                 CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
     }

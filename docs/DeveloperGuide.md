@@ -1548,8 +1548,9 @@ label.
    `Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` List Week 3; Alice shows `Not recorded`.
    Enter the clear command again. Expect `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
    Close and reopen, then list Weeks 3 and 13. Expect `Not recorded` and 5.
-6. Try `participation clear id/A0123456X w/3 s/2` and `participation clear w/3`. Expect unknown-prefix and
-   missing-prefix errors without changing any record.
+6. Try `participation clear id/A0123456X w/3 s/2`, `participation clear w/3`, and
+   `participation clear id/A0123456X w/3 now`. Expect unknown-prefix, missing-prefix, and
+   `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.` errors without changing any record.
 7. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
    With no active group, all three commands must ask you to create or select a group first.
 
@@ -1689,6 +1690,8 @@ label.
    1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
    1. Enter `attendance clear id/A0123456X w/4 s/present`.
       Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
+   1. Enter `attendance clear id/A0123456X w/4 now`.
+      Expected: `Unexpected extra text after 'w/4': 'now'. This value cannot contain spaces.`
 
 1. Rejected commands
 
