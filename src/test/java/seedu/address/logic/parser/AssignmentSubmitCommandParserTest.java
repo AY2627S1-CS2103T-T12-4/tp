@@ -4,10 +4,14 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AssignmentSubmitCommand;
+import seedu.address.model.student.StudentId;
 
 public class AssignmentSubmitCommandParserTest {
     private final AssignmentSubmitCommandParser parser = new AssignmentSubmitCommandParser();
@@ -18,6 +22,22 @@ public class AssignmentSubmitCommandParserTest {
                 new AssignmentSubmitCommand(NAME_PS1, ALICE.getStudentId(), true));
         assertParseSuccess(parser, "s/NO id/a0123456x a/ ps1 ",
                 new AssignmentSubmitCommand(NAME_PS1, ALICE.getStudentId(), false));
+    }
+
+    @Test
+    public void parse_repeatedStudentId_updatesEveryStudentOnceInGivenOrder() {
+        assertParseSuccess(parser, "a/PS1 id/A0234567Y id/a0123456x s/yes id/a0234567y",
+                new AssignmentSubmitCommand(NAME_PS1, List.of(BEN.getStudentId(), ALICE.getStudentId()), true));
+    }
+
+    @Test
+    public void parse_repeatedStudentIdWithBadValue_reportsThatValue() {
+        assertParseFailure(parser, "a/PS1 id/A0123456X id/ s/yes", StudentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "a/PS1 id/A0123456X id/invalid! s/yes", StudentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "a/PS1 id/A0123456X id/A0234567Y later s/yes",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "id/A0234567Y", "later"));
+        assertParseFailure(parser, "a/PS1 id/A0123456X id/A0234567Ys/yes",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "s/", "id/A0234567Ys/yes"));
     }
 
     @Test

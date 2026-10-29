@@ -34,7 +34,8 @@ public final class AssignmentCommandRegistration {
                         List.of("assignment add a/PS1")));
         registry.register("assignment", "submit", new AssignmentSubmitCommandParser(),
                 new HelpEntry("assignment", AssignmentSubmitCommand.MESSAGE_USAGE,
-                        "Record or replace a student's submission status for an assignment. Status is yes or no.",
+                        "Record or replace the submission status of one or more students for an assignment. "
+                                + "Repeat id/ to give several students the same status. Status is yes or no.",
                         List.of("assignment submit a/PS1 id/A0123456X s/yes")));
         registry.register("assignment", "grade", new AssignmentGradeCommandParser(),
                 new HelpEntry("assignment", AssignmentGradeCommand.MESSAGE_USAGE,

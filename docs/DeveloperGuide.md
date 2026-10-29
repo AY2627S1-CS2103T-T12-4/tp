@@ -667,8 +667,12 @@ Sort feedback reports the displayed count even when it is zero, without suggesti
 `AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`,
 `assignment list`, `assignment rename`, and `assignment delete` with offline help entries, and `MainApp.init`
 installs it before constructing `LogicManager`.
-The submit and grade parsers require `a/`, `id/`, and their status (`s/`) or mark (`m/`) prefix exactly once with
-`TAssistArgumentParser`. `TAssistParserUtil` validates the assignment name, student ID, yes/no status, and grade.
+The submit and grade parsers require `a/`, `id/`, and their status (`s/`) or mark (`m/`) prefix with
+`TAssistArgumentParser`. Each prefix must appear exactly once, except that `AssignmentSubmitCommandParser` declares
+`id/` with `allowRepeated`, as `AttendanceMarkCommandParser` does, so that one command can update several students.
+The grade parser keeps a single `id/` because grades differ from student to student.
+`TAssistParserUtil` validates the assignment name, student IDs, yes/no status, and grade; `parseStudentIds` drops
+repeated IDs, ignoring case, and keeps the order of first appearance.
 The `m/` prefix avoids giving `g/` a second meaning when it already identifies a tutorial group.
 
 `AssignmentName` mirrors `GroupName`: it normalizes spaces, keeps the entered capitalization for display, and
@@ -679,12 +683,14 @@ within one group.
 `AssignmentAddCommand` finds the active group and rejects a name that the group already holds, then calls
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
 capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
-assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
-checks that the record is submitted. Each failed command leaves the model unchanged. With `a/`,
-`AssignmentListCommand` returns one row per student in roster order: name, student ID, submission status, and grade;
-missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
-creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
-form.
+assignment, and students before updating an immutable `Assignment` through `Model#setAssignment`.
+`AssignmentSubmitCommand` finds every named student through `Command#getStudents` first, so an unknown ID changes no
+record. It then applies each changed status to one updated `Assignment` and replaces it once, with one feedback line
+per student. A grade update also checks that the record is submitted. Each failed command leaves the model unchanged.
+With `a/`, `AssignmentListCommand` returns one row per student in roster order: name, student ID, submission
+status, and grade; missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active
+group's assignments in creation order, so the TA can recover the exact names after a restart. The
+unknown-assignment message points to this form.
 
 `AssignmentDeleteCommand` overrides `Command#getConfirmationPrompt`, like `StudentDeleteCommand` and
 `GroupDeleteCommand`, so the UI asks before deleting unless `f/yes` is given. `AssignmentDeleteCommandParser` and
@@ -1368,9 +1374,9 @@ The following extensions apply to every use case that changes or views records o
 
 1.  TA requests to create an assignment with a given name.
 2.  TAssist creates the assignment for the active group and shows a confirmation.
-3.  TA requests to mark a student's assignment as submitted.
-4.  TAssist records the submission status and shows a confirmation.
-5.  TA requests to record a grade for that student's assignment.
+3.  TA requests to mark the assignment of one or more students as submitted.
+4.  TAssist records the submission statuses and shows a confirmation for each student.
+5.  TA requests to record a grade for the assignment of one of those students.
 6.  TAssist records the grade and shows a confirmation.
 7.  TA repeats steps 3-6 for other students.
 8.  TA requests to view the records of the assignment.
@@ -1398,8 +1404,9 @@ The following extensions apply to every use case that changes or views records o
 
       Use case resumes at step 3.
 
-* 3b. No student in the active group has the given student ID.
-    * 3b1. TAssist shows an error message stating that the student does not exist in the group.
+* 3b. No student in the active group has one of the given student IDs.
+    * 3b1. TAssist shows an error message stating that the student does not exist in the group, and records no
+      submission status.
 
       Use case resumes at step 3.
 
@@ -1754,9 +1761,11 @@ label.
    `Ben Lim's PS1 submission status is already not submitted. Nothing changed.` without `Changes saved.`
    The model and saved file should remain unchanged.
 3. Enter `assignment grade a/PS1 id/A0234567Y m/87`. Expect an error with the exact command
-   `assignment submit a/PS1 id/A0234567Y s/yes`. Then submit Alice with
-   `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
-   `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
+   `assignment submit a/PS1 id/A0234567Y s/yes`. Enter `assignment submit a/PS1 id/A0123456X id/A0999999Z s/yes`.
+   Expect an error that student ID A0999999Z does not exist in T01, and both students still `Not submitted`.
+   Then submit Alice and Ben together with `assignment submit a/PS1 id/A0123456X id/a0234567y id/A0123456X s/yes`.
+   Expect one success line for Alice and one for Ben, in that order. Grade Alice with
+   `assignment grade a/PS1 id/A0123456X m/87`. Expect the success message and verify the list shows Alice's grade
    as 87.
 4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`. Expect
    `Updated Alice Tan's PS1 grade: 87 to 91.`, and the list should now show 91. Repeat the command and the
