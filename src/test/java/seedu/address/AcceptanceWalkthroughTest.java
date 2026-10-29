@@ -57,7 +57,7 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
     @Test
     public void firstLaunch_readOnlyCommands_startEmptyWithoutCreatingDataFile() throws Exception {
         assertEquals(DataLoadStatus.MISSING, app.getDataLoadStatus());
-        for (String command : List.of("help", "help student", "view attendance", "group list")) {
+        for (String command : List.of("help", "help student", "view storage", "group list")) {
             app.logic.execute(command);
         }
 

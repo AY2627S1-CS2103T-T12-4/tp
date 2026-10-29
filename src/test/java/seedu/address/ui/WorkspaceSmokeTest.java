@@ -306,7 +306,6 @@ public class WorkspaceSmokeTest {
         try {
             runOnFx(() -> {
                 enter(input, "group use g/T01");
-                enter(input, "view participation");
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 enter(input, "participation set id/a0123456x w/3 s/0");
                 assertEquals("Recorded participation score 0 for Alice Tan in Week 3.", feedback.getText());
@@ -321,7 +320,7 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/A0123456X w/3 s/4");
                 assertEquals("Updated Alice Tan's participation score for Week 3: 0 to 4.", feedback.getText());
                 assertTrue(input.getText().isEmpty());
-                assertEquals("participation", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
             });
             runOnFx(() -> render(root, "participation-commands", 853, 440));
         } finally {
@@ -437,10 +436,10 @@ public class WorkspaceSmokeTest {
         try {
             runOnFx(() -> {
                 assertNavigationHighlights("students");
-                Button attendanceButton = (Button) root.lookup("#nav-attendance");
-                attendanceButton.fire();
-                assertEquals("attendance", tabs.getSelectionModel().getSelectedItem().getId());
-                assertNavigationHighlights("attendance");
+                Button helpButton = (Button) root.lookup("#nav-help");
+                helpButton.fire();
+                assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
+                assertNavigationHighlights("help");
                 assertEquals(input, stage.getScene().getFocusOwner(), "Clicking a button keeps the command focus");
 
                 enter(input, "view storage");
@@ -603,8 +602,8 @@ public class WorkspaceSmokeTest {
             TextArea feedbackArea = (TextArea) root.lookup("#resultDisplay");
             ScrollPane helpScrollPane = (ScrollPane) root.lookup("#helpScrollPane");
             for (String topic : List.of("group", "student")) {
-                enter(input, "view " + topic);
-                assertEquals(topic + "s", tabs.getSelectionModel().getSelectedItem().getId());
+                enter(input, "view students");
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
                 enter(input, "help " + topic + "s");
                 assertEquals("help", tabs.getSelectionModel().getSelectedItem().getId());
                 assertEquals("Showing " + topic + " commands.", feedbackArea.getText());
@@ -1022,7 +1021,7 @@ public class WorkspaceSmokeTest {
         input = (TextField) root.lookup("#commandTextField");
         tabs = (TabPane) root.lookup("#tabs");
         assertNotNull(input);
-        assertEquals(7, tabs.getTabs().size());
+        assertEquals(WorkspaceView.values().length, tabs.getTabs().size());
         assertEquals(StudentListPanel.STUDENTS_TITLE, ((Label) root.lookup("#groupTitle")).getText());
     }
 

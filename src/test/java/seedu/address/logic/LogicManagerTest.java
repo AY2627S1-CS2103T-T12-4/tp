@@ -114,7 +114,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_view_doesNotCreateDataFile() throws Exception {
-        assertEquals(WorkspaceView.ATTENDANCE, logic.execute("view attendance").getView().orElseThrow());
+        assertEquals(WorkspaceView.STORAGE, logic.execute("view storage").getView().orElseThrow());
         assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
     }
 
@@ -365,7 +365,7 @@ public class LogicManagerTest {
             assertCommandException(command, LogicManager.getDataProtectedMessage(status));
         }
         assertEquals(CommandResult.forHelp(HelpCommand.MESSAGE_SHOWING_HELP, ""), logic.execute("help"));
-        assertEquals(WorkspaceView.GROUPS, logic.execute("view groups").getView().orElseThrow());
+        assertEquals(WorkspaceView.STUDENTS, logic.execute("view students").getView().orElseThrow());
         assertTrue(logic.execute("exit").isExit());
         assertFalse(Files.exists(dataFile));
     }

@@ -100,7 +100,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 The UI consists of `MainWindow`, `GroupStrip`, `NavigationBar`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and
 `StatusBarFooter`. `MainWindow` places the `GroupStrip` and the `NavigationBar` in one light bar at the top.
-`WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
+`WorkspacePanel` hosts the three screens: the live `StudentListPanel` table, `HelpPanel`, and `StoragePanel`.
 Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar opens the
 same screen as `view SCREEN` (without its feedback message), names that command in its tooltip, and does not take
 keyboard focus away from the command box, so the UI stays usable by mouse while the app remains command-first.
@@ -152,8 +152,10 @@ It starts a fresh history position, returns focus to the input, and places the c
 A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
 an incomplete template stays editable after its validation error.
 
-The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
-future increments must connect domain models, commands and persistence before enabling their controls.
+Groups, attendance, participation, and assignments have no screen of their own; their commands show records in the
+feedback box. Earlier versions showed empty **Coming soon** tables for them, which looked like unfinished work, so they
+were removed. Table screens for these records remain a possible future enhancement: each would observe the model in the
+same way as the Students screen, add a `WorkspaceView` constant, and register a button in `NavigationBar`.
 
 The screenshot below shows the implemented Students screen with an active group and its roster.
 
@@ -165,8 +167,8 @@ The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The 
 
 * The mock-up's dark menu header and separate group strip are replaced by a light group bar and a screen-navigation row.
 * The app uses native JavaFX controls rather than rendering the mock-up as an HTML page.
-* The mock-up shows only the Attendance screen. Students, Help, Storage, and the group bar use live data.
-  Groups, Attendance, Participation, and Assignments are **Coming soon** previews.
+* The mock-up shows an Attendance screen. The app has Students, Help, and Storage screens and the group bar, all
+  showing live data. Attendance, participation, and assignment records appear in the feedback box instead.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -436,8 +438,7 @@ therefore have the same hash code, while display capitalization is preserved.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
-and Students screen update through the model views, while the current screen stays selected. The separate Groups
-table remains a preview.
+and Students screen update through the model views, while the current screen stays selected.
 
 Command and parser tests cover successful operations, exact feedback, name boundaries, case and space normalization,
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
@@ -587,7 +588,7 @@ changes nothing when the week has no score.
   * Cons: It only helps right after the mistake. A wrong mark noticed a week later stays in the data and the export.
 
 `participation set`, `participation list`, and `participation clear` use the standard feedback box and keep the
-current screen selected. The Participation table remains a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+current screen selected. Existing JSON storage already persists participation records, so the
 feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
 it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
 restart persistence, clearing a score, and rejected commands preserving existing records and the file. Command and
@@ -756,7 +757,7 @@ Existing `LogicManager` persistence saves the result.
 selects attendance through `Group#getWeeklyRecordEntries`. If the group has no students, it returns
 `No students in GROUP.` Otherwise, it lists every student, formatting each row with the student's name, ID, and
 capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
-The rows appear in the scrollable command feedback box; the Attendance workspace screen remains a preview.
+The rows appear in the scrollable command feedback box.
 
 `AttendanceClearCommandParser` requires `id/` and `w/` exactly once, with the same validation as marking. It does not
 accept `s/`, so a status copied from a mark command is reported instead of being ignored. `AttendanceClearCommand`
@@ -1549,9 +1550,9 @@ through the real parsers, model and JSON storage, but the steps below also check
 
 1. First launch
 
-   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view attendance` and
+   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view storage` and
       `group list`.<br>
-      Expected: Help and the Attendance screen open, `group list` says no tutorial groups exist, and
+      Expected: Help and the Storage screen open, `group list` says no tutorial groups exist, and
       `data/tassist.json` is still not created.
 
 1. Recording a tutorial
@@ -1560,7 +1561,7 @@ through the real parsers, model and JSON storage, but the steps below also check
       Expected: The group bar shows T01 and T02 with T01 highlighted, and the footer shows `Changes saved.`
    1. Enter `student add n/Alice Tan id/A0123456X`, `student add n/Ben Lim id/A0234567Y` and
       `student add n/Chloe O'Neil-Ng id/a0345678z`.<br>
-      Expected: The Attendance screen stays open. `student add` does not switch screens, so the three
+      Expected: The Storage screen stays open. `student add` does not switch screens, so the three
       students are not listed on it. The feedback confirms that each student was added to T01.
    1. Enter `attendance mark id/A0123456X w/1 s/present`, `attendance mark id/A0234567Y w/1 s/absent`, and then
       `attendance mark id/a0123456x w/1 s/ABSENT` to correct Alice's mark.
@@ -2008,7 +2009,7 @@ It uses temporary storage and writes rendered previews to `build/ui-previews/`.
 Linux CI enables this test under the runner's virtual display (`xvfb-run`) so the uploaded coverage includes the UI.
 The macOS and Windows CI jobs run the standard suite.
 
-The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
+The smoke test covers all three screens at normal and compact sizes, F1 and Escape, navigation without saving,
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
@@ -2021,8 +2022,8 @@ and retaining an invalid attendance command for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
-1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
-   Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
+1. Type `help`, `view students`, and `view storage`. Verify that each screen opens and the storage path is the
+   actual TAssist data path. Enter `view attendance` and verify that it reports an unknown screen.
 2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
    Add and remove students with `student add` and `student delete`. The group strip and the table should update
@@ -2030,9 +2031,8 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
-4. Enter `view group`, `view student`, and `view assignment`, then repeat with their plural forms.
-   Verify that each pair opens the same screen. Enter `help group`, `help student`, and `help assignment`, then
-   repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
+4. Enter `view student` and `view students`, and verify that both open the Students screen.
+   Enter `help group`, `help student`, and `help assignment`, then repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
 5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
    the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
    Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at

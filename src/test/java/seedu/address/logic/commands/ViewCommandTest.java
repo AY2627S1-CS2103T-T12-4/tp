@@ -19,9 +19,9 @@ public class ViewCommandTest {
         Model expected = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(TypicalGroups.NAME_T01);
         expected.setActiveGroup(TypicalGroups.NAME_T01);
-        CommandResult result = new ViewCommand(WorkspaceView.GROUPS).execute(model);
+        CommandResult result = new ViewCommand(WorkspaceView.STORAGE).execute(model);
         assertEquals(expected, model);
-        assertEquals(WorkspaceView.GROUPS, result.getView().orElseThrow());
+        assertEquals(WorkspaceView.STORAGE, result.getView().orElseThrow());
         assertFalse(result.isExit());
         assertFalse(result.isShowHelp());
     }
