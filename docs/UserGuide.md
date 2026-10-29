@@ -384,7 +384,7 @@ Missing parameter | `Missing required parameter. Usage: student add n/NAME id/ST
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
-Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `f/yes`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
@@ -613,7 +613,7 @@ Grade before submission | `Cannot record a grade for an unsubmitted assignment. 
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
-Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exporting a group's records: `group export`
