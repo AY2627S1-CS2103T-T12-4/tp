@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.assertRecordListingSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS2;
@@ -37,7 +37,7 @@ public class AssignmentListCommandTest {
     public void execute_existingAssignment_listsEveryStudentAsNotSubmittedWithoutChangingData() {
         Model model = modelWithActiveGroup(NAME_T01);
         Model expected = modelWithActiveGroup(NAME_T01);
-        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model,
+        assertRecordListingSuccess(new AssignmentListCommand(NAME_PS1), model,
                 "PS1 records for T01:\nAlice Tan | A0123456X | Not submitted | -"
                         + "\nBen Lim | A0234567Y | Not submitted | -"
                         + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
@@ -47,7 +47,7 @@ public class AssignmentListCommandTest {
     public void execute_nameInDifferentCase_showsStoredNameAndFindsAssignment() {
         Model model = modelWithActiveGroup(NAME_T01);
         Model expected = modelWithActiveGroup(NAME_T01);
-        assertCommandSuccess(new AssignmentListCommand(new AssignmentName("ps1")), model,
+        assertRecordListingSuccess(new AssignmentListCommand(new AssignmentName("ps1")), model,
                 "PS1 records for T01:\nAlice Tan | A0123456X | Not submitted | -"
                         + "\nBen Lim | A0234567Y | Not submitted | -"
                         + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
@@ -66,7 +66,7 @@ public class AssignmentListCommandTest {
         expected.setActiveGroup(NAME_T01);
         expected.addAssignment(NAME_T01, assignment);
 
-        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model,
+        assertRecordListingSuccess(new AssignmentListCommand(NAME_PS1), model,
                 "PS1 records for T01:\nAlice Tan | A0123456X | Submitted | 87"
                         + "\nBen Lim | A0234567Y | Submitted | -"
                         + "\nCarl Goh | A0345678Z | Not submitted | -", expected);
@@ -78,7 +78,7 @@ public class AssignmentListCommandTest {
         model.addAssignment(NAME_T03, PS1);
         Model expected = modelWithActiveGroup(NAME_T03);
         expected.addAssignment(NAME_T03, PS1);
-        assertCommandSuccess(new AssignmentListCommand(NAME_PS1), model, "No students in T03.", expected);
+        assertRecordListingSuccess(new AssignmentListCommand(NAME_PS1), model, "No students in T03.", expected);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class AssignmentListCommandTest {
         model.addAssignment(NAME_T01, new Assignment(new AssignmentName("Lab 2 (Graphs)")));
         Model expected = modelWithActiveGroup(NAME_T01);
         expected.addAssignment(NAME_T01, new Assignment(new AssignmentName("Lab 2 (Graphs)")));
-        assertCommandSuccess(new AssignmentListCommand(), model, "Assignments in T01:\n1. PS1\n2. Lab 2 (Graphs)",
+        assertRecordListingSuccess(new AssignmentListCommand(), model, "Assignments in T01:\n1. PS1\n2. Lab 2 (Graphs)",
                 expected);
     }
 
@@ -109,7 +109,7 @@ public class AssignmentListCommandTest {
     public void execute_noNameAndNoAssignments_reportsHowToCreateOne() {
         Model model = modelWithActiveGroup(NAME_T02);
         Model expected = modelWithActiveGroup(NAME_T02);
-        assertCommandSuccess(new AssignmentListCommand(), model,
+        assertRecordListingSuccess(new AssignmentListCommand(), model,
                 "No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME", expected);
     }
 

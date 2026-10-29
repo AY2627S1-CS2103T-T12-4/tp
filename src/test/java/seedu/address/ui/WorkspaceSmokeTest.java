@@ -68,6 +68,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
+import seedu.address.logic.parser.AssignmentCommandRegistration;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -121,6 +122,51 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void recordListings_largeGroup_preservesOutputAcrossNavigationAndFailures() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                for (int i = 0; i < 17; i++) {
+                    model.addStudent(TypicalGroups.NAME_T01, new StudentBuilder().withName("Student")
+                            .withStudentId("A" + (100 + i)).build());
+                }
+                enter(input, "assignment add a/PS1");
+                String savedData = Files.readString(data);
+                for (String command : List.of("attendance list w/3", "participation list w/3",
+                        "assignment list a/PS1")) {
+                    enter(input, command);
+                    TextArea listing = (TextArea) root.lookup("#recordListing");
+                    String snapshot = listing.getText();
+                    assertEquals(21, snapshot.lines().count());
+                    assertTrue(snapshot.contains("Student | A116 |"));
+                    assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
+                    assertNavigationHighlights("records");
+                    enter(input, "view storage");
+                    enter(input, "view records");
+                    assertEquals(snapshot, listing.getText());
+                    enter(input, "attendance list w/14");
+                    assertEquals(snapshot, listing.getText());
+                    assertEquals("attendance list w/14", input.getText());
+                    assertEquals(savedData, Files.readString(data));
+                }
+            });
+            for (int[] size : new int[][] {{1280, 720}, {1920, 1080}, {1536, 864}, {853, 440}}) {
+                runOnFx(() -> {
+                    enter(input, "assignment list a/PS1");
+                    render(root, "records-" + size[0] + "x" + size[1], size[0], size[1]);
+                    TextArea listing = (TextArea) root.lookup("#recordListing");
+                    TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                    assertTrue(listing.getHeight() > feedback.getHeight() * 3);
+                    assertTrue(input.getBoundsInParent().getHeight() > 0);
+                });
+            }
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     @Test
@@ -1332,6 +1378,7 @@ public class WorkspaceSmokeTest {
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
         AttendanceCommandRegistration.registerCommands(commandRegistry);
+        AssignmentCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();

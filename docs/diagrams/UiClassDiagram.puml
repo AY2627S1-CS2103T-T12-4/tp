@@ -23,6 +23,7 @@ class CommandHistory
 class ResultDisplay
 class StatusBarFooter
 class StudentListPanel
+class RecordListPanel
 class HelpPanel
 class StoragePanel
 }
@@ -37,6 +38,7 @@ MainWindow *--> GroupStrip
 MainWindow *--> WorkspacePanel
 WorkspacePanel *--> NavigationBar
 WorkspacePanel *--> StudentListPanel
+WorkspacePanel *--> RecordListPanel
 WorkspacePanel *--> HelpPanel
 WorkspacePanel *--> StoragePanel
 

@@ -55,20 +55,20 @@ public class AssignmentListCommand extends Command {
     private static CommandResult listAssignmentNames(Group group) {
         List<Assignment> assignments = group.getAssignmentList();
         if (assignments.isEmpty()) {
-            return new CommandResult(String.format(MESSAGE_NO_ASSIGNMENTS, group.getName()));
+            return CommandResult.forRecordListing(String.format(MESSAGE_NO_ASSIGNMENTS, group.getName()));
         }
 
         StringBuilder feedback = new StringBuilder("Assignments in " + group.getName() + ":");
         for (int i = 0; i < assignments.size(); i++) {
             feedback.append('\n').append(i + 1).append(". ").append(assignments.get(i).getName());
         }
-        return new CommandResult(feedback.toString());
+        return CommandResult.forRecordListing(feedback.toString());
     }
 
     private static CommandResult listRecords(Group group, Assignment assignment) {
         List<Student> students = group.getStudentList();
         if (students.isEmpty()) {
-            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
+            return CommandResult.forRecordListing(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
         StringBuilder feedback = new StringBuilder(assignment.getName() + " records for " + group.getName() + ":");
@@ -79,7 +79,7 @@ public class AssignmentListCommand extends Command {
                     .append(record.isSubmitted() ? STATUS_SUBMITTED : STATUS_NOT_SUBMITTED).append(" | ")
                     .append(record.getGrade().map(String::valueOf).orElse(GRADE_NOT_RECORDED));
         }
-        return new CommandResult(feedback.toString());
+        return CommandResult.forRecordListing(feedback.toString());
     }
 
     @Override

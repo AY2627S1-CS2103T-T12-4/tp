@@ -68,16 +68,17 @@ the command box.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
-`attendance list w/3` and `participation list w/3` open **Records** with the complete weekly listing.
+`attendance list w/3`, `participation list w/3`, and `assignment list a/PS1` open **Records** with the complete listing.
 The feedback box shows its heading. Records keeps the last listing when you open another screen;
 use `view records` to return to it. The listing is a snapshot: run the list command again after editing records or
-switching groups. It is not saved between launches. Group and assignment lists still appear in the feedback box.
+switching groups. It is not saved between launches. `assignment list` also opens Records with the assignment names.
+`group list` continues to use the feedback box; `student list` opens the Students table.
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
 on a red background means it failed. It grows to fit the message, up to four lines (about three in the compact
 layout); only longer messages need scrolling. Long feedback, such as a list, can be scrolled with **PageUp** and
 **PageDown** (**Fn+Up** and **Fn+Down** on a Mac laptop) while you type. When Records is open, these keys scroll
-its listing instead. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view`, `help`, and the weekly list
+its listing instead. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view`, `help`, and the attendance, participation, and assignment list
 commands do. Screen contents can be scrolled. Smaller windows use a compact layout.
 The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
 Escape shortcuts.
@@ -178,7 +179,7 @@ The singular form `student` opens the Students screen.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
 an invalid command format and show the expected syntax.
 
-Examples: `view students`, `view help`, `view storage`.
+Examples: `view students`, `view records`, `view help`, `view storage`.
 
 `group add`, `group use`, and `student add` update the group or student data without switching screens.
 If you run them while viewing Help or Storage, that screen stays open. Enter `view students` to see the updated roster.
@@ -678,7 +679,9 @@ assignment submit a/PS1 id/A0123456X s/yes`.
 
 Without `a/`, lists the names of the active group's assignments in the order they were created. With `a/`, lists
 every student in the active group, in roster order, with their status and grade for that assignment.
-Listing does not change any data.
+Both forms open the Records screen and show the listing heading in the feedback box. Listing does not change any data.
+Use PageUp and PageDown to scroll Records from the command box. Run the command again after changing records to
+refresh the listing.
 
 Format: `assignment list [a/ASSIGNMENT_NAME]`
 
