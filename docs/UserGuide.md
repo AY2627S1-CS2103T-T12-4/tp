@@ -244,15 +244,15 @@ Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02
 
 Deletes a tutorial group together with all its students and their records. If deleted by mistake, `undo` brings the
 group back. Check the name with `group list` first. Other groups are unchanged. If the deleted group was active, no
-group is active afterwards; select one with `group use`.
+group is active afterwards; select one with `group use`, or create one with `group add` if none are left.
 
 Format: `group delete g/GROUP_NAME [f/yes]`
 
-* TAssist first asks you to confirm. The prompt names the group and how many students will be deleted. Cancel is
+* TAssist first asks you to confirm. The prompt names the group and how many students and assignments will be deleted. Cancel is
   selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
 * Add `f/yes` to skip the prompt.
 
-Example: `group delete g/T02-Thu` asks whether to delete T02-Thu and its students. After you confirm, it shows
+Example: `group delete g/T02-Thu` asks whether to delete T02-Thu, its students, and its assignments. After you confirm, it shows
 `Deleted tutorial group T02-Thu and its 0 student(s).` To skip the question, enter `group delete g/T02-Thu f/yes`.
 
 #### Tutorial-group command errors
