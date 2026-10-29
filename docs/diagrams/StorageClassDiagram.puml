@@ -18,6 +18,7 @@ Class JsonTAssistStorage
 Class JsonSerializableTAssist
 Class JsonAdaptedGroup
 Class JsonAdaptedStudent
+Class JsonAdaptedAssignmentRecord
 }
 
 }
@@ -32,5 +33,6 @@ StorageManager -down-> "1" JsonTAssistStorage
 JsonTAssistStorage ..> JsonSerializableTAssist
 JsonSerializableTAssist --> "*" JsonAdaptedGroup
 JsonAdaptedGroup --> "*" JsonAdaptedStudent
+JsonAdaptedGroup --> "*" JsonAdaptedAssignmentRecord
 
 @enduml
