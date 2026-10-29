@@ -25,6 +25,13 @@ public class AssignmentNameTest {
     }
 
     @Test
+    public void constructor_punctuationOnly_messageStatesLetterOrDigitRule() {
+        assertThrows(IllegalArgumentException.class, AssignmentName.MESSAGE_CONSTRAINTS, () ->
+                new AssignmentName("(...)"));
+        assertTrue(AssignmentName.MESSAGE_CONSTRAINTS.endsWith("with at least one letter or digit."));
+    }
+
+    @Test
     public void constructor_extraSpaces_normalizesSpacesAndKeepsCapitalization() {
         assertEquals("Problem Set 1", new AssignmentName("  Problem   Set\t1 ").fullName);
     }

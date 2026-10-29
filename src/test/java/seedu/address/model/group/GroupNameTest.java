@@ -23,6 +23,12 @@ public class GroupNameTest {
     }
 
     @Test
+    public void constructor_hyphensOnly_messageStatesLetterOrDigitRule() {
+        assertThrows(IllegalArgumentException.class, GroupName.MESSAGE_CONSTRAINTS, () -> new GroupName("---"));
+        assertTrue(GroupName.MESSAGE_CONSTRAINTS.endsWith("with at least one letter or digit."));
+    }
+
+    @Test
     public void constructor_extraSpaces_normalizesSpaces() {
         assertEquals("T01 Thursday", new GroupName("  T01   Thursday ").fullName);
     }
