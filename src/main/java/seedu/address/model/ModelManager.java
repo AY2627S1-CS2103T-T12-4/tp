@@ -125,7 +125,8 @@ public class ModelManager implements Model {
         requireAllNonNull(name, newName);
         tAssist.renameGroup(name, newName);
         logger.info("Renamed group " + name + " to " + newName);
-        trackActiveGroup();
+        // A rename replaces the group object, but keeps the same roster and display settings.
+        activeGroupTracker.track(tAssist.getActiveGroup());
     }
 
     @Override

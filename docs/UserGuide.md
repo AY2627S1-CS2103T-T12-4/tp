@@ -233,6 +233,8 @@ position in the list, and active status.
 
 Format: `group rename g/GROUP_NAME n/NEW_NAME`
 
+Renaming the active group keeps the current student search and sorting.
+
 * The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
 * Changing only the capitalization of a group's own name, such as `T01` to `t01`, is allowed.
 * Entering the group's current name, even with extra spaces, shows
