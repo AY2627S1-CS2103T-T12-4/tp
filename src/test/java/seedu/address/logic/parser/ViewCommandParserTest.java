@@ -5,7 +5,6 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,25 +26,22 @@ public class ViewCommandParserTest {
 
     @Test
     public void parseCommand_mixedCaseAndWhitespace_returnsRequestedView() throws Exception {
-        assertEquals(WorkspaceView.ATTENDANCE, parser.parseCommand("  view   AtTenDancE  ")
+        assertEquals(WorkspaceView.STORAGE, parser.parseCommand("  view   StOrAgE  ")
                 .execute(new ModelManager()).getView().orElseThrow());
     }
 
     @Test
-    public void parseCommand_singularScreens_returnsRequestedView() throws Exception {
-        for (String screen : List.of("group", "student", "assignment")) {
-            WorkspaceView expected = WorkspaceView.valueOf(screen.toUpperCase(Locale.ROOT) + "S");
-            for (String name : List.of(screen, screen.toUpperCase(Locale.ROOT))) {
-                assertEquals(expected, parser.parseCommand("view\t" + name + "  ")
-                        .execute(new ModelManager()).getView().orElseThrow());
-            }
+    public void parseCommand_singularStudent_returnsStudentsView() throws Exception {
+        for (String name : List.of("student", "STUDENT")) {
+            assertEquals(WorkspaceView.STUDENTS, parser.parseCommand("view\t" + name + "  ")
+                    .execute(new ModelManager()).getView().orElseThrow());
         }
     }
 
     @Test
     public void parseCommand_missingOrMultipleScreens_throwsParseException() {
         String[] inputs = {"view", "view students help", "view students students", "view students\thelp",
-            "view group assignment", "view student student"};
+            "view student help", "view student student"};
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE);
         for (String input : inputs) {
             assertThrows(ParseException.class, expected, () -> parser.parseCommand(input));
@@ -54,7 +50,9 @@ public class ViewCommandParserTest {
 
     @Test
     public void parseCommand_unknownScreen_throwsParseException() {
-        String expected = String.format(ViewCommand.MESSAGE_UNKNOWN_SCREEN, "unknown");
-        assertThrows(ParseException.class, expected, () -> parser.parseCommand("view unknown"));
+        for (String screen : List.of("unknown", "groups", "Attendance", "participation", "assignment")) {
+            String expected = String.format(ViewCommand.MESSAGE_UNKNOWN_SCREEN, screen);
+            assertThrows(ParseException.class, expected, () -> parser.parseCommand("view " + screen));
+        }
     }
 }

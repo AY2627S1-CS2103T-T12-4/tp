@@ -7,10 +7,6 @@ import java.util.Locale;
  */
 public enum WorkspaceView {
     STUDENTS("Students"),
-    GROUPS("Groups"),
-    ATTENDANCE("Attendance"),
-    PARTICIPATION("Participation"),
-    ASSIGNMENTS("Assignments"),
     HELP("Help"),
     STORAGE("Storage");
 

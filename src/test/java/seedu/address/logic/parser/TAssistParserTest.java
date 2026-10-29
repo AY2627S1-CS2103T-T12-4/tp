@@ -100,8 +100,8 @@ public class TAssistParserTest {
         assertSame(groupList, featureParser.parseCommand("  GROUP\t LiSt  "));
         assertSame(studentAdd, featureParser.parseCommand("StuDent\n ADD Alice Tan"));
         assertTrue(featureParser.parseCommand("exit") instanceof ExitCommand);
-        assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
-                featureParser.parseCommand("view attendance").execute(new ModelManager()));
+        assertEquals(parser.parseCommand("view storage").execute(new ModelManager()),
+                featureParser.parseCommand("view storage").execute(new ModelManager()));
     }
 
     @Test

@@ -78,20 +78,20 @@ public class HelpIntegrationTest {
         Path dataFile = temporaryFolder.resolve("tassist.json");
         String savedFile = Files.readString(dataFile);
 
-        for (WorkspaceView view : List.of(WorkspaceView.GROUPS, WorkspaceView.STUDENTS, WorkspaceView.ASSIGNMENTS)) {
-            String plural = view.getKeyword();
-            String topic = plural.substring(0, plural.length() - 1);
-            for (String name : List.of(topic, plural)) {
-                CommandResult viewResult = app.logic.execute("view " + name);
-                assertEquals(new CommandResult("Showing " + plural + ".", view), viewResult);
-                assertFalse(viewResult.hasSavedChanges());
+        for (String name : List.of("student", "students")) {
+            CommandResult viewResult = app.logic.execute("view " + name);
+            assertEquals(new CommandResult("Showing students.", WorkspaceView.STUDENTS), viewResult);
+            assertFalse(viewResult.hasSavedChanges());
+        }
+        for (String topic : List.of("group", "student", "assignment")) {
+            for (String name : List.of(topic, topic + "s")) {
                 CommandResult helpResult = app.logic.execute("help " + name);
                 assertEquals(CommandResult.forHelp("Showing " + topic + " commands.", topic), helpResult);
                 assertFalse(helpResult.hasSavedChanges());
-                assertEquals(previousData, app.model.getTAssist());
-                assertEquals(savedFile, Files.readString(dataFile));
             }
         }
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(savedFile, Files.readString(dataFile));
     }
 
     @Test
