@@ -70,6 +70,13 @@ public class ResultDisplay extends UiPart<Region> {
     }
 
     /**
+     * Returns true if the message fills the feedback row, so that some of it may need scrolling to read.
+     */
+    public boolean hasLongMessage() {
+        return countLines() >= MAX_VISIBLE_LINES;
+    }
+
+    /**
      * Shows as many lines as the message needs, up to {@link #MAX_VISIBLE_LINES}. Longer messages scroll.
      */
     private void fitToText() {

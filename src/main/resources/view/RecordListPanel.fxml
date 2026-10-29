@@ -6,7 +6,7 @@
       xmlns:fx="http://javafx.com/fxml/1">
   <VBox styleClass="card-heading" spacing="4">
     <Label text="Last listed records" styleClass="section-title" />
-    <Label text="Run a list command to refresh these results after changing records or groups."
+    <Label text="The listing updates after each change to your records or active group."
            styleClass="muted" wrapText="true" />
   </VBox>
   <TextArea fx:id="recordListing" VBox.vgrow="ALWAYS" minHeight="0" editable="false" wrapText="true"

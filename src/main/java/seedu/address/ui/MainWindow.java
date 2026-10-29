@@ -44,6 +44,8 @@ public class MainWindow extends UiPart<Stage> {
 
     private WorkspacePanel workspacePanel;
     private ResultDisplay resultDisplay;
+    /** The last list command shown on Records, rerun when data changes so its listing stays current. */
+    private String recordListingCommand;
     private CommandBox commandBox;
     private StatusBarFooter statusBarFooter;
 
@@ -144,8 +146,23 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void scrollOutput(boolean isDown) {
-        if (!workspacePanel.scrollRecords(isDown)) {
+        if (resultDisplay.hasLongMessage() || !workspacePanel.scrollRecords(isDown)) {
             resultDisplay.scrollPage(isDown);
+        }
+    }
+
+    /**
+     * Reruns the list command shown on Records, so that it shows the records as they are after a change.
+     */
+    private void refreshRecordListing() {
+        if (recordListingCommand == null) {
+            return;
+        }
+        try {
+            workspacePanel.setRecordListing(logic.execute(recordListingCommand).getFeedbackToUser());
+        } catch (CommandException | ParseException e) {
+            logger.fine("Records could not be refreshed: " + e.getMessage());
+            workspacePanel.setRecordListing(e.getMessage());
         }
     }
 
@@ -237,7 +254,10 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult result = logic.execute(commandText);
             logger.info("Result: " + result.getFeedbackToUser());
             if (result.isRecordListing()) {
+                recordListingCommand = commandText;
                 workspacePanel.setRecordListing(result.getFeedbackToUser());
+            } else if (result.hasSavedChanges()) {
+                refreshRecordListing();
             }
             resultDisplay.setFeedbackToUser(result.isRecordListing()
                     ? result.getFeedbackToUser().lines().findFirst().orElse("") : result.getFeedbackToUser());
