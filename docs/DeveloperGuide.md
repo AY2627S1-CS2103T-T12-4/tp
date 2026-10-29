@@ -458,7 +458,7 @@ without changing it, so `LogicManager` never saves after `group export`, whether
 * **Aspect: Shape of the table**
   * **Alternative 1 (current choice):** One row per student, with a column for each week.
     * Pros: Matches how a coordinator reads a gradebook. A student's total is one `SUM` over their row.
-    * Cons: The file always has 28 week columns, even when only a few weeks have records.
+    * Cons: The file always has 26 week columns, even when only a few weeks have records.
   * **Alternative 2:** One row per student and week, with attendance and participation columns.
     * Pros: Never has empty cells, and suits importing into a database.
     * Cons: Each student is spread over 13 rows, so a per-student total needs a pivot table.
