@@ -48,9 +48,11 @@ public class AssignmentDeleteCommandParserTest {
     }
 
     @Test
-    public void parse_missingSpaceBeforeName_reportsMissingSpace() {
+    public void parse_missingSpaceBeforePrefix_reportsMissingSpace() {
         assertParseFailure(parser, "f/yesa/PS1",
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "a/", "f/yesa/PS1"));
+        assertParseFailure(parser, "a/PS1f/yes",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "f/", "a/PS1f/yes"));
     }
 
     @Test

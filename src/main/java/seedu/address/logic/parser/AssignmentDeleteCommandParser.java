@@ -19,6 +19,9 @@ public class AssignmentDeleteCommandParser implements Parser<AssignmentDeleteCom
     @Override
     public AssignmentDeleteCommand parse(String arguments) throws ParseException {
         ArgumentMultimap values = argumentParser.parse(arguments);
+        if (values.getValue(PREFIX_FAST).isEmpty()) {
+            argumentParser.verifyNoMissingSpaceBefore(values, PREFIX_FAST);
+        }
         return new AssignmentDeleteCommand(
                 TAssistParserUtil.parseAssignmentName(values.getValue(PREFIX_ASSIGNMENT).orElseThrow()),
                 FastDeleteOption.isPresent(values));
