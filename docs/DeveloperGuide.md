@@ -432,8 +432,8 @@ registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the c
 
 ### Exporting a group's records
 
-`group export` saves the active group's attendance and participation as a CSV file that spreadsheets open. Four
-classes share the work:
+`group export` saves the active group's attendance, participation, and assignment records as a CSV file that
+spreadsheets open. Four classes share the work:
 
 * `GroupExportCommandParser` (Logic) rejects any parameters, like the `group list` parser.
 * `GroupExportCommand` (Logic) finds the active group and reports where its file was written.
@@ -463,9 +463,12 @@ roster order:
 
 * `Name` and `Student ID`;
 * `Week 1 Attendance` to `Week 13 Attendance`;
-* `Week 1 Participation` to `Week 13 Participation`.
+* `Week 1 Participation` to `Week 13 Participation`;
+* `PS1 Submitted` and `PS1 Grade` for each assignment in `Group#getAssignmentList()`, in creation order.
 
-A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. Attendance uses
+A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. The same holds for
+a missing grade. A submission cell is always `Yes` or `No`: `Assignment#getStudentRecord` gives an unsubmitted record
+for a student without one, as `assignment list` shows. Attendance uses
 `AttendanceStatus.formatStoredValue`, which `attendance list` also uses, so the file and the app show the same
 `Present` and `Absent`.
 
@@ -488,7 +491,7 @@ without changing it, so `LogicManager` never saves after `group export`, whether
 * **Aspect: Shape of the table**
   * **Alternative 1 (current choice):** One row per student, with a column for each week.
     * Pros: Matches how a coordinator reads a gradebook. A student's total is one `SUM` over their row.
-    * Cons: The file always has 28 columns, even when only a few weeks have records.
+    * Cons: The file always has 26 week columns, even when only a few weeks have records.
   * **Alternative 2:** One row per student and week, with attendance and participation columns.
     * Pros: Never has empty cells, and suits importing into a database.
     * Cons: Each student is spread over 13 rows, so a per-student total needs a pivot table.
@@ -502,13 +505,18 @@ without changing it, so `LogicManager` never saves after `group export`, whether
     * Cons: Writes outside the home folder. Needs rules for relative paths, existing files, and paths that differ
       between operating systems.
 * **Aspect: Assignment records**
-  * Issue #71 asks for attendance and participation only, so assignments are not exported. An assignment has a
-    name rather than a week, and each group has its own assignments, so assignments would need a variable set of
-    columns, such as `PS1 Submitted` and `PS1 Grade`. These could follow the week columns without changing how
-    the existing columns are read.
+  * **Alternative 1 (current choice):** Two columns per assignment, `PS1 Submitted` and `PS1 Grade`, after the week
+    columns.
+    * Pros: One row still holds all of a student's records, and the week columns keep their positions in every
+      export.
+    * Cons: Each group has its own assignments, so the number of columns differs between groups.
+  * **Alternative 2:** One column per assignment, holding the grade, `Submitted` without a grade, or empty.
+    * Pros: Fewer columns.
+    * Cons: Mixes text and numbers in one column, so a spreadsheet cannot simply sum or average the grades.
 
 `CsvUtilTest` covers quoting, line breaks, formula guards, and CRLF. `GroupRecordsCsvExporterTest` covers the
-layout, the byte order mark, replacing an earlier export without leaving temporary files, and an unwritable folder.
+layout, including the assignment columns, the byte order mark, replacing an earlier export without leaving
+temporary files, and an unwritable folder.
 `GroupExportCommandTest` covers the feedback, a missing active group, and a failed write. `GroupCommandsIntegrationTest`
 runs `group export` through `LogicManager`, reads the file back, and checks that the model and data file are
 unchanged and that storage is never called.
@@ -1391,7 +1399,7 @@ The following extensions apply to every use case that changes or views records o
 **MSS**
 
 1.  TA requests to export the records of the active group.
-2.  TAssist saves the group's students with their attendance and participation for every week to a CSV file, and shows the location of the file.
+2.  TAssist saves the group's students with their attendance and participation for every week and their submission status and grade for every assignment to a CSV file, and shows the location of the file.
 3.  TA opens the file in a spreadsheet and sends it to the course coordinator.
 
     Use case ends.
@@ -1818,12 +1826,15 @@ label.
 
 1. Exporting a group's records
 
-   1. Prerequisites: T01 is active and has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`). Enter
-      `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`.
-   1. Enter `group export`. Expected: `Exported attendance and participation of 2 students in T01 to:` followed by
+   1. Prerequisites: T01 is active, has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`), and has no assignments.
+      Enter `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`. Then enter
+      `assignment add a/PS1`, `assignment submit a/PS1 id/A0123456X s/yes`, and
+      `assignment grade a/PS1 id/A0123456X m/87`.
+   1. Enter `group export`. Expected: `Exported the records of 2 students in T01 to:` followed by
       the absolute path of `exports/T01-records.csv` in the folder that contains the JAR.
-   1. Open the file in a spreadsheet. Expected: 3 rows and 28 columns. Alice has `Present` under
-      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty.
+   1. Open the file in a spreadsheet. Expected: 3 rows and 30 columns. Alice has `Present` under
+      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty. The last two
+      columns are `PS1 Submitted` and `PS1 Grade`: Alice has `Yes` and `87`, and Ben has `No` and an empty grade.
    1. Enter `student add n/Chloé Ng id/A0345678Z`, then `group export` again. Expected: The file is replaced, Chloé
       appears with the accent intact, and the exports folder has no other files.
    1. Enter `group export g/T01`. Expected: `This command takes no parameters. Remove the extra input.`
