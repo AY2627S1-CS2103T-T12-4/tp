@@ -27,9 +27,10 @@ title: Developer Guide
   [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
   [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
 
-* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic) and
-  [Codex](https://openai.com/codex/) (OpenAI), AI coding assistants, to help with some code, tests and documentation.
-  Team members reviewed, tested and take responsibility for all submitted work.
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic),
+  [Codex](https://openai.com/codex/) (OpenAI) and [Cursor](https://cursor.com/) (Anysphere), AI coding assistants, to
+  help with some code, tests and documentation. Team members reviewed, tested and take responsibility for all
+  submitted work.
 
 --------------------------------------------------------------------------------------------------------------------
 
