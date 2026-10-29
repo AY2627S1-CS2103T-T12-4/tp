@@ -20,10 +20,12 @@ public class GroupDeleteCommand extends Command {
     public static final String MESSAGE_USAGE = "group delete g/GROUP_NAME [f/yes]";
     public static final String MESSAGE_SUCCESS = "Deleted tutorial group %s and its %d student(s).";
     public static final String MESSAGE_CONFIRMATION =
-            "Delete tutorial group %s and all %d student(s) in it, with their attendance, participation, "
-                    + "submission, and grade records?";
+            "Delete tutorial group %s, its %d student(s) and %d assignment(s), with all their attendance, "
+                    + "participation, submission, and grade records?";
     public static final String MESSAGE_NOW_NO_ACTIVE_GROUP =
             "\nNo group is active now. Select one with: group use g/GROUP_NAME";
+    public static final String MESSAGE_NOW_NO_GROUPS =
+            "\nNo groups left. Create one with: group add g/GROUP_NAME";
 
     private static final Logger logger = LogsCenter.getLogger(GroupDeleteCommand.class);
     private final GroupName name;
@@ -54,7 +56,8 @@ public class GroupDeleteCommand extends Command {
             return Optional.empty();
         }
         Group group = model.getGroup(name);
-        return Optional.of(String.format(MESSAGE_CONFIRMATION, group.getName(), group.getStudentList().size()));
+        return Optional.of(String.format(MESSAGE_CONFIRMATION, group.getName(), group.getStudentList().size(),
+                group.getAssignmentList().size()));
     }
 
     @Override
@@ -68,7 +71,11 @@ public class GroupDeleteCommand extends Command {
         assert !model.hasGroup(name) : "The deleted group must no longer exist";
         logger.fine("Deleted a group with " + removed.getStudentList().size() + " student(s)");
         String feedback = String.format(MESSAGE_SUCCESS, removed.getName(), removed.getStudentList().size());
-        return new CommandResult(model.getActiveGroup().isEmpty() ? feedback + MESSAGE_NOW_NO_ACTIVE_GROUP : feedback);
+        if (model.getActiveGroup().isPresent()) {
+            return new CommandResult(feedback);
+        }
+        boolean hasNoGroups = model.getTAssist().getGroupList().isEmpty();
+        return new CommandResult(feedback + (hasNoGroups ? MESSAGE_NOW_NO_GROUPS : MESSAGE_NOW_NO_ACTIVE_GROUP));
     }
 
     @Override

@@ -113,23 +113,24 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
-        commandBox = new CommandBox(this::executeCommand);
+        resultDisplay = new ResultDisplay();
+        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+
+        commandBox = new CommandBox(this::executeCommand, resultDisplay::scrollPage);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
                 dataLoadStatus.isFailure());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
-        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getGroupList(),
+                logic.getActiveGroupStudentList(),
                 logic.getDisplayedStudentList(), logic.studentFilterActiveProperty(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
                         AttendanceMarkCommand.buildTemplate(student.getStudentId())),
                 dataLoadStatus.isFailure());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
-
-        resultDisplay = new ResultDisplay();
-        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -232,7 +233,13 @@ public class MainWindow extends UiPart<Stage> {
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
             }
-            statusBarFooter.setStatus(result.hasSavedChanges() ? "Changes saved." : "Local data file");
+            if (result.hasSavedChanges()) {
+                statusBarFooter.setStatus("Changes saved.");
+            } else if (dataLoadStatus.isFailure()) {
+                statusBarFooter.setStatus(dataLoadStatus.getMessage(), true);
+            } else {
+                statusBarFooter.setStatus("Local data file");
+            }
             showHelpIfRequested(result);
             if (result.isExit()) {
                 handleExit();

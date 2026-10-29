@@ -2,10 +2,13 @@ package seedu.address.ui;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -33,6 +36,7 @@ public class StudentListPanel extends UiPart<Region> {
     static final String NO_ACTIVE_GROUP = "No active group";
     static final String STUDENTS_TITLE = "Students";
     static final String NO_ACTIVE_GROUP_HINT = "Add a tutorial group and make it active to see its students here.";
+    static final String SELECT_GROUP_HINT = "Select a group with group use g/GROUP_NAME to see its students here.";
     static final String DATA_NOT_READ = "Saved data could not be read";
     static final String DATA_NOT_READ_HINT =
             "Close TAssist, repair or move the data file, and restart. Any command other than help, view or exit "
@@ -61,15 +65,22 @@ public class StudentListPanel extends UiPart<Region> {
 
     /**
      * Creates a table of the active group's students that follows {@code activeGroup} and {@code students}.
+     * The empty state suggests selecting a group when {@code groups} is not empty but none is active.
      * If {@code isDataLoadFailed}, the empty state says the saved data could not be read.
      */
-    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> roster,
-            ObservableList<Student> students, ObservableBooleanValue hasStudentFilter,
+    public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Group> groups,
+            ObservableList<Student> roster, ObservableList<Student> students, ObservableBooleanValue hasStudentFilter,
             Consumer<Student> studentClickHandler, boolean isDataLoadFailed) {
         super(FXML);
-        requireAllNonNull(activeGroup, roster, students, hasStudentFilter, studentClickHandler);
+        requireAllNonNull(activeGroup, groups, roster, students, hasStudentFilter, studentClickHandler);
 
         studentTable.setItems(students);
+        followStudentAdditions(activeGroup, roster, students, row -> {
+            studentTable.requestLayout();
+            studentTable.layout();
+            // Scrolling just past the final row clamps to the bottom, including the entire new row.
+            studentTable.scrollTo(row == students.size() - 1 ? students.size() : row);
+        }, Platform::runLater);
         setUpStudentClicks(studentClickHandler);
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
                 .setMaxWidth(ROW_NUMBER_WIDTH);
@@ -94,9 +105,42 @@ public class StudentListPanel extends UiPart<Region> {
                 describeEmptyTitle(activeGroup.getValue(), hasStudentFilter.get(),
                         isDataLoadFailed), activeGroup, hasStudentFilter));
         emptyHint.textProperty().bind(Bindings.createStringBinding(() ->
-                describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get(),
-                        isDataLoadFailed), activeGroup, hasStudentFilter));
+                describeEmptyHint(activeGroup.getValue(), !groups.isEmpty(), hasStudentFilter.get(),
+                        isDataLoadFailed), activeGroup, groups, hasStudentFilter));
         showEmptyStateInsteadOfTable(students);
+    }
+
+    /**
+     * Scrolls to a sole new roster member after the displayed list has caught up with the model.
+     * ActiveGroupTracker replaces the roster on every change, so displayed-list add events alone cannot
+     * distinguish additions from searches or group switches. A deferred group check excludes switches.
+     */
+    static void followStudentAdditions(ObservableValue<Optional<Group>> activeGroup,
+            ObservableList<Student> roster, ObservableList<Student> displayedStudents,
+            Consumer<Integer> scrollTo, Consumer<Runnable> runLater) {
+        List<Student> previousStudents = new ArrayList<>(roster);
+        roster.addListener((ListChangeListener<Student>) change -> {
+            Optional<Group> group = activeGroup.getValue();
+            Student added = null;
+            if (roster.size() == previousStudents.size() + 1 && roster.containsAll(previousStudents)) {
+                added = roster.stream().filter(student -> !previousStudents.contains(student)).findFirst().orElse(null);
+            }
+            previousStudents.clear();
+            previousStudents.addAll(roster);
+            if (added == null || group.isEmpty()) {
+                return;
+            }
+            Student newStudent = added;
+            runLater.accept(() -> {
+                if (activeGroup.getValue().orElse(null) != group.get()) {
+                    return;
+                }
+                int row = displayedStudents.indexOf(newStudent);
+                if (row >= 0) {
+                    scrollTo.accept(row);
+                }
+            });
+        });
     }
 
     /**
@@ -172,7 +216,7 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Returns the hint shown in place of the table when there are no students to show.
      */
-    static String describeEmptyHint(Optional<Group> activeGroup, boolean hasStudentFilter,
+    static String describeEmptyHint(Optional<Group> activeGroup, boolean hasGroups, boolean hasStudentFilter,
             boolean isDataLoadFailed) {
         if (isDataLoadFailed) {
             return DATA_NOT_READ_HINT;
@@ -181,7 +225,7 @@ public class StudentListPanel extends UiPart<Region> {
             return "Use student list to show all students.";
         }
         return activeGroup.map(group -> String.format(EMPTY_GROUP_HINT_FORMAT, group.getName()))
-                .orElse(NO_ACTIVE_GROUP_HINT);
+                .orElse(hasGroups ? SELECT_GROUP_HINT : NO_ACTIVE_GROUP_HINT);
     }
 
     /**

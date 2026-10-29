@@ -7,10 +7,12 @@ import java.util.List;
 
 import seedu.address.logic.commands.StudentFindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.StudentSearchPredicate;
 
 /**
  * Parses optional name and ID fragments, requiring at least one nonblank filter.
+ * Name particles such as {@code s/o} are part of the name fragment, as in {@code student add}.
  */
 public class StudentFindCommandParser implements Parser<StudentFindCommand> {
     public static final String MESSAGE_MISSING_FILTER =
@@ -19,7 +21,8 @@ public class StudentFindCommandParser implements Parser<StudentFindCommand> {
 
     @Override
     public StudentFindCommand parse(String arguments) throws ParseException {
-        TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID));
+        TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID),
+                List.of(), StudentName.SLASH_PARTICLES);
         ArgumentMultimap values = parser.parse(arguments);
         for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_ID)) {
             if (values.getValue(prefix).isEmpty()) {

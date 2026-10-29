@@ -18,7 +18,7 @@ public class AttendanceClearCommandParser implements Parser<AttendanceClearComma
 
     @Override
     public AttendanceClearCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AttendanceClearCommand.MESSAGE_USAGE);
         return new AttendanceClearCommand(
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_STUDENT_ID).orElseThrow()),
                 AttendanceCommandParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()));

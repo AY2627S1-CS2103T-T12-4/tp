@@ -18,7 +18,7 @@ import seedu.address.model.group.Group;
 public class AssignmentAddCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment add a/ASSIGNMENT_NAME";
     public static final String MESSAGE_SUCCESS = "Created assignment %s for %s.";
-    public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Assignment %s already exists in %s";
+    public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Assignment %s already exists in %s.";
 
     private static final Logger logger = LogsCenter.getLogger(AssignmentAddCommand.class);
     private final AssignmentName assignmentName;

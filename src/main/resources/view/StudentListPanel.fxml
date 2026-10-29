@@ -8,7 +8,7 @@
 <VBox styleClass="content-card" minHeight="0" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
   <HBox styleClass="card-heading" alignment="CENTER_LEFT" spacing="10">
-    <Label fx:id="groupTitle" styleClass="section-title" maxWidth="360" />
+    <Label fx:id="groupTitle" styleClass="section-title" minWidth="0" HBox.hgrow="SOMETIMES" />
     <Label fx:id="studentCount" styleClass="count-badge" minWidth="-Infinity" />
     <Region HBox.hgrow="ALWAYS" />
   </HBox>

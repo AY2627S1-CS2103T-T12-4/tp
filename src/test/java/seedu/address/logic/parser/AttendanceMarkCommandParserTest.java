@@ -32,7 +32,8 @@ public class AttendanceMarkCommandParserTest {
         };
         for (String[] testCase : cases) {
             assertParseFailure(parser, testCase[0],
-                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1]));
+                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1])
+                        + " Usage: " + AttendanceMarkCommand.MESSAGE_USAGE);
         }
     }
 
@@ -76,7 +77,8 @@ public class AttendanceMarkCommandParserTest {
     @Test
     public void parse_forgottenPrefixBeforeExtraText_reportsMissingPrefix() {
         assertParseFailure(parser, "id/A0123456X w/3 present",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/")
+                        + " Usage: " + AttendanceMarkCommand.MESSAGE_USAGE);
     }
 
     @Test
