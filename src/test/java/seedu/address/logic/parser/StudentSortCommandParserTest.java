@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.StudentSortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -27,7 +28,7 @@ public class StudentSortCommandParserTest {
                 assertThrows(ParseException.class, expected, () -> parser.parse(" by/" + field + separator + "now"));
             }
         }
-        String missingMessage = String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "by/");
+        String missingMessage = "Missing required parameter. Usage: " + StudentSortCommand.MESSAGE_USAGE;
         assertThrows(ParseException.class, missingMessage, () -> parser.parse(""));
     }
 

@@ -380,7 +380,7 @@ Problem | Feedback and correction
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
 Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
-Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the format of `student delete` or `student sort`). Supply all required prefixes.
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
