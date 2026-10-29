@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Map;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
@@ -13,10 +14,12 @@ import seedu.address.model.student.WeeklyRecordEntry;
 
 /**
  * Lists participation scores, including missing records, for the active group in one week.
+ * A summary of how many students have a score, and of the students without one, follows the header.
  */
 public class ParticipationListCommand extends Command {
     public static final String MESSAGE_USAGE = "participation list w/WEEK";
     public static final String MESSAGE_NO_STUDENTS = "No students in %s.";
+    private static final String LABEL_RECORDED = "recorded";
 
     private final int week;
 
@@ -37,7 +40,9 @@ public class ParticipationListCommand extends Command {
             return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
-        StringBuilder feedback = new StringBuilder("Participation for " + group.getName() + ", Week " + week + ":");
+        String header = "Participation for " + group.getName() + ", Week " + week + ":";
+        String summary = WeeklyRecordSummary.summarize(entries, Map.of(LABEL_RECORDED, score -> true));
+        StringBuilder feedback = new StringBuilder(header).append('\n').append(summary);
         for (WeeklyRecordEntry<Integer> entry : entries) {
             feedback.append('\n').append(entry.getStudent().getName()).append(" | ")
                     .append(entry.getStudent().getStudentId()).append(" | ")

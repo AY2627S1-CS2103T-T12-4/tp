@@ -31,7 +31,8 @@ public final class ParticipationCommandRegistration {
         registry.register("participation", "list", new ParticipationListCommandParser(),
                 new HelpEntry("participation", ParticipationListCommand.MESSAGE_USAGE,
                         "List every student in the active group with their score for a week from 1 to 13. "
-                                + "Missing scores show Not recorded.",
+                                + "A summary under the heading counts the scores recorded and names the students "
+                                + "without one. Missing scores show Not recorded.",
                         List.of("participation list w/3")));
         registry.register("participation", "clear", new ParticipationClearCommandParser(),
                 new HelpEntry("participation", ParticipationClearCommand.MESSAGE_USAGE,

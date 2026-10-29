@@ -523,12 +523,18 @@ scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
+1 absent, 1 not recorded.
+Not recorded: Ravi s/o Kumar.
 Alice Tan | A0123456X | Absent
 Ravi s/o Kumar | A0345679Z | Not recorded
 ```
 
-Each student appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student as
-`Not recorded`. An empty group shows `No students in T01.` Records in other groups or weeks are not included.
+The line after the heading counts the students with each status and those without a mark, such as
+`18 present, 1 absent, 1 not recorded.` A status that no student has in that week is left out. If any students have no
+mark, the next line names them, so you can see who you missed without scrolling through every row.
+
+Each student then appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student
+as `Not recorded`. An empty group shows `No students in T01.` Records in other groups or weeks are not included.
 Use `group use g/GROUP_NAME` to choose another group before listing it.
 
 Specify `w/` exactly once with a whole number from 1 to 13. Missing, repeated, or extra parameters are rejected;
@@ -586,9 +592,14 @@ Example: after the examples above, `participation list w/3` shows
 
 ```text
 Participation for T01, Week 3:
+1 recorded, 1 not recorded.
+Not recorded: Ravi s/o Kumar.
 Alice Tan | A0123456X | 4
 Ravi s/o Kumar | A0345679Z | Not recorded
 ```
+
+The line after the heading counts the students with and without a score, such as `18 recorded, 2 not recorded.`
+A count of zero is left out. If any students have no score, the next line names them.
 
 Students without a score show `Not recorded`, even if no scores have been entered that week.
 A recorded zero shows `0`. An empty group shows `No students in T01.`

@@ -6,8 +6,11 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
+import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.DANIEL;
+import static seedu.address.testutil.TypicalStudents.ELLE;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,11 +28,24 @@ public class ParticipationListCommandTest {
         model.setStudent(NAME_T01, ALICE.withParticipationRecord(3, 0));
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         assertCommandSuccess(new ParticipationListCommand(3), model,
-                "Participation for T01, Week 3:\nAlice Tan | A0123456X | 0"
+                "Participation for T01, Week 3:\n1 recorded, 2 not recorded.\nNot recorded: Ben Lim, Carl Goh."
+                        + "\nAlice Tan | A0123456X | 0"
                         + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded", expected);
         assertCommandSuccess(new ParticipationListCommand(13), model,
-                "Participation for T01, Week 13:\nAlice Tan | A0123456X | Not recorded"
+                "Participation for T01, Week 13:\n3 not recorded.\nNot recorded: Alice Tan, Ben Lim, Carl Goh."
+                        + "\nAlice Tan | A0123456X | Not recorded"
                         + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded", expected);
+    }
+
+    @Test
+    public void execute_everyoneScored_omitsNotRecordedCountAndLine() {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        model.setActiveGroup(NAME_T02);
+        model.setStudent(NAME_T02, DANIEL.withParticipationRecord(3, 5));
+        model.setStudent(NAME_T02, ELLE.withParticipationRecord(3, 0));
+        assertCommandSuccess(new ParticipationListCommand(3), model,
+                "Participation for T02, Week 3:\n2 recorded.\nDaniel Ong | A0456789W | 5\nElle Teo | A0567890U | 0",
+                new ModelManager(model.getTAssist(), new UserPrefs()));
     }
 
     @Test

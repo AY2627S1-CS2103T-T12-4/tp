@@ -330,9 +330,11 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
      */
     private void assertEditedStudentKeepsRecords() throws Exception {
         assertEquals("Students in T01:\n1. Ravi s/o Kumar | A0345679Z\n2. Ben Lim | B2", feedback("student list"));
-        assertEquals("Attendance for T01, Week 1:\nRavi s/o Kumar | A0345679Z | Present\n"
+        assertEquals("Attendance for T01, Week 1:\n1 present, 1 not recorded.\nNot recorded: Ben Lim.\n"
+                + "Ravi s/o Kumar | A0345679Z | Present\n"
                 + "Ben Lim | B2 | Not recorded", feedback("attendance list w/1"));
-        assertEquals("Participation for T01, Week 1:\nRavi s/o Kumar | A0345679Z | 4\n"
+        assertEquals("Participation for T01, Week 1:\n1 recorded, 1 not recorded.\nNot recorded: Ben Lim.\n"
+                + "Ravi s/o Kumar | A0345679Z | 4\n"
                 + "Ben Lim | B2 | Not recorded", feedback("participation list w/1"));
         assertEquals("PS1 records for T01:\nRavi s/o Kumar | A0345679Z | Submitted | 87\n"
                 + "Ben Lim | B2 | Not submitted | -", feedback("assignment list a/PS1"));

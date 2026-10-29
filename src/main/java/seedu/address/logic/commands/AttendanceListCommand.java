@@ -2,7 +2,10 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -15,6 +18,7 @@ import seedu.address.model.student.WeeklyRecordEntry;
 
 /**
  * Lists every student's attendance, including missing records, for one week in the active tutorial group.
+ * A summary of the counts for each status, and of the students without a mark, follows the header.
  */
 public class AttendanceListCommand extends Command {
     public static final String MESSAGE_USAGE = "attendance list w/WEEK";
@@ -40,8 +44,21 @@ public class AttendanceListCommand extends Command {
             return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
+        String header = String.format(MESSAGE_HEADER, group.getName(), week);
+        String summary = WeeklyRecordSummary.summarize(entries, getStatusCategories());
         String rows = entries.stream().map(AttendanceListCommand::formatRow).collect(Collectors.joining("\n"));
-        return new CommandResult(String.format(MESSAGE_HEADER, group.getName(), week) + "\n" + rows);
+        return new CommandResult(header + "\n" + summary + "\n" + rows);
+    }
+
+    /**
+     * Returns one category per attendance status, labeled with the status as the TA types it, in declaration order.
+     */
+    private static Map<String, Predicate<String>> getStatusCategories() {
+        Map<String, Predicate<String>> categories = new LinkedHashMap<>();
+        for (AttendanceStatus status : AttendanceStatus.values()) {
+            categories.put(status.getCommandValue(), status.name()::equals);
+        }
+        return categories;
     }
 
     private static String formatRow(WeeklyRecordEntry<String> entry) {

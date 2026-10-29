@@ -7,6 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
 import static seedu.address.testutil.TypicalStudents.CARL;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,8 @@ public class AttendanceListCommandTest {
         model.setStudent(TypicalGroups.NAME_T01, CARL.withAttendanceRecord(3, "ABSENT"));
 
         assertListingUnchanged(3, "Attendance for T01, Week 3:\n"
+                + "1 present, 1 absent, 1 not recorded.\n"
+                + "Not recorded: Ben Lim.\n"
                 + "Alice Tan | A0123456X | Present\n"
                 + "Ben Lim | A0234567Y | Not recorded\n"
                 + "Carl Goh | A0345678Z | Absent");
@@ -43,9 +46,24 @@ public class AttendanceListCommandTest {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "late"));
 
         assertListingUnchanged(3, "Attendance for T01, Week 3:\n"
+                + "1 other, 2 not recorded.\n"
+                + "Not recorded: Ben Lim, Carl Goh.\n"
                 + "Alice Tan | A0123456X | late\n"
                 + "Ben Lim | A0234567Y | Not recorded\n"
                 + "Carl Goh | A0345678Z | Not recorded");
+    }
+
+    @Test
+    public void execute_everyoneMarked_omitsZeroCountsAndNotRecordedLine() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+        model.setStudent(TypicalGroups.NAME_T01, BEN.withAttendanceRecord(3, "PRESENT"));
+        model.setStudent(TypicalGroups.NAME_T01, CARL.withAttendanceRecord(3, "PRESENT"));
+
+        assertListingUnchanged(3, "Attendance for T01, Week 3:\n"
+                + "3 present.\n"
+                + "Alice Tan | A0123456X | Present\n"
+                + "Ben Lim | A0234567Y | Present\n"
+                + "Carl Goh | A0345678Z | Present");
     }
 
     //@@author
@@ -54,6 +72,8 @@ public class AttendanceListCommandTest {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
         for (int week : new int[] {1, 13}) {
             assertListingUnchanged(week, "Attendance for T01, Week " + week + ":\n"
+                    + "3 not recorded.\n"
+                    + "Not recorded: Alice Tan, Ben Lim, Carl Goh.\n"
                     + "Alice Tan | A0123456X | Not recorded\n"
                     + "Ben Lim | A0234567Y | Not recorded\n"
                     + "Carl Goh | A0345678Z | Not recorded");
@@ -65,6 +85,8 @@ public class AttendanceListCommandTest {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
         model.setActiveGroup(TypicalGroups.NAME_T02);
         assertListingUnchanged(3, "Attendance for T02, Week 3:\n"
+                + "2 not recorded.\n"
+                + "Not recorded: Daniel Ong, Elle Teo.\n"
                 + "Daniel Ong | A0456789W | Not recorded\n"
                 + "Elle Teo | A0567890U | Not recorded");
     }

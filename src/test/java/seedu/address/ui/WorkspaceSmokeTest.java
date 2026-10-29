@@ -372,7 +372,8 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/a0123456x w/3 s/0");
                 assertEquals("Recorded participation score 0 for Alice Tan in Week 3.", feedback.getText());
                 enter(input, "participation list w/3");
-                assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 0"
+                assertEquals("Participation for T01, Week 3:\n1 recorded, 2 not recorded."
+                        + "\nNot recorded: Ben Lim, Carl Goh.\nAlice Tan | A0123456X | 0"
                         + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
                         feedback.getText());
                 enter(input, "participation set id/A0123456X w/3 s/6");
@@ -607,7 +608,9 @@ public class WorkspaceSmokeTest {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertEquals("Recorded Alice Tan as present for Week 3.", feedback.getText());
                 enter(input, "attendance list w/3");
-                assertEquals(21, feedback.getText().lines().count());
+                assertEquals(23, feedback.getText().lines().count());
+                assertTrue(feedback.getText().startsWith("Attendance for T01, Week 3:\n1 present, 19 not recorded.\n"
+                        + "Not recorded: Ben Lim, Carl Goh, Student, "));
                 assertTrue(feedback.getText().contains("Alice Tan | A0123456X | Present"));
                 assertTrue(feedback.getText().contains("Student | A116 | Not recorded"));
                 assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());

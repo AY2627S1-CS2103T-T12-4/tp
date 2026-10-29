@@ -32,8 +32,9 @@ public final class AttendanceCommandRegistration {
                         List.of("attendance mark id/A0123456X w/3 s/present")));
         registry.register("attendance", "list", new AttendanceListCommandParser(),
                 new HelpEntry("attendance", AttendanceListCommand.MESSAGE_USAGE,
-                        "List the active group's attendance for a week from 1 to 13. Students without a mark show "
-                                + "Not recorded. A group with no students shows a message saying so.",
+                        "List the active group's attendance for a week from 1 to 13. A summary under the heading "
+                                + "counts each status and names the students without a mark. Students without a "
+                                + "mark show Not recorded. A group with no students shows a message saying so.",
                         List.of("attendance list w/3")));
         registry.register("attendance", "clear", new AttendanceClearCommandParser(),
                 new HelpEntry("attendance", AttendanceClearCommand.MESSAGE_USAGE,

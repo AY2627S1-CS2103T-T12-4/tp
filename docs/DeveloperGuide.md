@@ -566,6 +566,8 @@ The `parse participation set` reference frame is shown below. `CommandRegistry` 
 
 `ParticipationListCommand` uses `Group.getWeeklyRecordEntries` with `Student::getParticipationRecords`, so it reuses
 the shared weekly listing mechanism. Each row formats its value or `Not recorded`; zero is an actual score.
+Like `attendance list`, it puts a `WeeklyRecordSummary` under the heading, with one `recorded` category that matches
+every score, such as `18 recorded, 2 not recorded.`
 
 Because zero is an actual score, setting a score to 0 cannot undo a score entered by mistake.
 `ParticipationClearCommand` removes the week's score with `withoutParticipationRecord`, so the week shows
@@ -756,6 +758,14 @@ replaces that copy in its group while preserving the student's position.
 kind. Each `WeeklyRecordEntry` holds an optional value and formats a missing value as `Not recorded`. Attendance and
 participation commands are implemented separately and can share this model behavior without duplicating record code.
 
+Both listing commands also share `WeeklyRecordSummary` in the `logic.commands` package, which builds the lines under
+the listing's heading. A command passes its entries and an ordered map of labeled categories, each a condition on the
+recorded value. The summary counts each category, counts recorded values that match no category as `other`, and
+counts the students without a record as `not recorded`. Zero counts are left out, so the line names only what
+happened that week; since an empty group gets `No students in GROUP.` instead, at least one count is always shown.
+If any student has no record, a second line such as `Not recorded: Ben Lim, Cara Ng.` names them in roster order, so a
+TA can check who was missed without scrolling through every row.
+
 These classes follow the rules in our feature specification:
 
 * **Group names** are compared case-insensitively, so `T01` and `t01` are the same group. The name is shown with the capitalization the TA typed.
@@ -782,6 +792,9 @@ Existing `LogicManager` persistence saves the result.
 selects attendance through `Group#getWeeklyRecordEntries`. If the group has no students, it returns
 `No students in GROUP.` Otherwise, it lists every student, formatting each row with the student's name, ID, and
 capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
+Between the heading and the rows, it shows a `WeeklyRecordSummary` with one category per `AttendanceStatus`, built by
+iterating over `AttendanceStatus.values()` and labeled with each status's command value, such as
+`18 present, 1 absent, 1 not recorded.` A status added to the enum is therefore counted without changing the command.
 The rows appear in the scrollable command feedback box.
 
 `AttendanceClearCommandParser` requires `id/` and `w/` exactly once, with the same validation as marking. It does not
@@ -1599,7 +1612,9 @@ through the real parsers, model and JSON storage, but the steps below also check
       Expected: The Students screen is shown, because a launch opens it. T01 is active and lists Alice,
       Ben and Chloe, with Chloe's ID shown as `A0345678Z`.
    1. Enter `attendance list w/1`, `participation list w/1` and `assignment list a/PS1`.<br>
-      Expected: Alice is `Absent`, Ben is `Absent` and Chloe is `Not recorded`; Alice has 3, Ben is
+      Expected: The attendance summary is `2 absent, 1 not recorded.` with `Not recorded: Chloe O'Neil-Ng.`, and the
+      participation summary is `2 recorded, 1 not recorded.` with `Not recorded: Ben Lim.`
+      Alice is `Absent`, Ben is `Absent` and Chloe is `Not recorded`; Alice has 3, Ben is
       `Not recorded` and Chloe has 0; Alice is `Submitted | 87`, Ben is `Submitted | -` and Chloe is
       `Not submitted | -`.
    1. Enter `group use g/T02` and `attendance list w/1`.<br>
@@ -1719,7 +1734,8 @@ label.
 ### Recording and listing participation
 
 1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
-   Select T01 with `group use g/T01`. Enter `participation list w/3`; both rows should say `Not recorded`.
+   Select T01 with `group use g/T01`. Enter `participation list w/3`; the summary should be `2 not recorded.` and
+   `Not recorded: Alice Tan, Ben Lim.`, and both rows should say `Not recorded`.
 2. Enter `participation set id/a0123456x w/3 s/0`. Expect a first-entry confirmation and Alice's Week 3 score of zero.
    Set it again with `s/4`. Expect `Updated Alice Tan's participation score for Week 3: 0 to 4.`,
    with Ben still `Not recorded` when listing Week 3.
@@ -1938,9 +1954,11 @@ label.
       Expected: `Updated Alice Tan's attendance for Week 3: present to absent.`
    1. Enter `attendance mark id/A0123456X w/3 s/absent` again.
       Expected: `Alice Tan's attendance for Week 3 is already absent. Nothing changed.`
-   1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:` and
-      `Alice Tan | A0123456X | Absent`. Other students, if present, show `Not recorded`.
-   1. Enter `attendance list w/13`. Expected: `Attendance for T01, Week 13:`, with every student shown as
+   1. Enter `attendance list w/3`. Expected: `Attendance for T01, Week 3:`, a summary that starts with `1 absent`
+      and names any other students on a `Not recorded:` line, and `Alice Tan | A0123456X | Absent`. Other
+      students, if present, show `Not recorded`.
+   1. Enter `attendance list w/13`. Expected: `Attendance for T01, Week 13:`, the summary `N not recorded.` (`N`
+      is the number of students in T01), a `Not recorded:` line naming every student, and every student shown as
       `Not recorded`.
    1. Close and reopen the app. Enter `attendance list w/3`. Expected: Alice is still absent.
 

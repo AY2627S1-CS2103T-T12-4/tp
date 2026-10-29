@@ -64,6 +64,8 @@ public class AttendanceIntegrationTest {
         restart();
 
         assertFeedback("attendance list w/3", "Attendance for T01, Week 3:\n"
+                + "1 absent, 2 not recorded.\n"
+                + "Not recorded: Ben Lim, Carl Goh.\n"
                 + "Alice Tan | A0123456X | Absent\n"
                 + "Ben Lim | A0234567Y | Not recorded\n"
                 + "Carl Goh | A0345678Z | Not recorded");
@@ -73,12 +75,16 @@ public class AttendanceIntegrationTest {
 
         logic.execute("group use g/T02");
         assertFeedback("attendance list w/3", "Attendance for T02, Week 3:\n"
+                + "3 not recorded.\n"
+                + "Not recorded: Daniel Ong, Elle Teo, Alice Tan.\n"
                 + "Daniel Ong | A0456789W | Not recorded\n"
                 + "Elle Teo | A0567890U | Not recorded\n"
                 + "Alice Tan | A0123456X | Not recorded");
         logic.execute("attendance mark id/A0123456X w/13 s/present");
         restart();
         assertFeedback("attendance list w/13", "Attendance for T02, Week 13:\n"
+                + "1 present, 2 not recorded.\n"
+                + "Not recorded: Daniel Ong, Elle Teo.\n"
                 + "Daniel Ong | A0456789W | Not recorded\n"
                 + "Elle Teo | A0567890U | Not recorded\n"
                 + "Alice Tan | A0123456X | Present");
@@ -98,6 +104,8 @@ public class AttendanceIntegrationTest {
         restart();
 
         assertFeedback("attendance list w/4", "Attendance for T01, Week 4:\n"
+                + "1 absent, 2 not recorded.\n"
+                + "Not recorded: Alice Tan, Carl Goh.\n"
                 + "Alice Tan | A0123456X | Not recorded\n"
                 + "Ben Lim | A0234567Y | Absent\n"
                 + "Carl Goh | A0345678Z | Not recorded");
@@ -105,6 +113,8 @@ public class AttendanceIntegrationTest {
                 model.getGroup(TypicalGroups.NAME_T01).findStudent(ALICE.getStudentId()).orElseThrow());
         logic.execute("attendance clear id/A0234567Y w/4");
         assertFeedback("attendance list w/4", "Attendance for T01, Week 4:\n"
+                + "3 not recorded.\n"
+                + "Not recorded: Alice Tan, Ben Lim, Carl Goh.\n"
                 + "Alice Tan | A0123456X | Not recorded\n"
                 + "Ben Lim | A0234567Y | Not recorded\n"
                 + "Carl Goh | A0345678Z | Not recorded");
