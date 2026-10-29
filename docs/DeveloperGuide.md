@@ -385,7 +385,10 @@ therefore have the same hash code, while display capitalization is preserved.
   `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
   and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
   `GroupName` equality ignores case, but `Group#equals` compares the name's exact capitalization, so `LogicManager`
-  sees a case-only rename as a change. It is saved and recorded for undo like any other rename.
+  sees a case-only rename as a change. It is saved and recorded for undo like any other rename. A new name equal
+  to the stored name, after spaces are normalized, returns unchanged feedback without calling `Model.renameGroup`.
+* `GroupUseCommand` returns unchanged feedback when the group is already active, without calling
+  `Model.setActiveGroup`.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
@@ -619,9 +622,11 @@ one row per student in roster order: name, student ID, submission status, and gr
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
-recorded grade and the success message calls out that loss only when a grade existed. If `s/no` is requested for an
-already unsubmitted record, `AssignmentSubmitCommand` returns unchanged feedback without updating the model.
-This also covers a student with no explicit record, so the command does not create a record or save the file.
+recorded grade and the success message calls out that loss only when a grade existed. If the requested status equals
+the recorded one, `AssignmentSubmitCommand` returns unchanged feedback without updating the model. For `s/no`, this
+also covers a student with no explicit record, so the command does not create a record or save the file.
+Like `participation set`, `AssignmentGradeCommand` feedback distinguishes a first grade, a replacement (showing the
+old and new grade, such as `87 to 60`), and a grade equal to the existing one, which says nothing changed.
 Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
@@ -1312,7 +1317,7 @@ The following extensions apply to every use case that changes or views records o
       Use case resumes at step 3.
 
 * 5c. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
-    * 5c1. TAssist replaces the previous grade with the new grade.
+    * 5c1. TAssist replaces the previous grade with the new grade and shows both grades.
 
       Use case resumes at step 6.
 
@@ -1635,9 +1640,11 @@ label.
    `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
    `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
    as 87.
-4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`; the list should now show 91. Withdraw her
-   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say the recorded grade was
-   cleared, and the list should show `Not submitted | -` for Alice.
+4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`. Expect
+   `Updated Alice Tan's PS1 grade: 87 to 91.`, and the list should now show 91. Repeat the command and the
+   submission `assignment submit a/PS1 id/A0123456X s/yes`; expect `Nothing changed.` feedback for each, without
+   `Changes saved.` Withdraw her submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback
+   to say the recorded grade was cleared, and the list should show `Not submitted | -` for Alice.
    Repeat the command; expect unchanged feedback with no mention of a grade being cleared and no save confirmation.
 5. Submit Alice again and record grade 87 so the saved file contains a complete record. Close and reopen the app,
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
@@ -1724,6 +1731,8 @@ label.
 1. Switching and persistence
 
    1. Enter `group use g/t01`. Expected: `Switched active group to T01.` and T01 is highlighted.
+   1. Enter `group use g/T01` again. Expected: `T01 is already the active group. Nothing changed.` without
+      `Changes saved.`
    1. Close and reopen the app. Expected: Both groups remain and T01 is active.
       If groups contain students loaded from JSON, switching shows only the selected group's roster.
 
@@ -1745,6 +1754,8 @@ label.
    1. Enter `group rename g/T01 n/t01`. Expected: `Renamed tutorial group T01 to t01.` with `Changes saved.`, and
       the chip shows t01. Enter `undo`. Expected: `Undone: group rename g/T01 n/t01`, and the chip shows T01 again,
       with T02-Thu unchanged.
+   1. Enter `group rename g/T01 n/T01`. Expected: `Tutorial group T01 already has that name. Nothing changed.`
+      without `Changes saved.`
    1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
       that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
       removed and no group is active. `group delete g/T01 f/yes` skips the prompt.

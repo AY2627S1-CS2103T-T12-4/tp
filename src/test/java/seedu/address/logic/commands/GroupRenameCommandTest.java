@@ -41,6 +41,17 @@ public class GroupRenameCommandTest {
     }
 
     @Test
+    public void execute_sameNameAfterNormalizing_reportsNoChanges() {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+
+        for (String newName : new String[] {"T01", "  T01 "}) {
+            assertCommandSuccess(new GroupRenameCommand(new GroupName("t01"), new GroupName(newName)), model,
+                    "Tutorial group T01 already has that name. Nothing changed.", expected);
+        }
+    }
+
+    @Test
     public void execute_unknownGroup_preservesData() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         assertCommandFailure(new GroupRenameCommand(TypicalGroups.NAME_T04, NEW_NAME), model,

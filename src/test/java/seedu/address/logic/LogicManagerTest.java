@@ -149,7 +149,8 @@ public class LogicManagerTest {
         GroupCommandRegistration.registerCommands(registry);
         logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_AD_EXCEPTION)), registry);
 
-        assertEquals("Switched active group to T02.", logic.execute("group use g/t02").getFeedbackToUser());
+        assertEquals("T02 is already the active group. Nothing changed.",
+                logic.execute("group use g/t02").getFeedbackToUser());
     }
 
     @Test

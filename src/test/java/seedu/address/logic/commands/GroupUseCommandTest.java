@@ -32,13 +32,13 @@ public class GroupUseCommandTest {
     }
 
     @Test
-    public void execute_alreadyActiveGroup_successAndPreservesData() {
+    public void execute_alreadyActiveGroup_reportsNoChanges() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(TypicalGroups.NAME_T01);
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
 
         assertCommandSuccess(new GroupUseCommand(new GroupName("t01")), model,
-                "Switched active group to T01.", expected);
+                "T01 is already the active group. Nothing changed.", expected);
     }
 
     @Test
