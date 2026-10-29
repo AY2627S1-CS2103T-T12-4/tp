@@ -1667,7 +1667,8 @@ label.
 
 1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
    Select T01 with `group use g/T01`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
-2. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
+2. Enter `assignment list`. Expect `Assignments in T01:` followed by `PS1` and the other assignment names in
+   creation order. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
    and `Ben Lim | A0234567Y | Not submitted | -`.
    Enter `assignment submit a/PS1 id/A0234567Y s/no` twice. Each time, expect
    `Ben Lim's PS1 submission status is already not submitted. Nothing changed.` without `Changes saved.`
@@ -1690,7 +1691,7 @@ label.
 6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both
    times.
    Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
-7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list`,
+7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list a/`,
    `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
    missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file. Enter
    `assignment grade a/PS1 id/A0123456X g/87`; expect an unknown-prefix error, since `g/` is reserved for groups.

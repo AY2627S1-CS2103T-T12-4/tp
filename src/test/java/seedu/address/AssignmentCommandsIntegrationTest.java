@@ -51,6 +51,8 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
                 app.model.getActiveGroup().orElseThrow().getAssignmentList().stream()
                         .map(assignment -> assignment.getName().fullName).toList());
         assertEquals(LIST_PS1_IN_T01, feedback("assignment list a/PS1"));
+        assertEquals("Assignments in T01:\nPS1\nMid-term 1\nPS1.5\nLab 2 (Graphs)\nKattis: Week 3",
+                feedback("assignment list"));
         app.logic.execute("group use g/T02");
         assertRejected("assignment list a/PS1", CommandException.class);
         assertEquals("Created assignment PS1 for T02.", feedback("assignment add a/PS1"));
@@ -150,7 +152,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         for (String command : List.of("assignment", "assignment remove", "assignment add", "assignment add a/",
                 "assignment add a/PS_1", "assignment add a/PS1/PS2", "assignment add a/--",
                 "assignment add a/" + "a".repeat(10000), "assignment add a/PS2 a/PS3", "assignment add PS2",
-                "assignment add n/PS2", "assignment list", "assignment list a/", "assignment list a/PS2 a/PS3",
+                "assignment add n/PS2", "assignment list a/", "assignment list a/PS2 a/PS3",
                 "assignment list a/PS1!", "assignment list w/3")) {
             assertRejected(command, ParseException.class);
         }
@@ -185,7 +187,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         assertEquals(List.of("assignment add a/ASSIGNMENT_NAME",
                         "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
                         "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE",
-                        "assignment list a/ASSIGNMENT_NAME"),
+                        "assignment list [a/ASSIGNMENT_NAME]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing assignment commands.", "assignment"),
                 app.logic.execute("help assignment"));

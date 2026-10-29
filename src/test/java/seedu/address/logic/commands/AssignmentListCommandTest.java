@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS2;
 import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalGroups.NAME_T02;
 import static seedu.address.testutil.TypicalGroups.NAME_T03;
@@ -82,6 +83,28 @@ public class AssignmentListCommandTest {
     }
 
     @Test
+    public void execute_noName_listsAssignmentNamesInCreationOrder() {
+        Model model = modelWithActiveGroup(NAME_T01);
+        model.addAssignment(NAME_T01, PS2);
+        Model expected = modelWithActiveGroup(NAME_T01);
+        expected.addAssignment(NAME_T01, PS2);
+        assertCommandSuccess(new AssignmentListCommand(), model, "Assignments in T01:\nPS1\nPS2", expected);
+    }
+
+    @Test
+    public void execute_noNameAndNoAssignments_suggestsAddingOne() {
+        Model model = modelWithActiveGroup(NAME_T02);
+        Model expected = modelWithActiveGroup(NAME_T02);
+        assertCommandSuccess(new AssignmentListCommand(), model,
+                "No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME", expected);
+    }
+
+    @Test
+    public void execute_noNameAndNoActiveGroup_reportsError() {
+        assertCommandFailure(new AssignmentListCommand(), new ModelManager(), Messages.MESSAGE_NO_ACTIVE_GROUP);
+    }
+
+    @Test
     public void execute_unknownAssignment_reportsSpecificError() {
         assertCommandFailure(new AssignmentListCommand(NAME_PS2), modelWithActiveGroup(NAME_T01),
                 "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
@@ -111,6 +134,9 @@ public class AssignmentListCommandTest {
         assertEquals(command, new AssignmentListCommand(new AssignmentName("ps1")));
         assertEquals(command.hashCode(), new AssignmentListCommand(new AssignmentName("ps1")).hashCode());
         assertNotEquals(command, new AssignmentListCommand(NAME_PS2));
+        assertNotEquals(command, new AssignmentListCommand());
+        assertEquals(new AssignmentListCommand(), new AssignmentListCommand());
+        assertEquals(new AssignmentListCommand().hashCode(), new AssignmentListCommand().hashCode());
         assertNotEquals(command, new AssignmentAddCommand(NAME_PS1));
         assertNotEquals(command, null);
     }

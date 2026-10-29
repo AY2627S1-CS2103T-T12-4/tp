@@ -38,8 +38,8 @@ public final class AssignmentCommandRegistration {
                         List.of("assignment grade a/PS1 id/A0123456X m/87")));
         registry.register("assignment", "list", new AssignmentListCommandParser(),
                 new HelpEntry("assignment", AssignmentListCommand.MESSAGE_USAGE,
-                        "List every student's submission status and grade for an assignment of the active group. "
-                                + "Names ignore case.",
-                        List.of("assignment list a/PS1")));
+                        "List the active group's assignment names, or with a/ every student's submission status "
+                                + "and grade for one assignment. Names ignore case.",
+                        List.of("assignment list", "assignment list a/PS1")));
     }
 }
