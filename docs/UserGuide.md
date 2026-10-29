@@ -19,8 +19,7 @@ A mistaken change can be reversed with `undo` and `redo`, which cover your last 
 1. Ensure that Java `25` is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from the [team releases page](https://github.com/AY2627S1-CS2103T-T12-4/tp/releases), when available.
-   If no release is available yet, build the project with `./gradlew shadowJar` and use `build/libs/tassist.jar`.
+1. Download the latest `.jar` file from the [team releases page](https://github.com/AY2627S1-CS2103T-T12-4/tp/releases).
 
 1. Copy the file to the folder you want to use as the _home folder_ for TAssist.
 
@@ -49,10 +48,6 @@ The bar at the top shows the **tutorial groups** next to the TAssist name, with 
 the **screens** below it. **Students** is on the left; **Help** and **Storage** are on the right.
 Hover over a screen, or over a shortened group name, to see more. The tooltip of a screen names the command that does
 the same, such as `view storage`.
-
-The implemented UI keeps the mock-up's command-first workspace, but uses a light group bar and a separate screen
-navigation row in place of the mock-up's dark header and separate group strip. The [original UI mock-up](images/UiMockup.png)
-is included for reference.
 
 ![TAssist displaying the Students screen for tutorial group T01](images/Ui.png)
 
