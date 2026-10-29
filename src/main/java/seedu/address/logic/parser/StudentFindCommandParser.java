@@ -25,6 +25,9 @@ public class StudentFindCommandParser implements Parser<StudentFindCommand> {
                 List.of(), StudentName.SLASH_PARTICLES);
         ArgumentMultimap values = parser.parse(arguments);
         for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_ID)) {
+            if (values.getValue(prefix).isEmpty()) {
+                parser.verifyNoMissingSpaceBefore(values, prefix);
+            }
             if (values.getValue(prefix).isPresent() && values.getValue(prefix).orElseThrow().isBlank()) {
                 throw new ParseException(String.format(MESSAGE_BLANK_FILTER, prefix));
             }
