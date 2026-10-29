@@ -126,7 +126,8 @@ public class CommandRegistry {
     public Command parseCommand(String feature, String arguments) throws ParseException {
         requireNonNull(feature);
         requireNonNull(arguments);
-        Map<String, Parser<? extends Command>> parsers = featureParsers.get(feature.toLowerCase(Locale.ROOT));
+        String keyword = feature.toLowerCase(Locale.ROOT);
+        Map<String, Parser<? extends Command>> parsers = featureParsers.get(keyword);
         if (parsers == null) {
             throw new ParseException(String.format(MESSAGE_UNKNOWN_COMMAND, feature));
         }
@@ -135,13 +136,13 @@ public class CommandRegistry {
         String validSubcommands = String.join(", ", parsers.keySet());
         String trimmedArguments = arguments.trim();
         if (trimmedArguments.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_MISSING_SUBCOMMAND, feature, validSubcommands, feature));
+            throw new ParseException(String.format(MESSAGE_MISSING_SUBCOMMAND, keyword, validSubcommands, keyword));
         }
 
         String[] words = trimmedArguments.split("\\s+", 2);
         Parser<? extends Command> parser = parsers.get(words[0].toLowerCase(Locale.ROOT));
         if (parser == null) {
-            throw new ParseException(String.format(MESSAGE_UNKNOWN_SUBCOMMAND, words[0], feature, validSubcommands));
+            throw new ParseException(String.format(MESSAGE_UNKNOWN_SUBCOMMAND, words[0], keyword, validSubcommands));
         }
 
         logger.fine("Dispatching command: " + feature + " " + words[0]);

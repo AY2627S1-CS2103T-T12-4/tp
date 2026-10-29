@@ -166,6 +166,22 @@ public class CommandRegistryTest {
     }
 
     @Test
+    public void parseCommand_uppercaseKeyword_errorsShowLowercaseKeyword() {
+        registry.register("group", "list", args -> new StubCommand());
+        registry.register("group", "add", args -> new StubCommand());
+        String missingMessage = String.format(CommandRegistry.MESSAGE_MISSING_SUBCOMMAND,
+                "group", "add, list", "group");
+        for (String feature : new String[] {"GROUP", "Group"}) {
+            assertThrows(ParseException.class, missingMessage, () -> registry.parseCommand(feature, ""));
+            String unknownMessage = String.format(CommandRegistry.MESSAGE_UNKNOWN_SUBCOMMAND,
+                    "FOO", "group", "add, list");
+            assertThrows(ParseException.class, unknownMessage, () -> registry.parseCommand(feature, "FOO"));
+        }
+        assertThrows(ParseException.class, String.format(MESSAGE_UNKNOWN_COMMAND, "UNKNOWN"), () ->
+                registry.parseCommand("UNKNOWN", "list"));
+    }
+
+    @Test
     public void parseCommand_invalidArguments_propagatesFeatureError() {
         registry.register("group", "add", args -> {
             throw new ParseException("Invalid group name.");
