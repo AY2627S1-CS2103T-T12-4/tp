@@ -57,6 +57,8 @@ public class StudentListPanel extends UiPart<Region> {
     @FXML
     private Label studentCount;
     @FXML
+    private Label recordHint;
+    @FXML
     private VBox emptyState;
     @FXML
     private Label emptyTitle;
@@ -91,6 +93,10 @@ public class StudentListPanel extends UiPart<Region> {
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Row numbers depend on positions, which change when another student is removed.
         students.addListener((ListChangeListener<Student>) change -> studentTable.refresh());
+        int identityColumnCount = studentTable.getColumns().size();
+        new StudentRecordColumns(studentTable, activeGroup, groups);
+        recordHint.visibleProperty().bind(Bindings.size(studentTable.getColumns()).greaterThan(identityColumnCount));
+        recordHint.managedProperty().bind(recordHint.visibleProperty());
 
         groupTitle.textProperty().bind(Bindings.createStringBinding(() -> describeTitle(activeGroup.getValue()),
                 activeGroup));
@@ -234,7 +240,7 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Shows a value in a table cell, with a tooltip that keeps the full value readable when the cell is too narrow.
      */
-    private static class StudentCell extends TableCell<Student, String> {
+    static class StudentCell extends TableCell<Student, String> {
         @Override
         protected void updateItem(String value, boolean isEmpty) {
             super.updateItem(value, isEmpty);

@@ -51,8 +51,9 @@ the same, such as `view storage`.
 
 ![TAssist displaying the Students screen for tutorial group T01](images/Ui.png)
 
-This example shows the result of `assignment list a/PS1`: Alice has submitted PS1 and received 87, while Ben has not
-submitted it. The footer shows the full path of the local data file; your path depends on the home folder you chose.
+This example shows Alice's Week 3 attendance and participation, plus her submitted PS1 with a grade of 87.
+Ben has no weekly records and has not submitted PS1. These values appear directly in the Students table.
+The footer shows the full path of the local data file; your path depends on the home folder you chose.
 
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
 Press **Escape** to return focus to the command box, or **F1** to open Help. Clicking a screen keeps your cursor in
@@ -61,12 +62,20 @@ the command box.
 * **Students** is titled with the name of the active tutorial group and the number of students in it, and lists the
   students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
-  more students.
+  more students. Recorded attendance weeks, participation weeks, and assignments appear as extra columns, updating
+  immediately when you enter or change records. Week columns are ordered by week; assignments use creation order.
+  Scroll horizontally to see more columns. Hover over a shortened heading or value to read it in full.
+  A missing weekly value shows `Not recorded`; an assignment shows `Not submitted`, `Submitted | Not graded`, or
+  `Submitted | GRADE/100`. Weeks with no records for any student are hidden. Search and sorting affect the rows,
+  while the columns still cover the whole active group.
 * **Records** holds the last requested record listing in the main workspace. Open it with `view records` or the
   Records button. It starts with a reminder of the listing commands.
 * **Help** provides an offline reference for every available command, with its format, rules, and examples.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
+
+The Students table shows the active group's records without running a list command. From another screen, enter
+`view students` to see the updated table.
 
 `attendance list w/3`, `participation list w/3`, and `assignment list a/PS1` open **Records** with the complete listing.
 The feedback box shows its heading. Records keeps the last listing when you open another screen;

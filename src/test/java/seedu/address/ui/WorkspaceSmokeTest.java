@@ -49,6 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -81,6 +82,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -228,6 +231,169 @@ public class WorkspaceSmokeTest {
         } finally {
             runOnFx(() -> stage.hide());
         }
+    }
+
+    @Test
+    public void studentRecords_commands_showLiveWeeklyAndAssignmentValues() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                model.setTAssist(new TAssist());
+                enter(input, "group add g/T01");
+                enter(input, "student add n/Alice Tan id/A0123400X");
+                enter(input, "student add n/Ben Lim id/A0123401X");
+                enter(input, "attendance mark id/A0123400X w/3 s/present");
+                enter(input, "participation set id/A0123400X w/3 s/2");
+                enter(input, "assignment add a/PS1");
+                assertRecordCell("Assignment: PS1", 0, "Not submitted");
+                enter(input, "assignment submit a/PS1 id/A0123400X s/yes");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | Not graded");
+                enter(input, "assignment grade a/PS1 id/A0123400X m/87");
+                assertRecordCell("Attendance W3", 0, "Present");
+                assertRecordCell("Participation W3", 0, "2");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | 87/100");
+                assertRecordCell("Attendance W3", 1, "Not recorded");
+                assertRecordCell("Participation W3", 1, "Not recorded");
+                assertRecordCell("Assignment: PS1", 1, "Not submitted");
+                render(root, "live-records-example", 1280, 720);
+                TableColumn<?, ?> gradeColumn = studentTable().getColumns().getLast();
+                enter(input, "assignment grade a/PS1 id/A0123400X m/100");
+                assertEquals(gradeColumn, studentTable().getColumns().getLast());
+                assertRecordCell("Assignment: PS1", 0, "Submitted | 100/100");
+                enter(input, "undo");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | 87/100");
+                enter(input, "undo");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | Not graded");
+                enter(input, "redo");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | 87/100");
+                enter(input, "view help");
+                enter(input, "attendance mark id/A0123400X w/3 s/absent");
+                enter(input, "view storage");
+                enter(input, "view students");
+                assertRecordCell("Attendance W3", 0, "Absent");
+                enter(input, "assignment grade a/PS1 id/A0123400X m/101");
+                assertRecordCell("Assignment: PS1", 0, "Submitted | 87/100");
+                enter(input, "assignment submit a/PS1 id/A0123400X s/no");
+                assertRecordCell("Assignment: PS1", 0, "Not submitted");
+                enter(input, "attendance clear id/A0123400X w/3");
+                assertFalse(recordHeadings().contains("Attendance W3"));
+                enter(input, "undo");
+                assertRecordCell("Attendance W3", 0, "Absent");
+                enter(input, "assignment rename a/PS1 n/Problem Set One");
+                assertTrue(recordHeadings().contains("Assignment: Problem Set One"));
+                assertFalse(recordHeadings().contains("Assignment: PS1"));
+                enter(input, "assignment delete a/Problem Set One f/yes");
+                assertFalse(recordHeadings().contains("Assignment: Problem Set One"));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentRecords_searchGroupSwitchAndEqualReload_keepCurrentGroupColumns() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                enter(input, "attendance mark id/A0234567Y w/13 s/absent");
+                enter(input, "participation set id/A0123456X w/3 s/0");
+                enter(input, "student find n/Alice");
+                assertRecordCell("Attendance W13", 0, "Not recorded");
+                assertRecordCell("Participation W3", 0, "0");
+                enter(input, "group use g/T02");
+                assertEquals(List.of("#", "NAME", "STUDENT ID"), recordHeadings());
+                enter(input, "assignment add a/Other group only");
+                enter(input, "group use g/T01");
+                assertFalse(recordHeadings().contains("Assignment: Other group only"));
+                Group oldGroup = model.getActiveGroup().orElseThrow();
+                model.setTAssist(new TAssist(model.getTAssist()));
+                enter(input, "assignment add a/Reloaded");
+                assertRecordCell("Assignment: Reloaded", 0, "Not submitted");
+                oldGroup.addAssignment(new Assignment(new AssignmentName("Detached")));
+                assertFalse(recordHeadings().contains("Assignment: Detached"));
+                enter(input, "student sort by/name");
+                enter(input, "student edit id/A0123456X n/Alice New nid/Z1");
+                assertRecordCell("Participation W3", 0, "0");
+                enter(input, "group rename g/T01 n/Renamed");
+                assertRecordCell("Participation W3", 0, "0");
+                enter(input, "group delete g/Renamed f/yes");
+                assertEquals(List.of("#", "NAME", "STUDENT ID"), recordHeadings());
+                enter(input, "undo");
+                enter(input, "group use g/Renamed");
+                assertRecordCell("Participation W3", 0, "0");
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentRecords_saveFailure_restoresColumnsAndKeepsFollowingTheRestoredGroup() throws Exception {
+        runOnFx(() -> initializeWorkspace(DataLoadStatus.LOADED, new IOException("Disk full")));
+        try {
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+                enter(input, "attendance mark id/A0123456X w/3 s/absent");
+                assertRecordCell("Attendance W3", 0, "Present");
+                enter(input, "participation set id/A0123456X w/4 s/2");
+                assertFalse(recordHeadings().contains("Participation W4"));
+                model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "ABSENT"));
+                assertRecordCell("Attendance W3", 0, "Absent");
+                enter(input, "assignment add a/Unsaved");
+                assertFalse(recordHeadings().contains("Assignment: Unsaved"));
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentRecords_manyColumnsAtCompactSizes_remainScrollableAndReadable() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                for (int i = 0; i < 17; i++) {
+                    enter(input, "student add n/Student id/S" + i);
+                }
+                enter(input, "attendance mark id/A0123456X w/13 s/present");
+                enter(input, "attendance mark id/A0123456X w/1 s/absent");
+                enter(input, "participation set id/A0123456X w/3 s/2");
+                enter(input, "assignment add a/Problem Set One With A Long Assignment Name");
+                for (int width : List.of(1280, 854)) {
+                    stage.setWidth(width);
+                    stage.setHeight(width == 1280 ? 720 : 480);
+                    root.applyCss();
+                    root.layout();
+                    assertEquals(20, studentTable().getItems().size());
+                    assertEquals(List.of("#", "NAME", "STUDENT ID", "Attendance W1", "Attendance W13",
+                            "Participation W3", "Assignment: Problem Set One With A Long Assignment Name"),
+                            recordHeadings());
+                    assertTrue(studentTable().lookupAll(".scroll-bar").stream().anyMatch(node ->
+                            node instanceof ScrollBar bar && bar.getOrientation() == Orientation.HORIZONTAL
+                                    && bar.isVisible()));
+                    assertTrue(input.isVisible());
+                    assertEquals(320, studentTable().getColumns().get(1).getWidth(), 1);
+                    assertRecordCell("Attendance W13", 0, "Present");
+                    render(root, "live-records-" + width, width, width == 1280 ? 720 : 480);
+                }
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    private List<String> recordHeadings() {
+        return studentTable().getColumns().stream().map(column -> column.getUserData() instanceof String heading
+                ? heading : column.getText()).toList();
+    }
+
+    private void assertRecordCell(String heading, int row, String expected) {
+        assertTrue(recordHeadings().contains(heading), "Missing record column: " + heading);
+        TableColumn<?, ?> column = studentTable().getColumns().get(recordHeadings().indexOf(heading));
+        assertEquals(expected, column.getCellObservableValue(row).getValue(), heading);
     }
 
     @Test

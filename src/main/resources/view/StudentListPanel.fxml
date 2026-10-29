@@ -12,6 +12,9 @@
     <Label fx:id="studentCount" styleClass="count-badge" minWidth="-Infinity" />
     <Region HBox.hgrow="ALWAYS" />
   </HBox>
+  <Label fx:id="recordHint"
+         text="Recorded weeks and assignments appear as columns. Scroll right for more; hover for full values."
+         styleClass="muted, record-hint" wrapText="true" />
   <StackPane VBox.vgrow="ALWAYS" minHeight="0">
     <TableView fx:id="studentTable" minHeight="0" editable="false" />
     <VBox fx:id="emptyState" alignment="CENTER" spacing="8" styleClass="empty-state">

@@ -118,6 +118,14 @@ Students screen and the group strip say "Saved data could not be read" instead, 
 until the file is repaired. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
+`StudentRecordColumns` adds live attendance and participation columns for weeks recorded anywhere in the active
+group, followed by an assignment column for each assignment in creation order. It observes the current group's
+student and assignment lists, and resolves group replacements through Logic's group list so undo, redo, and failed
+save rollback do not leave stale values or listeners. Searches only filter rows, not the available columns.
+Record columns keep readable widths and scroll horizontally; when no records or assignments exist, the name
+column fills the remaining space as before. Missing weekly records, unsubmitted work, and ungraded submissions
+have distinct captions. Column headings and values have tooltips for long text.
+
 `StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
 is passed through a callback in `WorkspacePanel` to `MainWindow`, which fills the template built by
 `AttendanceMarkCommand.buildTemplate` using its ID.
@@ -160,14 +168,12 @@ It starts a fresh history position, returns focus to the input, and places the c
 A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
 an incomplete template stays editable after its validation error.
 
-Groups, attendance, participation, and assignments have no screen of their own; their commands show records in the
-feedback box. Earlier versions showed empty **Coming soon** tables for them, which looked like unfinished work, so they
-were removed. Table screens for these records remain a possible future enhancement: each would observe the model in the
-same way as the Students screen, add a `WorkspaceView` constant, and register a button in `NavigationBar`.
+Attendance, participation, and assignment records appear as live columns in the Students table, and their list
+commands also open snapshots on the Records screen. Groups are shown in the group bar and by `group list`.
 
-The screenshot below shows the implemented Students screen with an active group and its roster.
+The screenshot below shows the implemented Students screen with an active group, its roster, and live records.
 
-![Implemented TAssist UI showing the T01 student roster](images/Ui.png)
+![Implemented TAssist UI showing the T01 student roster and records](images/Ui.png)
 
 #### Differences from the supplied mock-up
 
@@ -175,8 +181,8 @@ The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The 
 
 * The mock-up's dark menu header and separate group strip are replaced by a light group bar and a screen-navigation row.
 * The app uses native JavaFX controls rather than rendering the mock-up as an HTML page.
-* The mock-up shows an Attendance screen. The app has Students, Help, and Storage screens and the group bar, all
-  showing live data. Attendance, participation, and assignment records appear in the feedback box instead.
+* The mock-up shows an Attendance screen. The app has Students, Records, Help, and Storage screens and the group bar.
+  Attendance, participation, and assignment records appear as live columns in Students and as snapshots in Records.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -2082,6 +2088,14 @@ assignment listings in Records at normal and compact sizes, keeping the listing 
 commands without saving, scrolling Records with PageUp and PageDown, and retaining invalid input for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
+
+To check the live Students columns, create a group with Alice and Ben, then mark Alice present for week 3,
+set her participation to 2, create PS1, mark it submitted, and grade it 87. Without running any list commands,
+expect `Attendance W3`, `Participation W3`, and `Assignment: PS1` columns with Alice's values and Ben's missing
+records. Change and clear values, undo and redo, then switch groups: the columns must show only the current group.
+Search for Ben and verify that the same week and assignment columns remain. At compact sizes, scroll horizontally
+to reach the final column and hover over long headings or values. The desktop regression also covers failed-save
+rollback and reloading an equal copy of the active group.
 
 1. Type `help`, `view students`, and `view storage`. Verify that each screen opens and the storage path is the
    actual TAssist data path. Enter `view attendance` and verify that it reports an unknown screen.
