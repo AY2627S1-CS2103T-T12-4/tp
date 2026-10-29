@@ -144,7 +144,7 @@ public class StudentEditCommandTest {
     public void execute_unknownStudentOrNoActiveGroup_throwsCommandExceptionWithoutChange() {
         StudentEditCommand command = new StudentEditCommand(FIONA.getStudentId(), Optional.of(NEW_NAME),
                 Optional.empty());
-        assertCommandFailure(command, model, "Student ID A0678901R does not exist in T01.");
+        assertCommandFailure(command, model, String.format(Messages.MESSAGE_UNKNOWN_STUDENT, "A0678901R", "T01"));
 
         model.setTAssist(TypicalGroups.getTypicalTAssist());
         assertCommandFailure(command, model, Messages.MESSAGE_NO_ACTIVE_GROUP);
