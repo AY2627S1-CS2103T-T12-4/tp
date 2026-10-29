@@ -19,7 +19,8 @@ public class AttendanceListCommandParserTest {
 
     @Test
     public void parse_missingWeek_reportsRequiredPrefix() {
-        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/")
+                        + " Usage: " + AttendanceListCommand.MESSAGE_USAGE);
     }
 
     @Test
