@@ -1794,8 +1794,8 @@ label.
    `student delete id/A0123456X`. Each should ask you to create or select a group, without changing data.
 2. Create T01 with `group add g/T01`. Add Alice using the command above, then enter
    `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows. The second feedback
-   ends with a warning that T01 already has a student named Alice Tan. Enter `student add n/alice  tan id/A3` to see
-   the same warning for a name that differs only in case and spacing.
+   ends with a warning that T01 already has a student named Alice Tan (A0123456X). Enter
+   `student add n/alice  tan id/A3` to see the same warning for a name that differs only in case and spacing.
 3. Enter `student list`. Expect numbered rows with both IDs. Close and reopen the app; both students remain.
 4. Try `student add n/Other Name id/a0123456x`, `student add n/Alice`, `student add n/Alice id/ABC`,
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
