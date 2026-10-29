@@ -17,6 +17,7 @@ Class StudentId
 Class UniqueAssignmentList
 Class Assignment
 Class AssignmentName
+Class AssignmentRecord
 Class "WeeklyRecord<T>" as WeeklyRecord
 }
 
@@ -30,6 +31,7 @@ Group *--> "1" UniqueAssignmentList
 UniqueStudentList --> "~* all" Student
 UniqueAssignmentList --> "~* all" Assignment
 Assignment *--> "1" AssignmentName
+Assignment *--> "*" AssignmentRecord : records by StudentId
 Student *--> "1" StudentName
 Student *--> "1" StudentId
 Student *--> "2" WeeklyRecord : records

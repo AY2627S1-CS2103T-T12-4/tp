@@ -7,6 +7,7 @@ TAssist is a **desktop application for CS2040S teaching assistants, optimized fo
 The Students screen shows the students in your active tutorial group.
 You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
 record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
+A mistaken change can be reversed with `undo` and `redo`, which cover your last 20 changes since you opened TAssist.
 
 * Table of Contents
 {:toc}
@@ -126,8 +127,16 @@ Selecting rows with the keyboard does not replace your draft.
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
 
-* Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
+* Command words ignore case: `GROUP add`, `group ADD`, and `group add` work the same way.
+  Parameter prefixes still use lowercase letters, such as `g/` and `id/`. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
+
+* Put a space before each prefix. If a prefix is joined to the text before it, as `w/` is in
+  `attendance mark id/A0123456Xw/3 s/present`, TAssist reports
+  `Missing space before w/ in 'id/A0123456Xw/3'. Put a space before each prefix.` If the joined word follows a
+  space, as `Tanid/` does in `student add n/Alice Tanid/A0123456X`, TAssist reports the unknown prefix `Tanid/`
+  and adds `If id/ starts a new parameter, put a space before it.` A mistyped prefix such as `status/` gets only
+  the unknown-prefix error.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -213,7 +222,8 @@ Extra input, such as `group list g/T01`, is rejected. Long lists can be scrolled
 ### Switching tutorial groups: `group use`
 
 Makes an existing tutorial group active. The highlighted group in the top bar and the Students screen update
-immediately. Each group's students and records stay separate. Selecting the already active group also succeeds.
+immediately. Each group's students and records stay separate. Selecting the group that is already active shows
+`T01 is already the active group. Nothing changed.` and leaves the data unchanged.
 
 Format: `group use g/GROUP_NAME`
 
@@ -228,15 +238,17 @@ position in the list, and active status.
 Format: `group rename g/GROUP_NAME n/NEW_NAME`
 
 * The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
-* Changing only the capitalization or spacing of a group's own name, such as `T01` to `t01`, is allowed.
+* Changing only the capitalization of a group's own name, such as `T01` to `t01`, is allowed.
+* Entering the group's current name, even with extra spaces, shows
+  `Tutorial group T01 already has that name. Nothing changed.` and leaves the data unchanged.
 
 Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02-Thu.`
 
 ### Deleting a tutorial group: `group delete`
 
-Deletes a tutorial group together with all its students and their records. **This cannot be undone**, so check the
-name with `group list` first. Other groups are unchanged. If the deleted group was active, no group is active
-afterwards; select one with `group use`.
+Deletes a tutorial group together with all its students and their records. If deleted by mistake, `undo` brings the
+group back. Check the name with `group list` first. Other groups are unchanged. If the deleted group was active, no
+group is active afterwards; select one with `group use`.
 
 Format: `group delete g/GROUP_NAME [f/yes]`
 
@@ -354,7 +366,8 @@ The chosen order remains active for later matches or additions; sorting does not
 Asks you to confirm before removing a student and all their records from the active group.
 The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
 by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
-group is unaffected, and remaining students are renumbered without changing their order.
+group is unaffected, and remaining students are renumbered without changing their order. If you delete a student by
+mistake, `undo` brings them back.
 
 Format: `student delete id/STUDENT_ID [f/yes]`
 
@@ -372,6 +385,7 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
 Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
@@ -439,7 +453,9 @@ The change is saved automatically, and `attendance list` and `group export` no l
 Invalid weeks, unknown students, and no active group have the same errors as `attendance mark`. Only `id/` and `w/`
 are accepted, so a status such as `s/present` is rejected. For example, `attendance clear id/A0123456X w/3 s/present`
 shows `Unknown prefix 's/'. Allowed prefixes: id/ w/.`, and `attendance clear` with no parameters
-shows `Missing required parameter(s): id/ w/. Include each exactly once.`
+shows `Missing required parameter(s): id/ w/. Include each exactly once.` Extra text after a value is reported too:
+`attendance clear id/A0123456X w/3 now` shows
+`Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.`
 
 ### Recording participation: `participation set`
 
@@ -528,8 +544,8 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 
 Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
 and `no` for not submitted. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
-a grade was recorded. If the submission is already not submitted, the command reports that nothing changed and leaves
-the data unchanged.
+a grade was recorded. If the student already has that status, the command reports that nothing changed and leaves the
+data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
@@ -548,6 +564,8 @@ Records or replaces a whole-number grade from 0 to 100 for a submitted assignmen
 Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 
 Example: `assignment grade a/PS1 id/A0123456X m/87` shows `Recorded grade 87 for Alice Tan's PS1.`
+Replacing it with `assignment grade a/PS1 id/A0123456X m/60` shows `Updated Alice Tan's PS1 grade: 87 to 60.`,
+and entering the same grade again shows `Alice Tan's PS1 grade is already 60. Nothing changed.`
 An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
 assignment submit a/PS1 id/A0123456X s/yes`.
 
@@ -558,12 +576,12 @@ Listing does not change any data.
 
 Format: `assignment list a/ASSIGNMENT_NAME`
 
-Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
 `assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
-Alice Tan | A0123456X | Submitted | 87
+Alice Tan | A0123456X | Submitted | 60
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
@@ -698,6 +716,7 @@ TAssist data is saved as `data/tassist.json` in the home folder, which is the fo
 Preferences (`preferences.json`), the log file, and the `exports` folder for `group export` are in that same folder.
 TAssist does not read or write files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
+Save it as UTF-8. Editors that save "UTF-8 with BOM", such as Windows Notepad, also work.
 If the file is missing, TAssist shows `No saved data found. Starting with an empty database.`
 It creates the file after the first successful command that changes data.
 
@@ -757,8 +776,10 @@ the reason, and `No changes were made to the saved file.` For example:
 For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
 The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
 file invalid; trailing spaces, tabs, and line breaks are allowed.
-The file is protected for that session: commands that would change data are rejected. Help, listing, navigation,
-and exit remain available. The log file `tassist.log.0` also records the reason loading failed.
+The file is protected for that session: only `help`, `view`, and `exit` work. Every other command, including
+listing commands such as `group list`, is rejected because the data it would show or change was not loaded. The
+feedback repeats the startup message, including the reason, and adds
+`Close TAssist, repair or move the unreadable data file, and restart to see or change your records.` The log file `tassist.log.0` also records the reason loading failed.
 Close TAssist, back up and repair the file, then restart. To start afresh, move the unreadable file to a backup
 location while TAssist is closed, then restart. Repairing the file while the app is open does not re-enable saving.
 </div>
@@ -781,6 +802,10 @@ location while TAssist is closed, then restart. Repairing the file while the app
    but cannot save. Every command that changes data reports
    `Unable to save changes. Your previous saved data is unchanged.` with a reminder to check the folder's
    permissions. Move the JAR to a folder you can write to, such as one in your home folder, and start it again.
+1. **Running two copies of TAssist from the same home folder at once** is not supported, and TAssist does not warn
+   you. Each copy works on the data it loaded at startup and saves the whole file after every change, so a change
+   saved by one copy is overwritten by the other copy's next save, even though the footer showed `Changes saved.`
+   Close TAssist before starting it again, and check that no other TAssist window is still open.
 
 --------------------------------------------------------------------------------------------------------------------
 

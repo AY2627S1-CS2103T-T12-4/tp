@@ -128,7 +128,7 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
 
         assertTrue(app.getDataLoadStatus().isFailure());
         assertEquals(new TAssist(), app.model.getTAssist());
-        assertThrows(CommandException.class, LogicManager.MESSAGE_DATA_PROTECTED, () ->
+        assertThrows(CommandException.class, LogicManager.getDataProtectedMessage(app.getDataLoadStatus()), () ->
                 app.logic.execute("group add g/T01"));
         app.logic.execute("help");
         assertArrayEquals(unreadableFile, Files.readAllBytes(dataFile), "An unreadable file must never be replaced");

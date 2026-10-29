@@ -75,6 +75,27 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_repeatedSubmitOrGrade_savesOnlyRealChanges() throws Exception {
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/A0123456X s/yes");
+        feedback("assignment grade a/PS1 id/A0123456X m/87");
+        String saved = Files.readString(dataFile);
+
+        CommandResult submitted = app.logic.execute("assignment submit a/PS1 id/A0123456X s/yes");
+        assertEquals("Alice Tan's PS1 submission status is already submitted. Nothing changed.",
+                submitted.getFeedbackToUser());
+        assertFalse(submitted.hasSavedChanges());
+        CommandResult sameGrade = app.logic.execute("assignment grade a/PS1 id/A0123456X m/87");
+        assertEquals("Alice Tan's PS1 grade is already 87. Nothing changed.", sameGrade.getFeedbackToUser());
+        assertFalse(sameGrade.hasSavedChanges());
+        assertEquals(saved, Files.readString(dataFile));
+
+        CommandResult newGrade = app.logic.execute("assignment grade a/PS1 id/A0123456X m/60");
+        assertEquals("Updated Alice Tan's PS1 grade: 87 to 60.", newGrade.getFeedbackToUser());
+        assertTrue(newGrade.hasSavedChanges());
+    }
+
+    @Test
     public void execute_noWithoutSubmission_preservesModelAndSavedFile() throws Exception {
         feedback("assignment add a/PS1");
         TAssist expected = new TAssist(app.model.getTAssist());

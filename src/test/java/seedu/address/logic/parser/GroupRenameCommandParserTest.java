@@ -38,6 +38,14 @@ public class GroupRenameCommandParserTest {
     }
 
     @Test
+    public void parse_missingSpaceBeforePrefix_reportsMissingSpace() {
+        assertParseFailure(parser, "g/T01n/T02",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "n/", "g/T01n/T02"));
+        assertParseFailure(parser, "n/T02g/T01",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "g/", "n/T02g/T01"));
+    }
+
+    @Test
     public void parse_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }

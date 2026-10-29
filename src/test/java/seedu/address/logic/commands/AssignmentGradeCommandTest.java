@@ -34,7 +34,7 @@ public class AssignmentGradeCommandTest {
     }
 
     @Test
-    public void execute_validGrade_recordsAndReplacesGrade() {
+    public void execute_validGrade_recordsAndReplacesGradeShowingOldGrade() {
         Model model = modelWithSubmittedAssignment();
         Model expected = modelWithSubmittedAssignment();
         expected.setAssignment(NAME_T01, PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 87));
@@ -45,7 +45,17 @@ public class AssignmentGradeCommandTest {
         Model updatedExpected = modelWithSubmittedAssignment();
         updatedExpected.setAssignment(NAME_T01, PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 91));
         assertCommandSuccess(new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 91), model,
-                "Recorded grade 91 for Alice Tan's PS1.", updatedExpected);
+                "Updated Alice Tan's PS1 grade: 87 to 91.", updatedExpected);
+    }
+
+    @Test
+    public void execute_sameGrade_reportsNoChanges() {
+        Model model = modelWithSubmittedAssignment();
+        model.setAssignment(NAME_T01, PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 87));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+
+        assertCommandSuccess(new AssignmentGradeCommand(NAME_PS1, ALICE_ID, 87), model,
+                "Alice Tan's PS1 grade is already 87. Nothing changed.", expected);
     }
 
     @Test

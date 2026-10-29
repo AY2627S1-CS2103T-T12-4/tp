@@ -56,7 +56,7 @@ public class ParticipationSetCommandParserTest {
         assertParseFailure(parser, "Alice id/A1 w/3 s/2",
                 String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "Alice", "id/ w/ s/"));
         assertParseFailure(parser, "id/A1 w/3s/2",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "s/", "w/3s/2"));
     }
 
     @Test

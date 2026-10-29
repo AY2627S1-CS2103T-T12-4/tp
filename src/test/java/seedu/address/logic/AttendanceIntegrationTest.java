@@ -131,6 +131,8 @@ public class AttendanceIntegrationTest {
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
         assertFailureUnchanged("attendance clear id/A0123456X w/3 s/present", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "id/ w/"));
+        assertFailureUnchanged("attendance clear id/A0123456X w/3 now", ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "w/3", "now"));
         assertFailureUnchanged("attendance clear id/A0456789W w/3",
                 CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
     }
@@ -156,7 +158,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456X s/absent", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
         assertFailureUnchanged("attendance mark id/A0123456Xw/3 s/absent", ParseException.class,
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0123456Xw/3"));
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/absent s/present", ParseException.class,
                 Messages.MESSAGE_DUPLICATE_FIELDS + "s/");
         assertFailureUnchanged("attendance list w/3 x/value", ParseException.class,

@@ -58,6 +58,12 @@ public class StudentDeleteCommandParserTest {
     }
 
     @Test
+    public void parse_missingSpaceBeforeId_reportsMissingSpace() {
+        assertParseFailure(parser, "f/yesid/A0123456X",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "f/yesid/A0123456X"));
+    }
+
+    @Test
     public void parse_missingIdBeforeExtraText_reportsMissingParameter() {
         assertParseFailure(parser, "f/yes A0123456X",
                 "Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);

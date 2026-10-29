@@ -20,6 +20,7 @@ public class StudentDeleteCommandParser implements Parser<StudentDeleteCommand> 
                 List.of(PREFIX_ID, PREFIX_FAST));
         ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         if (values.getValue(PREFIX_ID).isEmpty()) {
+            parser.verifyNoMissingSpaceBefore(values, PREFIX_ID);
             throw new ParseException("Missing required parameter. Usage: " + StudentDeleteCommand.MESSAGE_USAGE);
         }
         parser.verifyNoExtraText(values);

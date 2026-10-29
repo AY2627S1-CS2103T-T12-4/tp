@@ -37,6 +37,20 @@ public class AttendanceMarkCommandParserTest {
     }
 
     @Test
+    public void parse_missingSpaceBeforePrefix_reportsMissingSpace() {
+        assertParseFailure(parser, "id/A0123456Xw/3 s/present",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0123456Xw/3"));
+        assertParseFailure(parser, "id/A0123456X w/3s/present",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "s/", "w/3s/present"));
+    }
+
+    @Test
+    public void parse_mistypedStatusPrefix_reportsUnknownPrefixWithoutHint() {
+        assertParseFailure(parser, "id/A0123456X w/3 status/present",
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "status/", "id/ w/ s/"));
+    }
+
+    @Test
     public void parse_invalidValues_reportsValueConstraints() {
         assertParseFailure(parser, "id/ w/3 s/present", StudentId.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "id/invalid! w/3 s/present", StudentId.MESSAGE_CONSTRAINTS);

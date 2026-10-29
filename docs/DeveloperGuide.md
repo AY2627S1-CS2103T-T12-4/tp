@@ -214,7 +214,7 @@ The `Model` component,
 The `Storage` component,
 * can save both TAssist data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
-* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and its assignment names, `JsonAdaptedStudent` for `Student`, and `JsonAdaptedAssignmentRecord` for each student's `AssignmentRecord` in an assignment (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 * also writes a group's records to a CSV file through `GroupRecordsCsvExporter`. This is a one-way export that TAssist never reads back, so it is kept out of the `Storage` interface (see [Exporting a group's records](#exporting-a-groups-records)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -236,16 +236,16 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 
 ```java
 CommandRegistry registry = new CommandRegistry();
-GroupCommandRegistration.registerCommands(registry);
+GroupCommandRegistration.registerCommands(registry, exportFolder);
 StudentCommandRegistration.registerCommands(registry);
 ParticipationCommandRegistration.registerCommands(registry);
 AttendanceCommandRegistration.registerCommands(registry);
 AssignmentCommandRegistration.registerCommands(registry);
-Logic logic = new LogicManager(model, storage, registry);
+Logic logic = new LogicManager(model, storage, registry, dataLoadStatus);
 ```
 
-`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `list`,
-`rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `export`,
+`list`, `rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
@@ -291,9 +291,14 @@ an example that continues the session, and matching User Guide text before its t
 For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
 produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.
-Unknown feature keywords report an unknown command. Both keywords use lowercase letters; surrounding whitespace
-and repeated whitespace between keywords are ignored. Argument values retain their capitalization and spacing
-until their value validator normalizes them.
+Unknown feature keywords report an unknown command. User-entered command words and subcommands ignore case,
+using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. Surrounding whitespace and repeated
+whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
+validator normalizes them; parameter prefixes remain lowercase.
+
+`HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
+lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
+that mixed-case undo and redo work.
 
 Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
 
@@ -309,10 +314,19 @@ Prefixes contain lowercase letters followed by `/`, and start at the beginning o
 Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
 parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
-produce specific errors. Each command parser passes the prefixes whose values are a single word (for example `id/`
+produce specific errors. If a missing prefix appears inside another value right after other text, as `w/` does in
+`id/A0123456Xw/3`, the error says `Missing space before w/ in 'id/A0123456Xw/3'.` instead of naming `w/` as
+missing. It quotes only the value's first word, the only word that can hide a prefix, since a later word with a
+slash is read as a prefix of its own. Such a word, as in `n/Alice Tanid/A1`, is an unknown prefix (`Tanid/`). The
+error adds `If id/ starts a new parameter, put a space before it.` only when the word comes after another value,
+ends with an allowed prefix that the input lacks, and has text before that prefix that is not all lowercase letters.
+Without these checks, a mistyped prefix name such as `status/` or `studentid/` would get a hint that does not help.
+Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
-instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
-`parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes, as the student
+and group parsers do, calls `verifyNoMissingSpaceBefore()` for a missing one before reporting it. If it also has
+single-word prefixes, it calls `parseWithoutExtraTextCheck()` first and `verifyNoExtraText()` last.
+Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
 
@@ -383,9 +397,12 @@ therefore have the same hash code, while display capitalization is preserved.
   one removed. The feedback states how many students were deleted.
 * `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
   `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
-  and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
+  and keeps it active if it was active. Changing only the case of the group's own name is allowed.
   `GroupName` equality ignores case, but `Group#equals` compares the name's exact capitalization, so `LogicManager`
-  sees a case-only rename as a change. It is saved and recorded for undo like any other rename.
+  sees a case-only rename as a change. It is saved and recorded for undo like any other rename. A new name equal
+  to the stored name, after spaces are normalized, returns unchanged feedback without calling `Model.renameGroup`.
+* `GroupUseCommand` returns unchanged feedback when the group is already active, without calling
+  `Model.setActiveGroup`.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
@@ -619,9 +636,13 @@ one row per student in roster order: name, student ID, submission status, and gr
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
-recorded grade and the success message calls out that loss only when a grade existed. If `s/no` is requested for an
-already unsubmitted record, `AssignmentSubmitCommand` returns unchanged feedback without updating the model.
-This also covers a student with no explicit record, so the command does not create a record or save the file.
+recorded grade and the success message calls out that loss only when a grade existed. If the requested status equals
+the recorded one, `AssignmentSubmitCommand` returns unchanged feedback without updating the model. For `s/no`, this
+also covers a student with no explicit record, so the command does not create a record or save the file.
+Like `participation set`, `AssignmentGradeCommand` feedback distinguishes a first grade, a replacement (showing the
+old and new grade, such as `87 to 60`), and a grade equal to the existing one, which says nothing changed.
+Unlike `AssignmentSubmitCommand`, the grade command still calls `Model.setAssignment` for an equal grade, and
+`LogicManager` skips saving because the data is unchanged.
 Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
@@ -808,13 +829,20 @@ their previous state. The UI shows the error and retains the rejected input. A s
   can report one past the end of an unknown word. Any other read error says the file could not be opened.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
+When reading a file, `JsonUtil` drops a leading UTF-8 byte-order mark (BOM), which some editors such as Windows
+Notepad add on save, so an otherwise unchanged file still loads. The next save writes the file without the BOM.
 `JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
 JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
 is allowed. This prevents a later save from silently removing appended content.
 
-`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
-change data and restores the snapshot without attempting a save. Read-only commands remain available. This
-protection lasts until restart, including if the user repairs the file while the app is running. The user must
+`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects every command except
+`help`, `view`, and `exit` before running it. On the empty model, a listing command would otherwise report that no
+groups exist and suggest creating records that cannot be saved. A command opts in by overriding
+`Command#canRunWithoutSavedData()`, which returns false by default. As a safeguard, logic also rejects any command
+that changes data and restores the snapshot without attempting a save. Both rejections use
+`LogicManager#getDataProtectedMessage`, which repeats the status message with its reason and adds how to recover,
+so the reason stays visible after the startup message is replaced.
+This protection lasts until restart, including if the user repairs the file while the app is running. The user must
 close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
 protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
 permission errors are reported rather than treated as missing data.
@@ -1312,7 +1340,7 @@ The following extensions apply to every use case that changes or views records o
       Use case resumes at step 3.
 
 * 5c. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
-    * 5c1. TAssist replaces the previous grade with the new grade.
+    * 5c1. TAssist replaces the previous grade with the new grade and shows both grades.
 
       Use case resumes at step 6.
 
@@ -1508,7 +1536,8 @@ through the real parsers, model and JSON storage, but the steps below also check
    1. Enter `group use g/T01`. The previous step left T02 active, and PS1 exists only in T01, so switch
       back before trying the duplicate. Note the contents of `data/tassist.json`. Enter commands with an
       invalid value (`attendance mark id/A0123456X w/14 s/present`), a missing parameter
-      (`participation set id/A0123456X w/1`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
+      (`participation set id/A0123456X w/1`), a missing space before a prefix
+      (`attendance mark id/A0123456Xw/1 s/present`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
       (`assignment add a/ps1`), an unknown student (`attendance mark id/A9 w/1 s/present`) and a very long
       value (a student name of a few thousand letters).<br>
       Expected: `group use` reports `Switched active group to T01.` and saves. Each later command fails
@@ -1552,6 +1581,15 @@ label.
       Expected: The app starts empty and shows `No saved data found. Starting with an empty database.`
       `help` does not create the file. `group add g/T01` creates it and shows `Changes saved.`
 
+1. Dealing with a data file saved with a byte-order mark
+
+   1. Prerequisites: Close the app. Open `data/tassist.json` in an editor that can save "UTF-8 with BOM", such as
+      Windows Notepad, and save it with that encoding without other changes.
+
+   1. Launch the app.<br>
+      Expected: The saved groups, students, and records load as usual, with no `Saved data could not be read.`
+      message. `group add g/BomTest` shows `Changes saved.`
+
 1. Dealing with an invalid data file
 
    1. Prerequisites: Close the app. In `data/tassist.json`, delete a closing brace.
@@ -1561,8 +1599,11 @@ label.
       `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
       stopped, then `No changes were made to the saved file.` The log also records the cause.
 
-   1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
-      Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
+   1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
+      Expected: Both `group list` and the mutation are rejected with
+      `Saved data could not be read. The file has a JSON syntax error or a value of the wrong type near line L. No
+      changes were made to the saved file. Close TAssist, repair or move the unreadable data file, and restart to see
+      or change your records.` Help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
    1. Close the app and restore a valid file containing a student in T01. Set their participation map to
@@ -1616,8 +1657,9 @@ label.
    `Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` List Week 3; Alice shows `Not recorded`.
    Enter the clear command again. Expect `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
    Close and reopen, then list Weeks 3 and 13. Expect `Not recorded` and 5.
-6. Try `participation clear id/A0123456X w/3 s/2` and `participation clear w/3`. Expect unknown-prefix and
-   missing-prefix errors without changing any record.
+6. Try `participation clear id/A0123456X w/3 s/2`, `participation clear w/3`, and
+   `participation clear id/A0123456X w/3 now`. Expect unknown-prefix, missing-prefix, and
+   `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.` errors without changing any record.
 7. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
    With no active group, all three commands must ask you to create or select a group first.
 
@@ -1635,9 +1677,11 @@ label.
    `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
    `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
    as 87.
-4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`; the list should now show 91. Withdraw her
-   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say the recorded grade was
-   cleared, and the list should show `Not submitted | -` for Alice.
+4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`. Expect
+   `Updated Alice Tan's PS1 grade: 87 to 91.`, and the list should now show 91. Repeat the command and the
+   submission `assignment submit a/PS1 id/A0123456X s/yes`; expect `Nothing changed.` feedback for each, without
+   `Changes saved.` Withdraw her submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback
+   to say the recorded grade was cleared, and the list should show `Not submitted | -` for Alice.
    Repeat the command; expect unchanged feedback with no mention of a grade being cleared and no save confirmation.
 5. Submit Alice again and record grade 87 so the saved file contains a complete record. Close and reopen the app,
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
@@ -1724,6 +1768,8 @@ label.
 1. Switching and persistence
 
    1. Enter `group use g/t01`. Expected: `Switched active group to T01.` and T01 is highlighted.
+   1. Enter `group use g/T01` again. Expected: `T01 is already the active group. Nothing changed.` without
+      `Changes saved.`
    1. Close and reopen the app. Expected: Both groups remain and T01 is active.
       If groups contain students loaded from JSON, switching shows only the selected group's roster.
 
@@ -1745,6 +1791,8 @@ label.
    1. Enter `group rename g/T01 n/t01`. Expected: `Renamed tutorial group T01 to t01.` with `Changes saved.`, and
       the chip shows t01. Enter `undo`. Expected: `Undone: group rename g/T01 n/t01`, and the chip shows T01 again,
       with T02-Thu unchanged.
+   1. Enter `group rename g/T01 n/T01`. Expected: `Tutorial group T01 already has that name. Nothing changed.`
+      without `Changes saved.`
    1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
       that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
       removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
@@ -1800,6 +1848,8 @@ label.
    1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
    1. Enter `attendance clear id/A0123456X w/4 s/present`.
       Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
+   1. Enter `attendance clear id/A0123456X w/4 now`.
+      Expected: `Unexpected extra text after 'w/4': 'now'. This value cannot contain spaces.`
 
 1. Rejected commands
 
@@ -1840,6 +1890,18 @@ parameter errors, empty groups, week boundaries, and display formatting.
    1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
       Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
    1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
+
+### Entering commands in mixed case
+
+1. Command words and subcommands ignore case
+
+   1. Prerequisites: Launch the JAR in an empty writable folder.
+   1. Enter `GROUP add g/T04`, then `group ADD g/T05`. Expected: Each group is created exactly as with lowercase
+      command words.
+   1. With a student in the active group, enter `attendance Mark id/A0123456X w/5 s/present`. Expected: The same
+      feedback and record as the lowercase command.
+   1. Enter `GROUP add G/T06`. Expected: The command is rejected, because parameter prefixes stay lowercase, and
+      the data does not change.
 
 ### Preparing a command from a student row
 

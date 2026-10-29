@@ -23,10 +23,30 @@ final class GroupCommandParserUtil {
     }
 
     /**
-     * Parses {@code arguments} with {@code g/} and the given extra prefixes, each allowed at most once.
+     * Parses {@code arguments} with {@code g/} and the given extra prefixes, each allowed at most once. The command
+     * needs all of them, so one that is missing is reported if it was typed right after another value.
      */
     static ArgumentMultimap parseValues(String arguments, Prefix... extraPrefixes) throws ParseException {
-        return createParser(List.of(), extraPrefixes).parse(arguments);
+        TAssistArgumentParser parser = createParser(List.of(), extraPrefixes);
+        ArgumentMultimap values = parser.parse(arguments);
+        verifyNoMissingSpace(parser, values, PREFIX_GROUP);
+        verifyNoMissingSpace(parser, values, extraPrefixes);
+        return values;
+    }
+
+    /**
+     * Checks that each of {@code prefixes} that has no value in {@code values} was not typed right after another
+     * value without a space.
+     *
+     * @throws ParseException if a missing prefix is joined to another value.
+     */
+    static void verifyNoMissingSpace(TAssistArgumentParser parser, ArgumentMultimap values, Prefix... prefixes)
+            throws ParseException {
+        for (Prefix prefix : prefixes) {
+            if (values.getValue(prefix).isEmpty()) {
+                parser.verifyNoMissingSpaceBefore(values, prefix);
+            }
+        }
     }
 
     /**

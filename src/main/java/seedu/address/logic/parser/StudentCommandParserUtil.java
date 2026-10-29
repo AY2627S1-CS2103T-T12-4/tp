@@ -34,6 +34,7 @@ final class StudentCommandParserUtil {
         ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         for (Prefix prefix : prefixes) {
             if (values.getValue(prefix).isEmpty()) {
+                parser.verifyNoMissingSpaceBefore(values, prefix);
                 throw new ParseException("Missing required parameter. Usage: " + usage);
             }
         }
