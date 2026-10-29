@@ -11,6 +11,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 final class StudentCommandParserUtil {
     static final Prefix PREFIX_NAME = new Prefix("n/");
     static final Prefix PREFIX_ID = new Prefix("id/");
+    static final Prefix PREFIX_NEW_ID = new Prefix("nid/");
 
     private StudentCommandParserUtil() {}
 
