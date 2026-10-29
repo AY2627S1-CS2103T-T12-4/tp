@@ -62,6 +62,11 @@ public class HelpCommand extends Command {
     }
 
     @Override
+    public boolean canRunWithoutSavedData() {
+        return true;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;
