@@ -8,6 +8,7 @@ import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -37,12 +38,21 @@ public class TAssistParserTest {
     public void parseCommand_undoAndRedo() throws Exception {
         assertEquals(new UndoCommand(), parser.parseCommand("  " + UndoCommand.COMMAND_WORD + "  "));
         assertEquals(new RedoCommand(), parser.parseCommand(RedoCommand.COMMAND_WORD));
-        for (String input : List.of("undo 3", "redo all", "undo id/A0123456X")) {
+        for (String input : List.of("undo 3", "redo all", "undo id/A0123456X", "UNDO 3", "ReDo all", "EXIT now")) {
             assertThrows(ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS, () ->
                     parser.parseCommand(input));
         }
-        assertThrows(ParseException.class, String.format(MESSAGE_UNKNOWN_COMMAND, "UNDO"), () ->
-                parser.parseCommand("UNDO"));
+        assertEquals(new UndoCommand(), parser.parseCommand("UNDO"));
+        assertEquals(new RedoCommand(), parser.parseCommand("ReDo"));
+    }
+
+    @Test
+    public void parseCommand_uppercaseBuiltIns_returnsSameCommand() throws Exception {
+        assertTrue(parser.parseCommand("ExIt") instanceof ExitCommand);
+        for (String input : List.of("help", "help student", "view students", "undo", "redo")) {
+            assertEquals(parser.parseCommand(input).execute(new ModelManager()),
+                    parser.parseCommand(input.toUpperCase(Locale.ROOT)).execute(new ModelManager()));
+        }
     }
 
     @Test
@@ -87,6 +97,8 @@ public class TAssistParserTest {
 
         assertSame(groupList, featureParser.parseCommand("  group\t list  "));
         assertSame(studentAdd, featureParser.parseCommand("student\n add Alice Tan"));
+        assertSame(groupList, featureParser.parseCommand("  GROUP\t LiSt  "));
+        assertSame(studentAdd, featureParser.parseCommand("StuDent\n ADD Alice Tan"));
         assertTrue(featureParser.parseCommand("exit") instanceof ExitCommand);
         assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
                 featureParser.parseCommand("view attendance").execute(new ModelManager()));
