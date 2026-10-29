@@ -39,6 +39,14 @@ public class CommandTestUtil {
     }
 
     /**
+     * Asserts a complete record listing and its request to open the records workspace.
+     */
+    public static void assertRecordListingSuccess(Command command, Model actualModel, String expectedMessage,
+            Model expectedModel) {
+        assertCommandSuccess(command, actualModel, CommandResult.forRecordListing(expectedMessage), expectedModel);
+    }
+
+    /**
      * Executes the given {@code command}, confirms that <br>
      * - a {@code CommandException} is thrown <br>
      * - the CommandException message matches {@code expectedMessage} <br>

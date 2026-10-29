@@ -68,14 +68,17 @@ the command box.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
 
-Groups, attendance, participation, and assignments have no screen of their own. Their commands show the records in
-the feedback box: for example, `group list` lists your groups and `attendance list w/3` lists Week 3's attendance.
+`attendance list w/3` and `participation list w/3` open **Records** with the complete weekly listing.
+The feedback box shows its heading. Records keeps the last listing when you open another screen;
+use `view records` to return to it. The listing is a snapshot: run the list command again after editing records or
+switching groups. It is not saved between launches. Group and assignment lists still appear in the feedback box.
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
 on a red background means it failed. It grows to fit the message, up to four lines (about three in the compact
 layout); only longer messages need scrolling. Long feedback, such as a list, can be scrolled with **PageUp** and
-**PageDown** (**Fn+Up** and **Fn+Down** on a Mac laptop) while you type. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
-`help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
+**PageDown** (**Fn+Up** and **Fn+Down** on a Mac laptop) while you type. When Records is open, these keys scroll
+its listing instead. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view`, `help`, and the weekly list
+commands do. Screen contents can be scrolled. Smaller windows use a compact layout.
 The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
 Escape shortcuts.
 Opening a screen with `view` does not save or change data.
@@ -521,7 +524,7 @@ Lists attendance for the active tutorial group in student order, without changin
 Format: `attendance list w/WEEK`
 
 For example, after the examples above, `attendance list w/3` shows the following in the
-scrollable feedback box:
+Records screen:
 
 ```text
 Attendance for T01, Week 3:
@@ -580,7 +583,7 @@ Setting the same score again shows `Alice Tan's participation score for Week 3 i
 ### Listing participation: `participation list`
 
 Lists every student in the active group in roster order, with their score for the requested week.
-Scores appear in the feedback box; scroll it for long lists.
+Scores appear on the Records screen. Scroll the listing with PageUp and PageDown while typing in the command box.
 
 Format: `participation list w/WEEK`
 

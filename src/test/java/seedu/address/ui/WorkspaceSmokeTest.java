@@ -393,9 +393,10 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/a0123456x w/3 s/0");
                 assertEquals("Recorded participation score 0 for Alice Tan in Week 3.", feedback.getText());
                 enter(input, "participation list w/3");
+                TextArea listing = (TextArea) root.lookup("#recordListing");
                 assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 0"
                         + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
-                        feedback.getText());
+                        listing.getText());
                 enter(input, "participation set id/A0123456X w/3 s/6");
                 assertEquals("Invalid participation score. Enter a whole number from 0 to 5.", feedback.getText());
                 assertEquals("participation set id/A0123456X w/3 s/6", input.getText());
@@ -403,7 +404,7 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/A0123456X w/3 s/4");
                 assertEquals("Updated Alice Tan's participation score for Week 3: 0 to 4.", feedback.getText());
                 assertTrue(input.getText().isEmpty());
-                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
             });
             runOnFx(() -> render(root, "participation-commands", 853, 440));
         } finally {
@@ -615,7 +616,7 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
-    public void attendanceCommands_largeGroup_showsScrollableFeedbackAndRetainsInvalidInput() throws Exception {
+    public void attendanceCommands_largeGroup_showsRecordsAndRetainsInvalidInput() throws Exception {
         runOnFx(this::initializeWorkspace);
         try {
             runOnFx(() -> {
@@ -628,25 +629,29 @@ public class WorkspaceSmokeTest {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertEquals("Recorded Alice Tan as present for Week 3.", feedback.getText());
                 enter(input, "attendance list w/3");
-                assertEquals(21, feedback.getText().lines().count());
-                assertTrue(feedback.getText().contains("Alice Tan | A0123456X | Present"));
-                assertTrue(feedback.getText().contains("Student | A116 | Not recorded"));
-                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
+                TextArea listing = (TextArea) root.lookup("#recordListing");
+                assertEquals(21, listing.getText().lines().count());
+                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
+                assertTrue(listing.getText().contains("Student | A116 | Not recorded"));
+                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("Attendance for T01, Week 3:", feedback.getText());
                 assertTrue(input.getText().isEmpty());
             });
             runOnFx(() -> render(root, "attendance-list", 853, 440));
             runOnFx(() -> {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
-                assertTrue(hasVisibleVerticalScrollBar(feedback), "A full tutorial group's attendance can scroll");
+                TextArea listing = (TextArea) root.lookup("#recordListing");
+                assertTrue(hasVisibleVerticalScrollBar(listing), "A compact records screen can scroll");
+                assertTrue(listing.getHeight() > feedback.getHeight() * 3);
                 input.setText("draft");
                 input.requestFocus();
-                feedback.setScrollTop(0);
+                listing.setScrollTop(0);
                 pressKey(KeyCode.PAGE_DOWN);
-                assertTrue(feedback.getScrollTop() > 0, "PageDown reaches hidden list output");
+                assertTrue(listing.getScrollTop() > 0, "PageDown reaches hidden list output");
                 assertEquals("draft", input.getText());
                 assertEquals(input, stage.getScene().getFocusOwner());
                 pressKey(KeyCode.PAGE_UP);
-                assertEquals(0, feedback.getScrollTop());
+                assertEquals(0, listing.getScrollTop());
                 pressKey(KeyCode.UP);
                 assertEquals("attendance list w/3", input.getText());
                 enter(input, "attendance mark id/A0123456X w/3 s/late");

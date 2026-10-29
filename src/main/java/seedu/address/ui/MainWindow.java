@@ -236,7 +236,11 @@ public class MainWindow extends UiPart<Stage> {
 
             CommandResult result = logic.execute(commandText);
             logger.info("Result: " + result.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
+            if (result.isRecordListing()) {
+                workspacePanel.setRecordListing(result.getFeedbackToUser());
+            }
+            resultDisplay.setFeedbackToUser(result.isRecordListing()
+                    ? result.getFeedbackToUser().lines().findFirst().orElse("") : result.getFeedbackToUser());
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
             }

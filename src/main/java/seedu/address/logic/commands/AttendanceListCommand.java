@@ -37,11 +37,11 @@ public class AttendanceListCommand extends Command {
         Group group = getActiveGroup(model);
         List<WeeklyRecordEntry<String>> entries = group.getWeeklyRecordEntries(week, Student::getAttendanceRecords);
         if (entries.isEmpty()) {
-            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
+            return CommandResult.forRecordListing(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
         String rows = entries.stream().map(AttendanceListCommand::formatRow).collect(Collectors.joining("\n"));
-        return new CommandResult(String.format(MESSAGE_HEADER, group.getName(), week) + "\n" + rows);
+        return CommandResult.forRecordListing(String.format(MESSAGE_HEADER, group.getName(), week) + "\n" + rows);
     }
 
     private static String formatRow(WeeklyRecordEntry<String> entry) {
