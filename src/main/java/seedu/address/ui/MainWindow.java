@@ -116,13 +116,15 @@ public class MainWindow extends UiPart<Stage> {
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
-        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
+        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
+                dataLoadStatus.isFailure());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
                 logic.getDisplayedStudentList(), logic.studentFilterActiveProperty(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
-                        AttendanceMarkCommand.buildTemplate(student.getStudentId())));
+                        AttendanceMarkCommand.buildTemplate(student.getStudentId())),
+                dataLoadStatus.isFailure());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
