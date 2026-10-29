@@ -55,7 +55,7 @@ public class GroupRenameCommandTest {
     public void execute_unknownGroup_preservesData() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         assertCommandFailure(new GroupRenameCommand(TypicalGroups.NAME_T04, NEW_NAME), model,
-                "Tutorial group T04 does not exist.");
+                "Tutorial group T04 does not exist. See groups with: group list");
         assertEquals(TypicalGroups.getTypicalGroups(), model.getTAssist().getGroupList());
     }
 

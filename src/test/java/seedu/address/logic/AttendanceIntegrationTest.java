@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.AttendanceClearCommand;
+import seedu.address.logic.commands.AttendanceMarkCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AttendanceCommandParserUtil;
@@ -128,7 +130,8 @@ public class AttendanceIntegrationTest {
                     ParseException.class, AttendanceCommandParserUtil.MESSAGE_INVALID_WEEK);
         }
         assertFailureUnchanged("attendance clear id/A0123456X", ParseException.class,
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/")
+                        + " Usage: " + AttendanceClearCommand.MESSAGE_USAGE);
         assertFailureUnchanged("attendance clear id/A0123456X w/3 s/present", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "id/ w/"));
         assertFailureUnchanged("attendance clear id/A0123456X w/3 now", ParseException.class,
@@ -156,11 +159,12 @@ public class AttendanceIntegrationTest {
     public void execute_badFormat_preservesModelAndFile() throws Exception {
         logic.execute("attendance mark id/A0123456X w/3 s/present");
         assertFailureUnchanged("attendance mark id/A0123456X s/absent", ParseException.class,
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/")
+                        + " Usage: " + AttendanceMarkCommand.MESSAGE_USAGE);
         assertFailureUnchanged("attendance mark id/A0123456Xw/3 s/absent", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0123456Xw/3"));
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/absent s/present", ParseException.class,
-                Messages.MESSAGE_DUPLICATE_FIELDS + "s/");
+                String.format(Messages.MESSAGE_DUPLICATE_FIELDS, "s/"));
         assertFailureUnchanged("attendance list w/3 x/value", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "x/", "w/"));
     }

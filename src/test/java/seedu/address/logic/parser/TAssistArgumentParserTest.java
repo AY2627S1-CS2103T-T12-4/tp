@@ -123,6 +123,24 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void parse_withUsage_appendsFormatOnlyToMissingParameterError() throws Exception {
+        String usage = "student add n/NAME id/STUDENT_ID";
+        String missingMessage = "Missing required parameter(s): id/. Include each exactly once.";
+        assertThrows(ParseException.class, missingMessage + " Usage: " + usage, () ->
+                parser.parse("n/Alice", usage));
+        assertThrows(ParseException.class, missingMessage, () -> parser.parse("n/Alice"));
+        assertThrows(ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "n/Aliceid/A1"), () ->
+                parser.parse("n/Aliceid/A1", usage));
+        assertThrows(ParseException.class,
+                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "x/", "n/ id/ g/"), () ->
+                parser.parse("x/Alice", usage));
+        assertThrows(ParseException.class, Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME), () ->
+                parser.parse("n/Alice n/Ben", usage));
+        assertEquals("Alice", parser.parse("n/Alice id/A1", usage).getValue(PREFIX_NAME).orElseThrow());
+    }
+
+    @Test
     public void parse_spacesInFreeTextValue_preservesValue() throws Exception {
         assertEquals("Alice Tan", parser.parse("n/Alice Tan id/A1").getValue(PREFIX_NAME).orElseThrow());
     }
@@ -237,6 +255,8 @@ public class TAssistArgumentParserTest {
         assertThrows(NullPointerException.class, () ->
                 new TAssistArgumentParser(List.of(), List.of(), List.of(), null));
         assertThrows(NullPointerException.class, () -> parser.parse(null));
+        assertThrows(NullPointerException.class, () -> parser.parse("n/Alice", null));
+        assertThrows(NullPointerException.class, () -> parser.parse(null, "student add n/NAME id/STUDENT_ID"));
     }
 
     private void assertMissingParameters(String input, String missingPrefixes) {

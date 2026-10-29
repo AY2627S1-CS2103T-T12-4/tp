@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import seedu.address.commons.core.LogsCenter;
@@ -70,6 +71,10 @@ public class JsonUtil {
      */
     public static <T> Optional<T> readJsonFile(
             Path filePath, Class<T> classOfObjectToDeserialize) throws DataLoadingException {
+        return readJsonFile(filePath, objectMapper.readerFor(classOfObjectToDeserialize));
+    }
+
+    private static <T> Optional<T> readJsonFile(Path filePath, ObjectReader reader) throws DataLoadingException {
         requireNonNull(filePath);
 
         if (Files.notExists(filePath)) {
@@ -80,7 +85,7 @@ public class JsonUtil {
         T jsonFile;
 
         try {
-            jsonFile = deserializeObjectFromJsonFile(filePath, classOfObjectToDeserialize);
+            jsonFile = fromJsonString(removeByteOrderMark(FileUtil.readFromFile(filePath)), reader);
         } catch (IOException e) {
             logger.warning("Error reading from jsonFile file " + filePath + ": " + e);
             throw new DataLoadingException(e);
@@ -91,6 +96,20 @@ public class JsonUtil {
             throw new DataLoadingException(new IllegalValueException(MESSAGE_NULL_CONTENT));
         }
         return Optional.of(jsonFile);
+    }
+
+    /**
+     * Reads a JSON file, rejecting unknown fields and fields repeated within the same object.
+     * Preserves the missing-file, byte-order mark, null-content, and trailing-content handling
+     * of {@link #readJsonFile}.
+     *
+     * @throws DataLoadingException if loading of the JSON file failed.
+     */
+    public static <T> Optional<T> readJsonFileStrictly(
+            Path filePath, Class<T> classOfObjectToDeserialize) throws DataLoadingException {
+        return readJsonFile(filePath, objectMapper.readerFor(classOfObjectToDeserialize)
+                .with(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .with(JsonParser.Feature.STRICT_DUPLICATE_DETECTION));
     }
 
     /**
@@ -119,12 +138,29 @@ public class JsonUtil {
      * @throws IOException if the JSON is invalid or contains trailing content.
      */
     public static <T> T fromJsonString(String json, Class<T> instanceClass) throws IOException {
+        return fromJsonString(json, objectMapper.readerFor(instanceClass));
+    }
+
+    private static <T> T fromJsonString(String json, ObjectReader reader) throws IOException {
         try (JsonParser parser = objectMapper.getFactory().createParser(json)) {
-            T result = objectMapper.readValue(parser, instanceClass);
-            if (parser.nextToken() != null) {
-                throw new JsonParseException(parser, "Unexpected content after the JSON value.");
+            try {
+                T result = reader.readValue(parser);
+                if (parser.nextToken() != null) {
+                    throw new JsonParseException(parser, "Unexpected content after the JSON value.");
+                }
+                return result;
+            } catch (JsonProcessingException e) {
+                Throwable cause = e;
+                while (cause.getCause() != null) {
+                    cause = cause.getCause();
+                }
+                // Jackson 2.7's duplicate detector omits the parser location, even for nested fields.
+                if (cause instanceof JsonParseException parseException && parseException.getLocation() == null
+                        && parseException.getOriginalMessage().startsWith("Duplicate field ")) {
+                    throw new JsonParseException(parser, parseException.getOriginalMessage(), e);
+                }
+                throw e;
             }
-            return result;
         }
     }
 

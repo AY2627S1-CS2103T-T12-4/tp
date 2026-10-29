@@ -13,7 +13,8 @@ public class AssignmentAddCommandParser implements Parser<AssignmentAddCommand> 
 
     @Override
     public AssignmentAddCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = new TAssistArgumentParser(List.of(PREFIX_ASSIGNMENT), List.of()).parse(arguments);
+        ArgumentMultimap values = new TAssistArgumentParser(List.of(PREFIX_ASSIGNMENT), List.of())
+                .parse(arguments, AssignmentAddCommand.MESSAGE_USAGE);
         return new AssignmentAddCommand(
                 TAssistParserUtil.parseAssignmentName(values.getValue(PREFIX_ASSIGNMENT).orElseThrow()));
     }

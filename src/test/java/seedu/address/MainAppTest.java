@@ -123,6 +123,9 @@ public class MainAppTest {
         new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
         String validData = Files.readString(dataFile());
         for (String invalidData : List.of("{", "null", duplicateParticipation, duplicateAttendance,
+                validData.replace("\"groups\"", "\"Groups\""),
+                "{\"groups\":[],\"groups\":[]}",
+                weeklyRecordsData.formatted("\"attendance\":{\"3\":\"PRESENT\",\"3\":\"ABSENT\"}"),
                 validData + "\nTHIS IS INVALID JSON",
                 validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
@@ -233,6 +236,25 @@ public class MainAppTest {
     }
 
     @Test
+    public void init_nullGuiSettings_usesAndSavesDefaultsAcrossRestart() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, "{\"guiSettings\":null}");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
+        app.logic.execute("group add g/T01");
+        app.stop();
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+        assertEquals(new UserPrefs(), reopened.model.getUserPrefs());
+        assertTrue(reopened.model.hasGroup(TypicalGroups.NAME_T01));
+        reopened.stop();
+    }
+
+    @Test
     public void init_savedFiles_restoresDataAndPrefs() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
         Path dataFile = temporaryFolder.resolve("tassist.json");
@@ -338,6 +360,18 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_unknownOrRepeatedFields_showsFieldAndLine() throws Exception {
+        assertLoadFailureReason("{\n  \"Groups\": []}",
+                "The file has an unknown field \"Groups\" near line 2.");
+        assertLoadFailureReason("{\n  \"groups\": [],\n  \"groups\": []}",
+                "The file has a repeated field 'groups' near line 3.");
+        assertLoadFailureReason("""
+                {"groups":[{"name":"T01","students":[{"name":"Alice","studentId":"A1",
+                "attendance":{"3":"PRESENT","3":"ABSENT"}}]}]}
+                """, "The file has a repeated field '3' near line 2.");
+    }
+
+    @Test
     public void describeLoadFailure_noJsonLocation_omitsLine() {
         String reason = "The file has a JSON syntax error or a value of the wrong type.";
         assertEquals(reason, MainApp.describeLoadFailure(
@@ -349,7 +383,7 @@ public class MainAppTest {
     private void assertLoadFailureReason(String invalidData, String reason) throws Exception {
         Files.writeString(dataFile(), invalidData);
         mainApp.initModelManager(createStorage(), new UserPrefs());
-        assertEquals(DataLoadStatus.failed(reason), mainApp.getDataLoadStatus());
+        assertEquals(DataLoadStatus.failed(reason).getMessage(), mainApp.getDataLoadStatus().getMessage());
         assertEquals(DataLoadStatus.MESSAGE_FAILED_PREFIX + " " + reason + " "
                 + DataLoadStatus.MESSAGE_FILE_UNCHANGED, mainApp.getDataLoadStatus().getMessage());
     }

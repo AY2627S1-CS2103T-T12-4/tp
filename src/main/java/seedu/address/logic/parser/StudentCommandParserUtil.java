@@ -2,11 +2,14 @@ package seedu.address.logic.parser;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.StudentId;
 
 /**
  * Checks the required parameters of student commands before validating their values.
+ * Every value except the name, such as an ID or a sort field, is a single word.
  */
 final class StudentCommandParserUtil {
     static final Prefix PREFIX_NAME = new Prefix("n/");
@@ -28,17 +31,32 @@ final class StudentCommandParserUtil {
     static ArgumentMultimap parse(String arguments, String usage, Collection<String> literalWords, Prefix... prefixes)
             throws ParseException {
         // Check presence here so the error includes this command's complete format.
-        List<Prefix> singleWordPrefixes = List.of(prefixes).contains(PREFIX_ID) ? List.of(PREFIX_ID) : List.of();
+        List<Prefix> singleWordPrefixes = Stream.of(prefixes)
+                .filter(prefix -> !prefix.equals(PREFIX_NAME))
+                .toList();
         TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(prefixes), singleWordPrefixes,
                 literalWords);
         ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         for (Prefix prefix : prefixes) {
             if (values.getValue(prefix).isEmpty()) {
-                parser.verifyNoMissingSpaceBefore(values, prefix);
+                if (!PREFIX_ID.equals(prefix) || hasJoinedStudentId(values)) {
+                    parser.verifyNoMissingSpaceBefore(values, prefix);
+                }
                 throw new ParseException("Missing required parameter. Usage: " + usage);
             }
         }
         parser.verifyNoExtraText(values);
         return values;
+    }
+
+    /**
+     * Returns true if the name's first word hides an id/ prefix followed by a valid student ID.
+     * A name fragment such as David/Tan has no valid ID after id/, so it needs the missing-parameter error.
+     */
+    private static boolean hasJoinedStudentId(ArgumentMultimap values) {
+        String firstWord = values.getValue(PREFIX_NAME).orElse("").split("\\s+", 2)[0];
+        int prefixStart = firstWord.lastIndexOf(PREFIX_ID.getPrefix());
+        return prefixStart > 0
+                && StudentId.isValidStudentId(firstWord.substring(prefixStart + PREFIX_ID.getPrefix().length()));
     }
 }
