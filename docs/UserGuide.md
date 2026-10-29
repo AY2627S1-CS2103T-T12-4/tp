@@ -227,7 +227,7 @@ separate. Selecting the group that is already active shows
 Format: `group use g/GROUP_NAME`
 
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
-`group use g/t01` does the same.
+entering `group use g/t01` instead selects the same group.
 
 ### Exporting a group's records: `group export`
 
@@ -376,8 +376,9 @@ Format: `student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`
 
 Examples: `student edit id/A0234567Y n/Benjamin Lim` shows
 `Edited Ben Lim (A0234567Y) to Benjamin Lim (A0234567Y) in T01. Their records are kept.`
-`student edit id/A0345678Z nid/A0345679Z` corrects an ID, and
-`student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z` corrects both at once.
+`student edit id/A0345678Z nid/A0345679Z` then corrects Ravi s/o Kumar's student ID.
+Entering `student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z` instead corrects both in
+one command — the ID, and the name too if it were wrong.
 
 ### Listing students: `student list`
 
@@ -641,12 +642,10 @@ data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
-Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
-`Updated Alice Tan's PS1 submission status to submitted.`
-
-If Ben Lim (`A0234567Y`) is in the active group and has never submitted PS1, running
-`assignment submit a/PS1 id/A0234567Y s/no` shows
-`Ben Lim's PS1 submission status is already not submitted. Nothing changed.`
+Example: `assignment submit a/PS1 id/A0123456X s/no` shows
+`Alice Tan's PS1 submission status is already not submitted. Nothing changed.`
+because Alice has not submitted PS1 yet. Running `assignment submit a/PS1 id/A0123456X s/yes`
+then shows `Updated Alice Tan's PS1 submission status to submitted.`
 
 ### Recording a grade: `assignment grade`
 
