@@ -138,10 +138,11 @@ Opens the **Help** screen, which lists the format, rules, and examples of every 
 The feedback box confirms with `Showing the command reference.`
 
 The reference starts with the general commands (`view`, `help`, `undo`, `redo`, and `exit`), followed by the group,
-student, attendance, participation, and assignment commands, in the same order as their sections in this guide.
-Within a topic, commands appear in the order you would use them. The examples are written to follow on from each other: in a new
-TAssist, you can type the group, student, attendance, participation, and assignment examples in order, and each one
-works.
+student, attendance, participation, and assignment commands, in the same order as their sections in this guide. The one
+exception is `group export`: the reference lists it with the group commands, after `group use`, while this guide
+describes it after the assignment commands, once you have records to export. Within a topic, commands appear in the
+order you would use them. The examples are written to follow on from each other: in a new TAssist, you can type the
+group, student, attendance, participation, and assignment examples in order, and each one works.
 
 Format: `help [TOPIC]`
 
