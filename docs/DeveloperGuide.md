@@ -1040,11 +1040,6 @@ be undone again once the save problem is fixed.
   * Pros: No rollback of the history is needed.
   * Cons: Undo and redo need a special path in `LogicManager` instead of going through `Command#execute`.
 
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
