@@ -374,6 +374,9 @@ IDs ignore case, so `student delete id/a0234567y` targets the same student.
 #### Student command errors
 
 Rejected input leaves the roster and saved file unchanged.
+Missing required parameters are reported before invalid values. For example, `student add n/David/Tan`
+reports the missing-parameter usage because no student ID was supplied. Enter the name with a space and
+supply a separate ID, for example `student add n/David Tan id/A0123456X`.
 
 Problem | Feedback and correction
 --------|------------------------
