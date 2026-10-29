@@ -85,7 +85,10 @@ public class StudentListPanel extends UiPart<Region> {
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
                 .setMaxWidth(ROW_NUMBER_WIDTH);
         addColumn("NAME", NAME_COLUMN_WIDTH, student -> student.getName().toString());
-        addColumn("STUDENT ID", ID_COLUMN_WIDTH, student -> student.getStudentId().toString());
+        addColumn("STUDENT ID", ID_COLUMN_WIDTH, student -> student.getStudentId().toString())
+                .setMaxWidth(ID_COLUMN_WIDTH);
+        // Keep the number and ID columns readable while giving the name all remaining table width.
+        studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Row numbers depend on positions, which change when another student is removed.
         students.addListener((ListChangeListener<Student>) change -> studentTable.refresh());
 
