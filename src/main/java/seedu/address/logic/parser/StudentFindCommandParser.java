@@ -7,6 +7,7 @@ import java.util.List;
 
 import seedu.address.logic.commands.StudentFindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.StudentSearchPredicate;
 
 /**
@@ -19,7 +20,8 @@ public class StudentFindCommandParser implements Parser<StudentFindCommand> {
 
     @Override
     public StudentFindCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID))
+        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID),
+                List.of(), StudentName.SLASH_PARTICLES)
                 .parse(arguments);
         for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_ID)) {
             if (values.getValue(prefix).isPresent() && values.getValue(prefix).orElseThrow().isBlank()) {
