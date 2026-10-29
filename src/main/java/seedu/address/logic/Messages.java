@@ -13,9 +13,11 @@ public class Messages {
 
     public static final String MESSAGE_NO_ACTIVE_GROUP =
             "No active tutorial group. Create or select a group first.";
-    public static final String MESSAGE_UNKNOWN_GROUP = "Tutorial group %s does not exist.";
+    public static final String MESSAGE_UNKNOWN_GROUP =
+            "Tutorial group %s does not exist. See groups with: group list";
     public static final String MESSAGE_DUPLICATE_GROUP = "A tutorial group named %s already exists.";
-    public static final String MESSAGE_UNKNOWN_STUDENT = "Student ID %s does not exist in %s.";
+    public static final String MESSAGE_UNKNOWN_STUDENT =
+            "Student ID %s does not exist in %s. See students in the active group with: student list";
     public static final String MESSAGE_UNKNOWN_ASSIGNMENT =
             "Assignment %s does not exist in %s. See the group's assignments with: assignment list\n"
                     + "Or create it with: assignment add a/%s";
