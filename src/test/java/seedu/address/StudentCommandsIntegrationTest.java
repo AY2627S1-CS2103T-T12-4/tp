@@ -90,6 +90,80 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_studentEdit_keepsRecordsAcrossRestartUndoAndRedo() throws Exception {
+        feedback("student add n/Ravi Kumarr id/A0345678Z");
+        feedback("student add n/Ben Lim id/B2");
+        feedback("attendance mark id/A0345678Z w/1 s/present");
+        feedback("participation set id/A0345678Z w/1 s/4");
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/A0345678Z s/yes");
+        feedback("assignment grade a/PS1 id/A0345678Z m/87");
+
+        assertTrue(app.logic.execute("student edit id/A0345678Z n/Ravi s/o Kumar").hasSavedChanges());
+        assertEquals("Edited Ravi s/o Kumar (A0345678Z) to Ravi s/o Kumar (A0345679Z) in T01. "
+                + "Their records are kept.", feedback("student edit id/a0345678z nid/a0345679z"));
+        assertEditedStudentKeepsRecords();
+
+        assertEquals("Undone: student edit id/a0345678z nid/a0345679z", feedback("undo"));
+        assertEquals("Students in T01:\n1. Ravi s/o Kumar | A0345678Z\n2. Ben Lim | B2", feedback("student list"));
+        assertEquals("PS1 records for T01:\nRavi s/o Kumar | A0345678Z | Submitted | 87\n"
+                + "Ben Lim | B2 | Not submitted | -", feedback("assignment list a/PS1"));
+        feedback("redo");
+        assertEditedStudentKeepsRecords();
+        restart();
+        assertEditedStudentKeepsRecords();
+    }
+
+    @Test
+    public void execute_studentEditRejected_preservesModelAndSavedFile() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student add n/Ben Lim id/B2");
+        for (String command : List.of("student edit", "student edit id/A1", "student edit n/Alice Tan",
+                "student edit nid/A3", "student edit id/A1 n/", "student edit id/A1 nid/", "student edit id/A1 nid/!",
+                "student edit id/A1 n/Al1ce", "student edit id/A1 id/A2 nid/A3", "student edit id/A1 nid/A3 nid/A4",
+                "student edit id/A1 n/Alice n/Alicia", "student edit id/A1 x/Alice", "student edit id/A1nid/A3",
+                "student edit id/A1 nid/A3 now", "student edit A1 n/Alice")) {
+            assertRejected(command, ParseException.class);
+        }
+        for (String command : List.of("student edit id/C3 n/Carl Goh", "student edit id/A1 nid/b2",
+                "student edit id/A1 n/Alicia nid/ B2 ", "student edit id/a1 nid/B2")) {
+            assertRejected(command, CommandException.class);
+        }
+    }
+
+    @Test
+    public void execute_studentEditWithoutChange_isNotSavedOrUndoable() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        String saved = Files.readString(dataFile);
+
+        CommandResult result = app.logic.execute("student edit id/a1 n/Alice  Tan nid/A1");
+
+        assertEquals("Alice Tan (A1) already has those details. Nothing changed.", result.getFeedbackToUser());
+        assertFalse(result.hasSavedChanges());
+        assertEquals(saved, Files.readString(dataFile));
+        assertEquals("Undone: student add n/Alice Tan id/A1", feedback("undo"));
+    }
+
+    @Test
+    public void execute_studentEditWhileSearching_keepsSearchAndSort() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student find n/lim");
+        feedback("student sort by/id");
+
+        feedback("student edit id/B2 nid/A0");
+        assertEquals(List.of("A0"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+
+        feedback("student edit id/A0 n/Benjamin Tan");
+        assertTrue(app.logic.getDisplayedStudentList().isEmpty());
+        assertEquals(2, app.logic.getActiveGroupStudentList().size());
+        feedback("undo");
+        assertEquals(List.of("A0"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+    }
+
+    @Test
     public void execute_rejectedCommands_preservesModelAndSavedFile() throws Exception {
         feedback("student add n/Alice Tan id/A1");
         for (String command : List.of("student add", "student add n/Alice", "student add n/ id/A2",
@@ -135,7 +209,8 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     @Test
     public void init_studentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "student");
-        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student list",
+        assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]",
+                        "student list",
                         "student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]", "student sort by/FIELD",
                         "student delete id/STUDENT_ID [f/yes]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
@@ -247,5 +322,19 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
                 .map(student -> student.getStudentId().toString()).toList());
         restart();
         assertEquals("Students in T01:\n1. Ben Lim | B2\n2. Alice Tan | A1", feedback("student list"));
+    }
+
+    /**
+     * Asserts that the group shows Ravi s/o Kumar under the ID A0345679Z with the attendance, participation and
+     * assignment records entered under the ID A0345678Z.
+     */
+    private void assertEditedStudentKeepsRecords() throws Exception {
+        assertEquals("Students in T01:\n1. Ravi s/o Kumar | A0345679Z\n2. Ben Lim | B2", feedback("student list"));
+        assertEquals("Attendance for T01, Week 1:\nRavi s/o Kumar | A0345679Z | Present\n"
+                + "Ben Lim | B2 | Not recorded", feedback("attendance list w/1"));
+        assertEquals("Participation for T01, Week 1:\nRavi s/o Kumar | A0345679Z | 4\n"
+                + "Ben Lim | B2 | Not recorded", feedback("participation list w/1"));
+        assertEquals("PS1 records for T01:\nRavi s/o Kumar | A0345679Z | Submitted | 87\n"
+                + "Ben Lim | B2 | Not submitted | -", feedback("assignment list a/PS1"));
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import seedu.address.logic.commands.StudentAddCommand;
 import seedu.address.logic.commands.StudentDeleteCommand;
+import seedu.address.logic.commands.StudentEditCommand;
 import seedu.address.logic.commands.StudentFindCommand;
 import seedu.address.logic.commands.StudentListCommand;
 import seedu.address.logic.commands.StudentSortCommand;
@@ -31,6 +32,12 @@ public final class StudentCommandRegistration {
                                 + "Include at least one letter outside the slash particles. "
                                 + "IDs: 1-20 letters and digits, at least one digit; unique per group, ignoring case.",
                         List.of("student add n/Alice Tan id/A0123456X", "student add n/Ben Lim id/A0234567Y")));
+        registry.register("student", "edit", new StudentEditCommandParser(),
+                new HelpEntry("student", StudentEditCommand.MESSAGE_USAGE,
+                        "Correct a student's name, student ID, or both in the active group. Attendance, "
+                                + "participation, and assignment records are kept. Include n/ or nid/ or both. "
+                                + "IDs ignore case and must be unique in the group.",
+                        List.of("student edit id/A0234567Y n/Benjamin Lim")));
         registry.register("student", "list", new StudentListCommandParser(),
                 new HelpEntry("student", StudentListCommand.MESSAGE_USAGE,
                         "Clear search and sorting, and show all students in roster order. Takes no parameters.",

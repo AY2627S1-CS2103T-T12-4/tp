@@ -352,6 +352,33 @@ Examples: `student add n/Alice Tan id/A0123456X` shows `Added Alice Tan to T01.`
 `student add n/Ben Lim id/A0234567Y` then adds a second student. `student add n/Ravi s/o Kumar id/A0345678Z` adds
 `Ravi s/o Kumar`, keeping `s/o` in the name.
 
+### Editing a student: `student edit`
+
+Corrects the name, the student ID, or both of a student in the active group, for example after a typing mistake in
+`student add`. The student keeps their place in the roster and all their attendance, participation, submission, and
+grade records, so there is no need to delete the student and enter the records again. The same student in another
+group is unaffected. If you edit the wrong student, `undo` reverses the change.
+
+Format: `student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`
+
+* `id/` is the student's current ID and ignores case. Include `n/`, `nid/`, or both.
+* `n/NEW_NAME` and `nid/NEW_ID` follow the same rules as `n/` and `id/` in `student add`, including names with
+  `s/o`, `d/o`, `a/l`, or `a/p`.
+* The new ID must not belong to another student in the active group, ignoring case. If it does, the feedback is
+  `Student ID A0234567Y already exists in T01.` and nothing changes.
+* Students with the same name are allowed. If another student in the active group already has the new name (ignoring
+  case and extra spaces), the student is still edited and the feedback adds a warning, for example
+  `Warning: T01 already has another student named Ben Lim.`
+* Changing only the capitalization of a name counts as an edit. If the new details are the same as the current ones,
+  the feedback is `Alice Tan (A0123456X) already has those details. Nothing changed.`
+* Supply each prefix at most once, with a space before each parameter. An active search or sort stays in effect, so
+  an edited student who no longer matches the search disappears from the table until you enter `student list`.
+
+Examples: `student edit id/A0234567Y n/Benjamin Lim` shows
+`Edited Ben Lim (A0234567Y) to Benjamin Lim (A0234567Y) in T01. Their records are kept.`
+`student edit id/A0345678Z nid/A0345679Z` corrects an ID, and
+`student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z` corrects both at once.
+
 ### Listing students: `student list`
 
 Clears search and sorting, opens the Students screen, and lists all students in the active group in roster order
@@ -383,7 +410,7 @@ Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
 * Each search replaces the previous search and keeps the current sort order. Blank, repeated, and unknown filters are rejected.
 * Deleting the last student keeps the search active: the pane shows `No matching students` and `0 of 0 students`.
   Later additions still need to match; use `student list` to clear the search.
-* Adding or deleting students updates the matching rows immediately. Other record commands and CSV export
+* Adding, editing, or deleting students updates the matching rows immediately. Other record commands and CSV export
   continue to use the complete group.
 * Switching to a different group or restarting clears search and sorting. Selecting the already active group keeps them.
 * Searching does not change the roster or saved file. Use `student list` to show all students again.
@@ -445,9 +472,11 @@ supply a separate ID, for example `student add n/David Tan id/A0123456X`.
 Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
-Unknown ID when deleting | `Student ID A0123456X does not exist in T01. See students in the active group with: student list` Check the ID and active group.
-Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Duplicate ID when adding | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
+Unknown ID when editing or deleting | `Student ID A0123456X does not exist in T01. See students in the active group with: student list` Check the ID and active group.
+Duplicate ID when editing | `Student ID A0234567Y already exists in T01.` Choose a new ID that no other student in the group has.
+Nothing to edit | `Nothing to edit. Include a new name with n/ or a new student ID with nid/. Usage: student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]` Add `n/`, `nid/`, or both.
+Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the editing or deletion format). Supply all required prefixes.
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
@@ -897,6 +926,7 @@ Action | Format, Examples
 **Delete group** | `group delete g/GROUP_NAME [f/yes]`<br> e.g., `group delete g/T02-Thu`
 **Export group records** | `group export`
 **Add student** | `student add n/NAME id/STUDENT_ID`<br> e.g., `student add n/Alice Tan id/A0123456X`
+**Edit student** | `student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`<br> e.g., `student edit id/A0234567Y n/Benjamin Lim`
 **List students** | `student list`
 **Find students** | `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`<br> e.g., `student find n/alice`
 **Sort students** | `student sort by/FIELD`<br> e.g., `student sort by/name`

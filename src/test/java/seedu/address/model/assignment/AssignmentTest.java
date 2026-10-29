@@ -3,6 +3,7 @@ package seedu.address.model.assignment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
@@ -104,6 +105,36 @@ public class AssignmentTest {
         assertThrows(NullPointerException.class, () -> original.getStudentRecord(null));
         assertThrows(NullPointerException.class, () -> original.withoutStudentRecord(null));
         assertThrows(IllegalArgumentException.class, () -> original.withGrade(aliceId, 87));
+    }
+
+    @Test
+    public void withStudentIdChanged_movesRecordToNewId() {
+        StudentId oldId = new StudentId("A0123456X");
+        StudentId newId = new StudentId("A0123457X");
+        StudentId otherId = new StudentId("A0234567Y");
+        Assignment graded = PS1.withSubmissionStatus(oldId, true).withGrade(oldId, 87)
+                .withSubmissionStatus(otherId, true);
+
+        Assignment moved = graded.withStudentIdChanged(oldId, newId);
+
+        assertEquals(new AssignmentRecord(true, Optional.of(87)), moved.getStudentRecord(newId));
+        assertEquals(AssignmentRecord.notSubmitted(), moved.getStudentRecord(oldId));
+        assertEquals(graded.getStudentRecord(otherId), moved.getStudentRecord(otherId));
+        assertEquals(2, moved.getStudentRecords().size());
+        assertEquals(87, graded.getStudentRecord(oldId).getGrade().orElseThrow());
+    }
+
+    @Test
+    public void withStudentIdChanged_noRecordToMove_discardsRecordAlreadyUnderNewId() {
+        StudentId oldId = new StudentId("A0123456X");
+        StudentId newId = new StudentId("A0123457X");
+        Assignment stale = PS1.withSubmissionStatus(newId, true);
+
+        assertEquals(PS1, stale.withStudentIdChanged(oldId, newId));
+        assertSame(PS1, PS1.withStudentIdChanged(oldId, newId));
+        assertSame(stale, stale.withStudentIdChanged(newId, newId));
+        assertThrows(NullPointerException.class, () -> PS1.withStudentIdChanged(null, newId));
+        assertThrows(NullPointerException.class, () -> PS1.withStudentIdChanged(oldId, null));
     }
 
     @Test

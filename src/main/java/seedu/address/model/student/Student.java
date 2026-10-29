@@ -71,6 +71,11 @@ public class Student {
         return participationRecords;
     }
 
+    /** Returns a copy with the given name and student ID, keeping all weekly records. */
+    public Student withNameAndId(StudentName newName, StudentId newStudentId) {
+        return new Student(newName, newStudentId, attendanceRecords, participationRecords);
+    }
+
     /** Returns a copy with the attendance value for {@code week} added or replaced. */
     public Student withAttendanceRecord(int week, String status) {
         return new Student(name, studentId, attendanceRecords.withRecord(week, status), participationRecords);

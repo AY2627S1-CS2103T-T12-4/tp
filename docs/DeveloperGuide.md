@@ -598,8 +598,8 @@ participation feedback and failed-input retention through the JavaFX command box
 
 ### Student commands
 
-`StudentCommandRegistration` registers `student add`, `student list`, `student find`, `student sort`, and
-`student delete`, including their help formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
+`StudentCommandRegistration` registers `student add`, `student edit`, `student list`, `student find`,
+`student sort`, and `student delete`, including their help formats and examples. `MainApp.init` installs these registrations before constructing `LogicManager`.
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
 name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
@@ -612,7 +612,15 @@ Each command obtains the active group at execution time and throws `CommandExcep
 student and appends a warning that names the existing student and their ID to its success message.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
-same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
+same ID. `StudentEditCommand` (`student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`) builds the corrected student
+with `Student.withNameAndId`, which keeps the weekly records, and calls `Model.replaceStudent`. `Group.replaceStudent`
+swaps the student in place, so the roster order is kept, and `Assignment.withStudentIdChanged` moves the assignment
+records, which are keyed by student ID, to the new ID. The command rejects a new ID that another student in the group
+already has before changing anything, and warns instead of rejecting when another student has the new name, as
+`student add` does. `StudentEditCommandParser` declares `nid/` for the new ID, since `id/` already identifies the
+student, and `n/` for the new name as in `group rename`. An edit that changes nothing is reported and not saved.
+Because `LogicManager` stores the whole data before each change, `undo` restores the old name, ID, and records
+together. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
 numbered roster or an empty-roster hint.
 
 Before execution, `MainWindow` asks Logic for the command's optional confirmation prompt. A command describes the
@@ -1833,7 +1841,18 @@ label.
 6. Delete A2 using `student delete id/A2 f/yes`, then list students. Expect an empty-roster hint. Try deleting A2
    again; expect an unknown-ID error.
    Close and reopen; T01 stays empty and T02 still contains Alice.
-7. In T01, enter `student add n/Ravi s/o Kumar id/A0345678Z` and `student add n/SITI D/O AHMAD id/A0456789W`.
+7. In T01, enter `student add n/Ravi Kumarr id/A0567890U`, `student add n/Ben Lim id/A0234567Y`,
+   `attendance mark id/A0567890U w/1 s/present`, `participation set id/A0567890U w/1 s/4`, `assignment add a/PS1`,
+   `assignment submit a/PS1 id/A0567890U s/yes`, and `assignment grade a/PS1 id/A0567890U m/87`.
+   Enter `student edit id/a0567890u n/Ravi Kumar`, then `student edit id/A0567890U nid/A0567891U`. Expect
+   `Edited Ravi Kumarr (A0567890U) to Ravi Kumar (A0567890U) in T01. Their records are kept.` and a similar message
+   for the ID. The row keeps its position, and `attendance list w/1`, `participation list w/1`, and
+   `assignment list a/PS1` show Ravi Kumar under A0567891U with Present, 4, and 87. Enter `undo` and `redo`; the
+   ID goes back to A0567890U with the same records, then forward again. Close and reopen; the records remain.
+   Then try `student edit id/A0567891U nid/a0234567y`, `student edit id/A9 n/Zoe`, `student edit id/A0567891U`, and
+   `student edit id/A0567891U n/Ravi  Kumar nid/a0567891u`. Expect a duplicate-ID error, an unknown-ID error, a
+   nothing-to-edit message, and `Nothing changed.`, with the saved file unchanged each time.
+8. In T01, enter `student add n/Ravi s/o Kumar id/A0345678Z` and `student add n/SITI D/O AHMAD id/A0456789W`.
    Expect `Added Ravi s/o Kumar to T01.` and `Added SITI D/O AHMAD to T01.` Close and reopen; both names are unchanged.
    Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
    `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, an unknown prefix `s/` with a hint to

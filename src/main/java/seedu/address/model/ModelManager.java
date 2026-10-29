@@ -162,6 +162,13 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void replaceStudent(GroupName groupName, StudentId studentId, Student replacement) {
+        requireAllNonNull(groupName, studentId, replacement);
+        tAssist.replaceStudent(groupName, studentId, replacement);
+        logger.fine("Replaced a student in " + groupName);
+    }
+
+    @Override
     public void addAssignment(GroupName groupName, Assignment assignment) {
         requireAllNonNull(groupName, assignment);
         tAssist.addAssignment(groupName, assignment);
