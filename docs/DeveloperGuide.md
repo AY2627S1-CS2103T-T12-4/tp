@@ -100,8 +100,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 The UI consists of `MainWindow`, `GroupStrip`, `NavigationBar`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and
 `StatusBarFooter`. `MainWindow` places the `GroupStrip` and the `NavigationBar` in one light bar at the top.
-`WorkspacePanel` hosts four screens: the live `StudentListPanel` table, `RecordListPanel`, `HelpPanel`, and
-`StoragePanel`.
+`WorkspacePanel` hosts the three screens: the live `StudentListPanel` table, `HelpPanel`, and `StoragePanel`.
 Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar opens the
 same screen as `view SCREEN` (without its feedback message), names that command in its tooltip, and does not take
 keyboard focus away from the command box, so the UI stays usable by mouse while the app remains command-first.
@@ -129,19 +128,12 @@ Keyboard or programmatic selection does not prepare a template, and empty rows a
 navigation and other read-only commands do not write data. `CommandResult.hasSavedChanges()` tells the UI whether
 to show `Changes saved.` in the footer. Commands keep the current screen unless they request navigation or help.
 
-Attendance, participation, and assignment listings return `CommandResult.forRecordListing(...)` with their complete
-text and a request to open Records. `MainWindow` sends the text to `RecordListPanel` and puts only its heading in
-`ResultDisplay`. The records text area grows with the workspace, so a normal tutorial's records use the main area.
-PageUp and PageDown scroll Records while it is open and the feedback box on other screens; neither takes focus
-from the command box. The last listing stays available through `view records`, without changing the model or file.
-It is explicitly a snapshot: a new list command refreshes it, and restarting clears it.
-
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
 confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
 `HelpPanel` to that topic's heading. F1, the Help button of the `NavigationBar` and `view help` open the same screen.
 
 `ResultDisplay` sizes itself to the message: it measures how many lines the text wraps to at the current width and
-shows that many rows, from one up to four. Longer messages scroll. It shows a check mark beside a message, or a cross on
+shows that many rows, from one up to six. Longer messages scroll. It shows a check mark beside a message, or a cross on
 a red row when the command failed, and failed commands retain their input.
 
 `CommandBox` keeps a `CommandHistory` of every command entered in the session, including failed ones. An event filter
@@ -2069,7 +2061,7 @@ It uses temporary storage and writes rendered previews to `build/ui-previews/`.
 Linux CI enables this test under the runner's virtual display (`xvfb-run`) so the uploaded coverage includes the UI.
 The macOS and Windows CI jobs run the standard suite.
 
-The smoke test covers all four screens at normal and compact sizes, F1 and Escape, navigation without saving,
+The smoke test covers all three screens at normal and compact sizes, F1 and Escape, navigation without saving,
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
@@ -2077,31 +2069,23 @@ do not open a screen keeping the current screen, a usage message fitting the fee
 recalling and editing earlier commands with Up and Down, including after a recalled command fails. Normal unit tests cover screen
 parsing, result identity, navigation with unavailable storage, the Students screen's captions and empty states, and
 `CommandHistory`.
-It also checks attendance commands through the command box, displaying 20-student attendance, participation, and
-assignment listings in Records at normal and compact sizes, keeping the listing through navigation and rejected
-commands without saving, scrolling Records with PageUp and PageDown, and retaining invalid input for correction.
+It also checks attendance commands through the command box, scrolling a 20-student listing in a compact window,
+and retaining an invalid attendance command for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
 1. Type `help`, `view students`, and `view storage`. Verify that each screen opens and the storage path is the
    actual TAssist data path. Enter `view attendance` and verify that it reports an unknown screen.
-2. Create a group with 20 students. Run `attendance list w/3`, `participation list w/3`, and
-   `assignment list a/PS1` after creating PS1. Each opens Records with a heading and every student's row; the
-   feedback box shows only the heading. At 1280x720 and at the compact size, verify that Records uses the main
-   workspace and scroll it with PageUp and PageDown while keeping a draft in the command box.
-   Open Storage and return with `view records`; the last listing remains. Try `attendance list w/14`; the input
-   stays editable and the listing is unchanged. Change a record and rerun its list command to refresh the snapshot.
-   Restart the app: saved records remain, while Records initially shows instructions for listing them.
-3. Start a fresh session in another empty folder. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
+2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
    Add and remove students with `student add` and `student delete`. The group strip and the table should update
    at once. Click each screen in the
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
-4. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
+3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
-5. Enter `view student` and `view students`, and verify that both open the Students screen.
+4. Enter `view student` and `view students`, and verify that both open the Students screen.
    Enter `help group`, `help student`, and `help assignment`, then repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
-6. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
+5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
    the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
    Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at
    100% and 150% on the target platforms. The automated compact preview uses 853x440 content pixels, allowing for

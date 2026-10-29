@@ -31,8 +31,6 @@ public class CommandResult {
     /** The user cancelled the command, so its input should be kept for editing. */
     private final boolean isCancelled;
 
-    private final boolean isRecordListing;
-
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
@@ -52,11 +50,6 @@ public class CommandResult {
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
             String helpTopic, boolean hasSavedChanges, boolean isCancelled) {
-        this(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges, isCancelled, false);
-    }
-
-    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
-            String helpTopic, boolean hasSavedChanges, boolean isCancelled, boolean isRecordListing) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
@@ -64,7 +57,6 @@ public class CommandResult {
         this.helpTopic = requireNonNull(helpTopic);
         this.hasSavedChanges = hasSavedChanges;
         this.isCancelled = isCancelled;
-        this.isRecordListing = isRecordListing;
     }
 
     /**
@@ -88,13 +80,6 @@ public class CommandResult {
      */
     public static CommandResult forHelp(String feedbackToUser, String helpTopic) {
         return new CommandResult(feedbackToUser, true, false, null, helpTopic);
-    }
-
-    /**
-     * Returns a complete listing to display in the main records workspace.
-     */
-    public static CommandResult forRecordListing(String listing) {
-        return new CommandResult(listing, false, false, WorkspaceView.RECORDS, "", false, false, true);
     }
 
     /**
@@ -129,10 +114,6 @@ public class CommandResult {
         return hasSavedChanges;
     }
 
-    public boolean isRecordListing() {
-        return isRecordListing;
-    }
-
     public boolean isCancelled() {
         return isCancelled;
     }
@@ -141,7 +122,7 @@ public class CommandResult {
      * Returns a copy confirming that this command's data changes have been saved.
      */
     public CommandResult withSavedChanges() {
-        return new CommandResult(feedbackToUser, showHelp, exit, view, helpTopic, true, isCancelled, isRecordListing);
+        return new CommandResult(feedbackToUser, showHelp, exit, view, helpTopic, true, isCancelled);
     }
 
     @Override
@@ -161,14 +142,12 @@ public class CommandResult {
                 && view == otherCommandResult.view
                 && helpTopic.equals(otherCommandResult.helpTopic)
                 && hasSavedChanges == otherCommandResult.hasSavedChanges
-                && isCancelled == otherCommandResult.isCancelled
-                && isRecordListing == otherCommandResult.isRecordListing;
+                && isCancelled == otherCommandResult.isCancelled;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges, isCancelled,
-                isRecordListing);
+        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges, isCancelled);
     }
 
     @Override
@@ -181,7 +160,6 @@ public class CommandResult {
                 .add("helpTopic", helpTopic)
                 .add("hasSavedChanges", hasSavedChanges)
                 .add("isCancelled", isCancelled)
-                .add("isRecordListing", isRecordListing)
                 .toString();
     }
 

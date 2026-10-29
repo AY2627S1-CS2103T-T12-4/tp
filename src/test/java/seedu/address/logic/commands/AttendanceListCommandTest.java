@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
-import static seedu.address.logic.commands.CommandTestUtil.assertRecordListingSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.CARL;
@@ -100,6 +100,6 @@ public class AttendanceListCommandTest {
 
     private void assertListingUnchanged(int week, String feedback) {
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
-        assertRecordListingSuccess(new AttendanceListCommand(week), model, feedback, expected);
+        assertCommandSuccess(new AttendanceListCommand(week), model, feedback, expected);
     }
 }

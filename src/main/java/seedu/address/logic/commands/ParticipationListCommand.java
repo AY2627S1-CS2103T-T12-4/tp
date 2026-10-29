@@ -34,7 +34,7 @@ public class ParticipationListCommand extends Command {
         Group group = getActiveGroup(model);
         List<WeeklyRecordEntry<Integer>> entries = group.getWeeklyRecordEntries(week, Student::getParticipationRecords);
         if (entries.isEmpty()) {
-            return CommandResult.forRecordListing(String.format(MESSAGE_NO_STUDENTS, group.getName()));
+            return new CommandResult(String.format(MESSAGE_NO_STUDENTS, group.getName()));
         }
 
         StringBuilder feedback = new StringBuilder("Participation for " + group.getName() + ", Week " + week + ":");
@@ -43,7 +43,7 @@ public class ParticipationListCommand extends Command {
                     .append(entry.getStudent().getStudentId()).append(" | ")
                     .append(entry.formatValueOrNotRecorded(String::valueOf));
         }
-        return CommandResult.forRecordListing(feedback.toString());
+        return new CommandResult(feedback.toString());
     }
 
     @Override

@@ -117,7 +117,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        commandBox = new CommandBox(this::executeCommand, this::scrollOutput);
+        commandBox = new CommandBox(this::executeCommand, resultDisplay::scrollPage);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
@@ -141,12 +141,6 @@ public class MainWindow extends UiPart<Stage> {
         }
 
         Platform.runLater(commandBox::focus);
-    }
-
-    private void scrollOutput(boolean isDown) {
-        if (!workspacePanel.scrollRecords(isDown)) {
-            resultDisplay.scrollPage(isDown);
-        }
     }
 
     private void setWindowDefaultSize(GuiSettings guiSettings) {
@@ -236,11 +230,7 @@ public class MainWindow extends UiPart<Stage> {
 
             CommandResult result = logic.execute(commandText);
             logger.info("Result: " + result.getFeedbackToUser());
-            if (result.isRecordListing()) {
-                workspacePanel.setRecordListing(result.getFeedbackToUser());
-            }
-            resultDisplay.setFeedbackToUser(result.isRecordListing()
-                    ? result.getFeedbackToUser().lines().findFirst().orElse("") : result.getFeedbackToUser());
+            resultDisplay.setFeedbackToUser(result.getFeedbackToUser());
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
             }

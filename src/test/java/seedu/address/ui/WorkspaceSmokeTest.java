@@ -41,7 +41,6 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -60,7 +59,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
@@ -70,7 +68,6 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ViewCommand;
-import seedu.address.logic.parser.AssignmentCommandRegistration;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
@@ -124,110 +121,6 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
-    }
-
-    @Test
-    public void recordListings_refreshAfterScrolling_restartsAtTopAndNamesTheGroup() throws Exception {
-        runOnFx(this::initializeWorkspace);
-        try {
-            runOnFx(() -> {
-                enter(input, "group use g/T01");
-                for (int i = 0; i < 17; i++) {
-                    enter(input, "student add n/Student id/S" + i);
-                }
-                enter(input, "attendance list w/3");
-                render(root, "records-before-scroll", 853, 440);
-            });
-            runOnFx(() -> {
-                TextArea listing = (TextArea) root.lookup("#recordListing");
-                assertEquals(21, listing.getText().lines().count());
-                pressKey(KeyCode.PAGE_DOWN);
-                assertTrue(listing.getScrollTop() > 0);
-                enter(input, "attendance mark id/A0123456X w/3 s/present");
-                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Not recorded"));
-                enter(input, "attendance list w/3");
-                assertEquals(0, listing.getCaretPosition());
-                assertEquals(0, listing.getScrollTop());
-                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
-                render(root, "records-guide", 1280, 720, 2);
-                enter(input, "group use g/T02");
-                assertTrue(listing.getText().startsWith("Attendance for T01"));
-                String name = "A".repeat(60);
-                enter(input, "student add n/" + name + " id/A1234567890123456789");
-                enter(input, "attendance list w/3");
-                assertTrue(listing.getText().startsWith("Attendance for T02"));
-                assertTrue(listing.getText().contains(name + " | A1234567890123456789 | Not recorded"));
-                render(root, "records-long-values", 853, 440);
-            });
-        } finally {
-            runOnFx(() -> stage.hide());
-        }
-    }
-
-    @Test
-    public void recordListings_largeGroup_preservesOutputAcrossNavigationAndFailures() throws Exception {
-        runOnFx(this::initializeWorkspace);
-        try {
-            runOnFx(() -> {
-                model.setActiveGroup(TypicalGroups.NAME_T01);
-                for (int i = 0; i < 17; i++) {
-                    model.addStudent(TypicalGroups.NAME_T01, new StudentBuilder().withName("Student")
-                            .withStudentId("A" + (100 + i)).build());
-                }
-                enter(input, "assignment add a/PS1");
-                String savedData = Files.readString(data);
-                for (String command : List.of("attendance list w/3", "participation list w/3",
-                        "assignment list a/PS1")) {
-                    enter(input, command);
-                    TextArea listing = (TextArea) root.lookup("#recordListing");
-                    String snapshot = listing.getText();
-                    assertEquals(21, snapshot.lines().count());
-                    assertTrue(snapshot.contains("Student | A116 |"));
-                    assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
-                    assertNavigationHighlights("records");
-                    enter(input, "view storage");
-                    enter(input, "view records");
-                    assertEquals(snapshot, listing.getText());
-                    enter(input, "attendance list w/14");
-                    assertEquals(snapshot, listing.getText());
-                    assertEquals("attendance list w/14", input.getText());
-                    assertEquals(savedData, Files.readString(data));
-                }
-            });
-            for (int[] size : new int[][] {{1280, 720}, {1920, 1080}, {1536, 864}, {853, 440}}) {
-                runOnFx(() -> {
-                    enter(input, "assignment list a/PS1");
-                    render(root, "records-" + size[0] + "x" + size[1], size[0], size[1]);
-                    TextArea listing = (TextArea) root.lookup("#recordListing");
-                    TextArea feedback = (TextArea) root.lookup("#resultDisplay");
-                    assertTrue(listing.getHeight() > feedback.getHeight() * 3);
-                    assertTrue(input.getBoundsInParent().getHeight() > 0);
-                });
-            }
-        } finally {
-            runOnFx(() -> stage.hide());
-        }
-    }
-
-    @Test
-    public void recordsScreen_emptyState_opensWithoutChangingData() throws Exception {
-        runOnFx(this::initializeWorkspace);
-        try {
-            runOnFx(() -> {
-                TAssist previousData = new TAssist(model.getTAssist());
-                enter(input, "view records");
-                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
-                TextArea listing = (TextArea) root.lookup("#recordListing");
-                assertTrue(listing.getText().contains("attendance list w/WEEK"));
-                assertFalse(listing.isEditable());
-                assertNavigationHighlights("records");
-                assertEquals(previousData, model.getTAssist());
-                enter(input, "view students");
-                assertNavigationHighlights("students");
-            });
-        } finally {
-            runOnFx(() -> stage.hide());
-        }
     }
 
     @Test
@@ -479,10 +372,9 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/a0123456x w/3 s/0");
                 assertEquals("Recorded participation score 0 for Alice Tan in Week 3.", feedback.getText());
                 enter(input, "participation list w/3");
-                TextArea listing = (TextArea) root.lookup("#recordListing");
                 assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | 0"
                         + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
-                        listing.getText());
+                        feedback.getText());
                 enter(input, "participation set id/A0123456X w/3 s/6");
                 assertEquals("Invalid participation score. Enter a whole number from 0 to 5.", feedback.getText());
                 assertEquals("participation set id/A0123456X w/3 s/6", input.getText());
@@ -490,7 +382,7 @@ public class WorkspaceSmokeTest {
                 enter(input, "participation set id/A0123456X w/3 s/4");
                 assertEquals("Updated Alice Tan's participation score for Week 3: 0 to 4.", feedback.getText());
                 assertTrue(input.getText().isEmpty());
-                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
             });
             runOnFx(() -> render(root, "participation-commands", 853, 440));
         } finally {
@@ -702,7 +594,7 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
-    public void attendanceCommands_largeGroup_showsRecordsAndRetainsInvalidInput() throws Exception {
+    public void attendanceCommands_largeGroup_showsScrollableFeedbackAndRetainsInvalidInput() throws Exception {
         runOnFx(this::initializeWorkspace);
         try {
             runOnFx(() -> {
@@ -715,31 +607,25 @@ public class WorkspaceSmokeTest {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertEquals("Recorded Alice Tan as present for Week 3.", feedback.getText());
                 enter(input, "attendance list w/3");
-                TextArea listing = (TextArea) root.lookup("#recordListing");
-                render(root, "attendance-list-default", 1280, 720);
-                assertNotNull(listing, "Weekly listings should appear in the main workspace");
-                assertEquals(21, listing.getText().lines().count());
-                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
-                assertTrue(listing.getText().contains("Student | A116 | Not recorded"));
-                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
-                assertEquals("Attendance for T01, Week 3:", feedback.getText());
+                assertEquals(21, feedback.getText().lines().count());
+                assertTrue(feedback.getText().contains("Alice Tan | A0123456X | Present"));
+                assertTrue(feedback.getText().contains("Student | A116 | Not recorded"));
+                assertEquals("students", tabs.getSelectionModel().getSelectedItem().getId());
                 assertTrue(input.getText().isEmpty());
             });
             runOnFx(() -> render(root, "attendance-list", 853, 440));
             runOnFx(() -> {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
-                TextArea listing = (TextArea) root.lookup("#recordListing");
-                assertTrue(hasVisibleVerticalScrollBar(listing), "A compact records screen can scroll");
-                assertTrue(listing.getHeight() > feedback.getHeight() * 3);
+                assertTrue(hasVisibleVerticalScrollBar(feedback), "A full tutorial group's attendance can scroll");
                 input.setText("draft");
                 input.requestFocus();
-                listing.setScrollTop(0);
+                feedback.setScrollTop(0);
                 pressKey(KeyCode.PAGE_DOWN);
-                assertTrue(listing.getScrollTop() > 0, "PageDown reaches hidden list output");
+                assertTrue(feedback.getScrollTop() > 0, "PageDown reaches hidden list output");
                 assertEquals("draft", input.getText());
                 assertEquals(input, stage.getScene().getFocusOwner());
                 pressKey(KeyCode.PAGE_UP);
-                assertEquals(0, listing.getScrollTop());
+                assertEquals(0, feedback.getScrollTop());
                 pressKey(KeyCode.UP);
                 assertEquals("attendance list w/3", input.getText());
                 enter(input, "attendance mark id/A0123456X w/3 s/late");
@@ -1420,7 +1306,6 @@ public class WorkspaceSmokeTest {
         CommandRegistry commandRegistry = new CommandRegistry();
         GroupCommandRegistration.registerCommands(commandRegistry);
         AttendanceCommandRegistration.registerCommands(commandRegistry);
-        AssignmentCommandRegistration.registerCommands(commandRegistry);
         ParticipationCommandRegistration.registerCommands(commandRegistry);
         StudentCommandRegistration.registerCommands(commandRegistry);
         stage = new Stage();
@@ -1518,16 +1403,10 @@ public class WorkspaceSmokeTest {
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {
-        render(root, name, width, height, 1);
-    }
-
-    private void render(Parent root, String name, int width, int height, double scale) throws Exception {
         root.resize(width, height);
         root.applyCss();
         root.layout();
-        SnapshotParameters parameters = new SnapshotParameters();
-        parameters.setTransform(new Scale(scale, scale));
-        WritableImage image = root.snapshot(parameters, null);
+        WritableImage image = root.snapshot(null, null);
         BufferedImage output = new BufferedImage((int) image.getWidth(), (int) image.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < output.getHeight(); y++) {

@@ -19,7 +19,7 @@ public final class HelpCatalog {
 
     private static final List<HelpEntry> BUILT_IN_ENTRIES = List.of(
             new HelpEntry("", "view SCREEN",
-                    "Open a screen: students, records, help, or storage. Student is also accepted. "
+                    "Open a screen: students, help, or storage. Student is also accepted. "
                             + "Screen names ignore case. Opening a screen does not change any data.",
                     List.of("view storage")),
             new HelpEntry("", "help [TOPIC]",

@@ -11,18 +11,6 @@ import seedu.address.commons.core.WorkspaceView;
 
 public class CommandResultTest {
     @Test
-    public void forRecordListing_preservesListingAndDistinguishesNavigation() {
-        CommandResult listing = CommandResult.forRecordListing("Week 3\nAlice | Present");
-        assertTrue(listing.isRecordListing());
-        assertEquals(WorkspaceView.RECORDS, listing.getView().orElseThrow());
-        assertFalse(new CommandResult("Week 3\nAlice | Present", WorkspaceView.RECORDS).isRecordListing());
-        assertNotEquals(listing, new CommandResult(listing.getFeedbackToUser(), WorkspaceView.RECORDS));
-        assertEquals(listing, CommandResult.forRecordListing(listing.getFeedbackToUser()));
-        assertEquals(listing.hashCode(), CommandResult.forRecordListing(listing.getFeedbackToUser()).hashCode());
-        assertTrue(listing.withSavedChanges().isRecordListing());
-    }
-
-    @Test
     public void equals() {
         CommandResult commandResult = new CommandResult("feedback");
 
@@ -122,7 +110,7 @@ public class CommandResultTest {
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
                 + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=, hasSavedChanges=false, "
-                + "isCancelled=false, isRecordListing=false}";
+                + "isCancelled=false}";
         assertEquals(expected, commandResult.toString());
     }
 }
