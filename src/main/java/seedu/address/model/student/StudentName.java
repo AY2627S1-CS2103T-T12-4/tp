@@ -28,11 +28,11 @@ public class StudentName {
     public static final List<String> SLASH_PARTICLES = List.of("s/o", "d/o", "a/l", "a/p");
 
     public static final String MESSAGE_CONSTRAINTS = "Invalid student name. Use 1-" + MAX_LENGTH
-            + " letters, spaces, apostrophes, or hyphens. Between two parts of a name, you may also use "
+            + " letters, spaces, apostrophes, hyphens, or periods. Between two parts of a name, you may also use "
             + "s/o, d/o, a/l, or a/p.";
 
-    /** One word: letters (including accented letters), apostrophes (straight or curly) and hyphens. */
-    private static final String WORD_REGEX = "[\\p{L}\\p{M}'’-]+";
+    /** One word: letters (including accented letters), apostrophes (straight or curly), hyphens and periods. */
+    private static final String WORD_REGEX = "[\\p{L}\\p{M}'’.-]+";
 
     private static final String SLASH_PARTICLE_REGEX = SLASH_PARTICLES.stream().map(Pattern::quote)
             .collect(Collectors.joining("|", "(?i:", ")"));

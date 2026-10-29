@@ -276,7 +276,8 @@ Create or select a group first with `group add` or `group use`.
 
 Format: `student add n/NAME id/STUDENT_ID`
 
-* Names contain 1–60 letters (including accented letters), spaces, apostrophes, or hyphens, with at least one letter.
+* Names contain 1–60 letters (including accented letters), spaces, apostrophes, hyphens, or periods, with at least one
+  letter. Initials and abbreviations such as `S. Ramanathan`, `Mohd. Ali`, and `John Smith Jr.` are accepted.
   Leading and trailing spaces are removed and repeated spaces are collapsed; the limit applies after normalization.
 * Names may also contain `s/o`, `d/o`, `a/l`, or `a/p` (in any case) as a separate word between two parts of the
   name, as on official records. TAssist reads these as part of the name, not as prefixes, as long as there is a space
