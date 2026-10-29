@@ -654,8 +654,9 @@ Sort feedback reports the displayed count even when it is zero, without suggesti
 
 ### Assignment commands
 
-`AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`, and
-`assignment list` with offline help entries, and `MainApp.init` installs it before constructing `LogicManager`.
+`AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`,
+`assignment list`, and `assignment delete` with offline help entries, and `MainApp.init` installs it before
+constructing `LogicManager`.
 The submit and grade parsers require `a/`, `id/`, and their status (`s/`) or mark (`m/`) prefix exactly once with
 `TAssistArgumentParser`. `TAssistParserUtil` validates the assignment name, student ID, yes/no status, and grade.
 The `m/` prefix avoids giving `g/` a second meaning when it already identifies a tutorial group.
@@ -674,6 +675,12 @@ checks that the record is submitted. Each failed command leaves the model unchan
 missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
 creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
 form.
+
+`AssignmentDeleteCommand` overrides `Command#getConfirmationPrompt`, like `StudentDeleteCommand` and
+`GroupDeleteCommand`, so the UI asks before deleting unless `f/yes` is given. `AssignmentDeleteCommandParser` and
+the other deletion parsers share the `f/yes` check in `FastDeleteOption`. Execution resolves the assignment in the
+active group, then calls `Model.removeAssignment`, which removes it from the group's `UniqueAssignmentList` together
+with its student records. Like any other change, the deletion is saved and can be undone.
 
 Design considerations for listing assignment names:
 
@@ -1756,6 +1763,11 @@ label.
    and enter `assignment list`. Expect
    `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
    assignments, expect `No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME`.
+10. In T01, enter `assignment delete a/lab 2 (graphs)`. Expect a prompt naming Lab 2 (Graphs) and T01. Cancel it and
+    verify that nothing changed. Enter the command again and choose Continue. Expect
+    `Deleted assignment Lab 2 (Graphs) from T01.` Enter `undo`; expect the assignment back in `assignment list`.
+    Enter `assignment delete a/Mid-term 1 f/yes`. Expect it to be deleted without a prompt. Enter
+    `assignment delete a/Mid-term 1` again; expect an unknown-assignment error and no prompt.
 
 ### Finding and sorting students
 

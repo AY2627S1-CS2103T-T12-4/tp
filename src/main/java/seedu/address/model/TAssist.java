@@ -10,6 +10,7 @@ import java.util.Optional;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.group.UniqueGroupList;
@@ -181,6 +182,16 @@ public class TAssist implements ReadOnlyTAssist {
     public void setAssignment(GroupName groupName, Assignment assignment) {
         requireAllNonNull(groupName, assignment);
         getGroup(groupName).setAssignment(assignment);
+    }
+
+    /**
+     * Removes the assignment named {@code assignmentName}, with its student records, from the group named
+     * {@code groupName} and returns the removed assignment.
+     * The group must exist, and the assignment must be in it.
+     */
+    public Assignment removeAssignment(GroupName groupName, AssignmentName assignmentName) {
+        requireAllNonNull(groupName, assignmentName);
+        return getGroup(groupName).removeAssignment(assignmentName);
     }
 
     //// util methods

@@ -169,6 +169,15 @@ public class Group {
     }
 
     /**
+     * Removes the assignment named {@code assignmentName} (ignoring case) from this group, with its student records,
+     * and returns the removed assignment.
+     * The assignment must be in this group.
+     */
+    public Assignment removeAssignment(AssignmentName assignmentName) {
+        return assignments.remove(assignmentName);
+    }
+
+    /**
      * Replaces an existing assignment with the same name.
      */
     public void setAssignment(Assignment assignment) {

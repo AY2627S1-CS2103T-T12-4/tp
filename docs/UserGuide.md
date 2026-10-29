@@ -6,7 +6,7 @@ title: User Guide
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
 You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
-record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
+record and list weekly participation scores, and create and delete assignments, record submissions and grades, and list records.
 A mistaken change can be reversed with `undo` and `redo`, which cover your last 20 changes since you opened TAssist.
 
 * Table of Contents
@@ -597,6 +597,21 @@ Each row shows the student's name, ID, submission status, and grade. A student w
 shows `No students in T01.` Submission statuses and grades are saved automatically and restored when you reopen
 TAssist.
 
+### Deleting an assignment: `assignment delete`
+
+Deletes an assignment of the active group together with all its submission and grade records. If deleted by mistake,
+`undo` brings it back. Check the name with `assignment list` first. Other assignments and other groups are unchanged.
+
+Format: `assignment delete a/ASSIGNMENT_NAME [f/yes]`
+
+* TAssist first asks you to confirm. The prompt names the assignment and the group. Cancel is selected by default,
+  so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+* Add `f/yes` to skip the prompt.
+* Names ignore case, so `a/ps1` targets `PS1`. After a deletion, the name can be used again by `assignment add`.
+
+Example: `assignment delete a/PS1` asks whether to delete PS1 from T01. After you confirm, it shows
+`Deleted assignment PS1 from T01.` To skip the question, enter `assignment delete a/PS1 f/yes`.
+
 #### Assignment command errors
 
 Rejected input leaves the assignments and saved data file unchanged.
@@ -611,10 +626,10 @@ Invalid submission status | `Invalid submission status. Use yes or no.` Enter `y
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
-Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each. `assignment delete` needs only `a/`.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `grade`, `list`, and `submit`.
 
 ### Exporting a group's records: `group export`
 
@@ -856,4 +871,5 @@ Action | Format, Examples
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
 **List assignments or records** | `assignment list [a/ASSIGNMENT_NAME]`<br> e.g., `assignment list`, `assignment list a/PS1`
+**Delete assignment** | `assignment delete a/ASSIGNMENT_NAME [f/yes]`<br> e.g., `assignment delete a/PS1`
 **Exit** | `exit`

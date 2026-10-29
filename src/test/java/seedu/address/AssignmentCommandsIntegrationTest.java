@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -197,12 +198,66 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void getConfirmationPrompt_namesAssignmentWithoutChangingSavedData() throws Exception {
+        feedback("assignment add a/PS1");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String savedFile = Files.readString(dataFile);
+
+        assertEquals(Optional.of("Delete assignment PS1 and all its submission and grade records from T01?"),
+                app.logic.getConfirmationPrompt("assignment delete a/ps1"));
+        assertEquals(app.logic.getConfirmationPrompt("assignment delete a/ps1"),
+                app.logic.getConfirmationPrompt("ASSIGNMENT DeLeTe a/ps1"));
+        assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("assignment delete a/ps1 f/yes"));
+        assertEquals(Optional.empty(), app.logic.getConfirmationPrompt("assignment delete a/PS2"));
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(savedFile, Files.readString(dataFile));
+    }
+
+    @Test
+    public void execute_deleteAssignment_removesRecordsPersistsAndCanBeUndone() throws Exception {
+        feedback("assignment add a/PS1");
+        feedback("assignment add a/PS2");
+        feedback("assignment submit a/PS1 id/A0123456X s/yes");
+        feedback("assignment grade a/PS1 id/A0123456X m/87");
+        TAssist beforeDelete = new TAssist(app.model.getTAssist());
+
+        CommandResult deleted = app.logic.execute("assignment delete a/ps1 f/yes");
+        assertEquals("Deleted assignment PS1 from T01.", deleted.getFeedbackToUser());
+        assertTrue(deleted.hasSavedChanges());
+        assertEquals("Assignments in T01:\n1. PS2", feedback("assignment list"));
+
+        assertEquals("Undone: assignment delete a/ps1 f/yes", feedback("undo"));
+        assertEquals(beforeDelete, app.model.getTAssist());
+        assertEquals("PS1 records for T01:\nAlice Tan | A0123456X | Submitted | 87"
+                        + "\nBen Lim | A0234567Y | Not submitted | -\nCarl Goh | A0345678Z | Not submitted | -",
+                feedback("assignment list a/PS1"));
+
+        assertEquals("Redone: assignment delete a/ps1 f/yes", feedback("redo"));
+        restart();
+        assertEquals("Assignments in T01:\n1. PS2", feedback("assignment list"));
+        assertRejected("assignment list a/PS1", CommandException.class);
+        assertEquals("Created assignment PS1 for T01.", feedback("assignment add a/PS1"));
+        assertEquals(LIST_PS1_IN_T01, feedback("assignment list a/PS1"));
+    }
+
+    @Test
+    public void execute_deleteUnknownAssignment_preservesModelAndSavedFile() throws Exception {
+        feedback("assignment add a/PS1");
+        for (String command : List.of("assignment delete", "assignment delete a/", "assignment delete PS1",
+                "assignment delete a/PS1 f/no", "assignment delete a/PS1 f/yes now", "assignment delete a/PS1 a/PS2",
+                "assignment delete a/PS1 n/PS2")) {
+            assertRejected(command, ParseException.class);
+        }
+        assertRejected("assignment delete a/PS2", CommandException.class);
+    }
+
+    @Test
     public void init_assignmentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "assignment");
         assertEquals(List.of("assignment add a/ASSIGNMENT_NAME",
                         "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
                         "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE",
-                        "assignment list [a/ASSIGNMENT_NAME]"),
+                        "assignment list [a/ASSIGNMENT_NAME]", "assignment delete a/ASSIGNMENT_NAME [f/yes]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing assignment commands.", "assignment"),
                 app.logic.execute("help assignment"));

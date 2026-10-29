@@ -18,6 +18,7 @@ import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -169,6 +170,12 @@ public class ModelManager implements Model {
     public void setAssignment(GroupName groupName, Assignment assignment) {
         requireAllNonNull(groupName, assignment);
         tAssist.setAssignment(groupName, assignment);
+    }
+
+    @Override
+    public Assignment removeAssignment(GroupName groupName, AssignmentName assignmentName) {
+        requireAllNonNull(groupName, assignmentName);
+        return tAssist.removeAssignment(groupName, assignmentName);
     }
 
     //=========== Undo and redo =============================================================================
