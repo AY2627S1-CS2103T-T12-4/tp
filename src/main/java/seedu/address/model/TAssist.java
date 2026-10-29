@@ -194,6 +194,17 @@ public class TAssist implements ReadOnlyTAssist {
         return getGroup(groupName).removeAssignment(assignmentName);
     }
 
+    /**
+     * Renames the assignment named {@code assignmentName} in the group named {@code groupName} to {@code newName},
+     * keeping its student records and position.
+     * The group and assignment must exist, and no other assignment in the group may have {@code newName}, ignoring
+     * case.
+     */
+    public void renameAssignment(GroupName groupName, AssignmentName assignmentName, AssignmentName newName) {
+        requireAllNonNull(groupName, assignmentName, newName);
+        getGroup(groupName).renameAssignment(assignmentName, newName);
+    }
+
     //// util methods
 
     @Override

@@ -8,6 +8,7 @@ import seedu.address.logic.commands.AssignmentAddCommand;
 import seedu.address.logic.commands.AssignmentDeleteCommand;
 import seedu.address.logic.commands.AssignmentGradeCommand;
 import seedu.address.logic.commands.AssignmentListCommand;
+import seedu.address.logic.commands.AssignmentRenameCommand;
 import seedu.address.logic.commands.AssignmentSubmitCommand;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.model.TAssistHistory;
@@ -43,11 +44,16 @@ public final class AssignmentCommandRegistration {
                         "Without a/, list the assignments of the active group. With a/, list every student's "
                                 + "submission status and grade for that assignment. Names ignore case.",
                         List.of("assignment list", "assignment list a/PS1")));
+        registry.register("assignment", "rename", new AssignmentRenameCommandParser(),
+                new HelpEntry("assignment", AssignmentRenameCommand.MESSAGE_USAGE,
+                        "Rename an assignment of the active group. Its submissions and grades stay with it. "
+                                + "The new name must not match another assignment, ignoring case.",
+                        List.of("assignment rename a/PS1 n/Problem Set 1")));
         registry.register("assignment", "delete", new AssignmentDeleteCommandParser(),
                 new HelpEntry("assignment", AssignmentDeleteCommand.MESSAGE_USAGE,
                         "Delete an assignment of the active group with its submissions and grades, after asking "
                                 + "to confirm. Add f/yes to skip the prompt. Undo can reverse it within your last "
                                 + TAssistHistory.MAX_CHANGES + " changes.",
-                        List.of("assignment delete a/PS1")));
+                        List.of("assignment delete a/Problem Set 1")));
     }
 }

@@ -179,7 +179,7 @@ public class JsonTAssistStorageTest {
     public void read_handEditedAssignments_loadsAssignmentsInFileOrder() throws Exception {
         Path filePath = testFolder.resolve("handEdited.json");
         Files.writeString(filePath, """
-                {"activeGroup":"T01","groups":[{"name":"T01","assignments":["PS1", " ps2 "]}]}
+                {"activeGroup":"T01","groups":[{"name":"T01","assignments":["PS1", "  PS2 "]}]}
                 """);
 
         TAssist loaded = new TAssist(new JsonTAssistStorage(filePath).readTAssist().orElseThrow());

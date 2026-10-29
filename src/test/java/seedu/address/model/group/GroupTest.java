@@ -199,6 +199,45 @@ public class GroupTest {
     }
 
     @Test
+    public void renameAssignment_existingName_keepsRecordsAndPosition() {
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(PS2);
+        AssignmentName newName = new AssignmentName("Problem Set 1");
+
+        group.renameAssignment(new AssignmentName("ps1"), newName);
+
+        assertEquals(List.of(ps1.withName(newName), PS2), group.getAssignmentList());
+        assertFalse(group.hasAssignment(NAME_PS1));
+    }
+
+    @Test
+    public void renameAssignment_onlyChangesCase_replacesName() {
+        group.addAssignment(PS1);
+
+        group.renameAssignment(NAME_PS1, new AssignmentName("ps1"));
+
+        assertEquals("ps1", group.getAssignmentList().get(0).getName().fullName);
+    }
+
+    @Test
+    public void renameAssignment_nameOfAnotherAssignment_throwsDuplicateAssignmentException() {
+        group.addAssignment(PS1);
+        group.addAssignment(PS2);
+
+        assertThrows(DuplicateAssignmentException.class, () ->
+                group.renameAssignment(NAME_PS1, new AssignmentName("ps2")));
+        assertEquals(List.of(PS1, PS2), group.getAssignmentList());
+    }
+
+    @Test
+    public void renameAssignment_missingNameOrNull_throwsException() {
+        assertThrows(AssignmentNotFoundException.class, () -> group.renameAssignment(NAME_PS1, PS2.getName()));
+        assertThrows(NullPointerException.class, () -> group.renameAssignment(null, PS2.getName()));
+        assertThrows(NullPointerException.class, () -> group.renameAssignment(NAME_PS1, null));
+    }
+
+    @Test
     public void getAssignmentList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> group.getAssignmentList().add(PS1));
     }

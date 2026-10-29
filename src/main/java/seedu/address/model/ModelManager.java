@@ -178,6 +178,12 @@ public class ModelManager implements Model {
         return tAssist.removeAssignment(groupName, assignmentName);
     }
 
+    @Override
+    public void renameAssignment(GroupName groupName, AssignmentName assignmentName, AssignmentName newName) {
+        requireAllNonNull(groupName, assignmentName, newName);
+        tAssist.renameAssignment(groupName, assignmentName, newName);
+    }
+
     //=========== Undo and redo =============================================================================
 
     @Override

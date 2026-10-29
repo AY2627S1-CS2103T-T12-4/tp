@@ -128,6 +128,14 @@ public interface Model {
     Assignment removeAssignment(GroupName groupName, AssignmentName assignmentName);
 
     /**
+     * Renames the assignment named {@code assignmentName} in the group named {@code groupName} to {@code newName},
+     * keeping its student records and position.
+     * The group and assignment must exist, and no other assignment in the group may have {@code newName}, ignoring
+     * case.
+     */
+    void renameAssignment(GroupName groupName, AssignmentName assignmentName, AssignmentName newName);
+
+    /**
      * Records that the change described by {@code description} replaced {@code previousTAssist} with the current
      * data, so that it can be undone. Changes that were undone can no longer be redone.
      */
