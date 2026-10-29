@@ -54,11 +54,13 @@ public class StudentAddCommandTest {
                 .withStudentId("A0999999Z").build();
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         expected.addStudent(NAME_T01, sameName);
-        String warning = "Warning: T01 already has a student named Alice Tan. Check that the student ID is correct.";
+        String warning = "Warning: T01 already has a student named Alice Tan (A0123456X). "
+                + "Check that the student ID is correct.";
         assertCommandSuccess(new StudentAddCommand(sameName), model, "Added Alice Tan to T01. " + warning, expected);
 
         expected.addStudent(NAME_T01, sameNameOtherCase);
-        warning = "Warning: T01 already has a student named alice TAN. Check that the student ID is correct.";
+        warning = "Warning: T01 already has a student named Alice Tan (A0123456X). "
+                + "Check that the student ID is correct.";
         assertCommandSuccess(new StudentAddCommand(sameNameOtherCase), model,
                 "Added alice TAN to T01. " + warning, expected);
     }

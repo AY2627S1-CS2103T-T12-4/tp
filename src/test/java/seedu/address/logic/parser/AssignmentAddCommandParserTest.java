@@ -36,7 +36,8 @@ public class AssignmentAddCommandParserTest {
 
     @Test
     public void parse_malformedParameters_reportsSpecificError() {
-        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "a/"));
+        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "a/")
+                        + " Usage: " + AssignmentAddCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "a/PS1 a/PS2", Messages.getErrorMessageForDuplicatePrefixes(new Prefix("a/")));
         assertParseFailure(parser, "a/PS1 n/PS2",
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "a/"));

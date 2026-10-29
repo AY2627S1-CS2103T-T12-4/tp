@@ -30,9 +30,10 @@ public class AssignmentGradeCommandParserTest {
     @Test
     public void parse_missingDuplicateAndUnknownParameters_reportErrors() {
         assertParseFailure(parser, "a/PS1 id/A0123456X",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "m/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "m/")
+                        + " Usage: " + AssignmentGradeCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "a/PS1 id/A0123456X m/80 m/90",
-                "Multiple values specified for the following single-valued field(s): m/");
+                "Repeated parameter(s): m/. Include each only once.");
         assertParseFailure(parser, "a/PS1 id/A0123456X m/80 g/80",
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "g/", "a/ id/ m/"));
     }

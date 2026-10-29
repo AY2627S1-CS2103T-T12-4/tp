@@ -19,7 +19,7 @@ public class AssignmentSubmitCommandParser implements Parser<AssignmentSubmitCom
 
     @Override
     public AssignmentSubmitCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AssignmentSubmitCommand.MESSAGE_USAGE);
         return new AssignmentSubmitCommand(
                 TAssistParserUtil.parseAssignmentName(values.getValue(PREFIX_ASSIGNMENT).orElseThrow()),
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_STUDENT_ID).orElseThrow()),
