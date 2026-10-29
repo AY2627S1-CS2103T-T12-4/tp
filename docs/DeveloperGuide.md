@@ -1242,7 +1242,8 @@ The following extensions apply to every use case that changes or views records o
       Use case ends.
 
 * 4a. TA cancels the prompt or closes it.
-    * 4a1. TAssist leaves the student and all records unchanged.
+    * 4a1. TAssist leaves the student and all records unchanged, and keeps the command in the command box for
+      editing.
 
       Use case ends.
 
