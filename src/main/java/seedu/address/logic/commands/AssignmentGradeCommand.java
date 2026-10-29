@@ -64,7 +64,7 @@ public class AssignmentGradeCommand extends Command {
     }
 
     /**
-     * Returns feedback that shows the old and new grade when an earlier grade exists.
+     * Returns feedback that reports a new grade, an unchanged grade, or the old and new grade.
      */
     private String createFeedback(Student student, Assignment assignment, Optional<Integer> oldGrade) {
         if (oldGrade.isEmpty()) {

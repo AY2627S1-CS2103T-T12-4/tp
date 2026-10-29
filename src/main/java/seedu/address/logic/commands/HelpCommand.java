@@ -34,15 +34,15 @@ public class HelpCommand extends Command {
     private final String topic;
 
     /**
-     * Creates a command that shows every entry in {@code entries}.
+     * Creates a command that opens the command reference at the top.
      */
     public HelpCommand(List<HelpEntry> entries) {
         this(entries, "");
     }
 
     /**
-     * Creates a command that shows only the entries of {@code topic}.
-     * An empty {@code topic} shows every entry.
+     * Creates a command that opens the command reference scrolled to {@code topic}.
+     * An empty {@code topic}, or one with no entries, opens it at the top.
      */
     public HelpCommand(List<HelpEntry> entries, String topic) {
         this.entries = List.copyOf(requireNonNull(entries));

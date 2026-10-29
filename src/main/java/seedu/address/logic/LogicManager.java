@@ -120,7 +120,6 @@ public class LogicManager implements Logic {
 
     /**
      * Rejects {@code command} if it needs the saved data and that data could not be read at startup.
-     * Running it on the empty data would report that nothing exists and suggest creating records it cannot save.
      */
     private void rejectIfSavedDataUnreadable(Command command) throws CommandException {
         if (dataLoadStatus.isFailure() && !command.canRunWithoutSavedData()) {

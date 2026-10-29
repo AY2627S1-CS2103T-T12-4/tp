@@ -56,7 +56,7 @@ public class ParticipationSetCommand extends Command {
     }
 
     /**
-     * Returns feedback that shows the old and new score when an earlier score exists.
+     * Returns feedback that reports a new score, an unchanged score, or the old and new score.
      */
     private String createFeedback(Student student, Optional<Integer> oldScore) {
         if (oldScore.isEmpty()) {
