@@ -608,8 +608,8 @@ words (see [Command registration and shared validation](#command-registration-an
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique. If
-`Group.hasStudentNamed` finds a student with the same name (ignoring case) before the add, the command still adds the
-student and appends a warning to its success message.
+`Group.findStudentNamed` finds a student with the same name (ignoring case) before the add, the command still adds the
+student and appends a warning that names the existing student and their ID to its success message.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
 same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
