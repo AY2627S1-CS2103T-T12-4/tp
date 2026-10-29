@@ -51,6 +51,9 @@ the same, such as `view storage`.
 
 ![TAssist displaying the Students screen for tutorial group T01](images/Ui.png)
 
+This example shows the result of `assignment list a/PS1`: Alice has submitted PS1 and received 87, while Ben has not
+submitted it. The footer shows the full path of the local data file; your path depends on the home folder you chose.
+
 Use the `view` command to open the same screens by typing. The command box and feedback remain visible on every screen.
 Press **Escape** to return focus to the command box, or **F1** to open Help. Clicking a screen keeps your cursor in
 the command box.
