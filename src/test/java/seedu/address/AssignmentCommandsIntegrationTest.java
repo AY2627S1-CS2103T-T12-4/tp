@@ -1,5 +1,6 @@
 package seedu.address;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -150,7 +151,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         for (String command : List.of("assignment", "assignment remove", "assignment add", "assignment add a/",
                 "assignment add a/PS_1", "assignment add a/PS1/PS2", "assignment add a/--",
                 "assignment add a/" + "a".repeat(10000), "assignment add a/PS2 a/PS3", "assignment add PS2",
-                "assignment add n/PS2", "assignment list", "assignment list a/", "assignment list a/PS2 a/PS3",
+                "assignment add n/PS2", "assignment list a/", "assignment list a/PS2 a/PS3",
                 "assignment list a/PS1!", "assignment list w/3")) {
             assertRejected(command, ParseException.class);
         }
@@ -164,9 +165,25 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         app.model.setTAssist(new TAssist());
         app.storage.saveTAssist(app.model.getTAssist());
         for (String command : List.of("assignment add a/PS1", "assignment submit a/PS1 id/A0123456X s/yes",
-                "assignment grade a/PS1 id/A0123456X m/87", "assignment list a/PS1")) {
+                "assignment grade a/PS1 id/A0123456X m/87", "assignment list a/PS1", "assignment list")) {
             assertRejected(command, CommandException.class);
         }
+    }
+
+    @Test
+    public void execute_listWithoutName_listsAssignmentNamesAfterRestart() throws Exception {
+        assertEquals("No assignments in T01. Create one with: assignment add a/ASSIGNMENT_NAME",
+                feedback("assignment list"));
+        for (String command : List.of("assignment add a/PS1", "assignment add a/Lab 2 (Graphs)",
+                "assignment add a/Kattis: Week 3")) {
+            feedback(command);
+        }
+        byte[] saved = Files.readAllBytes(dataFile);
+
+        restart();
+
+        assertEquals("Assignments in T01:\n1. PS1\n2. Lab 2 (Graphs)\n3. Kattis: Week 3", feedback("assignment list"));
+        assertArrayEquals(saved, Files.readAllBytes(dataFile), "Listing must not save");
     }
 
     @Test
@@ -175,7 +192,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         assertThrows(CommandException.class, "Assignment PS1 already exists in T01", () ->
                 app.logic.execute("assignment add a/ps1"));
         assertThrows(CommandException.class, "Assignment PS2 does not exist in T01. "
-                + "Check the name, or create it with: assignment add a/PS2", () ->
+                + "See the group's assignments with: assignment list\nOr create it with: assignment add a/PS2", () ->
                 app.logic.execute("assignment list a/PS2"));
     }
 
@@ -185,7 +202,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
         assertEquals(List.of("assignment add a/ASSIGNMENT_NAME",
                         "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
                         "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE",
-                        "assignment list a/ASSIGNMENT_NAME"),
+                        "assignment list [a/ASSIGNMENT_NAME]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing assignment commands.", "assignment"),
                 app.logic.execute("help assignment"));

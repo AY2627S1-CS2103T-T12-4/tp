@@ -37,11 +37,12 @@ public class WorkspacePanel extends UiPart<TabPane> {
      */
     public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
             ObservableList<Student> displayedStudents, ObservableBooleanValue hasStudentFilter,
-            Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler) {
+            Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler,
+            boolean isDataLoadFailed) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
         StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, displayedStudents,
-                hasStudentFilter, studentClickHandler);
+                hasStudentFilter, studentClickHandler, isDataLoadFailed);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         helpPanel = new HelpPanel(helpEntries);
         addView(WorkspaceView.HELP, helpPanel.getRoot());

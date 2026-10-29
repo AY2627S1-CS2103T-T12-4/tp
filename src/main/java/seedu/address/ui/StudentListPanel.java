@@ -33,6 +33,10 @@ public class StudentListPanel extends UiPart<Region> {
     static final String NO_ACTIVE_GROUP = "No active group";
     static final String STUDENTS_TITLE = "Students";
     static final String NO_ACTIVE_GROUP_HINT = "Add a tutorial group and make it active to see its students here.";
+    static final String DATA_NOT_READ = "Saved data could not be read";
+    static final String DATA_NOT_READ_HINT =
+            "Close TAssist, repair or move the data file, and restart. Any command other than help, view or exit "
+                    + "shows why.";
     static final String EMPTY_GROUP_TITLE_FORMAT = "No students in %s yet";
     static final String EMPTY_GROUP_HINT_FORMAT = "Students you add to %s will appear here.";
 
@@ -57,10 +61,11 @@ public class StudentListPanel extends UiPart<Region> {
 
     /**
      * Creates a table of the active group's students that follows {@code activeGroup} and {@code students}.
+     * If {@code isDataLoadFailed}, the empty state says the saved data could not be read.
      */
     public StudentListPanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> roster,
             ObservableList<Student> students, ObservableBooleanValue hasStudentFilter,
-            Consumer<Student> studentClickHandler) {
+            Consumer<Student> studentClickHandler, boolean isDataLoadFailed) {
         super(FXML);
         requireAllNonNull(activeGroup, roster, students, hasStudentFilter, studentClickHandler);
 
@@ -86,9 +91,11 @@ public class StudentListPanel extends UiPart<Region> {
                 hasStudentFilter.get() ? students.size() + " of " + describeCount(roster.size())
                         : describeCount(students.size()), students, roster, hasStudentFilter));
         emptyTitle.textProperty().bind(Bindings.createStringBinding(() ->
-                describeEmptyTitle(activeGroup.getValue(), hasStudentFilter.get()), activeGroup, hasStudentFilter));
+                describeEmptyTitle(activeGroup.getValue(), hasStudentFilter.get(),
+                        isDataLoadFailed), activeGroup, hasStudentFilter));
         emptyHint.textProperty().bind(Bindings.createStringBinding(() ->
-                describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get()), activeGroup, hasStudentFilter));
+                describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get(),
+                        isDataLoadFailed), activeGroup, hasStudentFilter));
         showEmptyStateInsteadOfTable(students);
     }
 
@@ -150,7 +157,11 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Returns the title shown in place of the table when there are no students to show.
      */
-    static String describeEmptyTitle(Optional<Group> activeGroup, boolean hasStudentFilter) {
+    static String describeEmptyTitle(Optional<Group> activeGroup, boolean hasStudentFilter,
+            boolean isDataLoadFailed) {
+        if (isDataLoadFailed) {
+            return DATA_NOT_READ;
+        }
         if (activeGroup.isPresent() && hasStudentFilter) {
             return "No matching students";
         }
@@ -161,7 +172,11 @@ public class StudentListPanel extends UiPart<Region> {
     /**
      * Returns the hint shown in place of the table when there are no students to show.
      */
-    static String describeEmptyHint(Optional<Group> activeGroup, boolean hasStudentFilter) {
+    static String describeEmptyHint(Optional<Group> activeGroup, boolean hasStudentFilter,
+            boolean isDataLoadFailed) {
+        if (isDataLoadFailed) {
+            return DATA_NOT_READ_HINT;
+        }
         if (activeGroup.isPresent() && hasStudentFilter) {
             return "Use student list to show all students.";
         }

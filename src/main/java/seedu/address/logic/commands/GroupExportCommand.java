@@ -13,12 +13,12 @@ import seedu.address.model.group.Group;
 import seedu.address.storage.GroupRecordsCsvExporter;
 
 /**
- * Exports the attendance and participation of the active tutorial group to a CSV file.
+ * Exports the attendance, participation, and assignment records of the active tutorial group to a CSV file.
  * Exporting reads the data only, so it never changes or saves TAssist data.
  */
 public class GroupExportCommand extends Command {
     public static final String MESSAGE_USAGE = "group export";
-    public static final String MESSAGE_SUCCESS = "Exported attendance and participation of %1$s in %2$s to:\n%3$s";
+    public static final String MESSAGE_SUCCESS = "Exported the records of %1$s in %2$s to:\n%3$s";
     public static final String MESSAGE_EXPORT_FAILED = "Could not export %1$s to %2$s. "
             + "Check that TAssist can write to that folder and that the file is not open in another app.";
 

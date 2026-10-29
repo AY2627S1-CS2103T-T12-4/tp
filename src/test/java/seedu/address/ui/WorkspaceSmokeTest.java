@@ -132,11 +132,20 @@ public class WorkspaceSmokeTest {
                     assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
                             .startsWith(status.getMessage()));
                     assertEquals(status.isFailure(), isFooterShowingFailure());
+                    assertEquals(status.isFailure(), isShowingDataNotRead());
                 });
             } finally {
                 runOnFx(() -> stage.hide());
             }
         }
+    }
+
+    private boolean isShowingDataNotRead() {
+        boolean isStripNoted = root.lookupAll(".muted").stream().anyMatch(node -> node instanceof Label label
+                && label.getText().equals(GroupStrip.DATA_NOT_READ));
+        boolean isStudentsNoted = root.lookupAll("#emptyTitle").stream().anyMatch(node -> node instanceof Label label
+                && label.getText().equals(StudentListPanel.DATA_NOT_READ));
+        return isStripNoted && isStudentsNoted;
     }
 
     @Test
@@ -816,7 +825,7 @@ public class WorkspaceSmokeTest {
             List<Student> clicked = new ArrayList<>();
             StudentListPanel panel = new StudentListPanel(
                     new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), roster, sorted,
-                    new SimpleBooleanProperty(true), clicked::add);
+                    new SimpleBooleanProperty(true), clicked::add, false);
             Stage transformedStage = new Stage();
             transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
             transformedStage.show();

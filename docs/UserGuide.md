@@ -72,9 +72,8 @@ Groups, attendance, participation, and assignments have no screen of their own. 
 the feedback box: for example, `group list` lists your groups and `attendance list w/3` lists Week 3's attendance.
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
-on a red background means it failed. It grows to fit the message, up to six lines; only longer messages need
-scrolling. The failed input stays in the
-command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
+on a red background means it failed. It grows to fit the message, up to four lines (about three in the compact
+layout); only longer messages need scrolling. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
 `help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
 The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
 Escape shortcuts.
@@ -118,6 +117,11 @@ Selecting rows with the keyboard does not replace your draft.
 
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
+
+* Pasted text often contains characters that look like a normal space or line break but are different
+  characters, such as the non-breaking spaces in web pages, PDFs, and chat apps. TAssist treats them as normal
+  spaces, so a pasted command works as if you typed it. Invisible characters that take up no space, such as a
+  zero-width space, are not treated as spaces; see [Known issues](#known-issues).
 
 * Command words ignore case: `GROUP add`, `group ADD`, and `group add` work the same way.
   Parameter prefixes still use lowercase letters, such as `g/` and `id/`. Group names ignore case and extra spaces.
@@ -535,8 +539,9 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 ### Recording a submission: `assignment submit`
 
 Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
-and `no` for not submitted. Marking a submission as not submitted clears its grade, if one is recorded.
-If the student already has that status, the command reports that nothing changed and leaves the data unchanged.
+and `no` for not submitted. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
+a grade was recorded. If the student already has that status, the command reports that nothing changed and leaves the
+data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
@@ -550,8 +555,7 @@ If Ben Lim (`A0234567Y`) is in the active group and has never submitted PS1, run
 ### Recording a grade: `assignment grade`
 
 Records or replaces a whole-number grade from 0 to 100 for a submitted assignment. Submit the assignment first with
-`assignment submit`. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
-a grade was recorded.
+`assignment submit`.
 
 Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 
@@ -561,12 +565,24 @@ and entering the same grade again shows `Alice Tan's PS1 grade is already 60. No
 An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
 assignment submit a/PS1 id/A0123456X s/yes`.
 
-### Listing assignment records: `assignment list`
+### Listing assignments and their records: `assignment list`
 
-Lists every student in the active group, in roster order, with their status and grade for one assignment.
+Without `a/`, lists the names of the active group's assignments in the order they were created. With `a/`, lists
+every student in the active group, in roster order, with their status and grade for that assignment.
 Listing does not change any data.
 
-Format: `assignment list a/ASSIGNMENT_NAME`
+Format: `assignment list [a/ASSIGNMENT_NAME]`
+
+Example: after `assignment add a/PS1` and `assignment add a/Lab 2 (Graphs)` in T01, `assignment list` shows
+
+```text
+Assignments in T01:
+1. PS1
+2. Lab 2 (Graphs)
+```
+
+A group without assignments shows `No assignments in T01. Create one with: assignment add a/ASSIGNMENT_NAME`.
+Use the listed names with `a/` in the other assignment commands.
 
 Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
 `assignment list a/PS1` shows
@@ -589,7 +605,7 @@ Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
-Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
+Unknown assignment | `Assignment PS2 does not exist in T01. See the group's assignments with: assignment list`, then on the next line `Or create it with: assignment add a/PS2` Check the name against `assignment list`. Assignments belong to one group, so also check the active group.
 Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
@@ -602,8 +618,9 @@ Missing or unknown subcommand | The feedback lists the valid subcommands: `add`,
 
 ### Exporting a group's records: `group export`
 
-Saves the attendance and participation of every student in the active group to a CSV file, which opens in Excel,
-Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
+Saves the attendance, participation, and assignment records of every student in the active group to a CSV file,
+which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or
+work out totals.
 Exporting only reads your records: it never changes them, the active group, or the saved data file.
 
 Format: `group export`
@@ -618,7 +635,7 @@ Format: `group export`
 Example: with T01 active, `group export` shows the full path of the file, for example:
 
 ```text
-Exported attendance and participation of 1 student in T01 to:
+Exported the records of 1 student in T01 to:
 /Users/alex/TAssist/exports/T01-records.csv
 ```
 
@@ -627,16 +644,18 @@ The file has a header row, then one row per student in roster order:
 * `Name` and `Student ID`.
 * `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
 * `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
+* Two columns for each assignment of the group, in the order the assignments were created, such as `PS1 Submitted`
+  and `PS1 Grade`. The first is `Yes` or `No`, and the second is the grade from 0 to 100, or empty if no grade was
+  recorded. A group without assignments has no assignment columns.
 
-For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, her row reads
-(with the empty weeks shortened):
+For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, and her PS1 submission
+was graded 87, her row reads (with the empty weeks shortened):
 
-Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | …
------|------------|-------------------|-------------------|-------------------|---|----------------------|---
-Alice Tan | A0123456X | | | Absent | … | 4 | …
+Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | … | PS1 Submitted | PS1 Grade
+-----|------------|-------------------|-------------------|-------------------|---|----------------------|---|---------------|----------
+Alice Tan | A0123456X | | | Absent | … | 4 | … | Yes | 87
 
-An empty group exports only the header row. Assignment submissions and grades are not exported; list them with
-`assignment list a/ASSIGNMENT_NAME`.
+An empty group exports only the header row.
 
 Problem | Feedback and correction
 --------|------------------------
@@ -768,6 +787,8 @@ the reason, and `No changes were made to the saved file.` For example:
 For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
 The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
 file invalid; trailing spaces, tabs, and line breaks are allowed.
+The Students screen and the group bar also say `Saved data could not be read` instead of suggesting that you add a
+group.
 The file is protected for that session: only `help`, `view`, and `exit` work. Every other command, including
 listing commands such as `group list`, is rejected because the data it would show or change was not loaded. The
 feedback repeats the startup message, including the reason, and adds
@@ -798,6 +819,11 @@ location while TAssist is closed, then restart. Repairing the file while the app
    you. Each copy works on the data it loaded at startup and saves the whole file after every change, so a change
    saved by one copy is overwritten by the other copy's next save, even though the footer showed `Changes saved.`
    Close TAssist before starting it again, and check that no other TAssist window is still open.
+1. **Pasted commands with invisible characters**, such as a zero-width space or a byte order mark, can be rejected
+   with an error about text that looks correct, such as an `Unknown command` error that shows `groupadd`, or
+   `Invalid student name`.
+   These characters take up no space, so TAssist does not treat them as spaces, and your data does not change.
+   If a pasted command fails for no visible reason, type it in yourself instead.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -829,5 +855,5 @@ Action | Format, Examples
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
-**List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
+**List assignments or records** | `assignment list [a/ASSIGNMENT_NAME]`<br> e.g., `assignment list`, `assignment list a/PS1`
 **Exit** | `exit`

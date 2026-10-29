@@ -9,6 +9,9 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
+* TAssist is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by
+  [SE-EDU](https://se-education.org).
+
 * The undo/redo design adapts the snapshot-history idea from the
   [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
   The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
@@ -18,6 +21,16 @@ title: Developer Guide
   with the group chips, and a navigation bar that opens the screens, replace the mock-up's dark header with a menu bar
   and its separate group strip. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or
   additional libraries are bundled.
+
+* Libraries used: [JavaFX](https://openjfx.io/) (GUI), [Jackson](https://github.com/FasterXML/jackson) (JSON storage),
+  and [JUnit 5](https://github.com/junit-team/junit5) (testing). Build and quality tools: [Gradle](https://gradle.org/),
+  [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
+  [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
+
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic),
+  [Codex](https://openai.com/codex/) (OpenAI) and [Cursor](https://cursor.com/) (SpaceX), AI coding assistants, to
+  help with some code, tests and documentation. Team members reviewed, tested and take responsibility for all
+  submitted work.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +111,10 @@ views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getD
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
 the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
 group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
-table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+table, and says whether no group is active, the active group has no students, or no search results match. After a
+failed load of the saved data (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)), both the
+Students screen and the group strip say "Saved data could not be read" instead, because adding a group is rejected
+until the file is repaired. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
@@ -298,6 +314,20 @@ using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. 
 whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
 validator normalizes them; parameter prefixes remain lowercase.
 
+Before splitting the input, `TAssistParser` replaces every Unicode space separator (`\p{Zs}`, such as the
+non-breaking space U+00A0 or the em space U+2003) and every Unicode line separator (U+2028, U+2029, and U+0085)
+with a normal space. Text pasted from a web page, a PDF, or a chat app often contains these characters. They look
+like a space or a line break, but Java's `\s` and `String#trim` do not treat them as whitespace, so a command such as
+`group add` followed by a non-breaking space would otherwise be read as one unknown subcommand. Tabs and ASCII line
+breaks are left to the existing whitespace rules.
+
+Zero-width characters, such as the zero-width space U+200B, the word joiner U+2060, and the byte order mark U+FEFF,
+are not changed. Unlike the characters above, they do not separate words: replacing one with a space would split
+`A0123<ZWSP>456X` into two words, while deleting it would join `group<ZWSP>add` into the unknown command `groupadd`.
+Either way, the command means something other than what the TA sees. Such input is rejected like any other invalid
+command, so the data stays unchanged, and the User Guide lists this under its known issues.
+`TAssistParserTest#replaceUnicodeSpaces_zeroWidthCharacters_areKept` records this choice.
+
 `HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
 lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
 that mixed-case undo and redo work.
@@ -417,8 +447,8 @@ registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the c
 
 ### Exporting a group's records
 
-`group export` saves the active group's attendance and participation as a CSV file that spreadsheets open. Four
-classes share the work:
+`group export` saves the active group's attendance, participation, and assignment records as a CSV file that
+spreadsheets open. Four classes share the work:
 
 * `GroupExportCommandParser` (Logic) rejects any parameters, like the `group list` parser.
 * `GroupExportCommand` (Logic) finds the active group and reports where its file was written.
@@ -448,9 +478,12 @@ roster order:
 
 * `Name` and `Student ID`;
 * `Week 1 Attendance` to `Week 13 Attendance`;
-* `Week 1 Participation` to `Week 13 Participation`.
+* `Week 1 Participation` to `Week 13 Participation`;
+* `PS1 Submitted` and `PS1 Grade` for each assignment in `Group#getAssignmentList()`, in creation order.
 
-A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. Attendance uses
+A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. The same holds for
+a missing grade. A submission cell is always `Yes` or `No`: `Assignment#getStudentRecord` gives an unsubmitted record
+for a student without one, as `assignment list` shows. Attendance uses
 `AttendanceStatus.formatStoredValue`, which `attendance list` also uses, so the file and the app show the same
 `Present` and `Absent`.
 
@@ -473,7 +506,7 @@ without changing it, so `LogicManager` never saves after `group export`, whether
 * **Aspect: Shape of the table**
   * **Alternative 1 (current choice):** One row per student, with a column for each week.
     * Pros: Matches how a coordinator reads a gradebook. A student's total is one `SUM` over their row.
-    * Cons: The file always has 28 columns, even when only a few weeks have records.
+    * Cons: The file always has 26 week columns, even when only a few weeks have records.
   * **Alternative 2:** One row per student and week, with attendance and participation columns.
     * Pros: Never has empty cells, and suits importing into a database.
     * Cons: Each student is spread over 13 rows, so a per-student total needs a pivot table.
@@ -487,13 +520,18 @@ without changing it, so `LogicManager` never saves after `group export`, whether
     * Cons: Writes outside the home folder. Needs rules for relative paths, existing files, and paths that differ
       between operating systems.
 * **Aspect: Assignment records**
-  * Issue #71 asks for attendance and participation only, so assignments are not exported. An assignment has a
-    name rather than a week, and each group has its own assignments, so assignments would need a variable set of
-    columns, such as `PS1 Submitted` and `PS1 Grade`. These could follow the week columns without changing how
-    the existing columns are read.
+  * **Alternative 1 (current choice):** Two columns per assignment, `PS1 Submitted` and `PS1 Grade`, after the week
+    columns.
+    * Pros: One row still holds all of a student's records, and the week columns keep their positions in every
+      export.
+    * Cons: Each group has its own assignments, so the number of columns differs between groups.
+  * **Alternative 2:** One column per assignment, holding the grade, `Submitted` without a grade, or empty.
+    * Pros: Fewer columns.
+    * Cons: Mixes text and numbers in one column, so a spreadsheet cannot simply sum or average the grades.
 
 `CsvUtilTest` covers quoting, line breaks, formula guards, and CRLF. `GroupRecordsCsvExporterTest` covers the
-layout, the byte order mark, replacing an earlier export without leaving temporary files, and an unwritable folder.
+layout, including the assignment columns, the byte order mark, replacing an earlier export without leaving
+temporary files, and an unwritable folder.
 `GroupExportCommandTest` covers the feedback, a missing active group, and a failed write. `GroupCommandsIntegrationTest`
 runs `group export` through `LogicManager`, reads the file back, and checks that the model and data file are
 unchanged and that storage is never called.
@@ -631,9 +669,20 @@ within one group.
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
 capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
 assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
-checks that the record is submitted. Each failed command leaves the model unchanged. `AssignmentListCommand` returns
-one row per student in roster order: name, student ID, submission status, and grade; missing records show
-`Not submitted` and `-`.
+checks that the record is submitted. Each failed command leaves the model unchanged. With `a/`,
+`AssignmentListCommand` returns one row per student in roster order: name, student ID, submission status, and grade;
+missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
+creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
+form.
+
+Design considerations for listing assignment names:
+
+* **Alternative 1 (current choice):** make `a/` optional in `assignment list`.
+  * Pros: No new command word to learn; the TA reaches for `assignment list` first anyway.
+  * Cons: One command returns two kinds of output, depending on whether `a/` is present.
+* **Alternative 2:** list the existing names in the unknown-assignment error.
+  * Pros: The names appear exactly when a guess fails.
+  * Cons: There is no way to see them before guessing, and a long list makes the error message hard to read.
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
@@ -1316,7 +1365,10 @@ The following extensions apply to every use case that changes or views records o
       Use case ends.
 
 * 3a. The assignment does not exist in the active group.
-    * 3a1. TAssist shows an error message stating that the assignment does not exist.
+    * 3a1. TAssist shows an error message stating that the assignment does not exist, and how to list the group's
+      assignments.
+    * 3a2. TA requests the list of the active group's assignments.
+    * 3a3. TAssist shows the names of the group's assignments.
 
       Use case resumes at step 3.
 
@@ -1376,7 +1428,7 @@ The following extensions apply to every use case that changes or views records o
 **MSS**
 
 1.  TA requests to export the records of the active group.
-2.  TAssist saves the group's students with their attendance and participation for every week to a CSV file, and shows the location of the file.
+2.  TAssist saves the group's students with their attendance and participation for every week and their submission status and grade for every assignment to a CSV file, and shows the location of the file.
 3.  TA opens the file in a spreadsheet and sends it to the course coordinator.
 
     Use case ends.
@@ -1599,6 +1651,8 @@ label.
       Expected: The app starts empty and shows `Saved data could not be read.`, then
       `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
       stopped, then `No changes were made to the saved file.` The log also records the cause.
+      With `view students`, the Students screen says **Saved data could not be read** and the group strip shows the
+      same note, instead of suggesting that you add a group.
 
    1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: Both `group list` and the mutation are rejected with
@@ -1691,13 +1745,17 @@ label.
 6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both
    times.
    Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
-7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list`,
+7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`,
    `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
    missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file. Enter
    `assignment grade a/PS1 id/A0123456X g/87`; expect an unknown-prefix error, since `g/` is reserved for groups.
 8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
    belong to one group.
    With no active group, both commands must ask you to create or select a group first.
+9. Switch back with `group use g/T01`, enter `assignment add a/Lab 2 (Graphs)`, close and reopen the app, select T01,
+   and enter `assignment list`. Expect
+   `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
+   assignments, expect `No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME`.
 
 ### Finding and sorting students
 
@@ -1801,12 +1859,15 @@ label.
 
 1. Exporting a group's records
 
-   1. Prerequisites: T01 is active and has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`). Enter
-      `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`.
-   1. Enter `group export`. Expected: `Exported attendance and participation of 2 students in T01 to:` followed by
+   1. Prerequisites: T01 is active, has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`), and has no assignments.
+      Enter `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`. Then enter
+      `assignment add a/PS1`, `assignment submit a/PS1 id/A0123456X s/yes`, and
+      `assignment grade a/PS1 id/A0123456X m/87`.
+   1. Enter `group export`. Expected: `Exported the records of 2 students in T01 to:` followed by
       the absolute path of `exports/T01-records.csv` in the folder that contains the JAR.
-   1. Open the file in a spreadsheet. Expected: 3 rows and 28 columns. Alice has `Present` under
-      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty.
+   1. Open the file in a spreadsheet. Expected: 3 rows and 30 columns. Alice has `Present` under
+      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty. The last two
+      columns are `PS1 Submitted` and `PS1 Grade`: Alice has `Yes` and `87`, and Ben has `No` and an empty grade.
    1. Enter `student add n/Chloé Ng id/A0345678Z`, then `group export` again. Expected: The file is replaced, Chloé
       appears with the accent intact, and the exports folder has no other files.
    1. Enter `group export g/T01`. Expected: `This command takes no parameters. Remove the extra input.`
@@ -1903,6 +1964,23 @@ parameter errors, empty groups, week boundaries, and display formatting.
       feedback and record as the lowercase command.
    1. Enter `GROUP add G/T06`. Expected: The command is rejected, because parameter prefixes stay lowercase, and
       the data does not change.
+
+### Pasting commands with unusual spaces
+
+1. Non-breaking and other Unicode spaces act as normal spaces
+
+   1. Prerequisites: Launch the JAR in an empty writable folder. In a text editor or web page, prepare
+      `group add g/T04` and `student add n/Ann Lee id/N1` with a non-breaking space (U+00A0) in place of each space,
+      and `group add g/T03` followed by one non-breaking space.
+   1. Paste and enter `group add g/T04`, then `group add g/T03`. Expected: T04 and then T03 are created, as when the
+      commands are typed with normal spaces. `group add` makes each new group active, so T03 is now active.
+   1. Paste and enter `student add n/Ann Lee id/N1`. Expected: `Added Ann Lee to T03.`
+
+1. Zero-width characters are not treated as spaces
+
+   1. Prepare `group add g/T05` with a zero-width space (U+200B) in place of the space between `group` and `add`.
+   1. Paste and enter it. Expected: an `Unknown command` error that shows `group` and `add` joined, as described in
+      the User Guide's known issues. No group is created.
 
 ### Preparing a command from a student row
 

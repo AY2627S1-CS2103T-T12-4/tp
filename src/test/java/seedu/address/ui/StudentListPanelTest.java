@@ -34,31 +34,40 @@ public class StudentListPanelTest {
     @Test
     public void describeEmptyState_activeGroup_namesGroup() {
         assertEquals("No students in T03 yet",
-                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), false));
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), false, false));
         assertEquals("Students you add to T03 will appear here.",
-                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), false));
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), false, false));
     }
 
     @Test
     public void describeEmptyState_noActiveGroup_explainsHowToSeeStudents() {
-        assertEquals(StudentListPanel.NO_ACTIVE_GROUP, StudentListPanel.describeEmptyTitle(Optional.empty(), false));
+        assertEquals(StudentListPanel.NO_ACTIVE_GROUP,
+                StudentListPanel.describeEmptyTitle(Optional.empty(), false, false));
         assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT,
-                StudentListPanel.describeEmptyHint(Optional.empty(), false));
+                StudentListPanel.describeEmptyHint(Optional.empty(), false, false));
+    }
+
+    @Test
+    public void describeEmptyState_dataLoadFailed_saysSavedDataNotRead() {
+        assertEquals(StudentListPanel.DATA_NOT_READ,
+                StudentListPanel.describeEmptyTitle(Optional.empty(), false, true));
+        assertEquals(StudentListPanel.DATA_NOT_READ_HINT,
+                StudentListPanel.describeEmptyHint(Optional.empty(), false, true));
     }
 
     @Test
     public void describeEmptyState_populatedGroup_explainsHowToClearSearch() {
         assertEquals("No matching students",
-                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT01()), true));
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT01()), true, false));
         assertEquals("Use student list to show all students.",
-                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT01()), true));
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT01()), true, false));
     }
 
     @Test
     public void describeEmptyState_emptyFilteredGroup_explainsHowToClearSearch() {
         assertEquals("No matching students",
-                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), true));
+                StudentListPanel.describeEmptyTitle(Optional.of(TypicalGroups.getT03()), true, false));
         assertEquals("Use student list to show all students.",
-                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), true));
+                StudentListPanel.describeEmptyHint(Optional.of(TypicalGroups.getT03()), true, false));
     }
 }
