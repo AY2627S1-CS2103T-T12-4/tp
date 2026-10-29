@@ -374,6 +374,9 @@ IDs ignore case, so `student delete id/a0234567y` targets the same student.
 #### Student command errors
 
 Rejected input leaves the roster and saved file unchanged.
+Missing required parameters are reported before invalid values. For example, `student add n/David/Tan`
+reports the missing-parameter usage because no student ID was supplied. Enter the name with a space and
+supply a separate ID, for example `student add n/David Tan id/A0123456X`.
 
 Problem | Feedback and correction
 --------|------------------------
@@ -384,7 +387,7 @@ Missing parameter | `Missing required parameter. Usage: student add n/NAME id/ST
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
-Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `f/yes`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
@@ -613,7 +616,7 @@ Grade before submission | `Cannot record a grade for an unsubmitted assignment. 
 Unknown student | `Student ID A0999999Z does not exist in T01.` Check the ID, or switch to the student's group with `group use`.
 Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
-Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
 
 ### Exporting a group's records: `group export`
@@ -631,6 +634,9 @@ Format: `group export`
 * Exporting the same group again replaces its earlier file, so the file always matches the latest records.
   Close the file in your spreadsheet before exporting again.
 * The command takes no parameters. Select the group to export with `group use` first.
+* The CSV keeps leading zeros in student IDs, such as `00123`. A spreadsheet may interpret an all-digit ID as a
+  number and display `00123` as `123`. To preserve leading zeros and long IDs, import the CSV using your spreadsheet
+  app's import options and set the `Student ID` column to text before loading it, instead of opening the CSV directly.
 
 Example: with T01 active, `group export` shows the full path of the file, for example:
 
