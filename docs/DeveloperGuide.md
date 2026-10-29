@@ -383,7 +383,7 @@ therefore have the same hash code, while display capitalization is preserved.
   one removed. The feedback states how many students were deleted.
 * `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
   `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
-  and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
+  and keeps it active if it was active. Changing only the case of the group's own name is allowed.
   `GroupName` equality ignores case, but `Group#equals` compares the name's exact capitalization, so `LogicManager`
   sees a case-only rename as a change. It is saved and recorded for undo like any other rename. A new name equal
   to the stored name, after spaces are normalized, returns unchanged feedback without calling `Model.renameGroup`.
@@ -627,6 +627,8 @@ the recorded one, `AssignmentSubmitCommand` returns unchanged feedback without u
 also covers a student with no explicit record, so the command does not create a record or save the file.
 Like `participation set`, `AssignmentGradeCommand` feedback distinguishes a first grade, a replacement (showing the
 old and new grade, such as `87 to 60`), and a grade equal to the existing one, which says nothing changed.
+Unlike `AssignmentSubmitCommand`, the grade command still calls `Model.setAssignment` for an equal grade, and
+`LogicManager` skips saving because the data is unchanged.
 Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional

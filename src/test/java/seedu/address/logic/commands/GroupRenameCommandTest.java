@@ -31,7 +31,7 @@ public class GroupRenameCommandTest {
     }
 
     @Test
-    public void execute_onlyChangesCaseOrSpacing_success() {
+    public void execute_onlyChangesCase_success() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         expected.renameGroup(TypicalGroups.NAME_T01, new GroupName("t01"));
