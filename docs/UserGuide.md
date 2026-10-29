@@ -776,6 +776,8 @@ the reason, and `No changes were made to the saved file.` For example:
 For a file that is not valid JSON, or a value of the wrong type, the reason names the line where reading stopped.
 The file must contain a single JSON object. Extra text or another JSON value after its closing brace makes the
 file invalid; trailing spaces, tabs, and line breaks are allowed.
+The Students screen and the group bar also say `Saved data could not be read` instead of suggesting that you add a
+group.
 The file is protected for that session: only `help`, `view`, and `exit` work. Every other command, including
 listing commands such as `group list`, is rejected because the data it would show or change was not loaded. The
 feedback repeats the startup message, including the reason, and adds

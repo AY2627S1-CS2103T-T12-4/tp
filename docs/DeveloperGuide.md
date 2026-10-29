@@ -111,7 +111,10 @@ views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getD
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
 the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
 group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
-table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+table, and says whether no group is active, the active group has no students, or no search results match. After a
+failed load of the saved data (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)), both the
+Students screen and the group strip say "Saved data could not be read" instead, because adding a group is rejected
+until the file is repaired. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
@@ -1611,6 +1614,8 @@ label.
       Expected: The app starts empty and shows `Saved data could not be read.`, then
       `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
       stopped, then `No changes were made to the saved file.` The log also records the cause.
+      With `view students`, the Students screen says **Saved data could not be read** and the group strip shows the
+      same note, instead of suggesting that you add a group.
 
    1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
       Expected: Both `group list` and the mutation are rejected with
