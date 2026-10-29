@@ -61,6 +61,37 @@ public class TAssistArgumentParserTest {
         assertMissingParameters("g/T01", "n/ id/");
         assertMissingParameters("id/A1", "n/");
         assertMissingParameters("n/Alice", "id/");
+        assertMissingParameters("n/Alice g/T01-id", "id/");
+    }
+
+    @Test
+    public void parse_missingSpaceBeforePrefix_namesJoinedPrefix() {
+        assertMissingSpace("n/Aliceid/A1", "id/", "n/Aliceid/A1");
+        assertMissingSpace("id/A1n/Alice g/T01", "n/", "id/A1n/Alice");
+        assertMissingSpace("n/Alice g/T01,id/A1", "id/", "g/T01,id/A1");
+        assertMissingSpace("id/A1n/Alice Tan Wei Ming", "n/", "id/A1n/Alice");
+    }
+
+    @Test
+    public void parse_unknownPrefixEndingWithMissingPrefix_hintsMissingSpace() {
+        String unknownPrefix = String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "Tanid/", "n/ id/ g/");
+        assertThrows(ParseException.class, unknownPrefix
+                + String.format(TAssistArgumentParser.MESSAGE_SEPARATE_PREFIX, "id/"), () ->
+                parser.parse("n/Alice Tanid/A1"));
+        assertThrows(ParseException.class, unknownPrefix, () -> parser.parse("n/Alice Tanid/A1 id/A2"));
+    }
+
+    @Test
+    public void parse_mistypedPrefixEndingWithAllowedPrefix_omitsHint() {
+        String[][] cases = {
+            {"n/Alice studentid/A1", "studentid/"},
+            {"n/alice tanid/A1", "tanid/"},
+            {"Tanid/A1 n/Alice", "Tanid/"}
+        };
+        for (String[] testCase : cases) {
+            assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX,
+                    testCase[1], "n/ id/ g/"), () -> parser.parse(testCase[0]));
+        }
     }
 
     @Test
@@ -211,6 +242,11 @@ public class TAssistArgumentParserTest {
     private void assertMissingParameters(String input, String missingPrefixes) {
         assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS,
                 missingPrefixes), () -> parser.parse(input));
+    }
+
+    private void assertMissingSpace(String input, String missingPrefix, String joinedText) {
+        assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, missingPrefix,
+                joinedText), () -> parser.parse(input));
     }
 
     private void assertExtraText(String input, String precedingText, String extraText) {

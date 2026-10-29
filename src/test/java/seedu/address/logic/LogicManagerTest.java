@@ -18,7 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.commons.core.WorkspaceView;
+import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.RedoCommand;
@@ -149,7 +151,8 @@ public class LogicManagerTest {
         GroupCommandRegistration.registerCommands(registry);
         logic = new LogicManager(model, createStorage(createFailingTAssistStorage(DUMMY_AD_EXCEPTION)), registry);
 
-        assertEquals("Switched active group to T02.", logic.execute("group use g/t02").getFeedbackToUser());
+        assertEquals("T02 is already the active group. Nothing changed.",
+                logic.execute("group use g/t02").getFeedbackToUser());
     }
 
     @Test
@@ -305,6 +308,23 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_renameOnlyChangesCase_savesAndUndoesOnlyRename() throws Exception {
+        JsonTAssistStorage tAssistStorage = new JsonTAssistStorage(temporaryFolder.resolve("rename.json"));
+        logic = new LogicManager(model, createStorage(tAssistStorage), createGroupAndStudentRegistry());
+        logic.execute("group add g/T01");
+        logic.execute("group add g/T02");
+        TAssist beforeRename = new TAssist(model.getTAssist());
+
+        assertTrue(logic.execute("group rename g/T01 n/t01").hasSavedChanges());
+        ReadOnlyTAssist saved = tAssistStorage.readTAssist().orElseThrow();
+        assertEquals("t01", saved.getGroupList().get(0).getName().toString());
+
+        assertEquals("Undone: group rename g/T01 n/t01", logic.execute("undo").getFeedbackToUser());
+        assertEquals(beforeRename, model.getTAssist());
+        assertEquals(beforeRename, new TAssist(tAssistStorage.readTAssist().orElseThrow()));
+    }
+
+    @Test
     public void execute_undoNotSaved_keepsDataAndHistory() throws Exception {
         boolean[] isSaveFailing = {false};
         JsonTAssistStorage storage = new JsonTAssistStorage(temporaryFolder.resolve("unsaved.json")) {
@@ -329,6 +349,43 @@ public class LogicManagerTest {
         isSaveFailing[0] = false;
         assertEquals("Undone: group add g/T01", logic.execute("undo").getFeedbackToUser());
         assertEquals(new TAssist(), model.getTAssist());
+    }
+
+    @Test
+    public void execute_savedDataUnreadable_rejectsCommandsThatNeedIt() throws Exception {
+        Path dataFile = temporaryFolder.resolve("unreadable.json");
+        DataLoadStatus status = DataLoadStatus.failed("Week must be a whole number from 1 to 13.");
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)),
+                createGroupAndStudentRegistry(), status);
+
+        assertCommandException("group list", "Saved data could not be read. Week must be a whole number from 1 to 13."
+                + " No changes were made to the saved file. Close TAssist, repair or move the unreadable data file,"
+                + " and restart to see or change your records.");
+        for (String command : List.of("student list", "group add g/T01", "undo")) {
+            assertCommandException(command, LogicManager.getDataProtectedMessage(status));
+        }
+        assertEquals(CommandResult.forHelp(HelpCommand.MESSAGE_SHOWING_HELP, ""), logic.execute("help"));
+        assertEquals(WorkspaceView.GROUPS, logic.execute("view groups").getView().orElseThrow());
+        assertTrue(logic.execute("exit").isExit());
+        assertFalse(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_savedDataUnreadableAndCommandChangesData_rejectsChange() {
+        Command changeWithoutSavedData = new StubCommand(model -> model.addGroup(TypicalGroups.getT01())) {
+            @Override
+            public boolean canRunWithoutSavedData() {
+                return true;
+            }
+        };
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "change", args -> changeWithoutSavedData);
+        Path dataFile = temporaryFolder.resolve("protected.json");
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)), registry,
+                DataLoadStatus.FAILED);
+
+        assertCommandException("group change", LogicManager.getDataProtectedMessage(DataLoadStatus.FAILED));
+        assertFalse(Files.exists(dataFile));
     }
 
     @Test

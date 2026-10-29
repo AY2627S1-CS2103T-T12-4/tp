@@ -58,7 +58,7 @@ public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
                 "participation list w/3 w/4", "participation list w/3 s/4", "participation", "participation mark",
                 "participation clear", "participation clear id/A0123456X", "participation clear w/3",
                 "participation clear id/A0123456X w/0", "participation clear id/A0123456X w/3 s/2",
-                "participation clear id/A0123456X w/3 w/4")) {
+                "participation clear id/A0123456X w/3 w/4", "participation clear id/A0123456X w/3 now")) {
             assertRejected(command, ParseException.class);
         }
         assertRejected("participation set id/A999 w/3 s/4", CommandException.class);

@@ -75,4 +75,12 @@ public abstract class Command {
         return true;
     }
 
+    /**
+     * Returns true if this command works without the TA's saved data, so it still runs after that data could not be
+     * read at startup. Commands that show or change tutorial records return false.
+     */
+    public boolean canRunWithoutSavedData() {
+        return false;
+    }
+
 }

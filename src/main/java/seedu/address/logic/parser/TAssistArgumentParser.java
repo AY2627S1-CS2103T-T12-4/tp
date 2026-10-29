@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,12 +32,16 @@ public class TAssistArgumentParser {
             "Unexpected extra text after '%s': '%s'. This value cannot contain spaces.";
     public static final String MESSAGE_SEPARATE_LITERAL_WORD =
             " If %s is part of the value, put a space before and after it.";
+    public static final String MESSAGE_SEPARATE_PREFIX = " If %s starts a new parameter, put a space before it.";
+    public static final String MESSAGE_MISSING_SPACE =
+            "Missing space before %s in '%s'. Put a space before each prefix.";
 
     private static final Pattern PREFIX_FORMAT =
             Pattern.compile("(?<!\\S)(?![A-Za-z][A-Za-z0-9+.-]*://)([^\\s/]+/)");
     private static final Pattern LITERAL_WORD_FORMAT = Pattern.compile("[^\\s/]+/[^\\s/]+");
     /** A word as the prefix pattern sees it: text up to the next whitespace. */
     private static final Pattern WORD_FORMAT = Pattern.compile("\\S*");
+    private static final Pattern LOWERCASE_LETTERS = Pattern.compile("\\p{Ll}+");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
@@ -160,6 +165,28 @@ public class TAssistArgumentParser {
         }
     }
 
+    /**
+     * Checks that {@code missingPrefix}, which has no value in {@code values}, was not typed right after another
+     * value's text without a space, as {@code w/} is in {@code id/A0123456Xw/3}.
+     *
+     * @param values The mapping returned by {@link #parseWithoutExtraTextCheck(String)}.
+     * @param missingPrefix The allowed prefix that has no value.
+     * @throws ParseException if another value contains {@code missingPrefix} right after other text.
+     */
+    public void verifyNoMissingSpaceBefore(ArgumentMultimap values, Prefix missingPrefix) throws ParseException {
+        requireNonNull(values);
+        requireNonNull(missingPrefix);
+        assert values.getValue(missingPrefix).isEmpty() : "Only a missing prefix can be joined to another value";
+        Pattern joinedPrefix = Pattern.compile("\\S" + Pattern.quote(missingPrefix.getPrefix()));
+        for (Prefix prefix : allowedPrefixes) {
+            // A later word with a slash is read as a prefix of its own, so only a value's first word can hide one.
+            String firstWord = values.getValue(prefix).orElse("").split("\\s+", 2)[0];
+            if (joinedPrefix.matcher(firstWord).find()) {
+                throw new ParseException(String.format(MESSAGE_MISSING_SPACE, missingPrefix, prefix + firstWord));
+            }
+        }
+    }
+
     private void addAllowedPrefix(Prefix prefix) {
         checkArgument(TAssistParserUtil.isValidPrefix(prefix), "Prefixes must be lowercase words followed by '/'.");
         checkArgument(allowedPrefixes.add(prefix), "Prefix declared more than once: " + prefix);
@@ -188,7 +215,8 @@ public class TAssistArgumentParser {
                 if (literalWords.contains(word.toLowerCase(Locale.ROOT))) {
                     continue;
                 }
-                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word));
+                boolean isAfterValue = !currentPrefix.getPrefix().isEmpty();
+                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word, arguments, isAfterValue));
             }
             values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
@@ -209,18 +237,53 @@ public class TAssistArgumentParser {
     }
 
     /**
-     * Returns the error for the unknown {@code prefix} that starts {@code word}. If the word starts with a literal
-     * word glued to a name, such as {@code s/oKumar}, the error also says to separate the literal word. Text that
-     * continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not taken as a glued name.
+     * Returns the error for the unknown {@code prefix} that starts {@code word} in {@code arguments}. If the word
+     * starts with a literal word glued to a name, such as {@code s/oKumar}, the error also says to separate the
+     * literal word. Text that continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not
+     * taken as a glued name. Otherwise, if the word comes after another parameter's value, the error may add a hint
+     * from {@link #findJoinedPrefixHint(Prefix, String)}.
      */
-    private String createUnknownPrefixMessage(Prefix prefix, String word) {
+    private String createUnknownPrefixMessage(Prefix prefix, String word, String arguments, boolean isAfterValue) {
         String message = String.format(MESSAGE_UNKNOWN_PREFIX, prefix, formatAllowedPrefixes());
-        return literalWords.stream()
+        Optional<String> literalWordHint = literalWords.stream()
                 .filter(literalWord -> isGluedToName(word, literalWord))
                 .findFirst()
-                .map(literalWord -> message + String.format(MESSAGE_SEPARATE_LITERAL_WORD,
-                        word.substring(0, literalWord.length())))
-                .orElse(message);
+                .map(literalWord -> String.format(MESSAGE_SEPARATE_LITERAL_WORD,
+                        word.substring(0, literalWord.length())));
+        Optional<String> hint = isAfterValue
+                ? literalWordHint.or(() -> findJoinedPrefixHint(prefix, arguments))
+                : literalWordHint;
+        return message + hint.orElse("");
+    }
+
+    /**
+     * Returns a hint to put a space before the allowed prefix that ends the unknown {@code prefix}, as {@code id/}
+     * ends {@code Tanid/}, if {@code arguments} has no parameter with that allowed prefix. Text before the allowed
+     * prefix that is all lowercase letters, as in {@code status/} or {@code studentid/}, is taken as a mistyped prefix
+     * name rather than the end of a value.
+     */
+    private Optional<String> findJoinedPrefixHint(Prefix prefix, String arguments) {
+        String unknownPrefix = prefix.getPrefix();
+        return allowedPrefixes.stream()
+                .filter(allowedPrefix -> unknownPrefix.length() > allowedPrefix.getPrefix().length()
+                        && unknownPrefix.endsWith(allowedPrefix.getPrefix()))
+                .filter(allowedPrefix -> !isLowercaseBefore(unknownPrefix, allowedPrefix))
+                .filter(allowedPrefix -> !hasParameter(arguments, allowedPrefix))
+                .findFirst()
+                .map(allowedPrefix -> String.format(MESSAGE_SEPARATE_PREFIX, allowedPrefix));
+    }
+
+    /**
+     * Returns true if the text of {@code unknownPrefix} before the {@code allowedPrefix} that ends it is all
+     * lowercase letters.
+     */
+    private static boolean isLowercaseBefore(String unknownPrefix, Prefix allowedPrefix) {
+        String textBefore = unknownPrefix.substring(0, unknownPrefix.length() - allowedPrefix.getPrefix().length());
+        return LOWERCASE_LETTERS.matcher(textBefore).matches();
+    }
+
+    private static boolean hasParameter(String arguments, Prefix prefix) {
+        return Pattern.compile("(?<!\\S)" + Pattern.quote(prefix.getPrefix())).matcher(arguments).find();
     }
 
     private static boolean isGluedToName(String word, String literalWord) {
@@ -231,12 +294,16 @@ public class TAssistArgumentParser {
     }
 
     private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
-        String missingPrefixes = requiredPrefixes.stream()
+        List<Prefix> missingPrefixes = requiredPrefixes.stream()
                 .filter(prefix -> values.getValue(prefix).isEmpty())
-                .map(Prefix::toString)
-                .collect(Collectors.joining(" "));
+                .toList();
+        for (Prefix missingPrefix : missingPrefixes) {
+            verifyNoMissingSpaceBefore(values, missingPrefix);
+        }
         if (!missingPrefixes.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes));
+            throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes.stream()
+                    .map(Prefix::toString)
+                    .collect(Collectors.joining(" "))));
         }
     }
 

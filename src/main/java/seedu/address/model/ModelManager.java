@@ -3,11 +3,18 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.assignment.Assignment;
@@ -25,6 +32,12 @@ public class ModelManager implements Model {
     private final TAssist tAssist;
     private final UserPrefs userPrefs;
     private final ActiveGroupTracker activeGroupTracker = new ActiveGroupTracker();
+    private final FilteredList<Student> filteredStudents =
+            new FilteredList<>(activeGroupTracker.getStudentList());
+    private final SortedList<Student> displayedStudents = new SortedList<>(filteredStudents);
+    private final ReadOnlyBooleanWrapper hasStudentFilter = new ReadOnlyBooleanWrapper();
+    private final ObservableList<Student> unmodifiableDisplayedStudents =
+            FXCollections.unmodifiableObservableList(displayedStudents);
     private TAssistHistory history = new TAssistHistory();
 
     /**
@@ -37,6 +50,7 @@ public class ModelManager implements Model {
 
         this.tAssist = new TAssist(tAssist);
         this.userPrefs = new UserPrefs(userPrefs);
+        hasStudentFilter.bind(filteredStudents.predicateProperty().isNotNull());
         trackActiveGroup();
     }
 
@@ -214,10 +228,54 @@ public class ModelManager implements Model {
         return activeGroupTracker.getStudentList();
     }
 
+    @Override
+    public ObservableList<Student> getDisplayedStudentList() {
+        return unmodifiableDisplayedStudents;
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty studentFilterActiveProperty() {
+        return hasStudentFilter.getReadOnlyProperty();
+    }
+
+    @Override
+    public void filterStudents(Predicate<Student> predicate) {
+        filteredStudents.setPredicate(requireNonNull(predicate));
+        logger.fine("Updated the student display filter");
+    }
+
+    @Override
+    public void sortStudents(Comparator<Student> comparator) {
+        displayedStudents.setComparator(requireNonNull(comparator));
+        logger.fine("Updated the student display order");
+    }
+
+    @Override
+    public void resetStudentDisplay() {
+        filteredStudents.setPredicate(null);
+        displayedStudents.setComparator(null);
+    }
+
+    @Override
+    public StudentDisplayState getStudentDisplayState() {
+        return new StudentDisplayState(filteredStudents.getPredicate(), displayedStudents.getComparator());
+    }
+
+    @Override
+    public void setStudentDisplayState(StudentDisplayState state) {
+        requireNonNull(state);
+        filteredStudents.setPredicate(state.predicate());
+        displayedStudents.setComparator(state.comparator());
+    }
+
     /**
      * Points the active group views at the group that is active in {@code tAssist}.
      */
     private void trackActiveGroup() {
+        if (!activeGroupTracker.activeGroupProperty().get().map(Group::getName)
+                .equals(tAssist.getActiveGroup().map(Group::getName))) {
+            resetStudentDisplay();
+        }
         activeGroupTracker.track(tAssist.getActiveGroup());
         assert activeGroupTracker.activeGroupProperty().get().equals(tAssist.getActiveGroup())
                 : "The active group views must show the active group";

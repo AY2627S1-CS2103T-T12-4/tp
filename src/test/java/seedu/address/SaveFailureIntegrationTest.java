@@ -21,6 +21,7 @@ import seedu.address.logic.parser.ParticipationCommandRegistration;
 import seedu.address.logic.parser.StudentCommandRegistration;
 import seedu.address.model.ReadOnlyTAssist;
 import seedu.address.model.TAssist;
+import seedu.address.model.student.Student;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -83,6 +84,32 @@ public class SaveFailureIntegrationTest extends AppIntegrationTest {
         assertTrue(app.logic.execute("group add g/T02").hasSavedChanges());
         app.stop();
         assertEquals(app.model.getTAssist(), openApp().model.getTAssist());
+    }
+
+    @Test
+    public void execute_failedMutations_preservesSearchAndSorting() throws Exception {
+        app = openApp();
+        for (String command : List.of("group add g/T01", "student add n/Ben id/B2",
+                "student add n/Alice id/A3", "student add n/Alice id/A1", "group add g/T02",
+                "group use g/T01", "student find n/alice", "student sort by/id")) {
+            app.logic.execute(command);
+        }
+        List<Student> displayed = List.copyOf(app.logic.getDisplayedStudentList());
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+        injectFailingStorage();
+
+        for (String command : List.of("group use g/T02", "student add n/Alice id/A2",
+                "student delete id/A1", "attendance mark id/A1 w/1 s/present")) {
+            assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> app.logic.execute(command));
+            assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
+            assertEquals(previousData, app.model.getTAssist(), command);
+            assertEquals(saved, Files.readString(dataFile), command);
+        }
+        saveFailure = null;
+        app.logic.execute("student add n/Alice id/A2");
+        assertEquals(List.of("A1", "A2", "A3"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
     }
 
     private void injectFailingStorage() {

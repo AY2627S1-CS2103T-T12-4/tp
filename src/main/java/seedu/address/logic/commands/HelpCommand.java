@@ -21,6 +21,7 @@ public class HelpCommand extends Command {
             + "Add a topic to open it at that topic's commands.\n"
             + "Parameters: [TOPIC]\n"
             + "Topics: " + String.join(", ", HelpCatalog.TOPICS) + "\n"
+            + "Groups, students, and assignments are also accepted.\n"
             + "Example: " + COMMAND_WORD + " student";
 
     public static final String MESSAGE_UNKNOWN_TOPIC =
@@ -58,6 +59,11 @@ public class HelpCommand extends Command {
             return CommandResult.forHelp(String.format(MESSAGE_NO_COMMANDS_FOR_TOPIC, topic), "");
         }
         return CommandResult.forHelp(String.format(MESSAGE_SHOWING_TOPIC, topic), topic);
+    }
+
+    @Override
+    public boolean canRunWithoutSavedData() {
+        return true;
     }
 
     @Override

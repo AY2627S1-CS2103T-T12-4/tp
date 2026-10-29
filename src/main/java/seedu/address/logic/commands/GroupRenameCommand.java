@@ -18,6 +18,7 @@ import seedu.address.model.group.GroupName;
 public class GroupRenameCommand extends Command {
     public static final String MESSAGE_USAGE = "group rename g/GROUP_NAME n/NEW_NAME";
     public static final String MESSAGE_SUCCESS = "Renamed tutorial group %s to %s.";
+    public static final String MESSAGE_UNCHANGED = "Tutorial group %s already has that name. Nothing changed.";
 
     private final GroupName name;
     private final GroupName newName;
@@ -44,6 +45,10 @@ public class GroupRenameCommand extends Command {
         }
 
         GroupName oldName = target.getName();
+        if (oldName.fullName.equals(newName.fullName)) {
+            return new CommandResult(String.format(MESSAGE_UNCHANGED, oldName));
+        }
+
         model.renameGroup(oldName, newName);
         assert model.hasGroup(newName) : "The renamed group must exist under its new name";
         return new CommandResult(String.format(MESSAGE_SUCCESS, oldName, newName));

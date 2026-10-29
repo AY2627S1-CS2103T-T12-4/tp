@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -35,10 +36,12 @@ public class WorkspacePanel extends UiPart<TabPane> {
      * Creates the workspace with the active group's live students and explicit previews of future features.
      */
     public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
+            ObservableList<Student> displayedStudents, ObservableBooleanValue hasStudentFilter,
             Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, studentClickHandler);
+        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, displayedStudents,
+                hasStudentFilter, studentClickHandler);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
                 "Use group add, group list, and group use to manage tutorial groups. This table is coming soon.",

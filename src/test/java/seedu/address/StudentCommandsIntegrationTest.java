@@ -1,9 +1,12 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,11 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.GroupExportCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
+import seedu.address.model.student.Student;
+import seedu.address.storage.GroupRecordsCsvExporter;
 
 public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     @BeforeEach
@@ -71,7 +77,8 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     public void execute_noActiveGroup_preservesModelAndSavedFile() throws Exception {
         app.model.setTAssist(new TAssist());
         app.storage.saveTAssist(app.model.getTAssist());
-        for (String command : List.of("student add n/Alice id/A1", "student list", "student delete id/A1")) {
+        for (String command : List.of("student add n/Alice id/A1", "student list", "student find n/Alice",
+                "student sort by/name", "student delete id/A1")) {
             assertRejected(command, CommandException.class);
         }
     }
@@ -99,6 +106,7 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     public void init_studentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "student");
         assertEquals(List.of("student add n/NAME id/STUDENT_ID", "student list",
+                        "student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]", "student sort by/FIELD",
                         "student delete id/STUDENT_ID [f/yes]"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing student commands.", "student"), app.logic.execute("help student"));
@@ -107,5 +115,89 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
                 app.logic.execute(example);
             }
         }
+    }
+
+    @Test
+    public void execute_searchAndList_changesOnlyDisplayAndResetsOnRestart() throws Exception {
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student add n/Ben Lim id/B2");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+
+        assertFalse(app.logic.execute("student find n/liCE id/a").hasSavedChanges());
+        assertEquals(List.of("A1"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("student find n/Ben");
+        assertEquals("B2", app.logic.getDisplayedStudentList().getFirst().getStudentId().toString());
+        feedback("student list");
+        assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
+        feedback("student find n/nobody");
+        assertTrue(app.logic.getDisplayedStudentList().isEmpty());
+        restart();
+        assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
+        assertEquals(saved, Files.readString(dataFile));
+    }
+
+    @Test
+    public void execute_searchAndSort_errorsPreserveDisplayAndOtherFeaturesUseFullRoster() throws Exception {
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student add n/Alice Tan id/A1");
+        feedback("student find n/alice");
+        feedback("student sort by/id");
+        List<Student> displayed = List.copyOf(app.logic.getDisplayedStudentList());
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        String saved = Files.readString(dataFile);
+        for (String command : List.of("student find", "student find n/", "student find id/",
+                "student find n/Alice n/Ben", "student find n/Alice w/1", "student sort by/grade",
+                "student sort by/name by/id", "student sort")) {
+            assertThrows(ParseException.class, () -> app.logic.execute(command));
+            assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
+        }
+        assertThrows(CommandException.class, () -> app.logic.execute("student delete id/C3"));
+        assertEquals(displayed, app.logic.getDisplayedStudentList());
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("attendance mark id/B2 w/1 s/present");
+        feedback("participation set id/B2 w/1 s/5");
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/B2 s/yes");
+        feedback("assignment grade a/PS1 id/B2 m/87");
+        for (String command : List.of("attendance list w/1", "participation list w/1", "assignment list a/PS1")) {
+            String rows = feedback(command);
+            assertTrue(rows.indexOf("Ben Lim | B2") < rows.indexOf("Alice Tan | A1"), command);
+            assertTrue(rows.contains("Ben Lim | B2"), command);
+        }
+        GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
+        new GroupExportCommand(exporter).execute(app.model);
+        Path exportFile = exporter.getExportFile(app.model.getActiveGroup().orElseThrow().getName());
+        List<String> rows = Files.readAllLines(exportFile);
+        assertEquals(3, rows.size());
+        assertTrue(rows.get(1).startsWith("Ben Lim,B2,"));
+        assertTrue(rows.get(2).startsWith("Alice Tan,A1,"));
+        assertEquals(displayed, app.logic.getDisplayedStudentList());
+    }
+
+    @Test
+    public void execute_emptyRosterQueries_preservesFileAndShowsLaterAdditions() throws Exception {
+        String saved = Files.readString(dataFile);
+        CommandResult findResult = app.logic.execute("student find n/alice");
+        assertEquals("No students in T01. Add one using: student add n/NAME id/STUDENT_ID",
+                findResult.getFeedbackToUser());
+        assertFalse(findResult.hasSavedChanges());
+        CommandResult sortResult = app.logic.execute("student sort by/name");
+        assertEquals("Sorted 0 student(s) in T01 by name.", sortResult.getFeedbackToUser());
+        assertFalse(sortResult.hasSavedChanges());
+        assertEquals(saved, Files.readString(dataFile));
+
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student add n/Alice Tan id/A1");
+        assertEquals(List.of("A1", "B2"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+        restart();
+        assertEquals("Students in T01:\n1. Ben Lim | B2\n2. Alice Tan | A1", feedback("student list"));
     }
 }

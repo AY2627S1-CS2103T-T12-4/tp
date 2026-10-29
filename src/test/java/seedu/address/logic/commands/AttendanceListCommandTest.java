@@ -37,6 +37,7 @@ public class AttendanceListCommandTest {
                 + "Carl Goh | A0345678Z | Absent");
     }
 
+    //@@author MarcusMa06-code
     @Test
     public void execute_invalidStoredStatus_showsStoredText() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "late"));
@@ -47,6 +48,7 @@ public class AttendanceListCommandTest {
                 + "Carl Goh | A0345678Z | Not recorded");
     }
 
+    //@@author
     @Test
     public void execute_noRecordsForSelectedWeek_listsEveryoneAsNotRecorded() {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));

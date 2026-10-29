@@ -189,8 +189,9 @@ public class Group {
     }
 
     /**
-     * Returns true if both groups have the same name, students and assignments.
-     * This defines a stronger notion of equality between two groups.
+     * Returns true if both groups have the same name, with the same capitalization, and the same students and
+     * assignments. This defines a stronger notion of equality between two groups, so that renaming a group to a
+     * different capitalization counts as a change to its data.
      */
     @Override
     public boolean equals(Object other) {
@@ -203,7 +204,7 @@ public class Group {
             return false;
         }
 
-        return name.equals(otherGroup.name)
+        return name.fullName.equals(otherGroup.name.fullName)
                 && students.equals(otherGroup.students)
                 && assignments.equals(otherGroup.assignments);
     }

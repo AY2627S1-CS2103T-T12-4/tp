@@ -1,7 +1,10 @@
 package seedu.address.model;
 
+import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Predicate;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -163,4 +166,25 @@ public interface Model {
      * It follows the active group, and is empty when no group is active.
      */
     ObservableList<Student> getActiveGroupStudentList();
+
+    /** Returns the active group's students in the current filtered and sorted display order. */
+    ObservableList<Student> getDisplayedStudentList();
+
+    /** Returns whether a student search is active, including when the roster is empty. */
+    ReadOnlyBooleanProperty studentFilterActiveProperty();
+
+    /** Replaces the display filter without changing the stored roster. */
+    void filterStudents(Predicate<Student> predicate);
+
+    /** Sorts the displayed students without changing the stored roster. */
+    void sortStudents(Comparator<Student> comparator);
+
+    /** Restores the complete student display in roster order. */
+    void resetStudentDisplay();
+
+    /** Returns the transient display settings for command rollback. */
+    StudentDisplayState getStudentDisplayState();
+
+    /** Restores display settings captured before a failed command. */
+    void setStudentDisplayState(StudentDisplayState state);
 }

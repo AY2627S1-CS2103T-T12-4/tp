@@ -120,6 +120,7 @@ public class MainWindow extends UiPart<Stage> {
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
         workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+                logic.getDisplayedStudentList(), logic.studentFilterActiveProperty(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
                         AttendanceMarkCommand.buildTemplate(student.getStudentId())));
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
@@ -152,7 +153,7 @@ public class MainWindow extends UiPart<Stage> {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.initOwner(owner);
         dialog.setTitle("Confirm destructive action");
-        dialog.setHeaderText("You can reverse this later with undo.");
+        dialog.setHeaderText("You can reverse this with undo.");
         dialog.setContentText(prompt);
         ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);

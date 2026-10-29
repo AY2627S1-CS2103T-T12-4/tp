@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +33,22 @@ public class HelpCommandParserTest {
     }
 
     @Test
+    public void parse_pluralTopic_returnsHelpCommandForCanonicalTopic() {
+        for (String topic : List.of("group", "student", "assignment")) {
+            HelpCommand expected = new HelpCommand(entries, topic);
+            assertParseSuccess(parser, " " + topic + "s ", expected);
+            assertParseSuccess(parser, "\t" + topic.toUpperCase(Locale.ROOT) + "S\t", expected);
+        }
+    }
+
+    @Test
     public void parse_unknownTopic_throwsParseException() {
         assertParseFailure(parser, " 123", MESSAGE_UNKNOWN_TOPIC);
         assertParseFailure(parser, " xyz", MESSAGE_UNKNOWN_TOPIC);
-        assertParseFailure(parser, " assignments", MESSAGE_UNKNOWN_TOPIC);
+        assertParseFailure(parser, " attendances", MESSAGE_UNKNOWN_TOPIC);
+        assertParseFailure(parser, " participations", MESSAGE_UNKNOWN_TOPIC);
+        assertParseFailure(parser, " groups assignments", MESSAGE_UNKNOWN_TOPIC);
+        assertParseFailure(parser, " groupss", MESSAGE_UNKNOWN_TOPIC);
         assertParseFailure(parser, " group add", MESSAGE_UNKNOWN_TOPIC);
     }
 

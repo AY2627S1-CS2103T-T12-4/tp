@@ -26,13 +26,19 @@ public class HelpCommandParser implements Parser<HelpCommand> {
     @Override
     public HelpCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String topic = args.trim();
+        String topic = args.trim().toLowerCase(Locale.ROOT);
+        topic = switch (topic) {
+            case "groups" -> "group";
+            case "students" -> "student";
+            case "assignments" -> "assignment";
+            default -> topic;
+        };
         if (topic.isEmpty()) {
             return new HelpCommand(helpEntries);
         }
         if (!HelpCatalog.isValidTopic(topic)) {
             throw new ParseException(HelpCommand.MESSAGE_UNKNOWN_TOPIC);
         }
-        return new HelpCommand(helpEntries, topic.toLowerCase(Locale.ROOT));
+        return new HelpCommand(helpEntries, topic);
     }
 }

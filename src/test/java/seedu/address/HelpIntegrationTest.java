@@ -19,6 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.WorkspaceView;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -37,7 +39,9 @@ public class HelpIntegrationTest {
             "view SCREEN", "help [TOPIC]", "undo", "redo", "exit",
             "group add g/GROUP_NAME", "group list", "group use g/GROUP_NAME", "group export",
             "group rename g/GROUP_NAME n/NEW_NAME", "group delete g/GROUP_NAME [f/yes]",
-            "student add n/NAME id/STUDENT_ID", "student list", "student delete id/STUDENT_ID [f/yes]",
+            "student add n/NAME id/STUDENT_ID", "student list",
+            "student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]", "student sort by/FIELD",
+            "student delete id/STUDENT_ID [f/yes]",
             "attendance mark id/STUDENT_ID w/WEEK s/STATUS", "attendance list w/WEEK",
             "attendance clear id/STUDENT_ID w/WEEK",
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
@@ -64,6 +68,30 @@ public class HelpIntegrationTest {
     @Test
     public void getHelpEntries_listsEveryCommandInHelpOrder() {
         assertEquals(EXPECTED_FORMATS, app.logic.getHelpEntries().stream().map(HelpEntry::getCommandFormat).toList());
+    }
+
+    @Test
+    public void execute_singularAndPluralNavigation_preservesDataAndSavedFile() throws Exception {
+        app.logic.execute("group add g/T01");
+        app.logic.execute("student add n/Alice Tan id/A1");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        String savedFile = Files.readString(dataFile);
+
+        for (WorkspaceView view : List.of(WorkspaceView.GROUPS, WorkspaceView.STUDENTS, WorkspaceView.ASSIGNMENTS)) {
+            String plural = view.getKeyword();
+            String topic = plural.substring(0, plural.length() - 1);
+            for (String name : List.of(topic, plural)) {
+                CommandResult viewResult = app.logic.execute("view " + name);
+                assertEquals(new CommandResult("Showing " + plural + ".", view), viewResult);
+                assertFalse(viewResult.hasSavedChanges());
+                CommandResult helpResult = app.logic.execute("help " + name);
+                assertEquals(CommandResult.forHelp("Showing " + topic + " commands.", topic), helpResult);
+                assertFalse(helpResult.hasSavedChanges());
+                assertEquals(previousData, app.model.getTAssist());
+                assertEquals(savedFile, Files.readString(dataFile));
+            }
+        }
     }
 
     @Test

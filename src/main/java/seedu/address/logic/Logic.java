@@ -3,6 +3,7 @@ package seedu.address.logic;
 import java.util.List;
 import java.util.Optional;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
@@ -58,6 +59,12 @@ public interface Logic {
      * It follows the active group, and is empty when no group is active.
      */
     ObservableList<Student> getActiveGroupStudentList();
+
+    /** Returns the active group's students in the current filtered and sorted display order. */
+    ObservableList<Student> getDisplayedStudentList();
+
+    /** Returns whether a student search is active, including when the roster is empty. */
+    ReadOnlyBooleanProperty studentFilterActiveProperty();
 
     /**
      * Returns the user prefs' GUI settings.

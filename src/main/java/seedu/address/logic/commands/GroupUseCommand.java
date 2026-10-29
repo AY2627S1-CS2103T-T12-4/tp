@@ -13,6 +13,7 @@ import seedu.address.model.group.GroupName;
 public class GroupUseCommand extends Command {
     public static final String MESSAGE_USAGE = "group use g/GROUP_NAME";
     public static final String MESSAGE_SUCCESS = "Switched active group to %s.";
+    public static final String MESSAGE_ALREADY_ACTIVE = "%s is already the active group. Nothing changed.";
 
     private final GroupName name;
 
@@ -31,8 +32,16 @@ public class GroupUseCommand extends Command {
         }
 
         GroupName storedName = model.getGroup(name).getName();
+        if (isActive(model, storedName)) {
+            return new CommandResult(String.format(MESSAGE_ALREADY_ACTIVE, storedName));
+        }
+
         model.setActiveGroup(storedName);
         return new CommandResult(String.format(MESSAGE_SUCCESS, storedName));
+    }
+
+    private static boolean isActive(Model model, GroupName groupName) {
+        return model.getActiveGroup().map(group -> group.getName().equals(groupName)).orElse(false);
     }
 
     @Override

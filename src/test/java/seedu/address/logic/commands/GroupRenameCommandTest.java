@@ -31,13 +31,24 @@ public class GroupRenameCommandTest {
     }
 
     @Test
-    public void execute_onlyChangesCaseOrSpacing_success() {
+    public void execute_onlyChangesCase_success() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         expected.renameGroup(TypicalGroups.NAME_T01, new GroupName("t01"));
 
         assertCommandSuccess(new GroupRenameCommand(TypicalGroups.NAME_T01, new GroupName("t01")), model,
                 "Renamed tutorial group T01 to t01.", expected);
+    }
+
+    @Test
+    public void execute_sameNameAfterNormalizing_reportsNoChanges() {
+        Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+
+        for (String newName : new String[] {"T01", "  T01 "}) {
+            assertCommandSuccess(new GroupRenameCommand(new GroupName("t01"), new GroupName(newName)), model,
+                    "Tutorial group T01 already has that name. Nothing changed.", expected);
+        }
     }
 
     @Test

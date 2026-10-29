@@ -20,12 +20,12 @@ public final class HelpCatalog {
     private static final List<HelpEntry> BUILT_IN_ENTRIES = List.of(
             new HelpEntry("", "view SCREEN",
                     "Open a screen: students, groups, attendance, participation, assignments, help, or storage. "
-                            + "Screen names ignore case. Opening a screen does not change any data.",
+                            + "Student, group, and assignment are also accepted. Screen names ignore case. "
+                            + "Opening a screen does not change any data.",
                     List.of("view attendance")),
             new HelpEntry("", "help [TOPIC]",
                     "Open this reference, or open it at the commands of one topic: "
-                            + String.join(", ", TOPICS) + ". Command words ignore case; "
-                            + "parameter prefixes use lowercase. "
+                            + String.join(", ", TOPICS) + ". Groups, students, and assignments are also accepted. "
                             + "F1 also opens Help; Escape returns to the command box.",
                     List.of("help", "help student")),
             new HelpEntry("", "undo",
