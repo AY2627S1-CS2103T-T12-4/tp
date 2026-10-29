@@ -296,6 +296,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_rowNumber_actsOnStudentInThatRow() throws Exception {
+        logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("row.json"))),
+                createGroupAndStudentRegistry());
+        for (String command : List.of("group add g/T01", "student add n/Alice Tan id/A0123456X",
+                "student add n/Ben Lim id/A0234567Y")) {
+            logic.execute(command);
+        }
+
+        assertTrue(logic.getConfirmationPrompt("student delete id/2").orElseThrow().contains("Ben Lim (A0234567Y)"));
+        logic.execute("student delete id/2 f/yes");
+        assertEquals(List.of("Alice Tan"), logic.getActiveGroupStudentList().stream()
+                .map(student -> student.getName().toString()).toList());
+        assertEquals("Undone: student delete id/A0234567Y f/yes", logic.execute("undo").getFeedbackToUser());
+    }
+
+    @Test
     public void execute_newChangeAfterUndo_clearsRedo() throws Exception {
         logic = new LogicManager(model, createStorage(new JsonTAssistStorage(temporaryFolder.resolve("redo.json"))),
                 createGroupAndStudentRegistry());

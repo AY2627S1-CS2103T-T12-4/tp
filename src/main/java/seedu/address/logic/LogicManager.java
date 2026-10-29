@@ -19,6 +19,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.CommandRegistry;
+import seedu.address.logic.parser.StudentRowNumberResolver;
 import seedu.address.logic.parser.TAssistParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -86,13 +87,14 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        Command command = tAssistParser.parseCommand(commandText);
+        String resolvedText = StudentRowNumberResolver.replaceRowNumbers(commandText, model);
+        Command command = tAssistParser.parseCommand(resolvedText);
         rejectIfSavedDataUnreadable(command);
         TAssist previousData = new TAssist(model.getTAssist());
         StudentDisplayState previousDisplay = model.getStudentDisplayState();
         TAssistHistory previousHistory = model.getTAssistHistory();
         try {
-            return executeAndSave(command, previousData, describe(commandText));
+            return executeAndSave(command, previousData, describe(resolvedText));
         } catch (CommandException e) {
             model.setTAssist(previousData);
             model.setStudentDisplayState(previousDisplay);
@@ -105,7 +107,8 @@ public class LogicManager implements Logic {
     @Override
     public Optional<String> getConfirmationPrompt(String commandText) throws ParseException {
         requireNonNull(commandText);
-        return tAssistParser.parseCommand(commandText).getConfirmationPrompt(model);
+        return tAssistParser.parseCommand(StudentRowNumberResolver.replaceRowNumbers(commandText, model))
+                .getConfirmationPrompt(model);
     }
 
     /**
