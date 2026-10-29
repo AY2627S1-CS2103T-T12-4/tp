@@ -19,7 +19,7 @@ public class AttendanceMarkCommandParser implements Parser<AttendanceMarkCommand
 
     @Override
     public AttendanceMarkCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AttendanceMarkCommand.MESSAGE_USAGE);
         return new AttendanceMarkCommand(
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_STUDENT_ID).orElseThrow()),
                 AttendanceCommandParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()),

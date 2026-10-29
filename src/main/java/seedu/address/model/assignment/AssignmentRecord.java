@@ -51,7 +51,10 @@ public final class AssignmentRecord {
     }
 
     /**
-     * Returns a copy with the given grade if the student has submitted the assignment.
+     * Returns a copy with the given grade.
+     *
+     * @throws IllegalArgumentException if this record is not submitted or {@code newGrade} is not from 0 through
+     *         100.
      */
     public AssignmentRecord withGrade(int newGrade) {
         checkArgument(isSubmitted, "Cannot grade an unsubmitted assignment.");

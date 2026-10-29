@@ -19,7 +19,7 @@ public class AssignmentGradeCommandParser implements Parser<AssignmentGradeComma
 
     @Override
     public AssignmentGradeCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AssignmentGradeCommand.MESSAGE_USAGE);
         return new AssignmentGradeCommand(
                 TAssistParserUtil.parseAssignmentName(values.getValue(PREFIX_ASSIGNMENT).orElseThrow()),
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_STUDENT_ID).orElseThrow()),

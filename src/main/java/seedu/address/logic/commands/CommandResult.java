@@ -28,6 +28,9 @@ public class CommandResult {
 
     private final boolean hasSavedChanges;
 
+    /** The user cancelled the command, so its input should be kept for editing. */
+    private final boolean isCancelled;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
@@ -42,12 +45,18 @@ public class CommandResult {
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
             String helpTopic, boolean hasSavedChanges) {
+        this(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges, false);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, WorkspaceView view,
+            String helpTopic, boolean hasSavedChanges, boolean isCancelled) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.view = view;
         this.helpTopic = requireNonNull(helpTopic);
         this.hasSavedChanges = hasSavedChanges;
+        this.isCancelled = isCancelled;
     }
 
     /**
@@ -71,6 +80,14 @@ public class CommandResult {
      */
     public static CommandResult forHelp(String feedbackToUser, String helpTopic) {
         return new CommandResult(feedbackToUser, true, false, null, helpTopic);
+    }
+
+    /**
+     * Returns a result for a command the user cancelled before it ran, so that the command stays in the
+     * command box for editing.
+     */
+    public static CommandResult forCancelled(String feedbackToUser) {
+        return new CommandResult(feedbackToUser, false, false, null, "", false, true);
     }
 
     public String getFeedbackToUser() {
@@ -97,11 +114,15 @@ public class CommandResult {
         return hasSavedChanges;
     }
 
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
     /**
      * Returns a copy confirming that this command's data changes have been saved.
      */
     public CommandResult withSavedChanges() {
-        return new CommandResult(feedbackToUser, showHelp, exit, view, helpTopic, true);
+        return new CommandResult(feedbackToUser, showHelp, exit, view, helpTopic, true, isCancelled);
     }
 
     @Override
@@ -120,12 +141,13 @@ public class CommandResult {
                 && exit == otherCommandResult.exit
                 && view == otherCommandResult.view
                 && helpTopic.equals(otherCommandResult.helpTopic)
-                && hasSavedChanges == otherCommandResult.hasSavedChanges;
+                && hasSavedChanges == otherCommandResult.hasSavedChanges
+                && isCancelled == otherCommandResult.isCancelled;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges);
+        return Objects.hash(feedbackToUser, showHelp, exit, view, helpTopic, hasSavedChanges, isCancelled);
     }
 
     @Override
@@ -137,6 +159,7 @@ public class CommandResult {
                 .add("view", view)
                 .add("helpTopic", helpTopic)
                 .add("hasSavedChanges", hasSavedChanges)
+                .add("isCancelled", isCancelled)
                 .toString();
     }
 

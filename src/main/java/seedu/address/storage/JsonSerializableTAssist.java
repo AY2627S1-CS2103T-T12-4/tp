@@ -18,7 +18,7 @@ import seedu.address.model.group.GroupName;
 /**
  * An immutable TAssist that is serializable to JSON format.
  * A missing group list is read as no groups. A missing active group, or one that names no group held,
- * is read as no active group, since it only chooses which group is highlighted.
+ * is read as no active group, so the TA must select a group again.
  */
 @JsonRootName(value = "tassist")
 class JsonSerializableTAssist {

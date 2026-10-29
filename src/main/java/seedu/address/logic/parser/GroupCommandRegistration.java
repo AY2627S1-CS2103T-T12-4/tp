@@ -20,14 +20,14 @@ import seedu.address.storage.GroupRecordsCsvExporter;
  * Registers tutorial-group commands and their help entries before application startup.
  */
 public final class GroupCommandRegistration {
-    /** Name of the folder, next to the TAssist JAR, that exports are written to by default. */
+    /** Name of the folder, in the application home folder, that exports are written to by default. */
     public static final String EXPORT_FOLDER_NAME = "exports";
 
     private GroupCommandRegistration() {}
 
     /**
      * Adds tutorial-group parsers and help to the given registry. Exports are written to the
-     * {@value #EXPORT_FOLDER_NAME} folder next to the TAssist JAR.
+     * {@value #EXPORT_FOLDER_NAME} folder in the application home folder.
      *
      * @param registry The registry assembled before constructing the logic component.
      */
@@ -47,7 +47,8 @@ public final class GroupCommandRegistration {
         registry.register("group", "add", new GroupAddCommandParser(),
                 new HelpEntry("group", GroupAddCommand.MESSAGE_USAGE,
                         "Create an empty tutorial group and make it active. Names have 1-60 letters, digits, "
-                                + "spaces or hyphens, and ignore case and extra spaces.",
+                                + "spaces or hyphens, with at least one letter or digit. "
+                                + "Names ignore case and extra spaces.",
                         List.of("group add g/T01", "group add g/T02")));
         registry.register("group", "list", new GroupListCommandParser(),
                 new HelpEntry("group", GroupListCommand.MESSAGE_USAGE,

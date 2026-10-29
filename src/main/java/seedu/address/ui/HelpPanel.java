@@ -16,7 +16,7 @@ import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
 
 /**
- * Shows an offline reference for commands available in this increment.
+ * Shows an offline reference for the given help entries, grouped by topic.
  */
 public class HelpPanel extends UiPart<Region> {
     /** Heading of each topic, keyed by the topic in lowercase. Existing general commands use the empty topic. */

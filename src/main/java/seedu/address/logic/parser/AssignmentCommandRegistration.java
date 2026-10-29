@@ -29,7 +29,8 @@ public final class AssignmentCommandRegistration {
         registry.register("assignment", "add", new AssignmentAddCommandParser(),
                 new HelpEntry("assignment", AssignmentAddCommand.MESSAGE_USAGE,
                         "Create an assignment in the active group. Names: 1-60 letters, digits, spaces, hyphens, "
-                                + "periods, colons or parentheses; unique per group, ignoring case.",
+                                + "periods, colons or parentheses, with at least one letter or digit; "
+                                + "unique per group, ignoring case.",
                         List.of("assignment add a/PS1")));
         registry.register("assignment", "submit", new AssignmentSubmitCommandParser(),
                 new HelpEntry("assignment", AssignmentSubmitCommand.MESSAGE_USAGE,

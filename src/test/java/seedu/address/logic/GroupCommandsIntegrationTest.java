@@ -98,9 +98,12 @@ public class GroupCommandsIntegrationTest {
         assertRejected("group add g/t01", CommandException.class, "A tutorial group named T01 already exists.");
         assertRejected("group add g/ tutorial   1 ", CommandException.class,
                 "A tutorial group named Tutorial 1 already exists.");
-        assertRejected("group use g/T04", CommandException.class, "Tutorial group T04 does not exist.");
-        assertRejected("group delete g/T04", CommandException.class, "Tutorial group T04 does not exist.");
-        assertRejected("group rename g/T04 n/T05", CommandException.class, "Tutorial group T04 does not exist.");
+        assertRejected("group use g/T04", CommandException.class,
+                "Tutorial group T04 does not exist. See groups with: group list");
+        assertRejected("group delete g/T04", CommandException.class,
+                "Tutorial group T04 does not exist. See groups with: group list");
+        assertRejected("group rename g/T04 n/T05", CommandException.class,
+                "Tutorial group T04 does not exist. See groups with: group list");
         assertRejected("group rename g/T01 n/ t03 ", CommandException.class,
                 "A tutorial group named T03 already exists.");
     }

@@ -18,7 +18,7 @@ public class ParticipationClearCommandParser implements Parser<ParticipationClea
 
     @Override
     public ParticipationClearCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, ParticipationClearCommand.MESSAGE_USAGE);
         return new ParticipationClearCommand(
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_ID).orElseThrow()),
                 TAssistParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()));

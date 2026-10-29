@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,9 +44,26 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_findWithSlashParticles_matchesNames() throws Exception {
+        feedback("student add n/Ravi s/o Kumar id/A0345678Z");
+        feedback("student add n/Muthu a/l Raju id/A0456789W");
+        Map<String, String> searches = Map.of("student find n/Ravi s/o", "A0345678Z",
+                "student find n/MUTHU A/L raju", "A0456789W");
+        for (Map.Entry<String, String> search : searches.entrySet()) {
+            assertEquals("Found 1 matching student(s) in T01.", feedback(search.getKey()), search.getKey());
+            assertEquals(List.of(search.getValue()), app.logic.getDisplayedStudentList().stream()
+                    .map(student -> student.getStudentId().toString()).toList(), search.getKey());
+        }
+        String gluedParticleMessage = "Unknown prefix 's/'. Allowed prefixes: n/ id/. "
+                + "If s/o is part of the value, put a space before and after it.";
+        String gluedSearch = "student find n/Ravi s/oKumar";
+        assertThrows(ParseException.class, gluedParticleMessage, () -> app.logic.execute(gluedSearch));
+    }
+
+    @Test
     public void execute_studentCommandsAndRestart_preservesRosterAndDeletion() throws Exception {
         assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/a0123456x"));
-        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. "
+        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan (A0123456X). "
                 + "Check that the student ID is correct.", feedback("student add n/Alice Tan id/A2"));
         assertEquals(2, app.logic.getActiveGroupStudentList().size());
         restart();
@@ -152,7 +170,7 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
         String saved = Files.readString(dataFile);
         for (String command : List.of("student find", "student find n/", "student find id/",
                 "student find n/Alice n/Ben", "student find n/Alice w/1", "student sort by/grade",
-                "student sort by/name by/id", "student sort")) {
+                "student sort by/name by/id", "student sort", "student sort by/id now")) {
             assertThrows(ParseException.class, () -> app.logic.execute(command));
             assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
         }

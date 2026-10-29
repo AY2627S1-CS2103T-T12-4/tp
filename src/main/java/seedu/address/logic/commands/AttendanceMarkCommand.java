@@ -60,7 +60,7 @@ public class AttendanceMarkCommand extends Command {
     }
 
     /**
-     * Returns feedback that shows the old and new status when an earlier mark exists.
+     * Returns feedback that reports a new mark, an unchanged mark, or the old and new status.
      */
     private String createFeedback(Student student, Optional<String> oldStatus) {
         String newStatus = status.getCommandValue();

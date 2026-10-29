@@ -140,6 +140,28 @@ public class JsonTAssistStorageTest {
     }
 
     @Test
+    public void read_unknownOrRepeatedFields_exceptionThrown() throws Exception {
+        Path filePath = testFolder.resolve("invalidKeys.json");
+        JsonTAssistStorage storage = new JsonTAssistStorage(filePath);
+        storage.saveTAssist(TypicalGroups.getTypicalTAssist());
+        String validData = Files.readString(filePath);
+        for (String field : List.of("groups", "students", "attendance", "participation", "assignmentRecords")) {
+            String misspelledField = Character.toUpperCase(field.charAt(0)) + field.substring(1);
+            Files.writeString(filePath, validData.replace("\"" + field + "\"", "\"" + misspelledField + "\""));
+            assertThrows(DataLoadingException.class, storage::readTAssist);
+        }
+        for (String invalidData : List.of("{\"groups\":[],\"groups\":[]}",
+                "{\"groups\":[{\"name\":\"T01\",\"name\":\"T02\"}]}",
+                """
+                {"groups":[{"name":"T01","students":[{"name":"Alice","studentId":"A1",
+                "attendance":{"3":"PRESENT","3":"ABSENT"}}]}]}
+                """)) {
+            Files.writeString(filePath, invalidData);
+            assertThrows(DataLoadingException.class, storage::readTAssist);
+        }
+    }
+
+    @Test
     public void read_legacyDataWithoutWeeklyRecords_defaultsToEmptyRecords() throws Exception {
         Path filePath = testFolder.resolve("legacy.json");
         String legacyData = """
@@ -162,6 +184,9 @@ public class JsonTAssistStorageTest {
         original.addAssignment(TypicalGroups.NAME_T01, PS2);
         original.addAssignment(TypicalGroups.NAME_T01, PS1);
         original.addAssignment(TypicalGroups.NAME_T02, PS1);
+        Student alice = original.getGroup(TypicalGroups.NAME_T01).getStudentList().getFirst();
+        original.setStudent(TypicalGroups.NAME_T01,
+                alice.withAttendanceRecord(1, "PRESENT").withParticipationRecord(1, 4));
         Assignment gradedPs1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
                 .withGrade(ALICE.getStudentId(), 87);
         original.setAssignment(TypicalGroups.NAME_T01, gradedPs1);
