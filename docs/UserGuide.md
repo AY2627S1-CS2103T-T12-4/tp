@@ -62,6 +62,8 @@ the command box.
   students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
   more students.
+* **Records** holds the last requested record listing in the main workspace. Open it with `view records` or the
+  Records button. It starts with a reminder of the listing commands.
 * **Help** provides an offline reference for every available command, with its format, rules, and examples.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
@@ -167,7 +169,7 @@ Examples:
 
 Format: `view SCREEN`
 
-`SCREEN` is one of `students`, `help`, or `storage`.
+`SCREEN` is one of `students`, `records`, `help`, or `storage`.
 Screen names ignore case. Specify exactly one screen name. Opening a screen does not change any data.
 The singular form `student` opens the Students screen.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report

@@ -124,6 +124,27 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void recordsScreen_emptyState_opensWithoutChangingData() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                TAssist previousData = new TAssist(model.getTAssist());
+                enter(input, "view records");
+                assertEquals("records", tabs.getSelectionModel().getSelectedItem().getId());
+                TextArea listing = (TextArea) root.lookup("#recordListing");
+                assertTrue(listing.getText().contains("attendance list w/WEEK"));
+                assertFalse(listing.isEditable());
+                assertNavigationHighlights("records");
+                assertEquals(previousData, model.getTAssist());
+                enter(input, "view students");
+                assertNavigationHighlights("students");
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
     public void startup_missingOrUnreadableData_showsLoadOutcome() throws Exception {
         for (DataLoadStatus status : List.of(DataLoadStatus.MISSING, DataLoadStatus.FAILED)) {
             runOnFx(() -> initializeWorkspace(status));

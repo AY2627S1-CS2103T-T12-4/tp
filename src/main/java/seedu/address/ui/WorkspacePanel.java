@@ -27,6 +27,7 @@ import seedu.address.model.student.Student;
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
     private final HelpPanel helpPanel;
+    private final RecordListPanel recordListPanel = new RecordListPanel();
     private final NavigationBar navigationBar = new NavigationBar(this::showView);
 
     @FXML
@@ -45,6 +46,7 @@ public class WorkspacePanel extends UiPart<TabPane> {
         StudentListPanel studentListPanel = new StudentListPanel(activeGroup, groups, students, displayedStudents,
                 hasStudentFilter, studentClickHandler, isDataLoadFailed);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
+        addView(WorkspaceView.RECORDS, recordListPanel.getRoot());
         helpPanel = new HelpPanel(helpEntries);
         addView(WorkspaceView.HELP, helpPanel.getRoot());
         addView(WorkspaceView.STORAGE, new StoragePanel(dataFilePath).getRoot());
@@ -78,6 +80,24 @@ public class WorkspacePanel extends UiPart<TabPane> {
      */
     public void showView(WorkspaceView view) {
         tabs.getSelectionModel().select(views.get(requireNonNull(view)));
+    }
+
+    /**
+     * Replaces the snapshot shown by the records screen.
+     */
+    public void setRecordListing(String listing) {
+        recordListPanel.setListing(listing);
+    }
+
+    /**
+     * Scrolls the records screen if selected, reporting whether it handled the request.
+     */
+    public boolean scrollRecords(boolean isDown) {
+        if (findView(tabs.getSelectionModel().getSelectedItem()) != WorkspaceView.RECORDS) {
+            return false;
+        }
+        recordListPanel.scrollPage(isDown);
+        return true;
     }
 
     /**

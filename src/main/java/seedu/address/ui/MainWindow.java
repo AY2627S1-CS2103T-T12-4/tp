@@ -117,7 +117,7 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        commandBox = new CommandBox(this::executeCommand, resultDisplay::scrollPage);
+        commandBox = new CommandBox(this::executeCommand, this::scrollOutput);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
@@ -141,6 +141,12 @@ public class MainWindow extends UiPart<Stage> {
         }
 
         Platform.runLater(commandBox::focus);
+    }
+
+    private void scrollOutput(boolean isDown) {
+        if (!workspacePanel.scrollRecords(isDown)) {
+            resultDisplay.scrollPage(isDown);
+        }
     }
 
     private void setWindowDefaultSize(GuiSettings guiSettings) {

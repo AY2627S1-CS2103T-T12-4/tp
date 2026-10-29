@@ -21,7 +21,7 @@ import seedu.address.commons.core.WorkspaceView;
  */
 public class NavigationBar extends UiPart<HBox> {
     private static final String FXML = "NavigationBar.fxml";
-    private static final List<WorkspaceView> MAIN_VIEWS = List.of(WorkspaceView.STUDENTS);
+    private static final List<WorkspaceView> MAIN_VIEWS = List.of(WorkspaceView.STUDENTS, WorkspaceView.RECORDS);
     private static final List<WorkspaceView> SIDE_VIEWS = List.of(WorkspaceView.HELP, WorkspaceView.STORAGE);
     private static final PseudoClass CURRENT = PseudoClass.getPseudoClass("current");
 

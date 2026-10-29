@@ -7,6 +7,7 @@ import java.util.Locale;
  */
 public enum WorkspaceView {
     STUDENTS("Students"),
+    RECORDS("Records"),
     HELP("Help"),
     STORAGE("Storage");
 
