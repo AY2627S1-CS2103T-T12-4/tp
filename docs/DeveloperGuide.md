@@ -1854,9 +1854,9 @@ label.
       with T02-Thu unchanged.
    1. Enter `group rename g/T01 n/T01`. Expected: `Tutorial group T01 already has that name. Nothing changed.`
       without `Changes saved.`
-   1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
-      that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
-      removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
+   1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student and assignment counts.
+      Cancel it and verify that nothing changed. Enter the command again and choose Continue. Expected: The group and
+      its students are removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
    1. Close and reopen the app. Expected: Only T01 remains, with no active group.
 
 1. Exporting a group's records
