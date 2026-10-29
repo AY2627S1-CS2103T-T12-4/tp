@@ -134,6 +134,12 @@ Selecting rows with the keyboard does not replace your draft.
   and adds `If id/ starts a new parameter, put a space before it.` A mistyped prefix such as `status/` gets only
   the unknown-prefix error.
 
+* A missing-space hint can also appear when an invalid value contains text that looks like a prefix.
+  For example, `student add n/David/Tan` reports a missing space before `id/` because `David/` ends in
+  `id/`. A slash is not a separator between name parts. If the intended name is David Tan, enter
+  `student add n/David Tan id/A0123456X`, supplying the student's actual ID. Only `s/o`, `d/o`, `a/l`,
+  and `a/p` are supported slash particles between name parts.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
