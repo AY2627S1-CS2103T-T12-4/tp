@@ -123,14 +123,14 @@
 }
 .table-row-cell {
     -fx-background-color: white;
-    -fx-cell-size: 44;
+    -fx-cell-size: 30;
     -fx-border-color: transparent transparent #ecebe6 transparent;
 }
 .table-row-cell:filled:selected { -fx-background-color: #e6f2ef; }
 .table-row-cell:filled:hover { -fx-background-color: #f2f8f6; }
 .table-cell {
     -fx-border-color: transparent;
-    -fx-padding: 10 12;
+    -fx-padding: 4 12;
     -fx-alignment: CENTER_LEFT;
     -fx-text-fill: #1c1d1f;
 }
@@ -217,4 +217,7 @@
 .workspace:compact .main-content { -fx-padding: 6 16 8 16; -fx-spacing: 8; }
 .workspace:compact .nav-button { -fx-padding: 6 8 5 8; }
 .workspace:compact .card-heading { -fx-padding: 10 16; }
+.workspace:compact .table-row-cell { -fx-cell-size: 26; }
+.workspace:compact .table-cell { -fx-padding: 2 12; }
+.workspace:compact .feedback-pane .text-area { -fx-max-height: 54; }
 .workspace:compact .status-bar { -fx-padding: 5 16; }
