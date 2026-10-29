@@ -40,7 +40,7 @@ public class AttendanceMarkCommandTest {
     }
 
     @Test
-    public void execute_firstMark_recordsBothStatusesAtWeekBoundaries() {
+    public void execute_firstMark_recordsEveryStatusAtWeekBoundaries() {
         for (int week : new int[] {1, 13}) {
             for (AttendanceStatus status : AttendanceStatus.values()) {
                 setUp();
@@ -68,13 +68,23 @@ public class AttendanceMarkCommandTest {
     }
 
     @Test
-    public void execute_absentToPresent_showsOldAndNewStatus() {
-        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "ABSENT"));
-        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
-        expected.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+    public void execute_changedStatus_showsOldAndNewStatus() {
+        AttendanceStatus[][] changes = {
+            {AttendanceStatus.ABSENT, AttendanceStatus.PRESENT},
+            {AttendanceStatus.PRESENT, AttendanceStatus.LATE},
+            {AttendanceStatus.ABSENT, AttendanceStatus.EXCUSED},
+            {AttendanceStatus.EXCUSED, AttendanceStatus.LATE}
+        };
+        for (AttendanceStatus[] change : changes) {
+            setUp();
+            model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, change[0].name()));
+            Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+            expected.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, change[1].name()));
 
-        assertCommandSuccess(new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.PRESENT), model,
-                "Updated Alice Tan's attendance for Week 3: absent to present.", expected);
+            assertCommandSuccess(new AttendanceMarkCommand(ALICE.getStudentId(), 3, change[1]), model,
+                    "Updated Alice Tan's attendance for Week 3: " + change[0].getCommandValue() + " to "
+                            + change[1].getCommandValue() + ".", expected);
+        }
     }
 
     @Test

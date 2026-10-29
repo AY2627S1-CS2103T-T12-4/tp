@@ -628,10 +628,10 @@ public class WorkspaceSmokeTest {
                 assertEquals(0, feedback.getScrollTop());
                 pressKey(KeyCode.UP);
                 assertEquals("attendance list w/3", input.getText());
-                enter(input, "attendance mark id/A0123456X w/3 s/late");
-                assertEquals("attendance mark id/A0123456X w/3 s/late", input.getText());
+                enter(input, "attendance mark id/A0123456X w/3 s/tardy");
+                assertEquals("attendance mark id/A0123456X w/3 s/tardy", input.getText());
                 assertTrue(input.getStyleClass().contains("error"));
-                assertEquals("Invalid attendance status. Use present or absent.", feedback.getText());
+                assertEquals("Invalid attendance status. Use present, absent, late, or excused.", feedback.getText());
             });
         } finally {
             runOnFx(() -> stage.hide());

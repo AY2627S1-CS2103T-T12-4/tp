@@ -160,7 +160,7 @@ public class MainAppTest {
         String[][] cases = {
             {"Ben_Lim", "\"attendance\":{}", StudentName.MESSAGE_CONSTRAINTS},
             {"Ben Lim", "\"attendance\":{\"14\":\"PRESENT\"}", "Week must be a whole number from 1 to 13."},
-            {"Ben Lim", "\"attendance\":{\"3\":\"LATE\"}", AttendanceStatus.MESSAGE_CONSTRAINTS},
+            {"Ben Lim", "\"attendance\":{\"3\":\"TARDY\"}", AttendanceStatus.MESSAGE_CONSTRAINTS},
             {"Ben Lim", "\"participation\":{\"14\":3}", "Week must be a whole number from 1 to 13."},
             {"Ben Lim", "\"participation\":{\"3\":7}", "Participation score must be a whole number from 0 to 5."}
         };

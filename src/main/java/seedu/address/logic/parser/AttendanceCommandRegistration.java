@@ -24,13 +24,15 @@ public final class AttendanceCommandRegistration {
         requireNonNull(registry);
         registry.register("attendance", "mark", new AttendanceMarkCommandParser(),
                 new HelpEntry("attendance", AttendanceMarkCommand.MESSAGE_USAGE,
-                        "Mark one or more students in the active group present or absent for a week from 1 to 13. "
-                                + "Repeat id/ to mark several students at once. "
+                        "Mark one or more students in the active group present, absent, late, or excused "
+                                + "for a week from 1 to 13. Repeat id/ to mark several students at once. "
+                                + "Use excused for an absence with a valid reason, such as a medical certificate. "
                                 + "IDs and statuses ignore case. "
                                 + "Marking the same student and week again replaces the earlier mark. "
                                 + "On the Students screen, clicking a student's row fills in the command "
                                 + "up to w/ for you to complete.",
-                        List.of("attendance mark id/A0123456X w/3 s/present")));
+                        List.of("attendance mark id/A0123456X w/3 s/present",
+                                "attendance mark id/A0123456X w/4 s/excused")));
         registry.register("attendance", "list", new AttendanceListCommandParser(),
                 new HelpEntry("attendance", AttendanceListCommand.MESSAGE_USAGE,
                         "List the active group's attendance for a week from 1 to 13. Students without a mark show "

@@ -81,14 +81,14 @@ public class JsonAdaptedStudentTest {
     @Test
     public void toModelType_attendanceWithDifferentCase_returnsCanonicalStatus() throws Exception {
         JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID,
-                Map.of(1, " present ", 13, "Absent"), Map.of());
-        assertEquals(BEN.withAttendanceRecord(1, "PRESENT").withAttendanceRecord(13, "ABSENT"),
-                adapted.toModelType());
+                Map.of(1, " present ", 2, "late", 3, "Excused", 13, "Absent"), Map.of());
+        assertEquals(BEN.withAttendanceRecord(1, "PRESENT").withAttendanceRecord(2, "LATE")
+                .withAttendanceRecord(3, "EXCUSED").withAttendanceRecord(13, "ABSENT"), adapted.toModelType());
     }
 
     @Test
     public void toModelType_invalidAttendanceStatus_throwsIllegalValueException() {
-        for (String status : new String[] {"", "late", "present absent"}) {
+        for (String status : new String[] {"", "tardy", "present absent"}) {
             JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_STUDENT_ID,
                     Map.of(3, status), Map.of());
             assertThrows(IllegalValueException.class, AttendanceStatus.MESSAGE_CONSTRAINTS, adapted::toModelType);

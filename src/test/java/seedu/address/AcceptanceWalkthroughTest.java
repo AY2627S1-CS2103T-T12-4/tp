@@ -89,7 +89,7 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
                 "group add g/t01", "group use g/T09", "group add g/T_01", "group add g/T03 g/T04",
                 "student add n/Alice", "student add n/Dan id/a0123456x", "student add n/" + "a".repeat(10_000)
                         + " id/A1", "student delete id/A404",
-                "attendance mark id/A0123456X w/14 s/present", "attendance mark id/A0123456X w/1 s/late",
+                "attendance mark id/A0123456X w/14 s/present", "attendance mark id/A0123456X w/1 s/tardy",
                 "attendance mark id/A0123456X w/1 s/present w/2", "attendance mark id/A9 w/1 s/present",
                 "participation set id/A0123456X w/1 s/6", "participation set id/A0123456X w/1",
                 "assignment add a/ps1", "assignment grade a/PS1 id/A0345678Z m/50",

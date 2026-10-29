@@ -34,14 +34,14 @@ public class AttendanceMarkCommand extends Command {
     private final AttendanceStatus status;
 
     /**
-     * Creates a command to mark the given student present or absent for a valid teaching week.
+     * Creates a command to mark the given student with an attendance status for a valid teaching week.
      */
     public AttendanceMarkCommand(StudentId studentId, int week, AttendanceStatus status) {
         this(List.of(requireNonNull(studentId)), week, status);
     }
 
     /**
-     * Creates a command to mark the given students present or absent for a valid teaching week.
+     * Creates a command to mark the given students with one status for a valid teaching week.
      * The list must not be empty.
      */
     public AttendanceMarkCommand(List<StudentId> studentIds, int week, AttendanceStatus status) {

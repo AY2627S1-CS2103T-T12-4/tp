@@ -1,18 +1,20 @@
 package seedu.address.model.student;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Locale;
 
 /**
- * Represents whether a student attended a tutorial.
+ * Represents whether a student attended a tutorial, arrived late, or was absent with or without a valid reason.
  */
 public enum AttendanceStatus {
     PRESENT("present", "Present"),
-    ABSENT("absent", "Absent");
+    ABSENT("absent", "Absent"),
+    LATE("late", "Late"),
+    EXCUSED("excused", "Excused");
 
-    public static final String MESSAGE_CONSTRAINTS = "Invalid attendance status. Use present or absent.";
+    public static final String MESSAGE_CONSTRAINTS =
+            "Invalid attendance status. Use present, absent, late, or excused.";
 
     private final String commandValue;
     private final String displayValue;
@@ -25,18 +27,22 @@ public enum AttendanceStatus {
     /**
      * Parses an attendance status, ignoring case and surrounding whitespace.
      *
-     * @throws IllegalArgumentException if the value is neither present nor absent.
+     * @throws IllegalArgumentException if the value is not present, absent, late, or excused.
      */
     public static AttendanceStatus fromValue(String value) {
         String normalizedValue = requireNonNull(value).trim().toLowerCase(Locale.ROOT);
-        checkArgument(normalizedValue.equals("present") || normalizedValue.equals("absent"), MESSAGE_CONSTRAINTS);
-        return valueOf(normalizedValue.toUpperCase(Locale.ROOT));
+        for (AttendanceStatus status : values()) {
+            if (status.commandValue.equals(normalizedValue)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException(MESSAGE_CONSTRAINTS);
     }
 
     /**
      * Returns how a stored attendance value is shown to the user, such as {@code Present} for {@code PRESENT}.
-     * {@code PRESENT} and {@code ABSENT} are the values that commands and the data file store. Any other stored text
-     * is returned unchanged, so that it is shown as it is instead of failing.
+     * {@code PRESENT}, {@code ABSENT}, {@code LATE}, and {@code EXCUSED} are the values that commands and the data
+     * file store. Any other stored text is returned unchanged, so that it is shown as it is instead of failing.
      */
     public static String formatStoredValue(String storedValue) {
         requireNonNull(storedValue);

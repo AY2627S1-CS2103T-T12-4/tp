@@ -40,10 +40,10 @@ public class AttendanceListCommandTest {
     //@@author MarcusMa06-code
     @Test
     public void execute_invalidStoredStatus_showsStoredText() {
-        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "late"));
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "tardy"));
 
         assertListingUnchanged(3, "Attendance for T01, Week 3:\n"
-                + "Alice Tan | A0123456X | late\n"
+                + "Alice Tan | A0123456X | tardy\n"
                 + "Ben Lim | A0234567Y | Not recorded\n"
                 + "Carl Goh | A0345678Z | Not recorded");
     }

@@ -28,8 +28,10 @@ public class AttendanceCommandParserUtilTest {
     public void parseStatus_validAndInvalidStatus() throws Exception {
         assertEquals(AttendanceStatus.PRESENT, AttendanceCommandParserUtil.parseStatus(" Present "));
         assertEquals(AttendanceStatus.ABSENT, AttendanceCommandParserUtil.parseStatus("absent"));
+        assertEquals(AttendanceStatus.LATE, AttendanceCommandParserUtil.parseStatus("Late"));
+        assertEquals(AttendanceStatus.EXCUSED, AttendanceCommandParserUtil.parseStatus(" excused "));
         assertThrows(ParseException.class, AttendanceStatus.MESSAGE_CONSTRAINTS, () -> {
-            AttendanceCommandParserUtil.parseStatus("late");
+            AttendanceCommandParserUtil.parseStatus("tardy");
         });
     }
 }

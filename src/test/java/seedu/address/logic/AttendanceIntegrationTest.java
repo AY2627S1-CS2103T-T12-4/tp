@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -106,6 +107,25 @@ public class AttendanceIntegrationTest {
     }
 
     @Test
+    public void execute_markLateAndExcusedAndReload_savesAndListsNewStatuses() throws Exception {
+        assertFeedback("attendance mark id/A0123456X w/3 s/LATE", "Recorded Alice Tan as late for Week 3.");
+        assertFeedback("attendance mark id/A0234567Y w/3 s/excused", "Recorded Ben Lim as excused for Week 3.");
+        assertFeedback("attendance mark id/A0234567Y w/3 s/late",
+                "Updated Ben Lim's attendance for Week 3: excused to late.");
+        assertFeedback("attendance mark id/A0345678Z w/3 s/Excused", "Recorded Carl Goh as excused for Week 3.");
+        String savedData = Files.readString(dataFile);
+        assertTrue(savedData.contains("\"LATE\"") && savedData.contains("\"EXCUSED\""));
+        restart();
+
+        assertFeedback("attendance list w/3", "Attendance for T01, Week 3:\n"
+                + "Alice Tan | A0123456X | Late\n"
+                + "Ben Lim | A0234567Y | Late\n"
+                + "Carl Goh | A0345678Z | Excused");
+        assertFeedback("attendance clear id/A0345678Z w/3",
+                "Cleared Carl Goh's attendance for Week 3: excused to Not recorded.");
+    }
+
+    @Test
     public void execute_clearAndReload_removesOnlyThatMark() throws Exception {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withParticipationRecord(4, 3));
         logic.execute("attendance mark id/A0123456X w/3 s/present");
@@ -168,7 +188,7 @@ public class AttendanceIntegrationTest {
             assertFailureUnchanged("attendance list w/" + week,
                     ParseException.class, AttendanceCommandParserUtil.MESSAGE_INVALID_WEEK);
         }
-        assertFailureUnchanged("attendance mark id/A0123456X w/3 s/late",
+        assertFailureUnchanged("attendance mark id/A0123456X w/3 s/tardy",
                 ParseException.class, AttendanceStatus.MESSAGE_CONSTRAINTS);
         assertFailureUnchanged("attendance mark id/A0456789W w/3 s/present",
                 CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));

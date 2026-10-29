@@ -15,11 +15,13 @@ public class AttendanceStatusTest {
         }
         assertEquals("present", AttendanceStatus.PRESENT.getCommandValue());
         assertEquals("Absent", AttendanceStatus.ABSENT.getDisplayValue());
+        assertEquals(AttendanceStatus.LATE, AttendanceStatus.fromValue(" LaTe "));
+        assertEquals(AttendanceStatus.EXCUSED, AttendanceStatus.fromValue("EXCUSED"));
     }
 
     @Test
     public void fromValue_invalidStatus_throwsIllegalArgumentException() {
-        for (String value : new String[] {"", " ", "late", "present absent", "p", "x".repeat(1000)}) {
+        for (String value : new String[] {"", " ", "tardy", "excuse", "present absent", "p", "x".repeat(1000)}) {
             assertThrows(IllegalArgumentException.class, AttendanceStatus.MESSAGE_CONSTRAINTS, () -> {
                 AttendanceStatus.fromValue(value);
             });
@@ -31,12 +33,15 @@ public class AttendanceStatusTest {
     public void formatStoredValue_storedStatus_returnsDisplayValue() {
         assertEquals("Present", AttendanceStatus.formatStoredValue("PRESENT"));
         assertEquals("Absent", AttendanceStatus.formatStoredValue("ABSENT"));
+        assertEquals("Late", AttendanceStatus.formatStoredValue("LATE"));
+        assertEquals("Excused", AttendanceStatus.formatStoredValue("EXCUSED"));
     }
 
     @Test
     public void formatStoredValue_otherText_returnsItUnchanged() {
         assertEquals("present", AttendanceStatus.formatStoredValue("present"));
-        assertEquals("Late", AttendanceStatus.formatStoredValue("Late"));
+        assertEquals("late", AttendanceStatus.formatStoredValue("late"));
+        assertEquals("TARDY", AttendanceStatus.formatStoredValue("TARDY"));
         assertThrows(NullPointerException.class, () -> AttendanceStatus.formatStoredValue(null));
     }
 }

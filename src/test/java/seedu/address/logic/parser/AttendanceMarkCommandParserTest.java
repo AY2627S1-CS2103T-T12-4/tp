@@ -23,6 +23,10 @@ public class AttendanceMarkCommandParserTest {
                 new AttendanceMarkCommand(ALICE.getStudentId(), 3, AttendanceStatus.PRESENT));
         assertParseSuccess(parser, "id/A0123456X w/13 s/absent",
                 new AttendanceMarkCommand(ALICE.getStudentId(), 13, AttendanceStatus.ABSENT));
+        assertParseSuccess(parser, "id/A0123456X w/4 s/LATE",
+                new AttendanceMarkCommand(ALICE.getStudentId(), 4, AttendanceStatus.LATE));
+        assertParseSuccess(parser, "id/A0123456X w/5 s/Excused",
+                new AttendanceMarkCommand(ALICE.getStudentId(), 5, AttendanceStatus.EXCUSED));
     }
 
     @Test
@@ -81,7 +85,7 @@ public class AttendanceMarkCommandParserTest {
         assertParseFailure(parser, "id/A0123456X w/ s/present", AttendanceCommandParserUtil.MESSAGE_INVALID_WEEK);
         assertParseFailure(parser, "id/A0123456X w/14 s/present", AttendanceCommandParserUtil.MESSAGE_INVALID_WEEK);
         assertParseFailure(parser, "id/A0123456X w/3 s/", AttendanceStatus.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "id/A0123456X w/3 s/late", AttendanceStatus.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "id/A0123456X w/3 s/tardy", AttendanceStatus.MESSAGE_CONSTRAINTS);
     }
 
     @Test

@@ -135,6 +135,15 @@ public class GroupRecordsCsvExporterTest {
     }
 
     @Test
+    public void toRows_lateAndExcusedAttendance_showsDisplayValues() {
+        Student lateThenExcused = CARL.withAttendanceRecord(2, "LATE").withAttendanceRecord(3, "EXCUSED");
+        Group group = new GroupBuilder().withName(NAME_T01).withStudents(lateThenExcused).build();
+
+        assertEquals(expectedRow("Carl Ho", "A0345678Z", weeksWith(2, "Late", 3, "Excused"), noRecords()),
+                GroupRecordsCsvExporter.toRows(group).get(1));
+    }
+
+    @Test
     public void toRows_assignments_twoColumnsEachInCreationOrderAfterWeeks() {
         Assignment gradedPs2 = PS2.withSubmissionStatus(ALICE.getStudentId(), true)
                 .withGrade(ALICE.getStudentId(), 87).withSubmissionStatus(BEN.getStudentId(), true);
