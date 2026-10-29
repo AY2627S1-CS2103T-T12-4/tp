@@ -2,9 +2,11 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -43,6 +45,11 @@ public class JsonUserPrefsStorageTest {
         assertThrows(DataLoadingException.class, () -> readUserPrefs("NotJsonFormatUserPrefs.json"));
     }
 
+    @Test
+    public void readUserPrefs_nullGuiSettings_exceptionThrown() {
+        assertThrows(DataLoadingException.class, () -> readUserPrefs("NullGuiSettingsUserPrefs.json"));
+    }
+
     private Path addToTestDataPathIfNotNull(String userPrefsFileInTestDataFolder) {
         return userPrefsFileInTestDataFolder != null
                 ? TEST_DATA_FOLDER.resolve(userPrefsFileInTestDataFolder)
@@ -60,6 +67,18 @@ public class JsonUserPrefsStorageTest {
     public void readUserPrefs_valuesMissingFromFile_defaultValuesUsed() throws DataLoadingException {
         UserPrefs actual = readUserPrefs("EmptyUserPrefs.json").get();
         assertEquals(new UserPrefs(), actual);
+    }
+
+    @Test
+    public void readUserPrefs_nullWindowCoordinates_keepsSizeAndAllowsModelCopy() throws Exception {
+        Path filePath = testFolder.resolve("centered.json");
+        Files.writeString(filePath, """
+                {"guiSettings":{"windowWidth":800,"windowHeight":600,"windowCoordinates":null}}
+                """);
+        UserPrefs actual = new UserPrefs(new JsonUserPrefsStorage(filePath).readUserPrefs().orElseThrow());
+        assertEquals(800, actual.getGuiSettings().getWindowWidth());
+        assertEquals(600, actual.getGuiSettings().getWindowHeight());
+        assertNull(actual.getGuiSettings().getWindowCoordinates());
     }
 
     @Test
