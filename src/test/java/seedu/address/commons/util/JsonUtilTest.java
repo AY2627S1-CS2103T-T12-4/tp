@@ -43,6 +43,18 @@ public class JsonUtilTest {
     }
 
     @Test
+    public void readJsonFile_byteOrderMark_returnsObject() throws Exception {
+        FileUtil.writeToFile(SERIALIZATION_FILE, "\uFEFF" + SerializableTestClass.JSON_STRING_REPRESENTATION);
+
+        SerializableTestClass result = JsonUtil.readJsonFile(SERIALIZATION_FILE, SerializableTestClass.class)
+                .orElseThrow();
+
+        assertEquals(SerializableTestClass.getNameTestValue(), result.getName());
+        assertEquals(SerializableTestClass.getListTestValues(), result.getListOfLocalDateTimes());
+        assertEquals(SerializableTestClass.getHashMapTestValues(), result.getMapOfIntegerToString());
+    }
+
+    @Test
     public void readJsonFile_nullContent_throwsDataLoadingException() throws IOException {
         FileUtil.writeToFile(SERIALIZATION_FILE, "null");
 

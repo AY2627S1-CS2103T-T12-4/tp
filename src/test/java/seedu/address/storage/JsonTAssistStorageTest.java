@@ -129,6 +129,17 @@ public class JsonTAssistStorageTest {
     }
 
     @Test
+    public void read_fileWithByteOrderMark_loadsData() throws Exception {
+        Path filePath = testFolder.resolve("bom.json");
+        TAssist original = TypicalGroups.getTypicalTAssist();
+        JsonTAssistStorage jsonTAssistStorage = new JsonTAssistStorage(filePath);
+        jsonTAssistStorage.saveTAssist(original);
+        Files.writeString(filePath, "\uFEFF" + Files.readString(filePath));
+
+        assertEquals(original, new TAssist(jsonTAssistStorage.readTAssist().orElseThrow()));
+    }
+
+    @Test
     public void read_legacyDataWithoutWeeklyRecords_defaultsToEmptyRecords() throws Exception {
         Path filePath = testFolder.resolve("legacy.json");
         String legacyData = """
