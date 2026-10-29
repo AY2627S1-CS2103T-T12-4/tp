@@ -144,14 +144,17 @@ public class WorkspaceSmokeTest {
                 pressKey(KeyCode.PAGE_DOWN);
                 assertTrue(listing.getScrollTop() > 0);
                 enter(input, "attendance mark id/A0123456X w/3 s/present");
+                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
+                enter(input, "undo");
                 assertTrue(listing.getText().contains("Alice Tan | A0123456X | Not recorded"));
+                enter(input, "attendance mark id/A0123456X w/3 s/present");
                 enter(input, "attendance list w/3");
                 assertEquals(0, listing.getCaretPosition());
                 assertEquals(0, listing.getScrollTop());
                 assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
                 render(root, "records-guide", 1280, 720, 2);
                 enter(input, "group use g/T02");
-                assertTrue(listing.getText().startsWith("Attendance for T01"));
+                assertTrue(listing.getText().startsWith("Attendance for T02"));
                 String name = "A".repeat(60);
                 enter(input, "student add n/" + name + " id/A1234567890123456789");
                 enter(input, "attendance list w/3");

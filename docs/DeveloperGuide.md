@@ -132,9 +132,11 @@ to show `Changes saved.` in the footer. Commands keep the current screen unless 
 Attendance, participation, and assignment listings return `CommandResult.forRecordListing(...)` with their complete
 text and a request to open Records. `MainWindow` sends the text to `RecordListPanel` and puts only its heading in
 `ResultDisplay`. The records text area grows with the workspace, so a normal tutorial's records use the main area.
-PageUp and PageDown scroll Records while it is open and the feedback box on other screens; neither takes focus
-from the command box. The last listing stays available through `view records`, without changing the model or file.
-It is explicitly a snapshot: a new list command refreshes it, and restarting clears it.
+PageUp and PageDown scroll Records while it is open and the feedback box on other screens; neither takes focus from the command box. The last listing stays available through `view records`, without
+changing the model or file. `MainWindow` keeps the list command that produced it and reruns that command after any
+command with saved changes, such as a mark, a group switch, or `undo`, so Records never shows outdated values. A
+list command changes no data, so rerunning it saves nothing and adds nothing to the undo history. Restarting
+clears the listing.
 
 The command reference is shown only on the Help screen. `help` returns `CommandResult.forHelp(...)` with a one-line
 confirmation and, for `help TOPIC`, the topic. `MainWindow` then asks `WorkspacePanel` to open Help, which scrolls
@@ -2090,7 +2092,7 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    feedback box shows only the heading. At 1280x720 and at the compact size, verify that Records uses the main
    workspace and scroll it with PageUp and PageDown while keeping a draft in the command box.
    Open Storage and return with `view records`; the last listing remains. Try `attendance list w/14`; the input
-   stays editable and the listing is unchanged. Change a record and rerun its list command to refresh the snapshot.
+   stays editable and the listing is unchanged. Change a record and verify that the listing updates without rerunning the list command.
    Restart the app: saved records remain, while Records initially shows instructions for listing them.
 3. Start a fresh session in another empty folder. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
