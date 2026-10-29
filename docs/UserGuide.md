@@ -126,6 +126,12 @@ Selecting rows with the keyboard does not replace your draft.
   Parameter prefixes still use lowercase letters, such as `g/` and `id/`. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
 
+* Where `id/` names a student already in the active group, you can give the student's row number from the `#`
+  column of the Students table instead of the ID. For example, `attendance mark id/1 id/3 w/3 s/present` marks the
+  students in rows 1 and 3, and after `student find n/ben`, `student delete id/1` targets the first student shown.
+  A number that is also a student's ID in the group names that student. `student add` and `student find` always read
+  `id/` as an ID.
+
 * Put a space before each prefix. If a prefix is joined to the text before it, as `w/` is in
   `attendance mark id/A0123456Xw/3 s/present`, TAssist reports
   `Missing space before w/ in 'id/A0123456Xw/3'. Put a space before each prefix.` If the joined word follows a
