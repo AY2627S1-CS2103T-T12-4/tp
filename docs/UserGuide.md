@@ -688,7 +688,7 @@ Assignments in T01:
 A group without assignments shows `No assignments in T01. Create one with: assignment add a/ASSIGNMENT_NAME`.
 Use the listed names with `a/` in the other assignment commands.
 
-Example: after the examples in this guide, which leave Alice Tan in T01 with PS1 submitted and graded 60, and
+Example: after the examples above, which leave Alice Tan in T01 with PS1 submitted and graded 60, and
 Ravi s/o Kumar in T01 without a PS1 submission, `assignment list a/PS1` shows
 
 ```text
