@@ -171,6 +171,9 @@ an invalid command format and show the expected syntax.
 
 Examples: `view students`, `view help`, `view storage`.
 
+`group add`, `group use`, and `student add` update the group or student data without switching screens.
+If you run them while viewing Help or Storage, that screen stays open. Enter `view students` to see the updated roster.
+
 ### Creating a tutorial group: `group add`
 
 Creates an empty tutorial group and makes it active, including when another group is already active.
@@ -212,8 +215,9 @@ Extra input, such as `group list g/T01`, is rejected. Long lists can be scrolled
 
 ### Switching tutorial groups: `group use`
 
-Makes an existing tutorial group active. The highlighted group in the top bar and the Students screen update
-immediately. Each group's students and records stay separate. Selecting the group that is already active shows
+Makes an existing tutorial group active. The highlighted group in the top bar updates immediately. The Students
+screen shows the selected group's roster when you open it with `view students`. Each group's students and records stay
+separate. Selecting the group that is already active shows
 `T01 is already the active group. Nothing changed.` and leaves the data unchanged.
 
 Format: `group use g/GROUP_NAME`
@@ -317,7 +321,8 @@ Missing or unknown subcommand | The feedback lists the valid subcommands: `add`,
 
 ### Adding a student: `student add`
 
-Adds a student to the active group and updates the Students screen immediately.
+Adds a student to the active group. If the Students screen is open, its roster updates immediately.
+From another screen, enter `view students` to see the updated roster.
 Create or select a group first with `group add` or `group use`.
 
 Format: `student add n/NAME id/STUDENT_ID`
