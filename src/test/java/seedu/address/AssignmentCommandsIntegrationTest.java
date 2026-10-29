@@ -189,7 +189,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     @Test
     public void execute_duplicateAndUnknownAssignment_showSpecificMessages() throws Exception {
         feedback("assignment add a/PS1");
-        assertThrows(CommandException.class, "Assignment PS1 already exists in T01", () ->
+        assertThrows(CommandException.class, "Assignment PS1 already exists in T01.", () ->
                 app.logic.execute("assignment add a/ps1"));
         assertThrows(CommandException.class, "Assignment PS2 does not exist in T01. "
                 + "See the group's assignments with: assignment list\nOr create it with: assignment add a/PS2", () ->

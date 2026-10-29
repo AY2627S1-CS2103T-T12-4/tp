@@ -69,9 +69,9 @@ public class AssignmentAddCommandTest {
         Model model = modelWithActiveT01();
         model.addAssignment(NAME_T01, PS1);
 
-        assertCommandFailure(new AssignmentAddCommand(NAME_PS1), model, "Assignment PS1 already exists in T01");
+        assertCommandFailure(new AssignmentAddCommand(NAME_PS1), model, "Assignment PS1 already exists in T01.");
         assertCommandFailure(new AssignmentAddCommand(new AssignmentName("ps1")), model,
-                "Assignment PS1 already exists in T01");
+                "Assignment PS1 already exists in T01.");
         assertEquals(List.of(PS1), model.getGroup(NAME_T01).getAssignmentList());
     }
 

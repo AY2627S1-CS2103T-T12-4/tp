@@ -16,6 +16,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -133,6 +134,48 @@ public class WorkspaceSmokeTest {
                             .startsWith(status.getMessage()));
                     assertEquals(status.isFailure(), isFooterShowingFailure());
                     assertEquals(status.isFailure(), isShowingDataNotRead());
+                    enter(input, "help");
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.isFailure() ? status.getMessage() : "Local data file"));
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
+    }
+
+    @Test
+    public void startup_footerAfterCommands_preservesFailedLoadUntilDataCanBeSaved() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.LOADED, DataLoadStatus.MISSING,
+                DataLoadStatus.FAILED, DataLoadStatus.failed("Invalid JSON."))) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    Files.writeString(data, "{");
+                    Label footer = (Label) root.lookup("#saveLocationStatus");
+                    for (String command : List.of("help", "view students")) {
+                        enter(input, command);
+                        assertEquals(status.isFailure(), isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith(
+                                status.isFailure() ? status.getMessage() : "Local data file"));
+                    }
+                    TAssist beforeEdit = new TAssist(model.getTAssist());
+                    enter(input, "group add g/New group");
+                    if (status.isFailure()) {
+                        assertEquals(beforeEdit, model.getTAssist());
+                        assertEquals("{", Files.readString(data));
+                        assertTrue(isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith("Command failed"));
+                        assertFalse(footer.getText().contains("Changes saved."));
+                        enter(input, "help");
+                        assertTrue(footer.getText().startsWith(status.getMessage()));
+                        assertTrue(isFooterShowingFailure());
+                    } else {
+                        assertTrue(footer.getText().startsWith("Changes saved."));
+                        assertFalse(isFooterShowingFailure());
+                        assertFalse(Files.readString(data).equals("{"));
+                    }
                 });
             } finally {
                 runOnFx(() -> stage.hide());
@@ -192,7 +235,26 @@ public class WorkspaceSmokeTest {
                 render(root, "error-usage", 1280, 680);
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertTrue(feedback.getText().contains(ViewCommand.MESSAGE_USAGE));
-                assertFalse(hasVisibleVerticalScrollBar(feedback), "A usage message fits without scrolling");
+                assertTrue(hasVisibleVerticalScrollBar(feedback), "Long usage feedback scrolls within its cap");
+                assertTrue(feedback.getPrefRowCount() <= ResultDisplay.MAX_VISIBLE_LINES);
+                String completeFeedback = feedback.getText();
+                ScrollBar vertical = feedback.lookupAll(".scroll-bar").stream()
+                        .filter(node -> node instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL)
+                        .map(node -> (ScrollBar) node).findFirst().orElseThrow();
+                input.requestFocus();
+                for (int i = 0; i < completeFeedback.lines().count(); i++) {
+                    pressKey(KeyCode.PAGE_DOWN);
+                }
+                assertEquals(vertical.getMax(), vertical.getValue(), 0.001,
+                        "PageDown reaches the final usage line");
+                for (int i = 0; i < completeFeedback.lines().count(); i++) {
+                    pressKey(KeyCode.PAGE_UP);
+                }
+                assertEquals(vertical.getMin(), vertical.getValue(), 0.001);
+                assertEquals(completeFeedback, feedback.getText());
+                assertEquals("view", input.getText());
+                assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(input, stage.getScene().getFocusOwner());
             });
             runOnFx(() -> {
                 enter(input, "view storage");
@@ -349,7 +411,9 @@ public class WorkspaceSmokeTest {
                 TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
                 String savedBeforeCancelledDelete = Files.readString(data);
                 enter(input, "student delete id/a1");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/a1", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(savedBeforeCancelledDelete, Files.readString(data));
                 assertEquals(2, studentTable().getItems().size());
@@ -395,19 +459,49 @@ public class WorkspaceSmokeTest {
                 cancelConfirmationWithEnter("Remove Ben Lim (A2) and all their attendance, participation, "
                         + "submission, and grade records from T03?");
                 enter(input, "student delete id/A2");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/A2", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(1, studentTable().getItems().size());
 
                 respondToConfirmation("Cancel");
                 enter(input, "student delete id/A2");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/A2", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(1, studentTable().getItems().size());
             });
         } finally {
             runOnFx(() -> stage.hide());
             shouldUseDefaultConfirmationHandler = false;
+        }
+    }
+
+    @Test
+    public void groupDelete_cancel_keepsCommandAndSavedData() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                TAssist beforeDelete = new TAssist(model.getTAssist());
+                String savedBeforeDelete = Files.readString(data);
+                isConfirmationAccepted = false;
+                enter(input, "group delete g/T01");
+                assertEquals("group delete g/T01", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(MainWindow.MESSAGE_CANCELLED, ((TextArea) root.lookup("#resultDisplay")).getText());
+                assertEquals(beforeDelete, model.getTAssist());
+                assertEquals(savedBeforeDelete, Files.readString(data));
+                input.setText("edited draft");
+                pressKey(KeyCode.UP);
+                assertEquals("group delete g/T01", input.getText());
+                pressKey(KeyCode.UP);
+                assertEquals("group use g/T01", input.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
         }
     }
 
@@ -523,6 +617,17 @@ public class WorkspaceSmokeTest {
             runOnFx(() -> {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertTrue(hasVisibleVerticalScrollBar(feedback), "A full tutorial group's attendance can scroll");
+                input.setText("draft");
+                input.requestFocus();
+                feedback.setScrollTop(0);
+                pressKey(KeyCode.PAGE_DOWN);
+                assertTrue(feedback.getScrollTop() > 0, "PageDown reaches hidden list output");
+                assertEquals("draft", input.getText());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                pressKey(KeyCode.PAGE_UP);
+                assertEquals(0, feedback.getScrollTop());
+                pressKey(KeyCode.UP);
+                assertEquals("attendance list w/3", input.getText());
                 enter(input, "attendance mark id/A0123456X w/3 s/late");
                 assertEquals("attendance mark id/A0123456X w/3 s/late", input.getText());
                 assertTrue(input.getStyleClass().contains("error"));
@@ -664,7 +769,7 @@ public class WorkspaceSmokeTest {
             CommandBox box = new CommandBox(command -> {
                 executed.add(command);
                 return new CommandResult("Recorded");
-            });
+            }, isDown -> { });
             Stage templateStage = new Stage();
             templateStage.setScene(new Scene(box.getRoot()));
             templateStage.show();
@@ -707,11 +812,77 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void commandBox_pageKeys_scrollFeedbackWithoutChangingInput() throws Exception {
+        runOnFx(() -> {
+            List<Boolean> scrolls = new ArrayList<>();
+            CommandBox box = new CommandBox(command -> new CommandResult("Recorded"), scrolls::add);
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            field.setText("draft");
+            field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.PAGE_DOWN,
+                    false, false, false, false));
+            field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.PAGE_UP,
+                    false, false, false, false));
+            for (KeyCode modifier : List.of(KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META)) {
+                for (KeyCode key : List.of(KeyCode.PAGE_UP, KeyCode.PAGE_DOWN)) {
+                    field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, modifier == KeyCode.SHIFT,
+                            modifier == KeyCode.CONTROL, modifier == KeyCode.ALT, modifier == KeyCode.META));
+                }
+            }
+            assertEquals(List.of(true, false), scrolls);
+            assertEquals("draft", field.getText());
+        });
+    }
+
+    @Test
+    public void resultDisplay_scrollPage_movesByVisiblePageAndStopsAtStart() throws Exception {
+        runOnFx(() -> {
+            ResultDisplay display = new ResultDisplay();
+            Stage displayStage = new Stage();
+            displayStage.setScene(new Scene(display.getRoot(), 400, 120));
+            display.setFeedbackToUser(String.join("\n", Collections.nCopies(30, "line")));
+            displayStage.show();
+            try {
+                TextArea area = (TextArea) display.getRoot().lookup("#resultDisplay");
+                display.getRoot().applyCss();
+                display.getRoot().layout();
+                display.scrollPage(false);
+                assertEquals(0, area.getScrollTop());
+                display.scrollPage(true);
+                assertTrue(area.getScrollTop() > 0);
+                display.scrollPage(false);
+                display.scrollPage(false);
+                assertEquals(0, area.getScrollTop());
+            } finally {
+                displayStage.close();
+            }
+        });
+    }
+
+    @Test
+    public void commandBox_enter_clearsInputUnlessCommandCancelled() throws Exception {
+        runOnFx(() -> {
+            CommandBox box = new CommandBox(command -> command.startsWith("cancel")
+                    ? CommandResult.forCancelled(MainWindow.MESSAGE_CANCELLED)
+                    : new CommandResult("Recorded"), isDown -> { });
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            field.setText("cancel this");
+            field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+            field.fireEvent(new ActionEvent());
+            assertEquals("cancel this", field.getText());
+            assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
+            field.setText("run this");
+            field.fireEvent(new ActionEvent());
+            assertTrue(field.getText().isEmpty());
+        });
+    }
+
+    @Test
     public void fillTemplate_afterFailedEnter_keepsInputEditable() throws Exception {
         runOnFx(() -> {
             CommandBox box = new CommandBox(command -> {
                 throw new ParseException("Complete the attendance template first.");
-            });
+            }, isDown -> { });
             TextField field = (TextField) box.getRoot().lookup("#commandTextField");
             String template = "attendance mark id/A1 w/";
             box.fillTemplate(template);
@@ -854,7 +1025,8 @@ public class WorkspaceSmokeTest {
                     Comparator.comparing((Student student) -> student.getStudentId().toString()).reversed());
             List<Student> clicked = new ArrayList<>();
             StudentListPanel panel = new StudentListPanel(
-                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), roster, sorted,
+                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())),
+                    FXCollections.observableArrayList(TypicalGroups.getT01()), roster, sorted,
                     new SimpleBooleanProperty(true), clicked::add, false);
             Stage transformedStage = new Stage();
             transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
@@ -870,6 +1042,63 @@ public class WorkspaceSmokeTest {
                 transformedStage.close();
             }
         });
+    }
+
+    @Test
+    public void studentAdd_longRoster_scrollsToNewRowWithoutSelectingIt() throws Exception {
+        List<Integer> scrolledRows = new ArrayList<>();
+        runOnFx(() -> {
+            initializeWorkspace();
+            stage.setWidth(854);
+            stage.setHeight(480);
+            enter(input, "view students");
+            enter(input, "group use g/T03");
+            for (int i = 0; i < 15; i++) {
+                enter(input, "student add n/Student " + (char) ('A' + i) + " id/S" + i);
+            }
+        });
+        try {
+            runOnFx(() -> {
+                studentTable().setOnScrollTo(event -> scrolledRows.add(event.getScrollTarget()));
+                enter(input, "student add n/New Person id/A9999");
+            });
+            // VirtualFlow realizes the scrolled row on a subsequent JavaFX pulse.
+            Thread.sleep(300);
+            runOnFx(() -> {
+                root.applyCss();
+                root.layout();
+                assertEquals(List.of(16), scrolledRows);
+                assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
+                assertFalse(tableRow(studentTable(), 15).isEmpty());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
+    public void studentEmptyHint_groupChanges_updatesBoundHint() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view students");
+                Label hint = (Label) root.lookup("#emptyHint");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.setTAssist(new TAssist());
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+                model.addGroup(TypicalGroups.getT03());
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                enter(input, "group add g/T01");
+                enter(input, "group add g/T02");
+                enter(input, "group delete g/T02 f/yes");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.removeGroup(TypicalGroups.NAME_T01);
+                model.removeGroup(TypicalGroups.NAME_T03);
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     @Test
@@ -972,6 +1201,45 @@ public class WorkspaceSmokeTest {
         assertEquals(expectedTitle, ((Label) root.lookup("#emptyTitle")).getText());
     }
 
+    @Test
+    public void groupStrip_manyGroups_revealsActiveChipAtEitherEnd() throws Exception {
+        runOnFx(() -> {
+            initializeWorkspace();
+            stage.setWidth(854);
+            stage.setHeight(480);
+            for (int i = 0; i < 12; i++) {
+                model.addGroup(new Group(new GroupName("Long tutorial group number " + i)));
+            }
+            model.setActiveGroup(new GroupName("Long tutorial group number 11"));
+        });
+        try {
+            runOnFx(this::assertActiveChipVisible);
+            runOnFx(() -> model.setActiveGroup(TypicalGroups.NAME_T01));
+            runOnFx(this::assertActiveChipVisible);
+            runOnFx(() -> {
+                model.setActiveGroup(new GroupName("Long tutorial group number 11"));
+                model.setActiveGroup(TypicalGroups.NAME_T02);
+            });
+            runOnFx(this::assertActiveChipVisible);
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    private void assertActiveChipVisible() {
+        root.applyCss();
+        root.layout();
+        ScrollPane strip = (ScrollPane) root.lookup(".group-chips-scroll");
+        Label chip = root.lookupAll(".group-chip").stream().map(node -> (Label) node)
+                .filter(label -> label.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active")))
+                .findFirst().orElseThrow();
+        var chipBounds = chip.localToScene(chip.getBoundsInLocal());
+        var viewport = strip.lookup(".viewport");
+        var viewportBounds = viewport.localToScene(viewport.getBoundsInLocal());
+        assertTrue(chipBounds.getMinX() >= viewportBounds.getMinX() - 1, "Active chip left edge is visible");
+        assertTrue(chipBounds.getMaxX() <= viewportBounds.getMaxX() + 1, "Active chip right edge is visible");
+    }
+
     /**
      * Asserts that the group strip shows a chip for each of {@code expectedNames}, in order, and that only the
      * chip named {@code expectedActiveName} is highlighted. An empty {@code expectedActiveName} means none is.
@@ -1021,7 +1289,8 @@ public class WorkspaceSmokeTest {
     private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
         isConfirmationAccepted = true;
         confirmationPrompt = null;
-        model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        TAssist initialData = dataLoadStatus.isFailure() ? new TAssist() : TypicalGroups.getTypicalTAssist();
+        model = new ModelManager(initialData, new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
             @Override

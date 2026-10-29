@@ -56,7 +56,7 @@ public class JsonTAssistStorage {
     public Optional<ReadOnlyTAssist> readTAssist(Path filePath) throws DataLoadingException {
         requireNonNull(filePath);
 
-        Optional<JsonSerializableTAssist> jsonTAssist = JsonUtil.readJsonFile(
+        Optional<JsonSerializableTAssist> jsonTAssist = JsonUtil.readJsonFileStrictly(
                 filePath, JsonSerializableTAssist.class);
         if (jsonTAssist.isEmpty()) {
             return Optional.empty();

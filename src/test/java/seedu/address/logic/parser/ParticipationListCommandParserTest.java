@@ -20,7 +20,8 @@ public class ParticipationListCommandParserTest {
 
     @Test
     public void parse_missingOrInvalidWeek_reportsSpecificError() {
-        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/")
+                        + " Usage: " + ParticipationListCommand.MESSAGE_USAGE);
         for (String week : new String[] {"", "0", "14", "-1", "+1", "1.5", "three", "9".repeat(1000)}) {
             assertParseFailure(parser, "w/" + week, TAssistParserUtil.MESSAGE_WEEK);
         }

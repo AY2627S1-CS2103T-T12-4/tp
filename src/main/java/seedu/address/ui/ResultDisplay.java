@@ -59,6 +59,17 @@ public class ResultDisplay extends UiPart<Region> {
     }
 
     /**
+     * Scrolls the feedback by one visible page, keeping one line of the previous page in view.
+     *
+     * @param isDown Whether to scroll towards the end of the message instead of its start.
+     */
+    public void scrollPage(boolean isDown) {
+        double pageHeight = Math.max(measureLineHeight(), resultDisplay.getHeight() - measureLineHeight());
+        double scrollTop = resultDisplay.getScrollTop() + (isDown ? pageHeight : -pageHeight);
+        resultDisplay.setScrollTop(Math.max(0, scrollTop));
+    }
+
+    /**
      * Shows as many lines as the message needs, up to {@link #MAX_VISIBLE_LINES}. Longer messages scroll.
      */
     private void fitToText() {
@@ -69,13 +80,17 @@ public class ResultDisplay extends UiPart<Region> {
      * Returns the number of lines the message takes up at the current width, including wrapped lines.
      */
     int countLines() {
-        measurement.setFont(resultDisplay.getFont());
-        measurement.setWrappingWidth(Math.max(0, resultDisplay.getWidth() - NON_TEXT_WIDTH));
-        measurement.setText("X");
-        double lineHeight = measurement.getLayoutBounds().getHeight();
+        double lineHeight = measureLineHeight();
         measurement.setText(resultDisplay.getText());
         double textHeight = measurement.getLayoutBounds().getHeight();
         assert lineHeight > 0 : "A line of text must have a height";
         return (int) Math.round(textHeight / lineHeight);
+    }
+
+    private double measureLineHeight() {
+        measurement.setFont(resultDisplay.getFont());
+        measurement.setWrappingWidth(Math.max(0, resultDisplay.getWidth() - NON_TEXT_WIDTH));
+        measurement.setText("X");
+        return measurement.getLayoutBounds().getHeight();
     }
 }

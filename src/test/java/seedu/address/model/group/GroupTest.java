@@ -76,11 +76,11 @@ public class GroupTest {
     }
 
     @Test
-    public void hasStudentNamed_ignoresCaseAndExtraSpaces() {
+    public void findStudentNamed_ignoresCaseAndExtraSpaces() {
         group.addStudent(ALICE);
-        assertTrue(group.hasStudentNamed(new StudentName("alice  TAN")));
-        assertFalse(group.hasStudentNamed(new StudentName("Alice")));
-        assertFalse(group.hasStudentNamed(BEN.getName()));
+        assertEquals(Optional.of(ALICE), group.findStudentNamed(new StudentName("alice  TAN")));
+        assertEquals(Optional.empty(), group.findStudentNamed(new StudentName("Alice")));
+        assertEquals(Optional.empty(), group.findStudentNamed(BEN.getName()));
     }
 
     @Test

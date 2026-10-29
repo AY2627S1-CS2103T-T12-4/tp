@@ -25,7 +25,8 @@ public class AttendanceClearCommandParserTest {
         String[][] cases = {{"", "id/ w/"}, {"w/3", "id/"}, {"id/A0123456X", "w/"}};
         for (String[] testCase : cases) {
             assertParseFailure(parser, testCase[0],
-                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1]));
+                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1])
+                        + " Usage: " + AttendanceClearCommand.MESSAGE_USAGE);
         }
     }
 
@@ -56,7 +57,8 @@ public class AttendanceClearCommandParserTest {
     @Test
     public void parse_forgottenPrefixBeforeExtraText_reportsMissingPrefix() {
         assertParseFailure(parser, "id/A0123456X 3",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "w/")
+                        + " Usage: " + AttendanceClearCommand.MESSAGE_USAGE);
     }
 
     @Test

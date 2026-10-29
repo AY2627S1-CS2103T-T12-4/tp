@@ -363,8 +363,8 @@ Empty values are retained for the value validator to report a value error instea
 A command declaring no prefixes rejects extra input.
 
 A parser may also declare **literal words**: words such as `s/o` that look like a prefix followed by text but belong
-to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
-`n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
+to a value. `student add` and `student find` declare `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`),
+so `n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
 when it stands alone between whitespace, ignoring case. `s/oKumar` is still an unknown prefix, and the error adds
 `If s/o is part of the value, put a space before and after it.` The hint appears only when the text after the
 literal word does not start with a lowercase letter, so `a/lee` is reported as an unknown prefix without it. A literal
@@ -373,8 +373,8 @@ words parse exactly as before, so `s/` in `attendance mark` is unaffected.
 
 **Aspect: Reading `s/o` in a name**
 
-* **Alternative 1 (current choice):** `student add` declares a short list of literal words.
-  * Pros: Only the command that takes a name changes, and only for these particles. Every other prefix check,
+* **Alternative 1 (current choice):** `student add` and `student find` declare a short list of literal words.
+  * Pros: Only the commands that take a name change, and only for these particles. Every other prefix check,
     including typos such as `x/`, still reports a specific error.
   * Cons: A particle that is not in the list, or one joined to the next word, is still read as a prefix.
 * **Alternative 2:** Treat every unknown prefix after `n/` as part of the name.
@@ -603,13 +603,13 @@ participation feedback and failed-input retention through the JavaFX command box
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
 name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
-and `a/p` only as a separate word between two parts of a name, and the add parser keeps them in the name as literal
-words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
+and `a/p` only as a separate word between two parts of a name, and the add and find parsers keep them in the name as
+literal words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique. If
-`Group.hasStudentNamed` finds a student with the same name (ignoring case) before the add, the command still adds the
-student and appends a warning to its success message.
+`Group.findStudentNamed` finds a student with the same name (ignoring case) before the add, the command still adds the
+student and appends a warning that names the existing student and their ID to its success message.
 `StudentDeleteCommand` checks for the ID in the active group before calling `Model.removeStudent`. Removing the
 student also removes their owned weekly records. Neither command changes another group, even if it contains the
 same ID. `StudentListCommand` clears the display filter and sort order, opens Students, and returns the full
@@ -646,7 +646,8 @@ The table observes the read-only `studentFilterActiveProperty()` exposed by Mode
 whether a predicate is installed. Empty-state captions and counts use this property rather than roster size.
 An active search always shows the matching count against the total, including `0 of 0 students`.
 
-`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `StudentSortField` supplies
+`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `by/` takes a single word, so
+`by/id now` is reported as extra text rather than as an invalid field. `StudentSortField` supplies
 ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
 lexicographic comparison of their normalized uppercase values. Sorting is exposed through the CLI; table headers
 remain non-sortable. These transformations keep the original roster order and all record/export commands intact.
@@ -903,7 +904,7 @@ and restart. `MainAppTest` checks missing, corrupt, and unreadable startup data,
 protection through shutdown.
 `WorkspaceSmokeTest` verifies startup messages, save confirmations, permission guidance, and restored UI state.
 
-`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, and a fractional or out-of-range grade or a grade for an unsubmitted assignment. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, an `activeGroup` that matches no group is ignored with a logged warning and no group is active, a missing attendance or participation field means that student has no records of that kind, and unknown fields are ignored. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
+`toModelType()` rejects, with a message naming the problem, a missing or invalid group name, student name or student ID, an empty entry in a list, a weekly record outside weeks 1 to 13, a participation score that is fractional or outside 0 to 5, an attendance status other than present or absent, two groups with the same name (ignoring case), two students with the same ID in one group, an invalid, empty or repeated (ignoring case) assignment name in a group, an assignment record with a missing or unknown assignment or student, duplicate assignment/student records, and a fractional or out-of-range grade or a grade for an unsubmitted assignment. To keep manual editing forgiving, a missing `groups`, `students`, `assignments` or `assignmentRecords` list is read as empty, a missing or `null` `activeGroup` means no group is active, an `activeGroup` that matches no group is ignored with a logged warning and no group is active, a missing attendance or participation field means that student has no records of that kind. Unknown or repeated fields make the file invalid, and the error names the field and its line. If a student is removed from the file but their assignment record remains, loading rejects the dangling record instead of silently discarding it.
 
 Each Jackson-friendly class mirrors one model class and only converts its own fields. Assignments keep their names in
 the `assignments` list on `JsonAdaptedGroup`; explicit student records are serialized as the optional
@@ -1242,7 +1243,8 @@ The following extensions apply to every use case that changes or views records o
       Use case ends.
 
 * 4a. TA cancels the prompt or closes it.
-    * 4a1. TAssist leaves the student and all records unchanged.
+    * 4a1. TAssist leaves the student and all records unchanged, and keeps the command in the command box for
+      editing.
 
       Use case ends.
 
@@ -1742,7 +1744,7 @@ label.
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
    is closed; the group should have `"assignments" : [ "PS1" ]` and an `"assignmentRecords"` entry with the
    assignment name, student ID, `"submitted" : true`, and grade 87.
-6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both
+6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01.` both
    times.
    Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
 7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`,
@@ -1765,7 +1767,7 @@ label.
 3. Enter `student find n/nobody`. Expect a no-matches message and a hint to use `student list`.
    Enter `student list`; expect all three students in their insertion order, with Zoe first.
 4. Search for Alice again and sort by ID. Add Alice Tan (A0); expect A0 before A1 and A2. Delete A1; it disappears.
-   Enter `student find n/`, `student find n/Alice n/Zoe`, and `student sort by/grade`.
+   Enter `student find n/`, `student find n/Alice n/Zoe`, `student sort by/grade`, and `student sort by/id now`.
    Each must report its error and preserve the displayed rows, order, and saved file.
 5. While Alice is the search, mark Zoe's attendance and participation and list those records. Zoe must still be
    addressable, and record lists and `group export` must include the complete roster in insertion order.
@@ -1794,8 +1796,8 @@ label.
    `student delete id/A0123456X`. Each should ask you to create or select a group, without changing data.
 2. Create T01 with `group add g/T01`. Add Alice using the command above, then enter
    `student add n/Alice Tan id/A2`. Both succeed, and the Students screen shows two rows. The second feedback
-   ends with a warning that T01 already has a student named Alice Tan. Enter `student add n/alice  tan id/A3` to see
-   the same warning for a name that differs only in case and spacing.
+   ends with a warning that T01 already has a student named Alice Tan (A0123456X). Enter
+   `student add n/alice  tan id/A3` to see the same warning for a name that differs only in case and spacing.
 3. Enter `student list`. Expect numbered rows with both IDs. Close and reopen the app; both students remain.
 4. Try `student add n/Other Name id/a0123456x`, `student add n/Alice`, `student add n/Alice id/ABC`,
    `student add n/Alice id/A3 id/A4`, and `student list extra`. Each reports the specific problem and preserves
@@ -1813,6 +1815,7 @@ label.
    Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
    `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, an unknown prefix `s/` with a hint to
    put spaces around `s/o` for the second, and an unknown prefix `x/` for the third.
+   Enter `student find n/Ravi s/o`; expect only Ravi s/o Kumar and `Found 1 matching student(s) in T01.`
 
 ### Managing tutorial groups
 
@@ -1852,9 +1855,9 @@ label.
       with T02-Thu unchanged.
    1. Enter `group rename g/T01 n/T01`. Expected: `Tutorial group T01 already has that name. Nothing changed.`
       without `Changes saved.`
-   1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
-      that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
-      removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
+   1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student and assignment counts.
+      Cancel it and verify that nothing changed. Enter the command again and choose Continue. Expected: The group and
+      its students are removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
    1. Close and reopen the app. Expected: Only T01 remains, with no active group.
 
 1. Exporting a group's records
@@ -1920,7 +1923,8 @@ label.
    1. Enter `attendance mark id/A0123456X w/3 s/late`.
       Expected: `Invalid attendance status. Use present or absent.`
    1. Use a valid student ID absent from T01 in a mark command.
-      Expected: `Student ID <ID> does not exist in T01.`, naming the ID you entered.
+      Expected: `Student ID <ID> does not exist in T01. See students in the active group with: student list`,
+      naming the ID you entered.
    1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
    1. Verify that records and the saved file remain unchanged after each rejection.
    1. Close the app, set `activeGroup` to `null` in the file, and reopen it. All three attendance commands must
@@ -1994,7 +1998,8 @@ parameter errors, empty groups, week boundaries, and display formatting.
 3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
    Selecting another row with the keyboard must also leave the command box alone.
 4. Submit the incomplete template with Enter. Expect the missing-parameter error
-   `Missing required parameter(s): s/. Include each exactly once.`, retained text, and unchanged records.
+   `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID w/WEEK s/STATUS`,
+   retained text, and unchanged records.
    Complete it with a valid week and status, then press Enter; only then should attendance be saved.
 5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.
    The JavaFX regression also checks filtered and sorted observable lists to prevent using a stale roster index.

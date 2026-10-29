@@ -47,7 +47,8 @@ public final class GroupCommandRegistration {
         registry.register("group", "add", new GroupAddCommandParser(),
                 new HelpEntry("group", GroupAddCommand.MESSAGE_USAGE,
                         "Create an empty tutorial group and make it active. Names have 1-60 letters, digits, "
-                                + "spaces or hyphens, and ignore case and extra spaces.",
+                                + "spaces or hyphens, with at least one letter or digit. "
+                                + "Names ignore case and extra spaces.",
                         List.of("group add g/T01", "group add g/T02")));
         registry.register("group", "list", new GroupListCommandParser(),
                 new HelpEntry("group", GroupListCommand.MESSAGE_USAGE,

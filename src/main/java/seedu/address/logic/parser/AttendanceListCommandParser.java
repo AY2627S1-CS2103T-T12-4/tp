@@ -16,7 +16,7 @@ public class AttendanceListCommandParser implements Parser<AttendanceListCommand
 
     @Override
     public AttendanceListCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AttendanceListCommand.MESSAGE_USAGE);
         return new AttendanceListCommand(
                 AttendanceCommandParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()));
     }
