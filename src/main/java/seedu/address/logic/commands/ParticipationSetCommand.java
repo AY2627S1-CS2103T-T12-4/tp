@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -16,17 +18,17 @@ import seedu.address.model.student.StudentId;
 import seedu.address.model.student.WeeklyRecord;
 
 /**
- * Records or replaces a student's participation score in the active group for one week.
+ * Records or replaces the participation score of one or more students in the active group for one week.
  */
 public class ParticipationSetCommand extends Command {
-    public static final String MESSAGE_USAGE = "participation set id/STUDENT_ID w/WEEK s/SCORE";
+    public static final String MESSAGE_USAGE = "participation set id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/SCORE";
     public static final String MESSAGE_RECORDED = "Recorded participation score %s for %s in Week %s.";
     public static final String MESSAGE_UPDATED = "Updated %s's participation score for Week %s: %s to %s.";
     public static final String MESSAGE_UNCHANGED =
             "%s's participation score for Week %s is already %s. Nothing changed.";
 
     private static final Logger logger = LogsCenter.getLogger(ParticipationSetCommand.class);
-    private final StudentId studentId;
+    private final List<StudentId> studentIds;
     private final int week;
     private final int score;
 
@@ -34,7 +36,16 @@ public class ParticipationSetCommand extends Command {
      * Creates a command with a valid student ID, week from 1 to 13, and score from 0 to 5.
      */
     public ParticipationSetCommand(StudentId studentId, int week, int score) {
-        this.studentId = requireNonNull(studentId);
+        this(List.of(requireNonNull(studentId)), week, score);
+    }
+
+    /**
+     * Creates a command with a non-empty list of valid student IDs, a week from 1 to 13, and a score from 0 to 5.
+     */
+    public ParticipationSetCommand(List<StudentId> studentIds, int week, int score) {
+        requireNonNull(studentIds);
+        checkArgument(!studentIds.isEmpty(), "At least one student ID is required.");
+        this.studentIds = List.copyOf(studentIds);
         WeeklyRecord.validateWeek(week);
         checkArgument(score >= 0 && score <= 5, "Participation score must be a whole number from 0 to 5.");
         this.week = week;
@@ -45,14 +56,20 @@ public class ParticipationSetCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Group group = getActiveGroup(model);
-        Student student = getStudent(group, studentId);
-        Optional<Integer> oldScore = student.getParticipationRecord(week);
-        Student updated = student.withParticipationRecord(week, score);
-        model.setStudent(group.getName(), updated);
-        assert updated.getParticipationRecord(week).orElseThrow() == score
-                : "The new score must replace this week's value";
-        logger.fine("Set participation for Week " + week + " in " + group.getName());
-        return new CommandResult(createFeedback(student, oldScore));
+        List<Student> students = getStudents(group, studentIds);
+
+        List<String> feedback = new ArrayList<>();
+        for (Student student : students) {
+            Optional<Integer> oldScore = student.getParticipationRecord(week);
+            Student updated = student.withParticipationRecord(week, score);
+            model.setStudent(group.getName(), updated);
+            assert updated.getParticipationRecord(week).orElseThrow() == score
+                    : "The new score must replace this week's value";
+            feedback.add(createFeedback(student, oldScore));
+        }
+        logger.fine("Set participation for " + students.size() + " student(s) in Week " + week
+                + " in " + group.getName());
+        return new CommandResult(String.join("\n", feedback));
     }
 
     /**
@@ -71,11 +88,12 @@ public class ParticipationSetCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ParticipationSetCommand otherCommand
-                && studentId.equals(otherCommand.studentId) && week == otherCommand.week && score == otherCommand.score;
+                && studentIds.equals(otherCommand.studentIds) && week == otherCommand.week
+                && score == otherCommand.score;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(studentId, week, score);
+        return Objects.hash(studentIds, week, score);
     }
 }

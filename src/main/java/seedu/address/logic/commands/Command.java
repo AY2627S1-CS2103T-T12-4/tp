@@ -4,6 +4,8 @@ import static seedu.address.logic.Messages.MESSAGE_NO_ACTIVE_GROUP;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_ASSIGNMENT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_STUDENT;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -46,6 +48,20 @@ public abstract class Command {
     protected static Student getStudent(Group group, StudentId studentId) throws CommandException {
         return group.findStudent(studentId).orElseThrow(() -> new CommandException(
                 String.format(MESSAGE_UNKNOWN_STUDENT, studentId, group.getName())));
+    }
+
+    /**
+     * Returns the students with {@code studentIds} in {@code group}, in the same order.
+     * Fails without returning anything if any of them is not in the group.
+     *
+     * @throws CommandException If any such student is not in the group.
+     */
+    protected static List<Student> getStudents(Group group, List<StudentId> studentIds) throws CommandException {
+        List<Student> students = new ArrayList<>();
+        for (StudentId studentId : studentIds) {
+            students.add(getStudent(group, studentId));
+        }
+        return students;
     }
 
     /**

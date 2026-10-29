@@ -92,7 +92,7 @@ On the Students screen, click a student's row with the primary mouse button to f
 and puts the cursor after `w/`. It does not execute a command or save data.
 
 Complete the week and status, for example `attendance mark id/A0123456X w/3 s/present`, then press **Enter**.
-Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID w/WEEK s/STATUS`
+Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/STATUS`
 and leaves the text editable.
 You can type the same command yourself; clicking is only a shortcut for entering the ID.
 Clicking the same row again prepares a fresh template, even if that row is already selected.
@@ -485,19 +485,22 @@ Nothing to edit | `Nothing to edit. Include a new name with n/ or a new student 
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the editing or deletion format). Supply all required prefixes.
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
-Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
+Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each, except `id/` in `attendance mark` and `participation set`.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X`, `f/yes`, or `by/id`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`
 
-Records whether a student in the active tutorial group attended a teaching week.
-The student must already be in that group. Add one with `student add` if needed.
+Records whether one or more students in the active tutorial group attended a teaching week.
+The students must already be in that group. Add one with `student add` if needed.
 
-Format: `attendance mark id/STUDENT_ID w/WEEK s/STATUS`
+Format: `attendance mark id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/STATUS`
 
 * `WEEK` is a whole number from 1 to 13. `STATUS` is `present` or `absent`, ignoring case.
-* Student IDs ignore case. Supply each prefix exactly once, in any order, separated by spaces.
+* Student IDs ignore case. Supply `w/` and `s/` exactly once, in any order, separated by spaces.
+* To mark several students at once, repeat `id/`, for example `attendance mark id/A0123456X id/A0234567Y w/3 s/present`.
+  The feedback has one line for each student, in the order you typed them. A student typed twice is marked once.
+  If any ID is not in the active group, nobody is marked, and the error names the first such ID.
 * Repeating a mark for the same student and week replaces the earlier mark, and the feedback shows the old and
   new status. Other students, weeks, and participation records are preserved.
 
@@ -559,13 +562,17 @@ shows `Missing required parameter(s): id/ w/. Include each exactly once. Usage: 
 
 ### Recording participation: `participation set`
 
-Records a score for one student in the active tutorial group. Select a group with `group use` first.
+Records a score for one or more students in the active tutorial group. Select a group with `group use` first.
 
-Format: `participation set id/STUDENT_ID w/WEEK s/SCORE`
+Format: `participation set id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/SCORE`
 
 * `WEEK` is a whole number from 1 to 13. `SCORE` is a whole number from 0 to 5, including zero.
-* Student IDs ignore case. The ID must belong to the active group.
-* Supply each prefix exactly once, in any order, with spaces between parameters.
+* Student IDs ignore case. Each ID must belong to the active group.
+* Supply `w/` and `s/` exactly once, in any order, with spaces between parameters.
+* To give several students the same score, repeat `id/`, for example
+  `participation set id/A0123456X id/A0234567Y w/3 s/2`. The feedback has one line for each student, in the order you
+  typed them. A student typed twice is set once. If any ID is not in the active group, nobody is changed, and the error names the
+  first such ID.
 * Setting the same student and week again replaces the score, and the feedback shows the old and new score.
   Other weeks, other students, and other groups are unaffected.
 
@@ -940,10 +947,10 @@ Action | Format, Examples
 **Find students** | `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`<br> e.g., `student find n/alice`
 **Sort students** | `student sort by/FIELD`<br> e.g., `student sort by/name`
 **Delete student** | `student delete id/STUDENT_ID [f/yes]`<br> e.g., `student delete id/A0234567Y`
-**Mark attendance** | `attendance mark id/STUDENT_ID w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
+**Mark attendance** | `attendance mark id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/STATUS`<br> e.g., `attendance mark id/A0123456X w/3 s/present`
 **List attendance** | `attendance list w/WEEK`<br> e.g., `attendance list w/3`
 **Clear attendance** | `attendance clear id/STUDENT_ID w/WEEK`<br> e.g., `attendance clear id/A0123456X w/3`
-**Set participation** | `participation set id/STUDENT_ID w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
+**Set participation** | `participation set id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/SCORE`<br> e.g., `participation set id/A0123456X w/3 s/2`
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Clear participation** | `participation clear id/STUDENT_ID w/WEEK`<br> e.g., `participation clear id/A0123456X w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`

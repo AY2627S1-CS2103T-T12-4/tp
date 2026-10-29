@@ -87,6 +87,25 @@ public class AttendanceIntegrationTest {
     }
 
     @Test
+    public void execute_markSeveralStudentsAndReload_savesEveryStudentOnly() throws Exception {
+        assertFeedback("attendance mark id/A0123456X id/a0345678z id/A0123456X w/2 s/absent",
+                "Recorded Alice Tan as absent for Week 2.\nRecorded Carl Goh as absent for Week 2.");
+        restart();
+
+        assertFeedback("attendance list w/2", "Attendance for T01, Week 2:\n"
+                + "Alice Tan | A0123456X | Absent\n"
+                + "Ben Lim | A0234567Y | Not recorded\n"
+                + "Carl Goh | A0345678Z | Absent");
+    }
+
+    @Test
+    public void execute_markSeveralStudentsWithUnknownId_savesNobody() throws Exception {
+        assertFeedback("attendance mark id/A0234567Y w/1 s/present", "Recorded Ben Lim as present for Week 1.");
+        assertFailureUnchanged("attendance mark id/A0123456X id/A0456789W id/A0123456X w/2 s/absent",
+                CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
+    }
+
+    @Test
     public void execute_clearAndReload_removesOnlyThatMark() throws Exception {
         model.setStudent(TypicalGroups.NAME_T01, ALICE.withParticipationRecord(4, 3));
         logic.execute("attendance mark id/A0123456X w/3 s/present");

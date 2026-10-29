@@ -24,7 +24,8 @@ public final class AttendanceCommandRegistration {
         requireNonNull(registry);
         registry.register("attendance", "mark", new AttendanceMarkCommandParser(),
                 new HelpEntry("attendance", AttendanceMarkCommand.MESSAGE_USAGE,
-                        "Mark a student in the active group present or absent for a week from 1 to 13. "
+                        "Mark one or more students in the active group present or absent for a week from 1 to 13. "
+                                + "Repeat id/ to mark several students at once. "
                                 + "IDs and statuses ignore case. "
                                 + "Marking the same student and week again replaces the earlier mark. "
                                 + "On the Students screen, clicking a student's row fills in the command "

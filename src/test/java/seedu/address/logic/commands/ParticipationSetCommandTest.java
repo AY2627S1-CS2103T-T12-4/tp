@@ -22,6 +22,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.TypicalGroups;
 
 public class ParticipationSetCommandTest {
@@ -61,6 +62,26 @@ public class ParticipationSetCommandTest {
     }
 
     @Test
+    public void execute_severalStudents_setsAllAndReportsEachInOrder() {
+        model.setStudent(NAME_T01, BEN.withParticipationRecord(3, 1));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(NAME_T01, ALICE.withParticipationRecord(3, 4));
+        expected.setStudent(NAME_T01, BEN.withParticipationRecord(3, 4));
+
+        assertCommandSuccess(new ParticipationSetCommand(List.of(ALICE.getStudentId(), BEN.getStudentId()), 3, 4),
+                model, "Recorded participation score 4 for Alice Tan in Week 3.\n"
+                        + "Updated Ben Lim's participation score for Week 3: 1 to 4.", expected);
+    }
+
+    @Test
+    public void execute_oneUnknownStudent_failsWithoutSettingAnyone() {
+        Model unchanged = new ModelManager(model.getTAssist(), new UserPrefs());
+        assertCommandFailure(new ParticipationSetCommand(List.of(ALICE.getStudentId(), FIONA.getStudentId()), 3, 2),
+                model, String.format(MESSAGE_UNKNOWN_STUDENT, FIONA.getStudentId(), NAME_T01));
+        assertEquals(unchanged, model);
+    }
+
+    @Test
     public void execute_boundaryValues_succeeds() {
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
         expected.setStudent(NAME_T01, ALICE.withParticipationRecord(1, 0));
@@ -88,6 +109,7 @@ public class ParticipationSetCommandTest {
             assertThrows(IllegalArgumentException.class, () -> new ParticipationSetCommand(
                     ALICE.getStudentId(), week, 2));
         }
+        assertThrows(IllegalArgumentException.class, () -> new ParticipationSetCommand(List.of(), 3, 2));
         for (int score : List.of(-1, 6, Integer.MIN_VALUE, Integer.MAX_VALUE)) {
             assertThrows(IllegalArgumentException.class, () -> new ParticipationSetCommand(
                     ALICE.getStudentId(), 3, score));
@@ -96,7 +118,8 @@ public class ParticipationSetCommandTest {
 
     @Test
     public void nullInputs_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new ParticipationSetCommand(null, 3, 2));
+        assertThrows(NullPointerException.class, () -> new ParticipationSetCommand((StudentId) null, 3, 2));
+        assertThrows(NullPointerException.class, () -> new ParticipationSetCommand((List<StudentId>) null, 3, 2));
         assertThrows(NullPointerException.class, () -> new ParticipationSetCommand(ALICE.getStudentId(), 3, 2)
                 .execute(null));
     }
@@ -108,6 +131,8 @@ public class ParticipationSetCommandTest {
         assertEquals(command, new ParticipationSetCommand(ALICE.getStudentId(), 3, 2));
         assertEquals(command.hashCode(), new ParticipationSetCommand(ALICE.getStudentId(), 3, 2).hashCode());
         assertNotEquals(command, new ParticipationSetCommand(BEN.getStudentId(), 3, 2));
+        assertNotEquals(command, new ParticipationSetCommand(
+                List.of(ALICE.getStudentId(), BEN.getStudentId()), 3, 2));
         assertNotEquals(command, new ParticipationSetCommand(ALICE.getStudentId(), 4, 2));
         assertNotEquals(command, new ParticipationSetCommand(ALICE.getStudentId(), 3, 4));
         assertNotEquals(command, null);

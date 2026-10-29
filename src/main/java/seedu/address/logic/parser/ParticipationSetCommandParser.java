@@ -6,7 +6,7 @@ import seedu.address.logic.commands.ParticipationSetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
- * Parses a student ID, teaching week, and participation score into a set command.
+ * Parses one or more student IDs, a teaching week, and a participation score into a set command.
  */
 public class ParticipationSetCommandParser implements Parser<ParticipationSetCommand> {
     private static final Prefix PREFIX_ID = new Prefix("id/");
@@ -17,9 +17,10 @@ public class ParticipationSetCommandParser implements Parser<ParticipationSetCom
     public ParticipationSetCommand parse(String arguments) throws ParseException {
         ArgumentMultimap values = new TAssistArgumentParser(List.of(PREFIX_ID, PREFIX_WEEK, PREFIX_SCORE),
                 List.of(), List.of(PREFIX_ID, PREFIX_WEEK, PREFIX_SCORE))
+                .allowRepeated(PREFIX_ID)
                 .parse(arguments, ParticipationSetCommand.MESSAGE_USAGE);
         return new ParticipationSetCommand(
-                TAssistParserUtil.parseStudentId(values.getValue(PREFIX_ID).orElseThrow()),
+                TAssistParserUtil.parseStudentIds(values.getAllValues(PREFIX_ID)),
                 TAssistParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()),
                 TAssistParserUtil.parseParticipationScore(values.getValue(PREFIX_SCORE).orElseThrow()));
     }

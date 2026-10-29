@@ -31,6 +31,25 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void allowRepeated_repeatablePrefix_keepsEveryValueAndOthersStayUnique() throws Exception {
+        TAssistArgumentParser repeatingParser = new TAssistArgumentParser(
+                List.of(PREFIX_NAME, PREFIX_ID), List.of(PREFIX_GROUP), List.of(PREFIX_ID))
+                .allowRepeated(PREFIX_ID);
+        assertEquals(List.of("A1", "A2"), repeatingParser.parse("id/A1 n/Alice id/A2").getAllValues(PREFIX_ID));
+
+        String duplicateMessage = Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME);
+        assertThrows(ParseException.class, duplicateMessage, () -> repeatingParser.parse("id/A1 id/A2 n/A n/B"));
+        String extraTextMessage = String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "id/A2", "x");
+        assertThrows(ParseException.class, extraTextMessage, () -> repeatingParser.parse("id/A1 id/A2 x n/Alice"));
+    }
+
+    @Test
+    public void allowRepeated_undeclaredPrefix_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> parser.allowRepeated(new Prefix("x/")));
+        assertThrows(NullPointerException.class, () -> parser.allowRepeated(null));
+    }
+
+    @Test
     public void parse_optionalParameterAbsent_success() throws Exception {
         assertTrue(parser.parse("n/Alice id/A1").getValue(PREFIX_GROUP).isEmpty());
     }

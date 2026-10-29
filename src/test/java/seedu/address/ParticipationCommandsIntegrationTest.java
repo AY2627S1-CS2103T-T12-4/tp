@@ -77,8 +77,8 @@ public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
     @Test
     public void init_participationHelp_registersWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "participation");
-        assertEquals(List.of("participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
-                "participation clear id/STUDENT_ID w/WEEK"),
+        assertEquals(List.of("participation set id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/SCORE",
+                "participation list w/WEEK", "participation clear id/STUDENT_ID w/WEEK"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing participation commands.", "participation"),
                 app.logic.execute("help participation"));
