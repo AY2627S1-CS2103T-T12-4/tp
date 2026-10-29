@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
@@ -22,6 +23,8 @@ import seedu.address.model.student.StudentId;
 public class AssignmentGradeCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE";
     public static final String MESSAGE_SUCCESS = "Recorded grade %d for %s's %s.";
+    public static final String MESSAGE_UPDATED = "Updated %s's %s grade: %d to %d.";
+    public static final String MESSAGE_UNCHANGED = "%s's %s grade is already %d. Nothing changed.";
     public static final String MESSAGE_NOT_SUBMITTED =
             "Cannot record a grade for an unsubmitted assignment. Record it first with: "
                     + "assignment submit a/%s id/%s s/yes";
@@ -48,7 +51,8 @@ public class AssignmentGradeCommand extends Command {
         Group group = getActiveGroup(model);
         Assignment assignment = getAssignment(group, assignmentName);
         Student student = getStudent(group, studentId);
-        if (!assignment.getStudentRecord(studentId).isSubmitted()) {
+        AssignmentRecord previousRecord = assignment.getStudentRecord(studentId);
+        if (!previousRecord.isSubmitted()) {
             throw new CommandException(String.format(MESSAGE_NOT_SUBMITTED,
                     assignment.getName(), student.getStudentId()));
         }
@@ -56,7 +60,20 @@ public class AssignmentGradeCommand extends Command {
         model.setAssignment(group.getName(), assignment.withGrade(studentId, grade));
         logger.fine("Recorded an assignment grade for " + student.getStudentId()
                 + " in " + group.getName());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, grade, student.getName(), assignment.getName()));
+        return new CommandResult(createFeedback(student, assignment, previousRecord.getGrade()));
+    }
+
+    /**
+     * Returns feedback that shows the old and new grade when an earlier grade exists.
+     */
+    private String createFeedback(Student student, Assignment assignment, Optional<Integer> oldGrade) {
+        if (oldGrade.isEmpty()) {
+            return String.format(MESSAGE_SUCCESS, grade, student.getName(), assignment.getName());
+        }
+        if (oldGrade.get() == grade) {
+            return String.format(MESSAGE_UNCHANGED, student.getName(), assignment.getName(), grade);
+        }
+        return String.format(MESSAGE_UPDATED, student.getName(), assignment.getName(), oldGrade.get(), grade);
     }
 
     @Override

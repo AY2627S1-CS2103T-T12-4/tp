@@ -220,7 +220,8 @@ Extra input, such as `group list g/T01`, is rejected. Long lists can be scrolled
 ### Switching tutorial groups: `group use`
 
 Makes an existing tutorial group active. The highlighted group in the top bar and the Students screen update
-immediately. Each group's students and records stay separate. Selecting the already active group also succeeds.
+immediately. Each group's students and records stay separate. Selecting the group that is already active shows
+`T01 is already the active group. Nothing changed.` and leaves the data unchanged.
 
 Format: `group use g/GROUP_NAME`
 
@@ -235,7 +236,9 @@ position in the list, and active status.
 Format: `group rename g/GROUP_NAME n/NEW_NAME`
 
 * The new name follows the same rules as in `group add`. It must not match another group, ignoring case.
-* Changing only the capitalization or spacing of a group's own name, such as `T01` to `t01`, is allowed.
+* Changing only the capitalization of a group's own name, such as `T01` to `t01`, is allowed.
+* Entering the group's current name, even with extra spaces, shows
+  `Tutorial group T01 already has that name. Nothing changed.` and leaves the data unchanged.
 
 Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02-Thu.`
 
@@ -536,7 +539,7 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 
 Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
 and `no` for not submitted. Marking a submission as not submitted clears its grade, if one is recorded.
-If it is already not submitted, the command reports that nothing changed and leaves the data unchanged.
+If the student already has that status, the command reports that nothing changed and leaves the data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
@@ -556,6 +559,8 @@ a grade was recorded.
 Format: `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`
 
 Example: `assignment grade a/PS1 id/A0123456X m/87` shows `Recorded grade 87 for Alice Tan's PS1.`
+Replacing it with `assignment grade a/PS1 id/A0123456X m/60` shows `Updated Alice Tan's PS1 grade: 87 to 60.`,
+and entering the same grade again shows `Alice Tan's PS1 grade is already 60. Nothing changed.`
 An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
 assignment submit a/PS1 id/A0123456X s/yes`.
 
@@ -566,12 +571,12 @@ Listing does not change any data.
 
 Format: `assignment list a/ASSIGNMENT_NAME`
 
-Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
 `assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
-Alice Tan | A0123456X | Submitted | 87
+Alice Tan | A0123456X | Submitted | 60
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
