@@ -22,7 +22,7 @@ public class Messages {
             "Unknown command '%s'. Enter help to see supported commands.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_DUPLICATE_FIELDS =
-                "Multiple values specified for the following single-valued field(s): ";
+            "Repeated parameter(s): %s. Include each only once.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -33,7 +33,7 @@ public class Messages {
         Set<String> duplicateFields =
                 Stream.of(duplicatePrefixes).map(Prefix::toString).collect(Collectors.toSet());
 
-        return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
+        return String.format(MESSAGE_DUPLICATE_FIELDS, String.join(" ", duplicateFields));
     }
 
 }

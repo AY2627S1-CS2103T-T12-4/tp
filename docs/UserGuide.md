@@ -257,7 +257,7 @@ Duplicate name | `A tutorial group named T01 already exists.` Use a different na
 Unknown group | `Tutorial group T03 does not exist.` Check `group list`, or create it with `group add g/T03`. `group use`, `group rename`, and `group delete` all report it.
 Missing or blank name | `Missing group name. Usage: group add g/GROUP_NAME` (or the corresponding `group use`, `group delete`, or `group rename` usage). Supply a name after `g/`. `group rename` also reports `Missing new group name. Usage: group rename g/GROUP_NAME n/NEW_NAME` when `n/` is missing or blank.
 Invalid name | `Invalid group name. Use 1-60 letters, digits, spaces, or hyphens.` Follow the naming rules above.
-Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix. Use `g/` exactly once (and `n/` once for `group rename`).
+Repeated or unknown prefix | The feedback identifies the repeated or unknown prefix, for example `Repeated parameter(s): g/. Include each only once.` Use `g/` exactly once (and `n/` once for `group rename`).
 Extra text after a value | The feedback names the extra text after `f/yes` for `group delete`, and says that value cannot contain spaces. Remove the extra text.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `export`, `list`, `rename`, and `use`.
 
