@@ -133,6 +133,48 @@ public class WorkspaceSmokeTest {
                             .startsWith(status.getMessage()));
                     assertEquals(status.isFailure(), isFooterShowingFailure());
                     assertEquals(status.isFailure(), isShowingDataNotRead());
+                    enter(input, "help");
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.isFailure() ? status.getMessage() : "Local data file"));
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
+    }
+
+    @Test
+    public void startup_footerAfterCommands_preservesFailedLoadUntilDataCanBeSaved() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.LOADED, DataLoadStatus.MISSING,
+                DataLoadStatus.FAILED, DataLoadStatus.failed("Invalid JSON."))) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    Files.writeString(data, "{");
+                    Label footer = (Label) root.lookup("#saveLocationStatus");
+                    for (String command : List.of("help", "view students")) {
+                        enter(input, command);
+                        assertEquals(status.isFailure(), isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith(
+                                status.isFailure() ? status.getMessage() : "Local data file"));
+                    }
+                    TAssist beforeEdit = new TAssist(model.getTAssist());
+                    enter(input, "group add g/New group");
+                    if (status.isFailure()) {
+                        assertEquals(beforeEdit, model.getTAssist());
+                        assertEquals("{", Files.readString(data));
+                        assertTrue(isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith("Command failed"));
+                        assertFalse(footer.getText().contains("Changes saved."));
+                        enter(input, "help");
+                        assertTrue(footer.getText().startsWith(status.getMessage()));
+                        assertTrue(isFooterShowingFailure());
+                    } else {
+                        assertTrue(footer.getText().startsWith("Changes saved."));
+                        assertFalse(isFooterShowingFailure());
+                        assertFalse(Files.readString(data).equals("{"));
+                    }
                 });
             } finally {
                 runOnFx(() -> stage.hide());
@@ -824,7 +866,8 @@ public class WorkspaceSmokeTest {
                     Comparator.comparing((Student student) -> student.getStudentId().toString()).reversed());
             List<Student> clicked = new ArrayList<>();
             StudentListPanel panel = new StudentListPanel(
-                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), roster, sorted,
+                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())),
+                    FXCollections.observableArrayList(TypicalGroups.getT01()), roster, sorted,
                     new SimpleBooleanProperty(true), clicked::add, false);
             Stage transformedStage = new Stage();
             transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
@@ -840,6 +883,31 @@ public class WorkspaceSmokeTest {
                 transformedStage.close();
             }
         });
+    }
+
+    @Test
+    public void studentEmptyHint_groupChanges_updatesBoundHint() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view students");
+                Label hint = (Label) root.lookup("#emptyHint");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.setTAssist(new TAssist());
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+                model.addGroup(TypicalGroups.getT03());
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                enter(input, "group add g/T01");
+                enter(input, "group add g/T02");
+                enter(input, "group delete g/T02 f/yes");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.removeGroup(TypicalGroups.NAME_T01);
+                model.removeGroup(TypicalGroups.NAME_T03);
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     @Test
@@ -991,7 +1059,8 @@ public class WorkspaceSmokeTest {
     private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
         isConfirmationAccepted = true;
         confirmationPrompt = null;
-        model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        TAssist initialData = dataLoadStatus.isFailure() ? new TAssist() : TypicalGroups.getTypicalTAssist();
+        model = new ModelManager(initialData, new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
             @Override
