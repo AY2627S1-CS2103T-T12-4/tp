@@ -9,8 +9,10 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -154,6 +156,20 @@ public class MainApp extends Application {
         Optional<String> rejectedValue = findRejectedValueMessage(cause);
         if (rejectedValue.isPresent()) {
             return rejectedValue.get();
+        }
+        if (cause instanceof UnrecognizedPropertyException unknownField) {
+            return "The file has an unknown field \"" + unknownField.getPropertyName() + "\""
+                    + formatLocation(unknownField.getLocation()) + ".";
+        }
+        Throwable rootCause = cause;
+        while (rootCause != null && !(rootCause instanceof JsonParseException) && rootCause.getCause() != null) {
+            rootCause = rootCause.getCause();
+        }
+        if (rootCause instanceof JsonParseException parseException
+                && parseException.getOriginalMessage().startsWith("Duplicate field ")) {
+            return "The file has a repeated field "
+                    + parseException.getOriginalMessage().substring("Duplicate field ".length())
+                    + formatLocation(parseException.getLocation()) + ".";
         }
         if (cause instanceof JsonProcessingException processingException) {
             return "The file has a JSON syntax error or a value of the wrong type"

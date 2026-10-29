@@ -727,6 +727,7 @@ TAssist data is saved as `data/tassist.json` in the home folder, which is the fo
 Preferences (`preferences.json`), the log file, and the `exports` folder for `group export` are in that same folder.
 TAssist does not read or write files outside it, including when the JAR is started from another directory.
 The Storage screen shows the absolute path. Close the app before editing this JSON file manually.
+Unknown or misspelled field names, and a field repeated in the same object, make the file invalid.
 Save it as UTF-8. Editors that save "UTF-8 with BOM", such as Windows Notepad, also work.
 If the file is missing, TAssist shows `No saved data found. Starting with an empty database.`
 It creates the file after the first successful command that changes data.
