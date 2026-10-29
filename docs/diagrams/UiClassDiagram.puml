@@ -48,7 +48,7 @@ interface Logic #3333C4
 class Group #9D0012
 class Student #9D0012
 MainWindow --> Logic
-MainWindow ..> Group
+WorkspacePanel ..> Group
 StudentListPanel ..> Group
 GroupStrip ..> Group
 StudentListPanel ..> Student
