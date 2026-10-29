@@ -127,8 +127,10 @@ Selecting rows with the keyboard does not replace your draft.
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
 
-* Spaces in pasted text count as normal spaces, even when they are a different space character, such as the
-  non-breaking spaces that web pages, PDFs, and chat apps often contain.
+* Pasted text often contains characters that look like a normal space or line break but are different
+  characters, such as the non-breaking spaces in web pages, PDFs, and chat apps. TAssist treats them as normal
+  spaces, so a pasted command works as if you typed it. Invisible characters that take up no space, such as a
+  zero-width space, are not treated as spaces; see [Known issues](#known-issues).
 
 * Command words ignore case: `GROUP add`, `group ADD`, and `group add` work the same way.
   Parameter prefixes still use lowercase letters, such as `g/` and `id/`. Group names ignore case and extra spaces.
@@ -809,6 +811,11 @@ location while TAssist is closed, then restart. Repairing the file while the app
    you. Each copy works on the data it loaded at startup and saves the whole file after every change, so a change
    saved by one copy is overwritten by the other copy's next save, even though the footer showed `Changes saved.`
    Close TAssist before starting it again, and check that no other TAssist window is still open.
+1. **Pasted commands with invisible characters**, such as a zero-width space or a byte order mark, can be rejected
+   with an error about text that looks correct, such as an `Unknown command` error that shows `groupadd`, or
+   `Invalid student name`.
+   These characters take up no space, so TAssist does not treat them as spaces, and your data does not change.
+   If a pasted command fails for no visible reason, type it in yourself instead.
 
 --------------------------------------------------------------------------------------------------------------------
 

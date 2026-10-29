@@ -297,10 +297,18 @@ whitespace between keywords are ignored. Argument values retain their capitaliza
 validator normalizes them; parameter prefixes remain lowercase.
 
 Before splitting the input, `TAssistParser` replaces every Unicode space separator (`\p{Zs}`, such as the
-non-breaking space U+00A0 or the em space U+2003) with a normal space. Text pasted from a web page, a PDF, or a chat
-app often contains these characters. They look like spaces, but Java's `\s` and `String#trim` do not treat them as
-whitespace, so a command such as `group add` followed by a non-breaking space would otherwise be read as one unknown
-subcommand. Tabs and line breaks are left to the existing whitespace rules.
+non-breaking space U+00A0 or the em space U+2003) and every Unicode line separator (U+2028, U+2029, and U+0085)
+with a normal space. Text pasted from a web page, a PDF, or a chat app often contains these characters. They look
+like a space or a line break, but Java's `\s` and `String#trim` do not treat them as whitespace, so a command such as
+`group add` followed by a non-breaking space would otherwise be read as one unknown subcommand. Tabs and ASCII line
+breaks are left to the existing whitespace rules.
+
+Zero-width characters, such as the zero-width space U+200B, the word joiner U+2060, and the byte order mark U+FEFF,
+are not changed. Unlike the characters above, they do not separate words: replacing one with a space would split
+`A0123<ZWSP>456X` into two words, while deleting it would join `group<ZWSP>add` into the unknown command `groupadd`.
+Either way, the command means something other than what the TA sees. Such input is rejected like any other invalid
+command, so the data stays unchanged, and the User Guide lists this under its known issues.
+`TAssistParserTest#replaceUnicodeSpaces_zeroWidthCharacters_areKept` records this choice.
 
 `HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
 lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
@@ -1916,8 +1924,15 @@ parameter errors, empty groups, week boundaries, and display formatting.
    1. Prerequisites: Launch the JAR in an empty writable folder. In a text editor or web page, prepare
       `group add g/T04` and `student add n/Ann Lee id/N1` with a non-breaking space (U+00A0) in place of each space,
       and `group add g/T03` followed by one non-breaking space.
-   1. Paste and enter each command. Expected: T04 and then T03 are created, and Ann Lee is added to T03, as when the
-      commands are typed with normal spaces.
+   1. Paste and enter `group add g/T04`, then `group add g/T03`. Expected: T04 and then T03 are created, as when the
+      commands are typed with normal spaces. `group add` makes each new group active, so T03 is now active.
+   1. Paste and enter `student add n/Ann Lee id/N1`. Expected: `Added Ann Lee to T03.`
+
+1. Zero-width characters are not treated as spaces
+
+   1. Prepare `group add g/T05` with a zero-width space (U+200B) in place of the space between `group` and `add`.
+   1. Paste and enter it. Expected: an `Unknown command` error that shows `group` and `add` joined, as described in
+      the User Guide's known issues. No group is created.
 
 ### Preparing a command from a student row
 
