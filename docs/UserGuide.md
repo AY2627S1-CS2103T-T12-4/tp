@@ -221,6 +221,56 @@ Format: `group use g/GROUP_NAME`
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
 `group use g/t01` does the same.
 
+### Exporting a group's records: `group export`
+
+Saves the attendance, participation, and assignment records of every student in the active group to a CSV file,
+which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or
+work out totals.
+Exporting only reads your records: it never changes them, the active group, or the saved data file.
+
+Format: `group export`
+
+* The file is saved in the `exports` folder next to the TAssist JAR, which is created if needed, and is named after
+  the group, such as `exports/T01-records.csv`. Spaces in a group name become underscores, so the file for `Lab 1`
+  is `Lab_1-records.csv`.
+* Exporting the same group again replaces its earlier file, so the file always matches the latest records.
+  Close the file in your spreadsheet before exporting again.
+* The command takes no parameters. Select the group to export with `group use` first.
+* The CSV keeps leading zeros in student IDs, such as `00123`. A spreadsheet may interpret an all-digit ID as a
+  number and display `00123` as `123`. To preserve leading zeros and long IDs, import the CSV using your spreadsheet
+  app's import options and set the `Student ID` column to text before loading it, instead of opening the CSV directly.
+
+Example: with T01 active, `group export` shows the full path of the file, for example:
+
+```text
+Exported the records of 1 student in T01 to:
+/Users/alex/TAssist/exports/T01-records.csv
+```
+
+The file has a header row, then one row per student in roster order:
+
+* `Name` and `Student ID`.
+* `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
+* `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
+* Two columns for each assignment of the group, in the order the assignments were created, such as `PS1 Submitted`
+  and `PS1 Grade`. The first is `Yes` or `No`, and the second is the grade from 0 to 100, or empty if no grade was
+  recorded. A group without assignments has no assignment columns.
+
+For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, and her PS1 submission
+was graded 87, her row reads (with the empty weeks shortened):
+
+Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | … | PS1 Submitted | PS1 Grade
+-----|------------|-------------------|-------------------|-------------------|---|----------------------|---|---------------|----------
+Alice Tan | A0123456X | | | Absent | … | 4 | … | Yes | 87
+
+An empty group exports only the header row.
+
+Problem | Feedback and correction
+--------|------------------------
+No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
+File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
+Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
+
 ### Renaming a tutorial group: `group rename`
 
 Changes the name of an existing tutorial group, for example to fix a typo. The group keeps its students, records,
@@ -615,56 +665,6 @@ Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, a
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
-
-### Exporting a group's records: `group export`
-
-Saves the attendance, participation, and assignment records of every student in the active group to a CSV file,
-which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or
-work out totals.
-Exporting only reads your records: it never changes them, the active group, or the saved data file.
-
-Format: `group export`
-
-* The file is saved in the `exports` folder next to the TAssist JAR, which is created if needed, and is named after
-  the group, such as `exports/T01-records.csv`. Spaces in a group name become underscores, so the file for `Lab 1`
-  is `Lab_1-records.csv`.
-* Exporting the same group again replaces its earlier file, so the file always matches the latest records.
-  Close the file in your spreadsheet before exporting again.
-* The command takes no parameters. Select the group to export with `group use` first.
-* The CSV keeps leading zeros in student IDs, such as `00123`. A spreadsheet may interpret an all-digit ID as a
-  number and display `00123` as `123`. To preserve leading zeros and long IDs, import the CSV using your spreadsheet
-  app's import options and set the `Student ID` column to text before loading it, instead of opening the CSV directly.
-
-Example: with T01 active, `group export` shows the full path of the file, for example:
-
-```text
-Exported the records of 1 student in T01 to:
-/Users/alex/TAssist/exports/T01-records.csv
-```
-
-The file has a header row, then one row per student in roster order:
-
-* `Name` and `Student ID`.
-* `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
-* `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
-* Two columns for each assignment of the group, in the order the assignments were created, such as `PS1 Submitted`
-  and `PS1 Grade`. The first is `Yes` or `No`, and the second is the grade from 0 to 100, or empty if no grade was
-  recorded. A group without assignments has no assignment columns.
-
-For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, and her PS1 submission
-was graded 87, her row reads (with the empty weeks shortened):
-
-Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | … | PS1 Submitted | PS1 Grade
------|------------|-------------------|-------------------|-------------------|---|----------------------|---|---------------|----------
-Alice Tan | A0123456X | | | Absent | … | 4 | … | Yes | 87
-
-An empty group exports only the header row.
-
-Problem | Feedback and correction
---------|------------------------
-No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-File cannot be written | `Could not export T01 to …/exports/T01-records.csv. Check that TAssist can write to that folder and that the file is not open in another app.` Close the file if a spreadsheet has it open, or move TAssist to a folder you can write to, then export again. Your records are unchanged.
-Extra input | `This command takes no parameters. Remove the extra input.` To export another group, such as T02, enter `group use g/T02` first, then `group export`.
 
 ### Undoing a change: `undo`
 
