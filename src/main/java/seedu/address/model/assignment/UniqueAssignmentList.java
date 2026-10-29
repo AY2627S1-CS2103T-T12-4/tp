@@ -47,6 +47,16 @@ public class UniqueAssignmentList extends UniqueList<Assignment> {
     }
 
     /**
+     * Removes the assignment named {@code name} from the list and returns the removed assignment.
+     * The assignment must exist in the list.
+     */
+    public Assignment remove(AssignmentName name) {
+        Assignment toRemove = find(name).orElseThrow(AssignmentNotFoundException::new);
+        remove(toRemove);
+        return toRemove;
+    }
+
+    /**
      * Replaces the contents of this list with {@code assignments}.
      * {@code assignments} must not contain assignments with the same name.
      */

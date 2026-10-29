@@ -6,7 +6,7 @@ title: User Guide
 TAssist is a **desktop application for CS2040S teaching assistants, optimized for typing commands**.
 The Students screen shows the students in your active tutorial group.
 You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
-record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
+record and list weekly participation scores, and create, rename, and delete assignments, record submissions and grades, and list records.
 A mistaken change can be reversed with `undo` and `redo`, which cover your last 20 changes since you opened TAssist.
 
 * Table of Contents
@@ -664,6 +664,37 @@ Each row shows the student's name, ID, submission status, and grade. A student w
 shows `No students in T01.` Submission statuses and grades are saved automatically and restored when you reopen
 TAssist.
 
+### Renaming an assignment: `assignment rename`
+
+Changes the name of an assignment in the active group, for example to fix a typo. Its submissions and grades stay
+with it, and it keeps its position in the group's list.
+
+Format: `assignment rename a/ASSIGNMENT_NAME n/NEW_NAME`
+
+* The new name follows the same rules as in `assignment add`. It must not match another assignment in the group,
+  ignoring case.
+* Changing only the capitalization of an assignment's own name, such as `PS1` to `ps1`, is allowed.
+* Entering the assignment's current name, even with extra spaces, shows
+  `Assignment PS1 already has that name. Nothing changed.` and leaves the data unchanged.
+* Supply `a/` and `n/` exactly once each.
+
+Example: `assignment rename a/PS1 n/Problem Set 1` shows `Renamed assignment PS1 to Problem Set 1 in T01.`
+
+### Deleting an assignment: `assignment delete`
+
+Deletes an assignment of the active group together with all its submission and grade records. If deleted by mistake,
+`undo` brings it back. Check the name with `assignment list` first. Other assignments and other groups are unchanged.
+
+Format: `assignment delete a/ASSIGNMENT_NAME [f/yes]`
+
+* TAssist first asks you to confirm. The prompt names the assignment and the group. Cancel is selected by default,
+  so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+* Add `f/yes` to skip the prompt.
+* Names ignore case, so `a/ps1` targets `PS1`. After a deletion, the name can be used again by `assignment add`.
+
+Example: `assignment delete a/Problem Set 1` asks whether to delete Problem Set 1 from T01. After you confirm, it shows
+`Deleted assignment Problem Set 1 from T01.` To skip the question, enter `assignment delete a/Problem Set 1 f/yes`.
+
 #### Assignment command errors
 
 Rejected input leaves the assignments and saved data file unchanged.
@@ -671,17 +702,17 @@ Rejected input leaves the assignments and saved data file unchanged.
 Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
-Duplicate assignment | `Assignment PS1 already exists in T01.` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
+Duplicate assignment | `Assignment PS1 already exists in T01.` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`. `assignment rename` shows the same message when the new name belongs to another assignment.
 Unknown assignment | `Assignment PS2 does not exist in T01. See the group's assignments with: assignment list`, then on the next line `Or create it with: assignment add a/PS2` Check the name against `assignment list`. Assignments belong to one group, so also check the active group.
 Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses, with at least one letter or digit.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student ID A0999999Z does not exist in T01. See students in the active group with: student list` Check the ID, or switch to the student's group with `group use`.
-Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each. `assignment rename` needs only `a/` and `n/`, and `assignment delete` needs only `a/`.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
-Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `submit`, `grade`, and `list`.
+Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `grade`, `list`, `rename`, and `submit`.
 
 ### Undoing a change: `undo`
 
@@ -880,4 +911,6 @@ Action | Format, Examples
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
 **List assignments or records** | `assignment list [a/ASSIGNMENT_NAME]`<br> e.g., `assignment list`, `assignment list a/PS1`
+**Rename assignment** | `assignment rename a/ASSIGNMENT_NAME n/NEW_NAME`<br> e.g., `assignment rename a/PS1 n/Problem Set 1`
+**Delete assignment** | `assignment delete a/ASSIGNMENT_NAME [f/yes]`<br> e.g., `assignment delete a/Problem Set 1`
 **Exit** | `exit`

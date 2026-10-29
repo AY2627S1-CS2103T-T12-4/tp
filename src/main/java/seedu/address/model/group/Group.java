@@ -1,6 +1,7 @@
 package seedu.address.model.group;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.assignment.UniqueAssignmentList;
+import seedu.address.model.assignment.exceptions.AssignmentNotFoundException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
@@ -168,6 +170,26 @@ public class Group {
      */
     public void addAssignment(Assignment assignment) {
         assignments.add(assignment);
+    }
+
+    /**
+     * Removes the assignment named {@code assignmentName} (ignoring case) from this group, with its student records,
+     * and returns the removed assignment.
+     * The assignment must be in this group.
+     */
+    public Assignment removeAssignment(AssignmentName assignmentName) {
+        return assignments.remove(assignmentName);
+    }
+
+    /**
+     * Renames the assignment named {@code assignmentName} (ignoring case) to {@code newName}, keeping its student
+     * records and its position in this group.
+     * The assignment must be in this group, and no other assignment in this group may have {@code newName}.
+     */
+    public void renameAssignment(AssignmentName assignmentName, AssignmentName newName) {
+        requireAllNonNull(assignmentName, newName);
+        Assignment target = findAssignment(assignmentName).orElseThrow(AssignmentNotFoundException::new);
+        assignments.replace(target, target.withName(newName));
     }
 
     /**

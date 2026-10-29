@@ -63,6 +63,22 @@ public class AssignmentTest {
 
         // different name -> returns false
         assertFalse(PS1.equals(PS2));
+
+        // same name in a different case -> returns false
+        assertFalse(PS1.equals(copy.withName(new AssignmentName("ps1"))));
+    }
+
+    @Test
+    public void withName_returnsCopyWithNewNameAndSameRecords() {
+        StudentId aliceId = new StudentId("A0123456X");
+        Assignment graded = PS1.withSubmissionStatus(aliceId, true).withGrade(aliceId, 87);
+
+        Assignment renamed = graded.withName(new AssignmentName("Problem Set 1"));
+
+        assertEquals(new AssignmentName("Problem Set 1"), renamed.getName());
+        assertEquals(graded.getStudentRecords(), renamed.getStudentRecords());
+        assertEquals(NAME_PS1, graded.getName());
+        assertThrows(NullPointerException.class, () -> graded.withName(null));
     }
 
     @Test

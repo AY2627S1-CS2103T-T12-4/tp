@@ -655,8 +655,9 @@ Sort feedback reports the displayed count even when it is zero, without suggesti
 
 ### Assignment commands
 
-`AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`, and
-`assignment list` with offline help entries, and `MainApp.init` installs it before constructing `LogicManager`.
+`AssignmentCommandRegistration` registers `assignment add`, `assignment submit`, `assignment grade`,
+`assignment list`, `assignment rename`, and `assignment delete` with offline help entries, and `MainApp.init`
+installs it before constructing `LogicManager`.
 The submit and grade parsers require `a/`, `id/`, and their status (`s/`) or mark (`m/`) prefix exactly once with
 `TAssistArgumentParser`. `TAssistParserUtil` validates the assignment name, student ID, yes/no status, and grade.
 The `m/` prefix avoids giving `g/` a second meaning when it already identifies a tutorial group.
@@ -675,6 +676,21 @@ checks that the record is submitted. Each failed command leaves the model unchan
 missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
 creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
 form.
+
+`AssignmentDeleteCommand` overrides `Command#getConfirmationPrompt`, like `StudentDeleteCommand` and
+`GroupDeleteCommand`, so the UI asks before deleting unless `f/yes` is given. `AssignmentDeleteCommandParser` and
+the other deletion parsers share the `f/yes` check in `FastDeleteOption`. Execution resolves the assignment in the
+active group, then calls `Model.removeAssignment`, which removes it from the group's `UniqueAssignmentList` together
+with its student records. Like any other change, the deletion is saved and can be undone.
+
+`AssignmentRenameCommand` finds the assignment in the active group and rejects an `n/` name that a different
+assignment already holds, reusing the duplicate message of `assignment add`. It then calls `Model.renameAssignment`.
+`Group#renameAssignment` replaces the assignment with a renamed copy (`Assignment#withName`) at the same position
+through `UniqueList#replace`, so the records and the order are kept. Changing only the case of the assignment's own
+name is allowed. `AssignmentName` equality ignores case, but `Assignment#equals` compares the name's exact
+capitalization, as `Group#equals` does, so `LogicManager` sees a case-only rename as a change; it is saved and recorded
+for undo. A new name equal to the stored name, after spaces are normalized, returns unchanged feedback without
+calling `Model.renameAssignment`.
 
 Design considerations for listing assignment names:
 
@@ -1753,6 +1769,18 @@ label.
    and enter `assignment list`. Expect
    `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
    assignments, expect `No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME`.
+10. In T01, enter `assignment rename a/ps1 n/Problem Set 1`. Expect `Renamed assignment PS1 to Problem Set 1 in T01.`
+    `assignment list` should show it first, and `assignment list a/problem set 1` should still show Alice's
+    `Submitted | 87`.
+    Enter `assignment rename a/Problem Set 1 n/mid-term 1`. Expect `Assignment Mid-term 1 already exists in T01.` and
+    no change.
+    Enter `assignment rename a/Problem Set 1 n/PROBLEM SET 1`. Expect a rename that is still shown after a restart.
+    Enter it again. Expect `Assignment PROBLEM SET 1 already has that name. Nothing changed.`
+11. In T01, enter `assignment delete a/lab 2 (graphs)`. Expect a prompt naming Lab 2 (Graphs) and T01. Cancel it and
+    verify that nothing changed. Enter the command again and choose Continue. Expect
+    `Deleted assignment Lab 2 (Graphs) from T01.` Enter `undo`; expect the assignment back in `assignment list`.
+    Enter `assignment delete a/Mid-term 1 f/yes`. Expect it to be deleted without a prompt. Enter
+    `assignment delete a/Mid-term 1` again; expect an unknown-assignment error and no prompt.
 
 ### Finding and sorting students
 

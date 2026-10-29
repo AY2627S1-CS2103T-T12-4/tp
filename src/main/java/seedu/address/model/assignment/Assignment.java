@@ -59,6 +59,13 @@ public class Assignment {
     }
 
     /**
+     * Returns a copy with the given {@code newName} and the same student records.
+     */
+    public Assignment withName(AssignmentName newName) {
+        return new Assignment(newName, studentRecords);
+    }
+
+    /**
      * Returns a copy with the student's submission status added or replaced.
      */
     public Assignment withSubmissionStatus(StudentId studentId, boolean isSubmitted) {
@@ -113,7 +120,9 @@ public class Assignment {
     }
 
     /**
-     * Returns true if both assignments have the same name and student records.
+     * Returns true if both assignments have the same name, with the same capitalization, and the same student
+     * records. This defines a stronger notion of equality between two assignments, so that renaming an assignment
+     * to a different capitalization counts as a change to its data.
      */
     @Override
     public boolean equals(Object other) {
@@ -126,7 +135,8 @@ public class Assignment {
             return false;
         }
 
-        return name.equals(otherAssignment.name) && studentRecords.equals(otherAssignment.studentRecords);
+        return name.fullName.equals(otherAssignment.name.fullName)
+                && studentRecords.equals(otherAssignment.studentRecords);
     }
 
     @Override

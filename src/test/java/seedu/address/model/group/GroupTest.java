@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.exceptions.AssignmentNotFoundException;
 import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -179,6 +180,61 @@ public class GroupTest {
     @Test
     public void addAssignment_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> group.addAssignment(null));
+    }
+
+    @Test
+    public void removeAssignment_existingName_removesAndReturnsAssignmentWithRecords() {
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(PS2);
+
+        assertEquals(ps1, group.removeAssignment(new AssignmentName("ps1")));
+        assertEquals(List.of(PS2), group.getAssignmentList());
+    }
+
+    @Test
+    public void removeAssignment_missingNameOrNull_throwsException() {
+        assertThrows(AssignmentNotFoundException.class, () -> group.removeAssignment(NAME_PS1));
+        assertThrows(NullPointerException.class, () -> group.removeAssignment(null));
+    }
+
+    @Test
+    public void renameAssignment_existingName_keepsRecordsAndPosition() {
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(PS2);
+        AssignmentName newName = new AssignmentName("Problem Set 1");
+
+        group.renameAssignment(new AssignmentName("ps1"), newName);
+
+        assertEquals(List.of(ps1.withName(newName), PS2), group.getAssignmentList());
+        assertFalse(group.hasAssignment(NAME_PS1));
+    }
+
+    @Test
+    public void renameAssignment_onlyChangesCase_replacesName() {
+        group.addAssignment(PS1);
+
+        group.renameAssignment(NAME_PS1, new AssignmentName("ps1"));
+
+        assertEquals("ps1", group.getAssignmentList().get(0).getName().fullName);
+    }
+
+    @Test
+    public void renameAssignment_nameOfAnotherAssignment_throwsDuplicateAssignmentException() {
+        group.addAssignment(PS1);
+        group.addAssignment(PS2);
+
+        assertThrows(DuplicateAssignmentException.class, () ->
+                group.renameAssignment(NAME_PS1, new AssignmentName("ps2")));
+        assertEquals(List.of(PS1, PS2), group.getAssignmentList());
+    }
+
+    @Test
+    public void renameAssignment_missingNameOrNull_throwsException() {
+        assertThrows(AssignmentNotFoundException.class, () -> group.renameAssignment(NAME_PS1, PS2.getName()));
+        assertThrows(NullPointerException.class, () -> group.renameAssignment(null, PS2.getName()));
+        assertThrows(NullPointerException.class, () -> group.renameAssignment(NAME_PS1, null));
     }
 
     @Test
