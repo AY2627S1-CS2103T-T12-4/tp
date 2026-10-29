@@ -46,9 +46,12 @@ public class StudentEditCommandParser implements Parser<StudentEditCommand> {
             parser.verifyNoMissingSpaceBefore(values, PREFIX_ID);
             throw new ParseException(MESSAGE_MISSING_ID);
         }
+        for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_NEW_ID)) {
+            if (values.getValue(prefix).isEmpty()) {
+                parser.verifyNoMissingSpaceBefore(values, prefix);
+            }
+        }
         if (values.getValue(PREFIX_NAME).isEmpty() && values.getValue(PREFIX_NEW_ID).isEmpty()) {
-            parser.verifyNoMissingSpaceBefore(values, PREFIX_NAME);
-            parser.verifyNoMissingSpaceBefore(values, PREFIX_NEW_ID);
             throw new ParseException(MESSAGE_NOTHING_TO_EDIT);
         }
     }

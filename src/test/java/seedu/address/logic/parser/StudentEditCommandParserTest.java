@@ -100,6 +100,10 @@ public class StudentEditCommandParserTest {
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "n/", "id/A0123456Xn/Alicia"));
         assertParseFailure(parser, "n/Aliciaid/A0123456X",
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "n/Aliciaid/A0123456X"));
+        assertParseFailure(parser, "id/A0123456Xnid/A0123457X n/Alicia",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "nid/", "id/A0123456Xnid/A0123457X"));
+        assertParseFailure(parser, "id/A0123456X nid/A0123457Xn/Alicia",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "n/", "nid/A0123457Xn/Alicia"));
     }
 
     @Test
