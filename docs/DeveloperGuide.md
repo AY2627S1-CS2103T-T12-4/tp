@@ -9,6 +9,9 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
+* TAssist is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by
+  [SE-EDU](https://se-education.org).
+
 * The undo/redo design adapts the snapshot-history idea from the
   [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
   The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
@@ -24,8 +27,9 @@ title: Developer Guide
   [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
   [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
 
-* AI tool use: the team used [Claude Code](https://claude.com/claude-code), an AI coding assistant by Anthropic, to help
-  with some code, tests and documentation. Team members reviewed, tested and take responsibility for all submitted work.
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic) and
+  [Codex](https://openai.com/codex/) (OpenAI), AI coding assistants, to help with some code, tests and documentation.
+  Team members reviewed, tested and take responsibility for all submitted work.
 
 --------------------------------------------------------------------------------------------------------------------
 
