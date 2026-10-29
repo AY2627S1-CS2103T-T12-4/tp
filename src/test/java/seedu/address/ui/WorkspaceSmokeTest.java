@@ -16,6 +16,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -493,6 +494,17 @@ public class WorkspaceSmokeTest {
             runOnFx(() -> {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertTrue(hasVisibleVerticalScrollBar(feedback), "A full tutorial group's attendance can scroll");
+                input.setText("draft");
+                input.requestFocus();
+                feedback.setScrollTop(0);
+                pressKey(KeyCode.PAGE_DOWN);
+                assertTrue(feedback.getScrollTop() > 0, "PageDown reaches hidden list output");
+                assertEquals("draft", input.getText());
+                assertEquals(input, stage.getScene().getFocusOwner());
+                pressKey(KeyCode.PAGE_UP);
+                assertEquals(0, feedback.getScrollTop());
+                pressKey(KeyCode.UP);
+                assertEquals("attendance list w/3", input.getText());
                 enter(input, "attendance mark id/A0123456X w/3 s/late");
                 assertEquals("attendance mark id/A0123456X w/3 s/late", input.getText());
                 assertTrue(input.getStyleClass().contains("error"));
@@ -634,7 +646,7 @@ public class WorkspaceSmokeTest {
             CommandBox box = new CommandBox(command -> {
                 executed.add(command);
                 return new CommandResult("Recorded");
-            });
+            }, isDown -> { });
             Stage templateStage = new Stage();
             templateStage.setScene(new Scene(box.getRoot()));
             templateStage.show();
@@ -677,11 +689,58 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void commandBox_pageKeys_scrollFeedbackWithoutChangingInput() throws Exception {
+        runOnFx(() -> {
+            List<Boolean> scrolls = new ArrayList<>();
+            CommandBox box = new CommandBox(command -> new CommandResult("Recorded"), scrolls::add);
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            field.setText("draft");
+            field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.PAGE_DOWN,
+                    false, false, false, false));
+            field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.PAGE_UP,
+                    false, false, false, false));
+            for (KeyCode modifier : List.of(KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.ALT, KeyCode.META)) {
+                for (KeyCode key : List.of(KeyCode.PAGE_UP, KeyCode.PAGE_DOWN)) {
+                    field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", key, modifier == KeyCode.SHIFT,
+                            modifier == KeyCode.CONTROL, modifier == KeyCode.ALT, modifier == KeyCode.META));
+                }
+            }
+            assertEquals(List.of(true, false), scrolls);
+            assertEquals("draft", field.getText());
+        });
+    }
+
+    @Test
+    public void resultDisplay_scrollPage_movesByVisiblePageAndStopsAtStart() throws Exception {
+        runOnFx(() -> {
+            ResultDisplay display = new ResultDisplay();
+            Stage displayStage = new Stage();
+            displayStage.setScene(new Scene(display.getRoot(), 400, 120));
+            display.setFeedbackToUser(String.join("\n", Collections.nCopies(30, "line")));
+            displayStage.show();
+            try {
+                TextArea area = (TextArea) display.getRoot().lookup("#resultDisplay");
+                display.getRoot().applyCss();
+                display.getRoot().layout();
+                display.scrollPage(false);
+                assertEquals(0, area.getScrollTop());
+                display.scrollPage(true);
+                assertTrue(area.getScrollTop() > 0);
+                display.scrollPage(false);
+                display.scrollPage(false);
+                assertEquals(0, area.getScrollTop());
+            } finally {
+                displayStage.close();
+            }
+        });
+    }
+
+    @Test
     public void fillTemplate_afterFailedEnter_keepsInputEditable() throws Exception {
         runOnFx(() -> {
             CommandBox box = new CommandBox(command -> {
                 throw new ParseException("Complete the attendance template first.");
-            });
+            }, isDown -> { });
             TextField field = (TextField) box.getRoot().lookup("#commandTextField");
             String template = "attendance mark id/A1 w/";
             box.fillTemplate(template);

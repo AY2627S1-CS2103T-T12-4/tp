@@ -73,7 +73,8 @@ the feedback box: for example, `group list` lists your groups and `attendance li
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
 on a red background means it failed. It grows to fit the message, up to four lines (about three in the compact
-layout); only longer messages need scrolling. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
+layout); only longer messages need scrolling. Long feedback, such as a list, can be scrolled with **PageUp** and
+**PageDown** while you type. The failed input stays in the command box so you can correct it. A command stays on the current screen unless it opens another one, as `view` and
 `help` do. Screen contents can be scrolled. Smaller windows use a compact layout.
 The footer shows the local file path, reports successful saves or command failures, and reminds you of the F1 and
 Escape shortcuts.
