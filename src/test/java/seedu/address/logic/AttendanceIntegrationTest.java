@@ -20,6 +20,7 @@ import seedu.address.logic.parser.AttendanceCommandParserUtil;
 import seedu.address.logic.parser.AttendanceCommandRegistration;
 import seedu.address.logic.parser.CommandRegistry;
 import seedu.address.logic.parser.GroupCommandRegistration;
+import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.TAssistArgumentParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -160,7 +161,7 @@ public class AttendanceIntegrationTest {
         assertFailureUnchanged("attendance mark id/A0123456Xw/3 s/absent", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0123456Xw/3"));
         assertFailureUnchanged("attendance mark id/A0123456X w/3 s/absent s/present", ParseException.class,
-                Messages.MESSAGE_DUPLICATE_FIELDS + "s/");
+                Messages.getErrorMessageForDuplicatePrefixes(new Prefix("s/")));
         assertFailureUnchanged("attendance list w/3 x/value", ParseException.class,
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "x/", "w/"));
     }

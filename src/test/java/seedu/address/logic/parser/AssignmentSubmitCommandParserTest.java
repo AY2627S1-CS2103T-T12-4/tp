@@ -30,7 +30,7 @@ public class AssignmentSubmitCommandParserTest {
         assertParseFailure(parser, "a/PS1 id/A0123456X",
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
         assertParseFailure(parser, "a/PS1 id/A0123456X s/yes s/no",
-                "Multiple values specified for the following single-valued field(s): s/");
+                "Repeated parameter(s): s/. Include each only once.");
         assertParseFailure(parser, "a/PS1 id/A0123456X s/yes n/no",
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "n/", "a/ id/ s/"));
     }

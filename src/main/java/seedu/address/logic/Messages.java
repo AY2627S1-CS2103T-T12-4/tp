@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,7 +24,7 @@ public class Messages {
             "Unknown command '%s'. Enter help to see supported commands.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_DUPLICATE_FIELDS =
-                "Multiple values specified for the following single-valued field(s): ";
+            "Repeated parameter(s): ";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -32,9 +33,10 @@ public class Messages {
         assert duplicatePrefixes.length > 0;
 
         Set<String> duplicateFields =
-                Stream.of(duplicatePrefixes).map(Prefix::toString).collect(Collectors.toSet());
+                Stream.of(duplicatePrefixes).map(Prefix::toString)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
+        return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields) + ". Include each only once.";
     }
 
 }
