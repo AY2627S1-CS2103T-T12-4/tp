@@ -227,7 +227,8 @@ separate. Selecting the group that is already active shows
 Format: `group use g/GROUP_NAME`
 
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
-`group use g/t01` does the same.
+`group use g/t01` names the same group, so entering it after the example above shows
+`T01 is already the active group. Nothing changed.`
 
 ### Exporting a group's records: `group export`
 
@@ -376,8 +377,10 @@ Format: `student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`
 
 Examples: `student edit id/A0234567Y n/Benjamin Lim` shows
 `Edited Ben Lim (A0234567Y) to Benjamin Lim (A0234567Y) in T01. Their records are kept.`
-`student edit id/A0345678Z nid/A0345679Z` corrects an ID, and
-`student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z` corrects both at once.
+To correct only the student ID, enter `student edit id/A0345678Z nid/A0345679Z`. To give both prefixes in
+one command, enter `student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z`, which shows
+`Edited Ravi s/o Kumar (A0345678Z) to Ravi s/o Kumar (A0345679Z) in T01. Their records are kept.`
+Use one or the other: after the first command, the second reports that A0345678Z does not exist.
 
 ### Listing students: `student list`
 
@@ -386,10 +389,13 @@ in the feedback box. It takes no parameters.
 
 Format: `student list`
 
+For example, after the examples above, `student list` shows:
+
 ```text
 Students in T01:
 1. Alice Tan | A0123456X
-2. Ben Lim | A0234567Y
+2. Benjamin Lim | A0234567Y
+3. Ravi s/o Kumar | A0345679Z
 ```
 
 An empty group shows `No students in T01. Add one using: student add n/NAME id/STUDENT_ID`.
@@ -458,7 +464,7 @@ mistake, `undo` brings them back.
 
 Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
+Example: `student delete id/A0234567Y` asks whether to remove Benjamin Lim (A0234567Y) and all their records from T01.
 Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
 IDs ignore case, so `student delete id/a0234567y` targets the same student.
 
@@ -512,12 +518,13 @@ Lists attendance for the active tutorial group in student order, without changin
 
 Format: `attendance list w/WEEK`
 
-For example, after `attendance mark id/A0123456X w/3 s/present`, with only Alice Tan in T01, `attendance list w/3`
-shows the following in the scrollable feedback box:
+For example, after the examples above, `attendance list w/3` shows the following in the
+scrollable feedback box:
 
 ```text
 Attendance for T01, Week 3:
-Alice Tan | A0123456X | Present
+Alice Tan | A0123456X | Absent
+Ravi s/o Kumar | A0345679Z | Not recorded
 ```
 
 Each student appears with `Present`, `Absent`, or `Not recorded`, so a week with no marks yet lists every student as
@@ -537,8 +544,9 @@ Format: `attendance clear id/STUDENT_ID w/WEEK`
 * `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
 * Only that student's mark for that week is removed. Other weeks, other students, and participation scores are kept.
 
-Example: if Alice Tan was marked present for week 3 by mistake, `attendance clear id/A0123456X w/3` shows
-`Cleared Alice Tan's attendance for Week 3: present to Not recorded.` Entering it again shows
+Example: after the `attendance mark` examples above, Alice Tan's Week 3 mark is absent, and
+`attendance clear id/A0123456X w/3` shows
+`Cleared Alice Tan's attendance for Week 3: absent to Not recorded.` Entering it again shows
 `Alice Tan has no attendance recorded for Week 3. Nothing changed.`
 
 The change is saved automatically, and `attendance list` and `group export` no longer show the mark.
@@ -574,11 +582,12 @@ Scores appear in the feedback box; scroll it for long lists.
 
 Format: `participation list w/WEEK`
 
-Example: after `participation set id/A0123456X w/3 s/2`, with only Alice Tan in T01, `participation list w/3` shows
+Example: after the examples above, `participation list w/3` shows
 
 ```text
 Participation for T01, Week 3:
-Alice Tan | A0123456X | 2
+Alice Tan | A0123456X | 4
+Ravi s/o Kumar | A0345679Z | Not recorded
 ```
 
 Students without a score show `Not recorded`, even if no scores have been entered that week.
@@ -595,8 +604,9 @@ Format: `participation clear id/STUDENT_ID w/WEEK`
 * `WEEK` is a whole number from 1 to 13. Student IDs ignore case. Supply each prefix exactly once, in any order.
 * Only that student's score for that week is removed. Other weeks, other students, and attendance are kept.
 
-Example: if Alice Tan was given 2 for week 3 by mistake, `participation clear id/A0123456X w/3` shows
-`Cleared Alice Tan's participation score for Week 3: 2 to Not recorded.` Entering it again shows
+Example: after the `participation set` examples above, Alice Tan's Week 3 score is 4, and
+`participation clear id/A0123456X w/3` shows
+`Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` Entering it again shows
 `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
 
 The change is saved automatically, and `participation list` and `group export` no longer show the score.
@@ -641,12 +651,10 @@ data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
-Example: `assignment submit a/PS1 id/A0123456X s/yes` shows
+Example: because Alice has not submitted PS1 yet, `assignment submit a/PS1 id/A0123456X s/no` shows
+`Alice Tan's PS1 submission status is already not submitted. Nothing changed.`
+Running `assignment submit a/PS1 id/A0123456X s/yes` then shows
 `Updated Alice Tan's PS1 submission status to submitted.`
-
-If Ben Lim (`A0234567Y`) is in the active group and has never submitted PS1, running
-`assignment submit a/PS1 id/A0234567Y s/no` shows
-`Ben Lim's PS1 submission status is already not submitted. Nothing changed.`
 
 ### Recording a grade: `assignment grade`
 
@@ -680,12 +688,13 @@ Assignments in T01:
 A group without assignments shows `No assignments in T01. Create one with: assignment add a/ASSIGNMENT_NAME`.
 Use the listed names with `a/` in the other assignment commands.
 
-Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
-`assignment list a/PS1` shows
+Example: after the examples above, which leave Alice Tan in T01 with PS1 submitted and graded 60, and
+Ravi s/o Kumar in T01 without a PS1 submission, `assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
 Alice Tan | A0123456X | Submitted | 60
+Ravi s/o Kumar | A0345679Z | Not submitted | -
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
