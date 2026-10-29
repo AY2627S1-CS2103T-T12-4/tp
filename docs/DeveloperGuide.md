@@ -317,9 +317,10 @@ ends with an allowed prefix that the input lacks, and has text before that prefi
 Without these checks, a mistyped prefix name such as `status/` or `studentid/` would get a hint that does not help.
 Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
-instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
-`parseWithoutExtraTextCheck()`, calls `verifyNoMissingSpaceBefore()` for a missing prefix before reporting it,
-and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes, as the student
+and group parsers do, calls `verifyNoMissingSpaceBefore()` for a missing one before reporting it. If it also has
+single-word prefixes, it calls `parseWithoutExtraTextCheck()` first and `verifyNoExtraText()` last.
+Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
 
