@@ -45,7 +45,8 @@ public class StudentDeleteCommandTest {
         StudentDeleteCommand command = new StudentDeleteCommand(ALICE.getStudentId());
         assertCommandFailure(command, model, Messages.MESSAGE_NO_ACTIVE_GROUP);
         model.setActiveGroup(NAME_T02);
-        assertCommandFailure(command, model, "Student ID A0123456X does not exist in T02.");
+        assertCommandFailure(command, model, "Student ID A0123456X does not exist in T02. "
+                + "See students in the active group with: student list");
     }
 
     @Test
