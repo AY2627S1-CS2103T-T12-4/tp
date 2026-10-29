@@ -41,6 +41,17 @@ public class TAssistParserTest {
     }
 
     @Test
+    public void replaceUnicodeSpaces_lineSeparators_becomeNormalSpaces() {
+        assertEquals("group add g/T04 ", TAssistParser.replaceUnicodeSpaces("group\u2028add\u2029g/T04\u0085"));
+    }
+
+    @Test
+    public void replaceUnicodeSpaces_zeroWidthCharacters_areKept() {
+        String input = "group\u200Badd g/T04\uFEFF";
+        assertEquals(input, TAssistParser.replaceUnicodeSpaces(input));
+    }
+
+    @Test
     public void parseCommand_unicodeSpaces_separateWordsAndAreTrimmed() throws Exception {
         StubCommand groupAdd = new StubCommand();
         CommandRegistry registry = new CommandRegistry();

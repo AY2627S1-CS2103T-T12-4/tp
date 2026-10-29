@@ -32,8 +32,11 @@ public class TAssistParser {
      */
     private static final Pattern BASIC_COMMAND_FORMAT =
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
-    /** Matches a Unicode space character, such as a non-breaking space pasted from a web page. */
-    private static final Pattern UNICODE_SPACE = Pattern.compile("\\p{Zs}");
+    /**
+     * Matches a Unicode space or line separator that looks like a normal space or line break, such as a non-breaking
+     * space pasted from a web page. Zero-width characters are not matched, as they separate no words.
+     */
+    private static final Pattern UNICODE_SPACE = Pattern.compile("[\\p{Zs}\\u2028\\u2029\\u0085]");
     private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
     private static final Set<String> BUILT_IN_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD, UndoCommand.COMMAND_WORD, RedoCommand.COMMAND_WORD);
@@ -104,13 +107,14 @@ public class TAssistParser {
     }
 
     /**
-     * Returns {@code userInput} with every Unicode space character replaced by a normal space.
-     * Pasted text often contains spaces such as U+00A0 that look like a normal space but would not separate words.
+     * Returns {@code userInput} with every Unicode space and line separator replaced by a normal space.
+     * Pasted text often contains characters such as U+00A0 that look like a normal space or line break, but that
+     * would not separate words.
      */
     static String replaceUnicodeSpaces(String userInput) {
         String normalizedInput = UNICODE_SPACE.matcher(userInput).replaceAll(" ");
         if (!normalizedInput.equals(userInput)) {
-            logger.fine("Replaced Unicode space characters in the input with normal spaces.");
+            logger.fine("Replaced Unicode space or line separator characters in the input with normal spaces.");
         }
         return normalizedInput;
     }
