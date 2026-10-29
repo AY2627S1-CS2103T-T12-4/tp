@@ -147,6 +147,12 @@ public class WorkspaceSmokeTest {
                 assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
                 enter(input, "undo");
                 assertTrue(listing.getText().contains("Alice Tan | A0123456X | Not recorded"));
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                enter(input, "attendance mark id/S0 id/S1 id/S2 id/S3 id/S4 w/3 s/absent");
+                double listingScrollTop = listing.getScrollTop();
+                pressKey(KeyCode.PAGE_DOWN);
+                assertTrue(feedback.getScrollTop() > 0, "PageDown reaches the hidden lines of long feedback");
+                assertEquals(listingScrollTop, listing.getScrollTop());
                 enter(input, "attendance mark id/A0123456X w/3 s/present");
                 enter(input, "attendance list w/3");
                 assertEquals(0, listing.getCaretPosition());

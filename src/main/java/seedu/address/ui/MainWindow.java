@@ -146,7 +146,7 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void scrollOutput(boolean isDown) {
-        if (!workspacePanel.scrollRecords(isDown)) {
+        if (resultDisplay.hasLongMessage() || !workspacePanel.scrollRecords(isDown)) {
             resultDisplay.scrollPage(isDown);
         }
     }
