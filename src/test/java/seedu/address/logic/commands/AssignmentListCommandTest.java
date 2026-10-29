@@ -84,18 +84,39 @@ public class AssignmentListCommandTest {
     @Test
     public void execute_unknownAssignment_reportsSpecificError() {
         assertCommandFailure(new AssignmentListCommand(NAME_PS2), modelWithActiveGroup(NAME_T01),
-                "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
+                "Assignment PS2 does not exist in T01. See the group's assignments with: assignment list\n"
+                        + "Or create it with: assignment add a/PS2");
     }
 
     @Test
     public void execute_assignmentOnlyInAnotherGroup_reportsUnknownAssignment() {
         assertCommandFailure(new AssignmentListCommand(NAME_PS1), modelWithActiveGroup(NAME_T02),
-                "Assignment PS1 does not exist in T02. Check the name, or create it with: assignment add a/PS1");
+                "Assignment PS1 does not exist in T02. See the group's assignments with: assignment list\n"
+                        + "Or create it with: assignment add a/PS1");
+    }
+
+    @Test
+    public void execute_noName_listsAssignmentsInCreationOrderWithoutChangingData() {
+        Model model = modelWithActiveGroup(NAME_T01);
+        model.addAssignment(NAME_T01, new Assignment(new AssignmentName("Lab 2 (Graphs)")));
+        Model expected = modelWithActiveGroup(NAME_T01);
+        expected.addAssignment(NAME_T01, new Assignment(new AssignmentName("Lab 2 (Graphs)")));
+        assertCommandSuccess(new AssignmentListCommand(), model, "Assignments in T01:\n1. PS1\n2. Lab 2 (Graphs)",
+                expected);
+    }
+
+    @Test
+    public void execute_noNameAndNoAssignments_reportsHowToCreateOne() {
+        Model model = modelWithActiveGroup(NAME_T02);
+        Model expected = modelWithActiveGroup(NAME_T02);
+        assertCommandSuccess(new AssignmentListCommand(), model,
+                "No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME", expected);
     }
 
     @Test
     public void execute_noActiveGroup_reportsError() {
         assertCommandFailure(new AssignmentListCommand(NAME_PS1), new ModelManager(), Messages.MESSAGE_NO_ACTIVE_GROUP);
+        assertCommandFailure(new AssignmentListCommand(), new ModelManager(), Messages.MESSAGE_NO_ACTIVE_GROUP);
     }
 
     @Test
@@ -111,6 +132,8 @@ public class AssignmentListCommandTest {
         assertEquals(command, new AssignmentListCommand(new AssignmentName("ps1")));
         assertEquals(command.hashCode(), new AssignmentListCommand(new AssignmentName("ps1")).hashCode());
         assertNotEquals(command, new AssignmentListCommand(NAME_PS2));
+        assertNotEquals(command, new AssignmentListCommand());
+        assertEquals(new AssignmentListCommand(), new AssignmentListCommand());
         assertNotEquals(command, new AssignmentAddCommand(NAME_PS1));
         assertNotEquals(command, null);
     }

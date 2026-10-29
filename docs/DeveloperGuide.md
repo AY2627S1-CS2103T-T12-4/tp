@@ -630,9 +630,20 @@ within one group.
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
 capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
 assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
-checks that the record is submitted. Each failed command leaves the model unchanged. `AssignmentListCommand` returns
-one row per student in roster order: name, student ID, submission status, and grade; missing records show
-`Not submitted` and `-`.
+checks that the record is submitted. Each failed command leaves the model unchanged. With `a/`,
+`AssignmentListCommand` returns one row per student in roster order: name, student ID, submission status, and grade;
+missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
+creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
+form.
+
+Design considerations for listing assignment names:
+
+* **Alternative 1 (current choice):** make `a/` optional in `assignment list`.
+  * Pros: No new command word to learn; the TA reaches for `assignment list` first anyway.
+  * Cons: One command returns two kinds of output, depending on whether `a/` is present.
+* **Alternative 2:** list the existing names in the unknown-assignment error.
+  * Pros: The names appear exactly when a guess fails.
+  * Cons: There is no way to see them before guessing, and a long list makes the error message hard to read.
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
@@ -1315,7 +1326,10 @@ The following extensions apply to every use case that changes or views records o
       Use case ends.
 
 * 3a. The assignment does not exist in the active group.
-    * 3a1. TAssist shows an error message stating that the assignment does not exist.
+    * 3a1. TAssist shows an error message stating that the assignment does not exist, and how to list the group's
+      assignments.
+    * 3a2. TA requests the list of the active group's assignments.
+    * 3a3. TAssist shows the names of the group's assignments.
 
       Use case resumes at step 3.
 
@@ -1690,13 +1704,17 @@ label.
 6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both
    times.
    Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
-7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list`,
+7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`,
    `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
    missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file. Enter
    `assignment grade a/PS1 id/A0123456X g/87`; expect an unknown-prefix error, since `g/` is reserved for groups.
 8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
    belong to one group.
    With no active group, both commands must ask you to create or select a group first.
+9. Switch back with `group use g/T01`, enter `assignment add a/Lab 2 (Graphs)`, close and reopen the app, select T01,
+   and enter `assignment list`. Expect
+   `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
+   assignments, expect `No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME`.
 
 ### Finding and sorting students
 
