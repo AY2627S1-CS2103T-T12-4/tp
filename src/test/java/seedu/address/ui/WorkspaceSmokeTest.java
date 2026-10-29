@@ -412,6 +412,36 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void studentsScreen_resizing_givesFreeWidthToNames() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                model.setActiveGroup(TypicalGroups.NAME_T01);
+                model.addStudent(TypicalGroups.NAME_T01, new StudentBuilder()
+                        .withName("Muhammad Hafiz bin Abdul Rahman bin Mohamed Ismail").withStudentId("Z9")
+                        .build());
+                for (int i = 0; i < 16; i++) {
+                    model.addStudent(TypicalGroups.NAME_T01, new StudentBuilder()
+                            .withName("Extra Student").withStudentId("EX" + i).build());
+                }
+            });
+            for (int width : List.of(853, 1280, 1920, 853)) {
+                runOnFx(() -> render(root, "student-column-width-" + width, width, 680));
+                runOnFx(() -> {
+                    TableView<?> table = studentTable();
+                    assertTrue(table.getColumns().get(1).getWidth() > 320);
+                    assertEquals(180, table.getColumns().get(2).getWidth(), 1);
+                    double columnWidth = table.getColumns().stream().mapToDouble(column -> column.getWidth()).sum();
+                    assertTrue(table.getWidth() - columnWidth < 20, "Columns should use the table's free width");
+                    assertTrue(columnWidth <= table.getWidth(), "Columns should fit without horizontal scrolling");
+                });
+            }
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
     public void studentsScreen_longNames_keepsLayoutUsable() throws Exception {
         runOnFx(this::initializeWorkspace);
         try {
