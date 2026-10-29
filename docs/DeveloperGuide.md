@@ -808,6 +808,8 @@ their previous state. The UI shows the error and retains the rejected input. A s
   can report one past the end of an unknown word. Any other read error says the file could not be opened.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
+When reading a file, `JsonUtil` drops a leading UTF-8 byte-order mark (BOM), which some editors such as Windows
+Notepad add on save, so an otherwise unchanged file still loads. The next save writes the file without the BOM.
 `JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
 JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
 is allowed. This prevents a later save from silently removing appended content.
@@ -1551,6 +1553,15 @@ label.
    1. Launch the app.<br>
       Expected: The app starts empty and shows `No saved data found. Starting with an empty database.`
       `help` does not create the file. `group add g/T01` creates it and shows `Changes saved.`
+
+1. Dealing with a data file saved with a byte-order mark
+
+   1. Prerequisites: Close the app. Open `data/tassist.json` in an editor that can save "UTF-8 with BOM", such as
+      Windows Notepad, and save it with that encoding without other changes.
+
+   1. Launch the app.<br>
+      Expected: The saved groups, students, and records load as usual, with no `Saved data could not be read.`
+      message. `group add g/BomTest` shows `Changes saved.`
 
 1. Dealing with an invalid data file
 

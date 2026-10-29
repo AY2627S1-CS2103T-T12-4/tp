@@ -28,6 +28,9 @@ public class JsonUtil {
 
     public static final String MESSAGE_NULL_CONTENT = "The file holds null instead of an object.";
 
+    /** The UTF-8 byte-order mark that some editors, such as Windows Notepad, add at the start of a file. */
+    private static final String BYTE_ORDER_MARK = "\uFEFF";
+
     private static final Logger logger = LogsCenter.getLogger(JsonUtil.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
@@ -42,7 +45,18 @@ public class JsonUtil {
 
     static <T> T deserializeObjectFromJsonFile(Path jsonFile, Class<T> classOfObjectToDeserialize)
             throws IOException {
-        return fromJsonString(FileUtil.readFromFile(jsonFile), classOfObjectToDeserialize);
+        return fromJsonString(removeByteOrderMark(FileUtil.readFromFile(jsonFile)), classOfObjectToDeserialize);
+    }
+
+    /**
+     * Returns {@code content} without its leading byte-order mark, if it has one.
+     */
+    private static String removeByteOrderMark(String content) {
+        if (!content.startsWith(BYTE_ORDER_MARK)) {
+            return content;
+        }
+        logger.fine("Ignoring the byte-order mark at the start of the JSON file.");
+        return content.substring(BYTE_ORDER_MARK.length());
     }
 
     /**
