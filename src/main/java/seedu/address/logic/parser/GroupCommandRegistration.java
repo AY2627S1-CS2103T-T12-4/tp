@@ -13,6 +13,7 @@ import seedu.address.logic.commands.GroupListCommand;
 import seedu.address.logic.commands.GroupRenameCommand;
 import seedu.address.logic.commands.GroupUseCommand;
 import seedu.address.logic.help.HelpEntry;
+import seedu.address.model.TAssistHistory;
 import seedu.address.storage.GroupRecordsCsvExporter;
 
 /**
@@ -70,7 +71,8 @@ public final class GroupCommandRegistration {
         registry.register("group", "delete", new GroupDeleteCommandParser(),
                 new HelpEntry("group", GroupDeleteCommand.MESSAGE_USAGE,
                         "Delete a tutorial group with all its students and records, after asking to confirm. "
-                                + "Add f/yes to skip the prompt. Undo reverses it until TAssist is closed.",
+                                + "Add f/yes to skip the prompt. Undo can reverse it within your last "
+                                + TAssistHistory.MAX_CHANGES + " changes.",
                         List.of("group delete g/T02-Thu")));
     }
 }
