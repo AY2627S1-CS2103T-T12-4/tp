@@ -1777,7 +1777,7 @@ label.
 10. In T01, enter `assignment rename a/ps1 n/Problem Set 1`. Expect `Renamed assignment PS1 to Problem Set 1 in T01.`
     `assignment list` should show it first, and `assignment list a/problem set 1` should still show Alice's
     `Submitted | 87`.
-    Enter `assignment rename a/Problem Set 1 n/mid-term 1`. Expect `Assignment Mid-term 1 already exists in T01` and
+    Enter `assignment rename a/Problem Set 1 n/mid-term 1`. Expect `Assignment Mid-term 1 already exists in T01.` and
     no change.
     Enter `assignment rename a/Problem Set 1 n/PROBLEM SET 1`. Expect a rename that is still shown after a restart.
     Enter it again. Expect `Assignment PROBLEM SET 1 already has that name. Nothing changed.`

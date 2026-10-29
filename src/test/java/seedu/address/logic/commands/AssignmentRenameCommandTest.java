@@ -79,7 +79,7 @@ public class AssignmentRenameCommandTest {
         Model model = modelWithActiveT01();
 
         assertCommandFailure(new AssignmentRenameCommand(NAME_PS1, new AssignmentName(" ps2 ")), model,
-                "Assignment PS2 already exists in T01");
+                "Assignment PS2 already exists in T01.");
         assertEquals(List.of(GRADED_PS1, PS2), model.getGroup(NAME_T01).getAssignmentList());
     }
 
