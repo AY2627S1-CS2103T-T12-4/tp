@@ -35,6 +35,26 @@ public class TAssistParserTest {
     }
 
     @Test
+    public void replaceUnicodeSpaces_spaceCharacters_becomeNormalSpaces() {
+        assertEquals("group add g/T04 ", TAssistParser.replaceUnicodeSpaces("group\u00A0add\u2003g/T04\u3000"));
+        assertEquals("n/Ann Lee\tid/A1\n", TAssistParser.replaceUnicodeSpaces("n/Ann\u202FLee\tid/A1\n"));
+    }
+
+    @Test
+    public void parseCommand_unicodeSpaces_separateWordsAndAreTrimmed() throws Exception {
+        StubCommand groupAdd = new StubCommand();
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "add", args -> {
+            assertEquals("g/T04", args.trim());
+            return groupAdd;
+        });
+        TAssistParser featureParser = new TAssistParser(registry);
+
+        assertSame(groupAdd, featureParser.parseCommand("\u00A0group\u00A0add\u00A0g/T04\u00A0"));
+        assertEquals(new UndoCommand(), parser.parseCommand("undo\u2003"));
+    }
+
+    @Test
     public void parseCommand_undoAndRedo() throws Exception {
         assertEquals(new UndoCommand(), parser.parseCommand("  " + UndoCommand.COMMAND_WORD + "  "));
         assertEquals(new RedoCommand(), parser.parseCommand(RedoCommand.COMMAND_WORD));

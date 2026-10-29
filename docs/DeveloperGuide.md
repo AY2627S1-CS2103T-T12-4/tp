@@ -296,6 +296,12 @@ using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. 
 whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
 validator normalizes them; parameter prefixes remain lowercase.
 
+Before splitting the input, `TAssistParser` replaces every Unicode space separator (`\p{Zs}`, such as the
+non-breaking space U+00A0 or the em space U+2003) with a normal space. Text pasted from a web page, a PDF, or a chat
+app often contains these characters. They look like spaces, but Java's `\s` and `String#trim` do not treat them as
+whitespace, so a command such as `group add` followed by a non-breaking space would otherwise be read as one unknown
+subcommand. Tabs and line breaks are left to the existing whitespace rules.
+
 `HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
 lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
 that mixed-case undo and redo work.
@@ -1902,6 +1908,16 @@ parameter errors, empty groups, week boundaries, and display formatting.
       feedback and record as the lowercase command.
    1. Enter `GROUP add G/T06`. Expected: The command is rejected, because parameter prefixes stay lowercase, and
       the data does not change.
+
+### Pasting commands with unusual spaces
+
+1. Non-breaking and other Unicode spaces act as normal spaces
+
+   1. Prerequisites: Launch the JAR in an empty writable folder. In a text editor or web page, prepare
+      `group add g/T04` and `student add n/Ann Lee id/N1` with a non-breaking space (U+00A0) in place of each space,
+      and `group add g/T03` followed by one non-breaking space.
+   1. Paste and enter each command. Expected: T04 and then T03 are created, and Ann Lee is added to T03, as when the
+      commands are typed with normal spaces.
 
 ### Preparing a command from a student row
 

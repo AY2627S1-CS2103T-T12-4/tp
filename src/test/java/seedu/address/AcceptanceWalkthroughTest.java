@@ -15,7 +15,9 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.DataLoadStatus;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
+import seedu.address.model.assignment.AssignmentName;
 
 /**
  * Walks through a TA's use of TAssist from a first launch, as the end-to-end acceptance pass does by hand with the
@@ -99,6 +101,19 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
         assertArrayEquals(savedFile, Files.readAllBytes(dataFile), "Rejected commands must not save");
         restart();
         assertEquals(recorded, app.model.getTAssist());
+    }
+
+    @Test
+    public void pastedCommands_unicodeSpaces_actLikeNormalSpaces() throws Exception {
+        assertEquals("Created tutorial group: T04.\nActive group is now T04.", feedback("group add\u00A0g/T04"));
+        assertEquals("Created tutorial group: T03.\nActive group is now T03.", feedback("group add g/T03\u00A0"));
+        assertEquals("Added Ann Lee to T03.", feedback("student add n/Ann\u00A0Lee id/N1"));
+        assertEquals("Added Bob Lee to T03.", feedback("\u3000student\u2003add n/Bob\u2003Lee id/A2\u202F"));
+        assertThrows(ParseException.class, AssignmentName.MESSAGE_CONSTRAINTS, () ->
+                app.logic.execute("assignment add a/\u2003"));
+
+        restart();
+        assertEquals("Students in T03:\n1. Ann Lee | N1\n2. Bob Lee | A2", feedback("student list"));
     }
 
     @Test

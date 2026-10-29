@@ -127,6 +127,9 @@ Selecting rows with the keyboard does not replace your draft.
 * Leading and trailing spaces around a command are ignored. Unknown commands identify the unrecognized keyword
   and suggest entering `help`. They do not change or save your data.
 
+* Spaces in pasted text count as normal spaces, even when they are a different space character, such as the
+  non-breaking spaces that web pages, PDFs, and chat apps often contain.
+
 * Command words ignore case: `GROUP add`, `group ADD`, and `group add` work the same way.
   Parameter prefixes still use lowercase letters, such as `g/` and `id/`. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
