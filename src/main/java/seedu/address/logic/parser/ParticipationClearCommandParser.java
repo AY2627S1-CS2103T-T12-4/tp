@@ -13,7 +13,8 @@ public class ParticipationClearCommandParser implements Parser<ParticipationClea
     private static final Prefix PREFIX_WEEK = new Prefix("w/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
-            List.of(PREFIX_ID, PREFIX_WEEK), List.of());
+            List.of(PREFIX_ID, PREFIX_WEEK), List.of(),
+            List.of(PREFIX_ID, PREFIX_WEEK));
 
     @Override
     public ParticipationClearCommand parse(String arguments) throws ParseException {

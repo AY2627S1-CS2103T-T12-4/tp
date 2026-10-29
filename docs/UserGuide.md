@@ -450,7 +450,9 @@ The change is saved automatically, and `attendance list` and `group export` no l
 Invalid weeks, unknown students, and no active group have the same errors as `attendance mark`. Only `id/` and `w/`
 are accepted, so a status such as `s/present` is rejected. For example, `attendance clear id/A0123456X w/3 s/present`
 shows `Unknown prefix 's/'. Allowed prefixes: id/ w/.`, and `attendance clear` with no parameters
-shows `Missing required parameter(s): id/ w/. Include each exactly once.`
+shows `Missing required parameter(s): id/ w/. Include each exactly once.` Extra text after a value is reported too:
+`attendance clear id/A0123456X w/3 now` shows
+`Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.`
 
 ### Recording participation: `participation set`
 
