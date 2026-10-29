@@ -100,11 +100,13 @@ public class Group {
     }
 
     /**
-     * Returns true if a student named {@code name}, ignoring capitalization, is in this group.
+     * Returns the first student whose name matches {@code name}, ignoring capitalization and extra spaces,
+     * or an empty {@code Optional} if there is none.
      */
-    public boolean hasStudentNamed(StudentName name) {
+    public Optional<Student> findStudentNamed(StudentName name) {
         return getStudentList().stream()
-                .anyMatch(student -> student.getName().isSameName(name));
+                .filter(student -> student.getName().isSameName(name))
+                .findFirst();
     }
 
     /**
