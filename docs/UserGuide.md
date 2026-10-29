@@ -781,6 +781,10 @@ location while TAssist is closed, then restart. Repairing the file while the app
    but cannot save. Every command that changes data reports
    `Unable to save changes. Your previous saved data is unchanged.` with a reminder to check the folder's
    permissions. Move the JAR to a folder you can write to, such as one in your home folder, and start it again.
+1. **Running two copies of TAssist from the same home folder at once** is not supported, and TAssist does not warn
+   you. Each copy works on the data it loaded at startup and saves the whole file after every change, so a change
+   saved by one copy is overwritten by the other copy's next save, even though the footer showed `Changes saved.`
+   Close TAssist before starting it again, and check that no other TAssist window is still open.
 
 --------------------------------------------------------------------------------------------------------------------
 
