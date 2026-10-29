@@ -107,7 +107,7 @@ public class StudentAddCommandParserTest {
 
     @Test
     public void parse_nameWithoutLetters_explainsLetterRequirement() {
-        String message = "Invalid student name. Use 1-60 letters, spaces, apostrophes, or hyphens, "
+        String message = "Invalid student name. Use 1-60 letters, spaces, apostrophes, hyphens, or periods, "
                 + "with at least one letter outside the slash particles. "
                 + "Between two parts of a name, you may also use s/o, d/o, a/l, or a/p.";
         for (String name : new String[] {"'-", "' s/o -"}) {

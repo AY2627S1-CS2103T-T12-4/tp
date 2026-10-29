@@ -32,6 +32,18 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_namesWithPeriods_addedAndRestored() throws Exception {
+        feedback("student add n/S. Ramanathan id/A1");
+        feedback("student add n/Mohd. Ali id/A2");
+        feedback("student add n/John Smith Jr. id/A3");
+        restart();
+        assertEquals("Students in T01:\n1. S. Ramanathan | A1\n2. Mohd. Ali | A2\n3. John Smith Jr. | A3",
+                feedback("student list"));
+        feedback("student find n/Smith Jr.");
+        assertEquals("John Smith Jr.", app.logic.getDisplayedStudentList().getFirst().getName().toString());
+    }
+
+    @Test
     public void execute_namesWithSlashParticles_addedAndRestored() throws Exception {
         assertEquals("Added Ravi s/o Kumar to T01.", feedback("student add n/Ravi s/o Kumar id/A0345678Z"));
         assertEquals("Added Siti D/O Ahmad to T01.", feedback("student add n/Siti D/O Ahmad id/A0456789W"));

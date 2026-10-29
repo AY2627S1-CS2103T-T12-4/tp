@@ -50,6 +50,18 @@ public class StudentNameTest {
     }
 
     @Test
+    public void isValidStudentName_periods_acceptsInitialsAndAbbreviations() {
+        for (String name : new String[] {"S. Ramanathan", "Mohd. Ali", "John Smith Jr.", "J.R. Tan",
+            "S. s/o Kumar", "A".repeat(StudentName.MAX_LENGTH - 1) + "."}) {
+            assertTrue(StudentName.isValidStudentName(name), name);
+            assertEquals(name, new StudentName(name).fullName);
+        }
+        for (String name : new String[] {".", "...", ". '-", "S. Ramanathan2", "A".repeat(60) + "."}) {
+            assertFalse(StudentName.isValidStudentName(name), name);
+        }
+    }
+
+    @Test
     public void isValidStudentName_slashParticles() {
         // valid: each particle, in any case, between two parts of a name
         for (String name : new String[] {"Ravi s/o Kumar", "Siti d/o Ahmad", "Ahmad a/l Ismail", "Nur a/p Hassan",
