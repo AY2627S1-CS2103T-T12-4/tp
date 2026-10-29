@@ -35,7 +35,7 @@ A mistaken change can be reversed with `undo` and `redo`, which cover your last 
 
    * `group add g/T01` : Creates tutorial group T01 and makes it active.
 
-   * `view attendance` : Opens the Attendance screen.
+   * `view storage` : Opens the Storage screen, which shows where your data is saved.
 
    * `exit` : Exits the app.
 
@@ -46,10 +46,9 @@ A mistaken change can be reversed with `undo` and `redo`, which cover your last 
 ## Using the workspace
 
 The bar at the top shows the **tutorial groups** next to the TAssist name, with the active group highlighted, and
-the **screens** below it. **Students**, **Attendance**, **Participation**, and **Assignments** are on the left;
-**Groups**, **Help**, and **Storage** are on the right. A small orange dot marks a screen that is still **coming soon**.
+the **screens** below it. **Students** is on the left; **Help** and **Storage** are on the right.
 Hover over a screen, or over a shortened group name, to see more. The tooltip of a screen names the command that does
-the same, such as `view attendance`.
+the same, such as `view storage`.
 
 The implemented UI keeps the mock-up's command-first workspace, but uses a light group bar and a separate screen
 navigation row in place of the mock-up's dark header and separate group strip. The [original UI mock-up](images/UiMockup.png)
@@ -65,19 +64,12 @@ the command box.
   students with their names and student IDs. It updates as soon as the active group or its students change. When there are no students to list, the screen says whether no group is
   active or the active group has no students yet. Hover over a shortened name to read it in full, and scroll to see
   more students.
-* **Groups** shows a planned table with a **Coming soon** label. Use `group list` to see your groups in the feedback
-  box, and `group add` or `group use` to change the active group shown in the top bar.
-* **Attendance** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `attendance mark`, `attendance list`, and `attendance clear`; the Attendance screen remains a preview.
-* **Participation** shows a planned table with a **Coming soon** label and unavailable week controls.
-  Use `participation set`, `participation list`, and `participation clear` to record, view, and remove real scores
-  in the feedback box.
-* **Assignments** shows a planned layout with a **Coming soon** label.
-  It contains no simulated records. Use `assignment add`, `assignment submit`, `assignment grade`, and
-  `assignment list`; the Assignments screen remains a preview.
 * **Help** provides an offline reference for every available command, with its format, rules, and examples.
   The `help` command opens it.
 * **Storage** shows the configured local JSON file and explains automatic saving.
+
+Groups, attendance, participation, and assignments have no screen of their own. Their commands show the records in
+the feedback box: for example, `group list` lists your groups and `attendance list w/3` lists Week 3's attendance.
 
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
 on a red background means it failed. It grows to fit the message, up to six lines; only longer messages need
@@ -116,7 +108,7 @@ Selecting rows with the keyboard does not replace your draft.
 **:information_source: Notes about the command format:**<br>
 
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `view SCREEN`, replace `SCREEN` with a screen name such as `attendance`.
+  For example, in `view SCREEN`, replace `SCREEN` with a screen name such as `storage`.
 
 * Items in square brackets are optional.<br>
   For example, `help [TOPIC]` can be used as `help student` or as `help`.
@@ -172,13 +164,13 @@ Examples:
 
 Format: `view SCREEN`
 
-`SCREEN` is one of `students`, `groups`, `attendance`, `participation`, `assignments`, `help`, or `storage`.
+`SCREEN` is one of `students`, `help`, or `storage`.
 Screen names ignore case. Specify exactly one screen name. Opening a screen does not change any data.
-The singular forms `student`, `group`, and `assignment` open the same screens as their plural forms.
+The singular form `student` opens the Students screen.
 An unknown screen name reports `Unknown screen` and lists the valid names. Missing or multiple screen names report
 an invalid command format and show the expected syntax.
 
-Examples: `view students`, `view attendance`, `view storage`.
+Examples: `view students`, `view help`, `view storage`.
 
 ### Creating a tutorial group: `group add`
 
@@ -478,7 +470,7 @@ Setting the same score again shows `Alice Tan's participation score for Week 3 i
 ### Listing participation: `participation list`
 
 Lists every student in the active group in roster order, with their score for the requested week.
-Scores appear in the feedback box; scroll it for long lists. The Participation table remains a preview.
+Scores appear in the feedback box; scroll it for long lists.
 
 Format: `participation list w/WEEK`
 
@@ -814,7 +806,7 @@ location while TAssist is closed, then restart. Repairing the file while the app
 Action | Format, Examples
 --------|------------------
 **Help** | `help [TOPIC]`<br> e.g., `help student`
-**View** | `view SCREEN`<br> e.g., `view attendance`
+**View** | `view SCREEN`<br> e.g., `view storage`
 **Undo** | `undo`
 **Redo** | `redo`
 **Add group** | `group add g/GROUP_NAME`<br> e.g., `group add g/T01`
