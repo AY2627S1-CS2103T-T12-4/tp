@@ -193,7 +193,26 @@ public class WorkspaceSmokeTest {
                 render(root, "error-usage", 1280, 680);
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 assertTrue(feedback.getText().contains(ViewCommand.MESSAGE_USAGE));
-                assertFalse(hasVisibleVerticalScrollBar(feedback), "A usage message fits without scrolling");
+                assertTrue(hasVisibleVerticalScrollBar(feedback), "Long usage feedback scrolls within its cap");
+                assertTrue(feedback.getPrefRowCount() <= ResultDisplay.MAX_VISIBLE_LINES);
+                String completeFeedback = feedback.getText();
+                ScrollBar vertical = feedback.lookupAll(".scroll-bar").stream()
+                        .filter(node -> node instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL)
+                        .map(node -> (ScrollBar) node).findFirst().orElseThrow();
+                input.requestFocus();
+                for (int i = 0; i < completeFeedback.lines().count(); i++) {
+                    pressKey(KeyCode.PAGE_DOWN);
+                }
+                assertEquals(vertical.getMax(), vertical.getValue(), 0.001,
+                        "PageDown reaches the final usage line");
+                for (int i = 0; i < completeFeedback.lines().count(); i++) {
+                    pressKey(KeyCode.PAGE_UP);
+                }
+                assertEquals(vertical.getMin(), vertical.getValue(), 0.001);
+                assertEquals(completeFeedback, feedback.getText());
+                assertEquals("view", input.getText());
+                assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(input, stage.getScene().getFocusOwner());
             });
             runOnFx(() -> {
                 enter(input, "view storage");
