@@ -120,7 +120,8 @@ public class MainWindow extends UiPart<Stage> {
                 dataLoadStatus.isFailure());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
-        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getGroupList(),
+                logic.getActiveGroupStudentList(),
                 logic.getDisplayedStudentList(), logic.studentFilterActiveProperty(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
                         AttendanceMarkCommand.buildTemplate(student.getStudentId())),

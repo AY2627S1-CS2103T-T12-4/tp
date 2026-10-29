@@ -824,7 +824,8 @@ public class WorkspaceSmokeTest {
                     Comparator.comparing((Student student) -> student.getStudentId().toString()).reversed());
             List<Student> clicked = new ArrayList<>();
             StudentListPanel panel = new StudentListPanel(
-                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())), roster, sorted,
+                    new SimpleObjectProperty<>(Optional.of(TypicalGroups.getT01())),
+                    FXCollections.observableArrayList(TypicalGroups.getT01()), roster, sorted,
                     new SimpleBooleanProperty(true), clicked::add, false);
             Stage transformedStage = new Stage();
             transformedStage.setScene(new Scene(panel.getRoot(), 800, 500));
@@ -840,6 +841,31 @@ public class WorkspaceSmokeTest {
                 transformedStage.close();
             }
         });
+    }
+
+    @Test
+    public void studentEmptyHint_groupChanges_updatesBoundHint() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "view students");
+                Label hint = (Label) root.lookup("#emptyHint");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.setTAssist(new TAssist());
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+                model.addGroup(TypicalGroups.getT03());
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                enter(input, "group add g/T01");
+                enter(input, "group add g/T02");
+                enter(input, "group delete g/T02 f/yes");
+                assertEquals(StudentListPanel.SELECT_GROUP_HINT, hint.getText());
+                model.removeGroup(TypicalGroups.NAME_T01);
+                model.removeGroup(TypicalGroups.NAME_T03);
+                assertEquals(StudentListPanel.NO_ACTIVE_GROUP_HINT, hint.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     @Test
