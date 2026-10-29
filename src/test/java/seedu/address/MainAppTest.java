@@ -233,6 +233,25 @@ public class MainAppTest {
     }
 
     @Test
+    public void init_nullGuiSettings_usesAndSavesDefaultsAcrossRestart() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, "{\"guiSettings\":null}");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
+        app.logic.execute("group add g/T01");
+        app.stop();
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+        assertEquals(new UserPrefs(), reopened.model.getUserPrefs());
+        assertTrue(reopened.model.hasGroup(TypicalGroups.NAME_T01));
+        reopened.stop();
+    }
+
+    @Test
     public void init_savedFiles_restoresDataAndPrefs() throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
         Path dataFile = temporaryFolder.resolve("tassist.json");
