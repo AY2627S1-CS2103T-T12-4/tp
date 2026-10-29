@@ -41,6 +41,7 @@ public class TAssistArgumentParser {
     private static final Pattern LITERAL_WORD_FORMAT = Pattern.compile("[^\\s/]+/[^\\s/]+");
     /** A word as the prefix pattern sees it: text up to the next whitespace. */
     private static final Pattern WORD_FORMAT = Pattern.compile("\\S*");
+    private static final Pattern LOWERCASE_LETTERS = Pattern.compile("\\p{Ll}+");
 
     private final List<Prefix> requiredPrefixes;
     private final Set<Prefix> allowedPrefixes;
@@ -214,7 +215,8 @@ public class TAssistArgumentParser {
                 if (literalWords.contains(word.toLowerCase(Locale.ROOT))) {
                     continue;
                 }
-                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word, arguments));
+                boolean isAfterValue = !currentPrefix.getPrefix().isEmpty();
+                throw new ParseException(createUnknownPrefixMessage(nextPrefix, word, arguments, isAfterValue));
             }
             values.put(currentPrefix, arguments.substring(valueStart, matcher.start()).trim());
             currentPrefix = nextPrefix;
@@ -238,30 +240,46 @@ public class TAssistArgumentParser {
      * Returns the error for the unknown {@code prefix} that starts {@code word} in {@code arguments}. If the word
      * starts with a literal word glued to a name, such as {@code s/oKumar}, the error also says to separate the
      * literal word. Text that continues in lowercase, as in {@code a/lee} for the literal word {@code a/l}, is not
-     * taken as a glued name. Otherwise, the error may add a hint from {@link #findJoinedPrefixHint(Prefix, String)}.
+     * taken as a glued name. Otherwise, if the word comes after another parameter's value, the error may add a hint
+     * from {@link #findJoinedPrefixHint(Prefix, String)}.
      */
-    private String createUnknownPrefixMessage(Prefix prefix, String word, String arguments) {
+    private String createUnknownPrefixMessage(Prefix prefix, String word, String arguments, boolean isAfterValue) {
         String message = String.format(MESSAGE_UNKNOWN_PREFIX, prefix, formatAllowedPrefixes());
         Optional<String> literalWordHint = literalWords.stream()
                 .filter(literalWord -> isGluedToName(word, literalWord))
                 .findFirst()
                 .map(literalWord -> String.format(MESSAGE_SEPARATE_LITERAL_WORD,
                         word.substring(0, literalWord.length())));
-        return message + literalWordHint.or(() -> findJoinedPrefixHint(prefix, arguments)).orElse("");
+        Optional<String> hint = isAfterValue
+                ? literalWordHint.or(() -> findJoinedPrefixHint(prefix, arguments))
+                : literalWordHint;
+        return message + hint.orElse("");
     }
 
     /**
      * Returns a hint to put a space before the allowed prefix that ends the unknown {@code prefix}, as {@code id/}
-     * ends {@code Tanid/}, if {@code arguments} has no parameter with that allowed prefix.
+     * ends {@code Tanid/}, if {@code arguments} has no parameter with that allowed prefix. Text before the allowed
+     * prefix that is all lowercase letters, as in {@code status/} or {@code studentid/}, is taken as a mistyped prefix
+     * name rather than the end of a value.
      */
     private Optional<String> findJoinedPrefixHint(Prefix prefix, String arguments) {
         String unknownPrefix = prefix.getPrefix();
         return allowedPrefixes.stream()
                 .filter(allowedPrefix -> unknownPrefix.length() > allowedPrefix.getPrefix().length()
                         && unknownPrefix.endsWith(allowedPrefix.getPrefix()))
+                .filter(allowedPrefix -> !isLowercaseBefore(unknownPrefix, allowedPrefix))
                 .filter(allowedPrefix -> !hasParameter(arguments, allowedPrefix))
                 .findFirst()
                 .map(allowedPrefix -> String.format(MESSAGE_SEPARATE_PREFIX, allowedPrefix));
+    }
+
+    /**
+     * Returns true if the text of {@code unknownPrefix} before the {@code allowedPrefix} that ends it is all
+     * lowercase letters.
+     */
+    private static boolean isLowercaseBefore(String unknownPrefix, Prefix allowedPrefix) {
+        String textBefore = unknownPrefix.substring(0, unknownPrefix.length() - allowedPrefix.getPrefix().length());
+        return LOWERCASE_LETTERS.matcher(textBefore).matches();
     }
 
     private static boolean hasParameter(String arguments, Prefix prefix) {

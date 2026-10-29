@@ -82,6 +82,19 @@ public class TAssistArgumentParserTest {
     }
 
     @Test
+    public void parse_mistypedPrefixEndingWithAllowedPrefix_omitsHint() {
+        String[][] cases = {
+            {"n/Alice studentid/A1", "studentid/"},
+            {"n/alice tanid/A1", "tanid/"},
+            {"Tanid/A1 n/Alice", "Tanid/"}
+        };
+        for (String[] testCase : cases) {
+            assertThrows(ParseException.class, String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX,
+                    testCase[1], "n/ id/ g/"), () -> parser.parse(testCase[0]));
+        }
+    }
+
+    @Test
     public void parse_repeatedRequiredOrOptionalParameter_throwsSpecificError() {
         for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_ID, PREFIX_GROUP)) {
             String input = "n/Alice id/A1 g/T01 " + prefix + "Other";

@@ -311,9 +311,11 @@ Unknown prefixes, repeated parameters, missing required parameters, and unexpect
 produce specific errors. If a missing prefix appears inside another value right after other text, as `w/` does in
 `id/A0123456Xw/3`, the error says `Missing space before w/ in 'id/A0123456Xw/3'.` instead of naming `w/` as
 missing. It quotes only the value's first word, the only word that can hide a prefix, since a later word with a
-slash is read as a prefix of its own. Such a word, as in `n/Alice Tanid/A1`, is an unknown prefix (`Tanid/`). If it
-ends with an allowed prefix that the input lacks, the error adds `If id/ starts a new parameter, put a space before
-it.` Each command parser passes the prefixes whose values are a single word (for example `id/`
+slash is read as a prefix of its own. Such a word, as in `n/Alice Tanid/A1`, is an unknown prefix (`Tanid/`). The
+error adds `If id/ starts a new parameter, put a space before it.` only when the word comes after another value,
+ends with an allowed prefix that the input lacks, and has text before that prefix that is not all lowercase letters.
+Without these checks, a mistyped prefix name such as `status/` or `studentid/` would get a hint that does not help.
+Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
 instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
 `parseWithoutExtraTextCheck()`, calls `verifyNoMissingSpaceBefore()` for a missing prefix before reporting it,

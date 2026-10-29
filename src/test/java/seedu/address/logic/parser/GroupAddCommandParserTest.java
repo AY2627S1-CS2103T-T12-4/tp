@@ -45,15 +45,13 @@ public class GroupAddCommandParserTest {
         String[][] cases = {
             {"n/T01", "n/"},
             {"g/T01 x/value", "x/"},
-            {"G/T01", "G/"}
+            {"G/T01", "G/"},
+            {"T01g/T02", "T01g/"}
         };
         for (String[] testCase : cases) {
             assertParseFailure(parser, testCase[0],
                     String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, testCase[1], "g/"));
         }
-        assertParseFailure(parser, "T01g/T02",
-                String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "T01g/", "g/")
-                + String.format(TAssistArgumentParser.MESSAGE_SEPARATE_PREFIX, "g/"));
     }
 
     @Test

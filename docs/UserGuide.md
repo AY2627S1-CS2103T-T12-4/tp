@@ -133,7 +133,8 @@ Selecting rows with the keyboard does not replace your draft.
   `attendance mark id/A0123456Xw/3 s/present`, TAssist reports
   `Missing space before w/ in 'id/A0123456Xw/3'. Put a space before each prefix.` If the joined word follows a
   space, as `Tanid/` does in `student add n/Alice Tanid/A0123456X`, TAssist reports the unknown prefix `Tanid/`
-  and adds `If id/ starts a new parameter, put a space before it.`
+  and adds `If id/ starts a new parameter, put a space before it.` A mistyped prefix such as `status/` gets only
+  the unknown-prefix error.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
