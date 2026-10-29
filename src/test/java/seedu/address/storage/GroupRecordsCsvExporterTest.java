@@ -49,8 +49,9 @@ public class GroupRecordsCsvExporterTest {
     }
 
     @Test
-    public void export_group_writesUtf8CsvWithByteOrderMarkAndCrlf() throws IOException {
-        Group group = new GroupBuilder().withName(NAME_T01).withStudents(ALICE, BEN).build();
+    public void export_groupWithAssignment_writesUtf8CsvWithByteOrderMarkAndCrlf() throws IOException {
+        Assignment gradedPs1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true).withGrade(ALICE.getStudentId(), 87);
+        Group group = new GroupBuilder().withName(NAME_T01).withStudents(ALICE, BEN).withAssignments(gradedPs1).build();
         GroupRecordsCsvExporter exporter = new GroupRecordsCsvExporter(temporaryFolder.resolve("exports"));
 
         Path exportFile = exporter.export(group);
@@ -59,7 +60,9 @@ public class GroupRecordsCsvExporterTest {
         String csv = Files.readString(exportFile, StandardCharsets.UTF_8);
         assertTrue(csv.startsWith("\uFEFFName,Student ID,Week 1 Attendance,"));
         assertTrue(csv.contains("\r\nAlice Tan,A0123456X,Present,"));
-        assertTrue(csv.endsWith("\r\n"));
+        assertTrue(csv.contains(",Week 13 Participation,PS1 Submitted,PS1 Grade\r\n"));
+        assertTrue(csv.contains(",Yes,87\r\nBen Lim,"));
+        assertTrue(csv.endsWith(",No,\r\n"));
         assertEquals(3, csv.split("\r\n").length);
     }
 

@@ -482,7 +482,8 @@ without changing it, so `LogicManager` never saves after `group export`, whether
     * Cons: Mixes text and numbers in one column, so a spreadsheet cannot simply sum or average the grades.
 
 `CsvUtilTest` covers quoting, line breaks, formula guards, and CRLF. `GroupRecordsCsvExporterTest` covers the
-layout, including the assignment columns, the byte order mark, replacing an earlier export without leaving temporary files, and an unwritable folder.
+layout, including the assignment columns, the byte order mark, replacing an earlier export without leaving
+temporary files, and an unwritable folder.
 `GroupExportCommandTest` covers the feedback, a missing active group, and a failed write. `GroupCommandsIntegrationTest`
 runs `group export` through `LogicManager`, reads the file back, and checks that the model and data file are
 unchanged and that storage is never called.

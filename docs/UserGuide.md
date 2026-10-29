@@ -593,7 +593,8 @@ Missing or unknown subcommand | The feedback lists the valid subcommands: `add`,
 ### Exporting a group's records: `group export`
 
 Saves the attendance, participation, and assignment records of every student in the active group to a CSV file,
-which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
+which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or
+work out totals.
 Exporting only reads your records: it never changes them, the active group, or the saved data file.
 
 Format: `group export`
