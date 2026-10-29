@@ -462,7 +462,7 @@ mistake, `undo` brings them back.
 
 Format: `student delete id/STUDENT_ID [f/yes]`
 
-Example: `student delete id/A0234567Y` asks whether to remove Ben Lim (A0234567Y) and all their records from T01.
+Example: `student delete id/A0234567Y` asks whether to remove Benjamin Lim (A0234567Y) and all their records from T01.
 Enter `f/yes` to skip the prompt, for example `student delete id/A0234567Y f/yes`.
 IDs ignore case, so `student delete id/a0234567y` targets the same student.
 
