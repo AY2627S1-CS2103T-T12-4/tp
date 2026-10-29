@@ -67,7 +67,18 @@ public class JsonAdaptedGroupTest {
         List<JsonAdaptedStudent> students = new ArrayList<>(VALID_STUDENTS);
         students.add(new JsonAdaptedStudent("Fiona Lee", null));
         JsonAdaptedGroup group = new JsonAdaptedGroup(VALID_NAME, students);
-        String expectedMessage = String.format(JsonAdaptedStudent.MISSING_FIELD_MESSAGE_FORMAT, "studentId");
+        String expectedMessage = "Group " + VALID_NAME + ", student with missing ID: "
+                + String.format(JsonAdaptedStudent.MISSING_FIELD_MESSAGE_FORMAT, "studentId");
+        assertThrows(IllegalValueException.class, expectedMessage, group::toModelType);
+    }
+
+    @Test
+    public void toModelType_blankStudentId_reportsMissingId() {
+        List<JsonAdaptedStudent> students = new ArrayList<>(VALID_STUDENTS);
+        students.add(new JsonAdaptedStudent("Fiona Lee", "  "));
+        JsonAdaptedGroup group = new JsonAdaptedGroup(VALID_NAME, students);
+        String expectedMessage = "Group " + VALID_NAME + ", student with missing ID: "
+                + StudentId.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, group::toModelType);
     }
 

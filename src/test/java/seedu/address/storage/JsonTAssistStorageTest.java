@@ -231,7 +231,7 @@ public class JsonTAssistStorageTest {
         assertHandEditedFileRejected("""
                 {"groups":[{"name":"T01","students":[
                   {"name":"Alice Tan","studentId":"A1","participation":{"1":5.9}}]}]}
-                """, JsonAdaptedStudent.MESSAGE_INVALID_PARTICIPATION_SCORE);
+                """, "Group T01, student A1: " + JsonAdaptedStudent.MESSAGE_INVALID_PARTICIPATION_SCORE);
     }
 
     @Test

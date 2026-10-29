@@ -58,6 +58,11 @@ class JsonAdaptedStudent {
         participation = new TreeMap<>(source.getParticipationRecords().getRecords());
     }
 
+    /** Returns the ID as stored in the file, including an invalid or missing ID, for error reporting. */
+    String getStudentId() {
+        return studentId;
+    }
+
     /**
      * Creates an adapted student from JSON without discarding duplicate week aliases.
      *
