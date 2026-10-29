@@ -214,7 +214,7 @@ The `Model` component,
 The `Storage` component,
 * can save both TAssist data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
-* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and its assignment names, `JsonAdaptedStudent` for `Student`, and `JsonAdaptedAssignmentRecord` for each student's `AssignmentRecord` in an assignment (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 * also writes a group's records to a CSV file through `GroupRecordsCsvExporter`. This is a one-way export that TAssist never reads back, so it is kept out of the `Storage` interface (see [Exporting a group's records](#exporting-a-groups-records)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -236,16 +236,16 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 
 ```java
 CommandRegistry registry = new CommandRegistry();
-GroupCommandRegistration.registerCommands(registry);
+GroupCommandRegistration.registerCommands(registry, exportFolder);
 StudentCommandRegistration.registerCommands(registry);
 ParticipationCommandRegistration.registerCommands(registry);
 AttendanceCommandRegistration.registerCommands(registry);
 AssignmentCommandRegistration.registerCommands(registry);
-Logic logic = new LogicManager(model, storage, registry);
+Logic logic = new LogicManager(model, storage, registry, dataLoadStatus);
 ```
 
-`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `list`,
-`rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `export`,
+`list`, `rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
