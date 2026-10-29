@@ -16,7 +16,7 @@ Given below are my contributions to the project.
 * **New Feature**: Built the TAssist desktop UI, replacing the AddressBook contact cards
   ([\#74](https://github.com/AY2627S1-CS2103T-T12-4/tp/pull/74)).
   * What it does: shows the active tutorial group's roster in a workspace with a group bar, screen navigation, a
-    feedback row, and the command box. Screens not yet implemented are clearly labelled **Coming soon**.
+    feedback row, and the command box.
   * Keyboard access: added `view SCREEN` so every screen can be opened by typing, F1 to open Help, and Escape to
     return to the command box, keeping the product CLI-first.
   * Highlights: the layout adapts to compact windows and long content, and a JavaFX smoke test checks every screen,
