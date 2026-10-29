@@ -1920,7 +1920,8 @@ label.
    1. Enter `attendance mark id/A0123456X w/3 s/late`.
       Expected: `Invalid attendance status. Use present or absent.`
    1. Use a valid student ID absent from T01 in a mark command.
-      Expected: `Student ID <ID> does not exist in T01.`, naming the ID you entered.
+      Expected: `Student ID <ID> does not exist in T01. See students in the active group with: student list`,
+      naming the ID you entered.
    1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
    1. Verify that records and the saved file remain unchanged after each rejection.
    1. Close the app, set `activeGroup` to `null` in the file, and reopen it. All three attendance commands must
