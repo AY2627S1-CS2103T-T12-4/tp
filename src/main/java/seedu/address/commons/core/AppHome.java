@@ -8,7 +8,7 @@ import java.util.Locale;
 
 /**
  * Locates the folder that contains the running JAR.
- * Saved files stay inside this folder so TAssist does not read or write files elsewhere.
+ * The preference, data, export, and log files are placed in this folder by default.
  */
 public final class AppHome {
 

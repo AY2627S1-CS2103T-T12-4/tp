@@ -20,14 +20,14 @@ import seedu.address.storage.GroupRecordsCsvExporter;
  * Registers tutorial-group commands and their help entries before application startup.
  */
 public final class GroupCommandRegistration {
-    /** Name of the folder, next to the TAssist JAR, that exports are written to by default. */
+    /** Name of the folder, in the application home folder, that exports are written to by default. */
     public static final String EXPORT_FOLDER_NAME = "exports";
 
     private GroupCommandRegistration() {}
 
     /**
      * Adds tutorial-group parsers and help to the given registry. Exports are written to the
-     * {@value #EXPORT_FOLDER_NAME} folder next to the TAssist JAR.
+     * {@value #EXPORT_FOLDER_NAME} folder in the application home folder.
      *
      * @param registry The registry assembled before constructing the logic component.
      */

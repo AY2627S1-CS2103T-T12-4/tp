@@ -20,7 +20,7 @@ public class StudentFindCommand extends Command {
 
     private final StudentSearchPredicate predicate;
 
-    /** Creates a command that replaces the current search with {@code predicate}. */
+    /** Creates a command that replaces the current search with {@code predicate}, if the group has students. */
     public StudentFindCommand(StudentSearchPredicate predicate) {
         this.predicate = requireNonNull(predicate);
     }
