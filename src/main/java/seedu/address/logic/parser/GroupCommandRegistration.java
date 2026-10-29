@@ -59,9 +59,10 @@ public final class GroupCommandRegistration {
                         List.of("group use g/T01")));
         registry.register("group", "export", new GroupExportCommandParser(new GroupRecordsCsvExporter(exportFolder)),
                 new HelpEntry("group", GroupExportCommand.MESSAGE_USAGE,
-                        "Save the active group's attendance and participation for every week as a CSV file that "
-                                + "opens in a spreadsheet. The file is in the exports folder next to TAssist and "
-                                + "is replaced by the next export of the same group. Takes no parameters.",
+                        "Save the active group's attendance, participation, and assignment records as a CSV "
+                                + "file that opens in a spreadsheet. The file is in the exports folder next to "
+                                + "TAssist and is replaced by the next export of the same group. "
+                                + "Takes no parameters.",
                         List.of("group export")));
         registry.register("group", "rename", new GroupRenameCommandParser(),
                 new HelpEntry("group", GroupRenameCommand.MESSAGE_USAGE,

@@ -592,8 +592,8 @@ Missing or unknown subcommand | The feedback lists the valid subcommands: `add`,
 
 ### Exporting a group's records: `group export`
 
-Saves the attendance and participation of every student in the active group to a CSV file, which opens in Excel,
-Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
+Saves the attendance, participation, and assignment records of every student in the active group to a CSV file,
+which opens in Excel, Numbers, Google Sheets, or any other spreadsheet. Use it to keep a copy, share marks, or work out totals.
 Exporting only reads your records: it never changes them, the active group, or the saved data file.
 
 Format: `group export`
@@ -608,7 +608,7 @@ Format: `group export`
 Example: with T01 active, `group export` shows the full path of the file, for example:
 
 ```text
-Exported attendance and participation of 1 student in T01 to:
+Exported the records of 1 student in T01 to:
 /Users/alex/TAssist/exports/T01-records.csv
 ```
 
@@ -617,16 +617,18 @@ The file has a header row, then one row per student in roster order:
 * `Name` and `Student ID`.
 * `Week 1 Attendance` to `Week 13 Attendance`, each `Present`, `Absent`, or empty if no attendance was recorded.
 * `Week 1 Participation` to `Week 13 Participation`, each a score from 0 to 5, or empty if no score was set.
+* Two columns for each assignment of the group, in the order the assignments were created, such as `PS1 Submitted`
+  and `PS1 Grade`. The first is `Yes` or `No`, and the second is the grade from 0 to 100, or empty if no grade was
+  recorded. A group without assignments has no assignment columns.
 
-For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, her row reads
-(with the empty weeks shortened):
+For example, if Alice Tan was marked absent and given a participation score of 4 in Week 3, and her PS1 submission
+was graded 87, her row reads (with the empty weeks shortened):
 
-Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | …
------|------------|-------------------|-------------------|-------------------|---|----------------------|---
-Alice Tan | A0123456X | | | Absent | … | 4 | …
+Name | Student ID | Week 1 Attendance | Week 2 Attendance | Week 3 Attendance | … | Week 3 Participation | … | PS1 Submitted | PS1 Grade
+-----|------------|-------------------|-------------------|-------------------|---|----------------------|---|---------------|----------
+Alice Tan | A0123456X | | | Absent | … | 4 | … | Yes | 87
 
-An empty group exports only the header row. Assignment submissions and grades are not exported; list them with
-`assignment list a/ASSIGNMENT_NAME`.
+An empty group exports only the header row.
 
 Problem | Feedback and correction
 --------|------------------------

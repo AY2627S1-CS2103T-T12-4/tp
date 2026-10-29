@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalAssignments.PS1;
+import static seedu.address.testutil.TypicalAssignments.PS2;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 
 import java.io.IOException;
@@ -18,6 +20,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.model.assignment.Assignment;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -30,6 +33,7 @@ public class GroupRecordsCsvExporterTest {
             .build().withAttendanceRecord(1, "PRESENT").withAttendanceRecord(13, "ABSENT")
             .withParticipationRecord(1, 3).withParticipationRecord(2, 0);
     private static final Student BEN = new StudentBuilder().withName("Ben Lim").withStudentId("A0234567Y").build();
+    private static final Student CARL = new StudentBuilder().withName("Carl Ho").withStudentId("A0345678Z").build();
 
     @TempDir
     public Path temporaryFolder;
@@ -125,6 +129,24 @@ public class GroupRecordsCsvExporterTest {
         assertEquals(expectedRow("Alice Tan", "A0123456X", weeksWith(1, "Present", 13, "Absent"),
                 weeksWith(1, "3", 2, "0")), rows.get(1));
         assertEquals(expectedRow("Ben Lim", "A0234567Y", noRecords(), noRecords()), rows.get(2));
+    }
+
+    @Test
+    public void toRows_assignments_twoColumnsEachInCreationOrderAfterWeeks() {
+        Assignment gradedPs2 = PS2.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withGrade(ALICE.getStudentId(), 87).withSubmissionStatus(BEN.getStudentId(), true);
+        Assignment withdrawnPs1 = PS1.withSubmissionStatus(BEN.getStudentId(), false);
+        Group group = new GroupBuilder().withName(NAME_T01).withStudents(ALICE, BEN, CARL)
+                .withAssignments(gradedPs2, withdrawnPs1).build();
+
+        List<List<String>> rows = GroupRecordsCsvExporter.toRows(group);
+
+        int firstAssignmentColumn = 2 + 2 * WEEKS;
+        assertEquals(List.of("Week 13 Participation", "PS2 Submitted", "PS2 Grade", "PS1 Submitted", "PS1 Grade"),
+                rows.getFirst().subList(firstAssignmentColumn - 1, firstAssignmentColumn + 4));
+        assertEquals(List.of("Yes", "87", "No", ""), rows.get(1).subList(firstAssignmentColumn, rows.get(1).size()));
+        assertEquals(List.of("Yes", "", "No", ""), rows.get(2).subList(firstAssignmentColumn, rows.get(2).size()));
+        assertEquals(List.of("No", "", "No", ""), rows.get(3).subList(firstAssignmentColumn, rows.get(3).size()));
     }
 
     @Test
