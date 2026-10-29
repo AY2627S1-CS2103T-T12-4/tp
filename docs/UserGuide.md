@@ -400,7 +400,8 @@ Format: `student sort by/FIELD`
   restarting also resets both.
 
 For example, enter `student find n/alice`, then `student sort by/id` to order only matching students by ID.
-An unsupported or blank field shows `Invalid sort field. Use by/name or by/id.`
+An unsupported or blank field shows `Invalid sort field. Use by/name or by/id.` Text after the field, as in
+`student sort by/id now`, shows `Unexpected extra text after 'by/id': 'now'. This value cannot contain spaces.`
 Sorting zero displayed students reports, for example, `Sorted 0 student(s) in T01 by name.`
 The chosen order remains active for later matches or additions; sorting does not clear an existing search.
 
@@ -434,7 +435,7 @@ Missing parameter | `Missing required parameter. Usage: student add n/NAME id/ST
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
-Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `f/yes`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
+Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X`, `f/yes`, or `by/id`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
 ### Recording or correcting attendance: `attendance mark`

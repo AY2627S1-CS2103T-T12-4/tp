@@ -170,7 +170,7 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
         String saved = Files.readString(dataFile);
         for (String command : List.of("student find", "student find n/", "student find id/",
                 "student find n/Alice n/Ben", "student find n/Alice w/1", "student sort by/grade",
-                "student sort by/name by/id", "student sort")) {
+                "student sort by/name by/id", "student sort", "student sort by/id now")) {
             assertThrows(ParseException.class, () -> app.logic.execute(command));
             assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
         }
