@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import java.util.List;
 import java.util.Locale;
 
 import seedu.address.logic.commands.StudentSortCommand;
@@ -15,8 +16,8 @@ public class StudentSortCommandParser implements Parser<StudentSortCommand> {
 
     @Override
     public StudentSortCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = StudentCommandParserUtil.parse(arguments, StudentSortCommand.MESSAGE_USAGE,
-                PREFIX_BY);
+        ArgumentMultimap values = new TAssistArgumentParser(List.of(PREFIX_BY), List.of(), List.of(PREFIX_BY))
+                .parse(arguments);
         String field = values.getValue(PREFIX_BY).orElseThrow().toLowerCase(Locale.ROOT);
         return switch (field) {
             case "name" -> new StudentSortCommand(StudentSortField.NAME);

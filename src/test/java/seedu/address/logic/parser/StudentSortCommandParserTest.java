@@ -20,6 +20,18 @@ public class StudentSortCommandParserTest {
     private final StudentSortCommandParser parser = new StudentSortCommandParser();
 
     @Test
+    public void parse_extraText_reportsUnexpectedText() {
+        for (String field : List.of("id", "name", "ID")) {
+            for (String separator : List.of(" ", "\t", "  ")) {
+                String expected = String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "by/" + field, "now");
+                assertThrows(ParseException.class, expected, () -> parser.parse(" by/" + field + separator + "now"));
+            }
+        }
+        String missingMessage = String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "by/");
+        assertThrows(ParseException.class, missingMessage, () -> parser.parse(""));
+    }
+
+    @Test
     public void parse_supportedFields_ignoresCase() throws Exception {
         for (String input : List.of(" by/name", " by/NaMe", " by/ID", " by/id ")) {
             Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
