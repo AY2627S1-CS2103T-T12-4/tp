@@ -703,7 +703,7 @@ Invalid submission status | `Invalid submission status. Use yes or no.` Enter `y
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student ID A0999999Z does not exist in T01. See students in the active group with: student list` Check the ID, or switch to the student's group with `group use`.
-Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each, plus `n/` for `assignment rename`. `assignment delete` needs only `a/`.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each. `assignment rename` needs only `a/` and `n/`, and `assignment delete` needs only `a/`.
 Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `grade`, `list`, `rename`, and `submit`.
