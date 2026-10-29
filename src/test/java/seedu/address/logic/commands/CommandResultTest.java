@@ -35,6 +35,9 @@ public class CommandResultTest {
 
         // different exit value -> returns false
         assertFalse(commandResult.equals(new CommandResult("feedback", false, true)));
+
+        // different isCancelled value -> returns false
+        assertFalse(commandResult.equals(CommandResult.forCancelled("feedback")));
     }
 
     @Test
@@ -52,6 +55,18 @@ public class CommandResultTest {
 
         // different exit value -> returns different hashcode
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, true).hashCode());
+
+        // different isCancelled value -> returns different hashcode
+        assertNotEquals(commandResult.hashCode(), CommandResult.forCancelled("feedback").hashCode());
+    }
+
+    @Test
+    public void forCancelled_marksResultAsCancelled() {
+        CommandResult cancelled = CommandResult.forCancelled("feedback");
+        assertTrue(cancelled.isCancelled());
+        assertFalse(new CommandResult("feedback").isCancelled());
+        assertEquals(cancelled, CommandResult.forCancelled("feedback"));
+        assertTrue(cancelled.withSavedChanges().isCancelled());
     }
 
     @Test
@@ -94,7 +109,8 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=, hasSavedChanges=false}";
+                + ", exit=" + commandResult.isExit() + ", view=null, helpTopic=, hasSavedChanges=false, "
+                + "isCancelled=false}";
         assertEquals(expected, commandResult.toString());
     }
 }

@@ -33,6 +33,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * Connects the TAssist workspace, command input and feedback to application logic.
  */
 public class MainWindow extends UiPart<Stage> {
+    static final String MESSAGE_CANCELLED = "Command cancelled. No changes were made.";
     private static final String FXML = "MainWindow.fxml";
     private final Logger logger = LogsCenter.getLogger(getClass());
     private final Stage primaryStage;
@@ -220,10 +221,10 @@ public class MainWindow extends UiPart<Stage> {
             Optional<String> confirmationPrompt = logic.getConfirmationPrompt(commandText);
             if (confirmationPrompt.isPresent()
                     && !confirmationHandler.isConfirmed(primaryStage, confirmationPrompt.get())) {
-                String feedback = "Command cancelled. No changes were made.";
-                resultDisplay.setFeedbackToUser(feedback);
+                logger.info("Command cancelled: " + commandText);
+                resultDisplay.setFeedbackToUser(MESSAGE_CANCELLED);
                 statusBarFooter.setStatus("Command cancelled");
-                return new CommandResult(feedback);
+                return CommandResult.forCancelled(MESSAGE_CANCELLED);
             }
 
             CommandResult result = logic.execute(commandText);
