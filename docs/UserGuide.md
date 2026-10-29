@@ -74,6 +74,8 @@ use `view records` to return to it. The listing is a snapshot: run the list comm
 switching groups. It is not saved between launches. `assignment list` also opens Records with the assignment names.
 `group list` continues to use the feedback box; `student list` opens the Students table.
 
+![TAssist displaying attendance for a 20-student tutorial group on the Records screen](images/RecordsUi.png)
+
 The feedback row below the screen tells you whether your last command worked: a check mark means it did, and a cross
 on a red background means it failed. It grows to fit the message, up to four lines (about three in the compact
 layout); only longer messages need scrolling. Long feedback, such as a list, can be scrolled with **PageUp** and

@@ -41,6 +41,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
@@ -59,6 +60,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.address.commons.core.DataLoadStatus;
@@ -122,6 +124,44 @@ public class WorkspaceSmokeTest {
     @AfterAll
     public static void stopToolkit() {
         Platform.exit();
+    }
+
+    @Test
+    public void recordListings_refreshAfterScrolling_restartsAtTopAndNamesTheGroup() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                for (int i = 0; i < 17; i++) {
+                    enter(input, "student add n/Student id/S" + i);
+                }
+                enter(input, "attendance list w/3");
+                render(root, "records-before-scroll", 853, 440);
+            });
+            runOnFx(() -> {
+                TextArea listing = (TextArea) root.lookup("#recordListing");
+                assertEquals(21, listing.getText().lines().count());
+                pressKey(KeyCode.PAGE_DOWN);
+                assertTrue(listing.getScrollTop() > 0);
+                enter(input, "attendance mark id/A0123456X w/3 s/present");
+                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Not recorded"));
+                enter(input, "attendance list w/3");
+                assertEquals(0, listing.getCaretPosition());
+                assertEquals(0, listing.getScrollTop());
+                assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
+                render(root, "records-guide", 1280, 720, 2);
+                enter(input, "group use g/T02");
+                assertTrue(listing.getText().startsWith("Attendance for T01"));
+                String name = "A".repeat(60);
+                enter(input, "student add n/" + name + " id/A1234567890123456789");
+                enter(input, "attendance list w/3");
+                assertTrue(listing.getText().startsWith("Attendance for T02"));
+                assertTrue(listing.getText().contains(name + " | A1234567890123456789 | Not recorded"));
+                render(root, "records-long-values", 853, 440);
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
     }
 
     @Test
@@ -676,6 +716,8 @@ public class WorkspaceSmokeTest {
                 assertEquals("Recorded Alice Tan as present for Week 3.", feedback.getText());
                 enter(input, "attendance list w/3");
                 TextArea listing = (TextArea) root.lookup("#recordListing");
+                render(root, "attendance-list-default", 1280, 720);
+                assertNotNull(listing, "Weekly listings should appear in the main workspace");
                 assertEquals(21, listing.getText().lines().count());
                 assertTrue(listing.getText().contains("Alice Tan | A0123456X | Present"));
                 assertTrue(listing.getText().contains("Student | A116 | Not recorded"));
@@ -1476,10 +1518,16 @@ public class WorkspaceSmokeTest {
     }
 
     private void render(Parent root, String name, int width, int height) throws Exception {
+        render(root, name, width, height, 1);
+    }
+
+    private void render(Parent root, String name, int width, int height, double scale) throws Exception {
         root.resize(width, height);
         root.applyCss();
         root.layout();
-        WritableImage image = root.snapshot(null, null);
+        SnapshotParameters parameters = new SnapshotParameters();
+        parameters.setTransform(new Scale(scale, scale));
+        WritableImage image = root.snapshot(parameters, null);
         BufferedImage output = new BufferedImage((int) image.getWidth(), (int) image.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < output.getHeight(); y++) {
