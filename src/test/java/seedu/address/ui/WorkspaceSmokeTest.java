@@ -1033,7 +1033,8 @@ public class WorkspaceSmokeTest {
     private void initializeWorkspace(DataLoadStatus dataLoadStatus, IOException saveFailure) {
         isConfirmationAccepted = true;
         confirmationPrompt = null;
-        model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
+        TAssist initialData = dataLoadStatus.isFailure() ? new TAssist() : TypicalGroups.getTypicalTAssist();
+        model = new ModelManager(initialData, new UserPrefs());
         data = temporaryFolder.resolve("tassist.json");
         JsonTAssistStorage dataStorage = new JsonTAssistStorage(data) {
             @Override
