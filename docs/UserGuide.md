@@ -310,6 +310,7 @@ Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
 
 * Include at least one filter. If both are supplied, a student must match **both**.
 * Name fragments match anywhere in the name, including across words. Repeated spaces are treated as one space.
+* Name fragments may contain `s/o`, `d/o`, `a/l`, or `a/p` as a separate word, as names in `student add` do.
 * ID fragments can be incomplete and need not contain a digit. Accents remain significant.
 * Each search replaces the previous search and keeps the current sort order. Blank, repeated, and unknown filters are rejected.
 * Deleting the last student keeps the search active: the pane shows `No matching students` and `0 of 0 students`.
@@ -319,7 +320,8 @@ Format: `student find [n/NAME_FRAGMENT] [id/ID_FRAGMENT]`
 * Switching to a different group or restarting clears search and sorting. Selecting the already active group keeps them.
 * Searching does not change the roster or saved file. Use `student list` to show all students again.
 
-Examples: `student find n/alice` finds Alice Tan; `student find id/0123` matches A0123456X.
+Examples: `student find n/alice` finds Alice Tan; `student find id/0123` matches A0123456X;
+`student find n/Ravi s/o` finds Ravi s/o Kumar.
 `student find n/alice id/0123` requires both fragments to match the same student.
 
 No matches shows `No matching students in T01. Use student list to show all students.`
