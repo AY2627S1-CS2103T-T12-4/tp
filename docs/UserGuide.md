@@ -7,6 +7,7 @@ TAssist is a **desktop application for CS2040S teaching assistants, optimized fo
 The Students screen shows the students in your active tutorial group.
 You can create, list, switch, rename, and delete tutorial groups, add, list, and delete their students, record weekly attendance,
 record and list weekly participation scores, and create assignments, record submissions and grades, and list records.
+A mistaken change can be reversed with `undo` and `redo`, which cover your last 20 changes since you opened TAssist.
 
 * Table of Contents
 {:toc}
@@ -244,9 +245,9 @@ Example: `group rename g/T02 n/T02-Thu` shows `Renamed tutorial group T02 to T02
 
 ### Deleting a tutorial group: `group delete`
 
-Deletes a tutorial group together with all its students and their records. **This cannot be undone**, so check the
-name with `group list` first. Other groups are unchanged. If the deleted group was active, no group is active
-afterwards; select one with `group use`.
+Deletes a tutorial group together with all its students and their records. If deleted by mistake, `undo` brings the
+group back. Check the name with `group list` first. Other groups are unchanged. If the deleted group was active, no
+group is active afterwards; select one with `group use`.
 
 Format: `group delete g/GROUP_NAME [f/yes]`
 
@@ -364,7 +365,8 @@ The chosen order remains active for later matches or additions; sorting does not
 Asks you to confirm before removing a student and all their records from the active group.
 The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
 by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
-group is unaffected, and remaining students are renumbered without changing their order.
+group is unaffected, and remaining students are renumbered without changing their order. If you delete a student by
+mistake, `undo` brings them back.
 
 Format: `student delete id/STUDENT_ID [f/yes]`
 
