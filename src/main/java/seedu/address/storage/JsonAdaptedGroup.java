@@ -37,6 +37,8 @@ class JsonAdaptedGroup {
             "Assignment record refers to unknown assignment %s in group %s.";
     public static final String MESSAGE_UNKNOWN_RECORD_STUDENT =
             "Assignment record refers to unknown student %s in group %s.";
+    public static final String MESSAGE_INVALID_STUDENT = "Group %s, student %s: %s";
+    public static final String MISSING_STUDENT_ID = "with missing ID";
 
     private final String name;
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
@@ -151,7 +153,15 @@ class JsonAdaptedGroup {
         if (jsonAdaptedStudent == null) {
             throw new IllegalValueException(String.format(MESSAGE_EMPTY_STUDENT, group.getName()));
         }
-        Student student = jsonAdaptedStudent.toModelType();
+        Student student;
+        try {
+            student = jsonAdaptedStudent.toModelType();
+        } catch (IllegalValueException exception) {
+            String storedId = jsonAdaptedStudent.getStudentId();
+            String identifier = storedId == null || storedId.isBlank() ? MISSING_STUDENT_ID : storedId;
+            throw new IllegalValueException(String.format(MESSAGE_INVALID_STUDENT,
+                    group.getName(), identifier, exception.getMessage()), exception);
+        }
         if (group.hasStudent(student.getStudentId())) {
             throw new IllegalValueException(String.format(MESSAGE_DUPLICATE_STUDENT,
                     group.getName(), student.getStudentId()));

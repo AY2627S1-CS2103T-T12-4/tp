@@ -40,7 +40,8 @@ public class JsonSerializableTAssistTest {
     @Test
     public void toModelType_invalidStudentFile_throwsIllegalValueException() throws Exception {
         JsonSerializableTAssist dataFromFile = readFile(INVALID_STUDENT_FILE);
-        assertThrows(IllegalValueException.class, StudentId.MESSAGE_CONSTRAINTS, dataFromFile::toModelType);
+        assertThrows(IllegalValueException.class, "Group T01, student not an ID: " + StudentId.MESSAGE_CONSTRAINTS,
+                dataFromFile::toModelType);
     }
 
     @Test

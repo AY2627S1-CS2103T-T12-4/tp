@@ -33,6 +33,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.GroupName;
+import seedu.address.model.student.AttendanceStatus;
+import seedu.address.model.student.StudentName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -123,6 +125,9 @@ public class MainAppTest {
         new JsonTAssistStorage(dataFile()).saveTAssist(TypicalGroups.getTypicalTAssist());
         String validData = Files.readString(dataFile());
         for (String invalidData : List.of("{", "null", duplicateParticipation, duplicateAttendance,
+                validData.replace("\"groups\"", "\"Groups\""),
+                "{\"groups\":[],\"groups\":[]}",
+                weeklyRecordsData.formatted("\"attendance\":{\"3\":\"PRESENT\",\"3\":\"ABSENT\"}"),
                 validData + "\nTHIS IS INVALID JSON",
                 validData + "\n" + validData, validData + "\nnull", validData + "\n[]")) {
             Files.writeString(dataFile(), invalidData);
@@ -146,6 +151,33 @@ public class MainAppTest {
             MainApp reopened = new MainApp(prefsFile, dataFile());
             reopened.init();
             assertTrue(reopened.getDataLoadStatus().isFailure());
+            assertEquals(invalidData, Files.readString(dataFile()));
+        }
+    }
+
+    @Test
+    public void init_invalidStudentValues_namesGroupAndStudentAndProtectsFile() throws Exception {
+        String[][] cases = {
+            {"Ben_Lim", "\"attendance\":{}", StudentName.MESSAGE_CONSTRAINTS},
+            {"Ben Lim", "\"attendance\":{\"14\":\"PRESENT\"}", "Week must be a whole number from 1 to 13."},
+            {"Ben Lim", "\"attendance\":{\"3\":\"LATE\"}", AttendanceStatus.MESSAGE_CONSTRAINTS},
+            {"Ben Lim", "\"participation\":{\"14\":3}", "Week must be a whole number from 1 to 13."},
+            {"Ben Lim", "\"participation\":{\"3\":7}", "Participation score must be a whole number from 0 to 5."}
+        };
+        for (String[] testCase : cases) {
+            String invalidData = """
+                    {"activeGroup":"T01","groups":[
+                      {"name":"T01","students":[{"name":"Alice Tan","studentId":"A1"}]},
+                      {"name":"T02","students":[{"name":"Dan Koh","studentId":"B1"},
+                        {"name":"%s","studentId":"B2",%s}]}]}
+                    """.formatted(testCase[0], testCase[1]);
+            Files.writeString(dataFile(), invalidData);
+            MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
+            app.init();
+            assertEquals(DataLoadStatus.failed("Group T02, student B2: " + testCase[2]), app.getDataLoadStatus());
+            assertEquals(new TAssist(), app.model.getTAssist());
+            assertThrows(CommandException.class, () -> app.logic.execute("group add g/T03"));
+            app.stop();
             assertEquals(invalidData, Files.readString(dataFile()));
         }
     }
@@ -230,6 +262,25 @@ public class MainAppTest {
         assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
         assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
         assertEquals(DataLoadStatus.MISSING, app.getDataLoadStatus());
+    }
+
+    @Test
+    public void init_nullGuiSettings_usesAndSavesDefaultsAcrossRestart() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, "{\"guiSettings\":null}");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
+        app.logic.execute("group add g/T01");
+        app.stop();
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+        assertEquals(new UserPrefs(), reopened.model.getUserPrefs());
+        assertTrue(reopened.model.hasGroup(TypicalGroups.NAME_T01));
+        reopened.stop();
     }
 
     @Test
@@ -338,6 +389,18 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_unknownOrRepeatedFields_showsFieldAndLine() throws Exception {
+        assertLoadFailureReason("{\n  \"Groups\": []}",
+                "The file has an unknown field \"Groups\" near line 2.");
+        assertLoadFailureReason("{\n  \"groups\": [],\n  \"groups\": []}",
+                "The file has a repeated field 'groups' near line 3.");
+        assertLoadFailureReason("""
+                {"groups":[{"name":"T01","students":[{"name":"Alice","studentId":"A1",
+                "attendance":{"3":"PRESENT","3":"ABSENT"}}]}]}
+                """, "The file has a repeated field '3' near line 2.");
+    }
+
+    @Test
     public void describeLoadFailure_noJsonLocation_omitsLine() {
         String reason = "The file has a JSON syntax error or a value of the wrong type.";
         assertEquals(reason, MainApp.describeLoadFailure(
@@ -349,7 +412,7 @@ public class MainAppTest {
     private void assertLoadFailureReason(String invalidData, String reason) throws Exception {
         Files.writeString(dataFile(), invalidData);
         mainApp.initModelManager(createStorage(), new UserPrefs());
-        assertEquals(DataLoadStatus.failed(reason), mainApp.getDataLoadStatus());
+        assertEquals(DataLoadStatus.failed(reason).getMessage(), mainApp.getDataLoadStatus().getMessage());
         assertEquals(DataLoadStatus.MESSAGE_FAILED_PREFIX + " " + reason + " "
                 + DataLoadStatus.MESSAGE_FILE_UNCHANGED, mainApp.getDataLoadStatus().getMessage());
     }

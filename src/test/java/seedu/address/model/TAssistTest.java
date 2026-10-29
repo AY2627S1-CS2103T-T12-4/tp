@@ -27,6 +27,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.assignment.Assignment;
 import seedu.address.model.assignment.AssignmentName;
+import seedu.address.model.assignment.exceptions.AssignmentNotFoundException;
 import seedu.address.model.assignment.exceptions.DuplicateAssignmentException;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
@@ -222,6 +223,76 @@ public class TAssistTest {
     public void addAssignment_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> typicalTAssist.addAssignment(null, PS1));
         assertThrows(NullPointerException.class, () -> typicalTAssist.addAssignment(NAME_T01, null));
+    }
+
+    @Test
+    public void removeAssignment_existingAssignment_removesFromThatGroupOnly() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        typicalTAssist.addAssignment(NAME_T01, PS2);
+        typicalTAssist.addAssignment(NAME_T02, PS1);
+
+        assertEquals(PS1, typicalTAssist.removeAssignment(new GroupName("t01"), new AssignmentName("ps1")));
+        assertEquals(List.of(PS2), typicalTAssist.getGroup(NAME_T01).getAssignmentList());
+        assertEquals(List.of(PS1), typicalTAssist.getGroup(NAME_T02).getAssignmentList());
+    }
+
+    @Test
+    public void removeAssignment_missingAssignmentOrGroup_throwsException() {
+        assertThrows(AssignmentNotFoundException.class, () ->
+                typicalTAssist.removeAssignment(NAME_T01, PS1.getName()));
+        assertThrows(GroupNotFoundException.class, () -> typicalTAssist.removeAssignment(NAME_T04, PS1.getName()));
+    }
+
+    @Test
+    public void removeAssignment_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> typicalTAssist.removeAssignment(null, PS1.getName()));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.removeAssignment(NAME_T01, null));
+    }
+
+    @Test
+    public void renameAssignment_existingAssignment_renamesInThatGroupOnly() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        typicalTAssist.addAssignment(NAME_T02, PS1);
+
+        typicalTAssist.renameAssignment(new GroupName("t01"), new AssignmentName("ps1"), PS2.getName());
+
+        assertEquals(List.of(PS1.withName(PS2.getName())), typicalTAssist.getGroup(NAME_T01).getAssignmentList());
+        assertEquals(List.of(PS1), typicalTAssist.getGroup(NAME_T02).getAssignmentList());
+    }
+
+    @Test
+    public void renameAssignment_onlyChangesCase_dataIsNotEqualToOriginal() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        TAssist original = new TAssist(typicalTAssist);
+
+        typicalTAssist.renameAssignment(NAME_T01, PS1.getName(), new AssignmentName("ps1"));
+
+        assertFalse(original.equals(typicalTAssist));
+    }
+
+    @Test
+    public void renameAssignment_missingAssignmentOrGroup_throwsException() {
+        assertThrows(AssignmentNotFoundException.class, () ->
+                typicalTAssist.renameAssignment(NAME_T01, PS1.getName(), PS2.getName()));
+        assertThrows(GroupNotFoundException.class, () ->
+                typicalTAssist.renameAssignment(NAME_T04, PS1.getName(), PS2.getName()));
+    }
+
+    @Test
+    public void renameAssignment_nameOfAnotherAssignment_throwsDuplicateAssignmentException() {
+        typicalTAssist.addAssignment(NAME_T01, PS1);
+        typicalTAssist.addAssignment(NAME_T01, PS2);
+
+        assertThrows(DuplicateAssignmentException.class, () ->
+                typicalTAssist.renameAssignment(NAME_T01, PS1.getName(), new AssignmentName("ps2")));
+    }
+
+    @Test
+    public void renameAssignment_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () ->
+                typicalTAssist.renameAssignment(null, PS1.getName(), PS2.getName()));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.renameAssignment(NAME_T01, null, PS2.getName()));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.renameAssignment(NAME_T01, PS1.getName(), null));
     }
 
     @Test

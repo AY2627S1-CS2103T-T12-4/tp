@@ -10,7 +10,7 @@ import seedu.address.commons.util.ToStringBuilder;
 /**
  * Represents a student in a tutorial group.
  * A student is identified by their student ID, which is unique within a group.
- * Guarantees: details are present and not null, field values are validated, immutable.
+ * Guarantees: details are present and not null, immutable. The name and student ID are validated by their types.
  */
 public class Student {
 
@@ -20,7 +20,7 @@ public class Student {
     private final WeeklyRecord<Integer> participationRecords;
 
     /**
-     * Every field must be present and not null.
+     * Creates a student with the given name and ID and no weekly records.
      */
     public Student(StudentName name, StudentId studentId) {
         this(name, studentId, new WeeklyRecord<>(), new WeeklyRecord<>());

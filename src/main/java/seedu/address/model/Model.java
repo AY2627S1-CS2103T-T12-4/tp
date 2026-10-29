@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -126,6 +127,21 @@ public interface Model {
      * The group and assignment must already exist.
      */
     void setAssignment(GroupName groupName, Assignment assignment);
+
+    /**
+     * Removes the assignment named {@code assignmentName}, with its student records, from the group named
+     * {@code groupName} and returns the removed assignment.
+     * The group must exist, and the assignment must be in it.
+     */
+    Assignment removeAssignment(GroupName groupName, AssignmentName assignmentName);
+
+    /**
+     * Renames the assignment named {@code assignmentName} in the group named {@code groupName} to {@code newName},
+     * keeping its student records and position.
+     * The group and assignment must exist, and no other assignment in the group may have {@code newName}, ignoring
+     * case.
+     */
+    void renameAssignment(GroupName groupName, AssignmentName assignmentName, AssignmentName newName);
 
     /**
      * Records that the change described by {@code description} replaced {@code previousTAssist} with the current

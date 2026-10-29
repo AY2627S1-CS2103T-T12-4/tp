@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
+import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentSearchPredicate;
 import seedu.address.model.student.StudentSortField;
@@ -53,6 +54,24 @@ public class StudentDisplayTest {
         assertEquals(List.of(BEN), displayed);
         model.resetStudentDisplay();
         assertEquals(List.of(BEN, updatedAlice, aaron), displayed);
+    }
+
+    @Test
+    public void renameGroup_activeOrInactiveGroup_preservesSearchSortingAndLiveRoster() {
+        model.filterStudents(new StudentSearchPredicate("a", ""));
+        model.sortStudents(StudentSortField.NAME.getComparator());
+        StudentDisplayState previousDisplay = model.getStudentDisplayState();
+        GroupName renamed = new GroupName("T01-Thu");
+        model.renameGroup(NAME_T01, renamed);
+        assertEquals(previousDisplay, model.getStudentDisplayState());
+        assertEquals(List.of(ALICE, CARL), model.getDisplayedStudentList());
+        model.removeStudent(renamed, ALICE.getStudentId());
+        assertEquals(List.of(CARL), model.getDisplayedStudentList());
+        model.renameGroup(NAME_T02, new GroupName("T02-Fri"));
+        assertEquals(previousDisplay, model.getStudentDisplayState());
+        assertEquals(renamed, model.getActiveGroup().orElseThrow().getName());
+        model.setActiveGroup(new GroupName("T02-Fri"));
+        assertFalse(model.studentFilterActiveProperty().get());
     }
 
     @Test

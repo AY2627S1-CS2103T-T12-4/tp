@@ -29,7 +29,7 @@ public class GroupAddCommandParserTest {
 
     @Test
     public void parse_invalidName_reportsConstraints() {
-        for (String name : new String[] {"T_01", "T01!", "--", "a".repeat(61), "T01/T02"}) {
+        for (String name : new String[] {"T_01", "T01!", "--", "---", "a".repeat(61), "T01/T02"}) {
             assertParseFailure(parser, "g/" + name, GroupName.MESSAGE_CONSTRAINTS);
         }
     }

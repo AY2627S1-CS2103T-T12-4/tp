@@ -17,6 +17,7 @@ import seedu.address.model.student.StudentId;
 
 /**
  * Records or replaces one student's submission status for an assignment.
+ * Marking the assignment not submitted clears any grade recorded for it.
  */
 public class AssignmentSubmitCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS";

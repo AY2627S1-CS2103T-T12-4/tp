@@ -18,7 +18,8 @@ public class AssignmentName {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Invalid assignment name. Use 1-" + MAX_LENGTH
-                    + " letters, digits, spaces, hyphens, periods, colons, or parentheses.";
+                    + " letters, digits, spaces, hyphens, periods, colons, or parentheses, "
+                    + "with at least one letter or digit.";
 
     /*
      * Only letters, digits, spaces, hyphens, periods, colons and parentheses, with at least one letter or digit,

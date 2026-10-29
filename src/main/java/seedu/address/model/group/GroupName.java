@@ -17,7 +17,8 @@ public class GroupName {
     public static final int MAX_LENGTH = 60;
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Invalid group name. Use 1-" + MAX_LENGTH + " letters, digits, spaces, or hyphens.";
+            "Invalid group name. Use 1-" + MAX_LENGTH + " letters, digits, spaces, or hyphens, "
+                    + "with at least one letter or digit.";
 
     /*
      * Only letters, digits, spaces and hyphens, with at least one letter or digit,

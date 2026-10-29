@@ -61,6 +61,25 @@ public class UniqueAssignmentListTest {
     }
 
     @Test
+    public void remove_existingNameIgnoringCase_removesAndReturnsAssignment() {
+        uniqueAssignmentList.add(PS1);
+        uniqueAssignmentList.add(PS2);
+
+        assertEquals(PS1, uniqueAssignmentList.remove(new AssignmentName("ps1")));
+        assertEquals(List.of(PS2), uniqueAssignmentList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void remove_missingName_throwsAssignmentNotFoundException() {
+        assertThrows(AssignmentNotFoundException.class, () -> uniqueAssignmentList.remove(NAME_PS1));
+    }
+
+    @Test
+    public void remove_nullName_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueAssignmentList.remove((AssignmentName) null));
+    }
+
+    @Test
     public void setAssignments_listWithDuplicateNames_throwsDuplicateAssignmentException() {
         List<Assignment> assignmentsWithSameName = List.of(PS1, new Assignment(new AssignmentName("ps1")));
         assertThrows(DuplicateAssignmentException.class, () ->

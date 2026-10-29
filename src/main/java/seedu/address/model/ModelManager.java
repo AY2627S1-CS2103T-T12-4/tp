@@ -18,6 +18,7 @@ import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentName;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.Student;
@@ -125,7 +126,8 @@ public class ModelManager implements Model {
         requireAllNonNull(name, newName);
         tAssist.renameGroup(name, newName);
         logger.info("Renamed group " + name + " to " + newName);
-        trackActiveGroup();
+        // A rename replaces the group object, but keeps the same roster, so the display settings stay.
+        followActiveGroup();
     }
 
     @Override
@@ -176,6 +178,18 @@ public class ModelManager implements Model {
     public void setAssignment(GroupName groupName, Assignment assignment) {
         requireAllNonNull(groupName, assignment);
         tAssist.setAssignment(groupName, assignment);
+    }
+
+    @Override
+    public Assignment removeAssignment(GroupName groupName, AssignmentName assignmentName) {
+        requireAllNonNull(groupName, assignmentName);
+        return tAssist.removeAssignment(groupName, assignmentName);
+    }
+
+    @Override
+    public void renameAssignment(GroupName groupName, AssignmentName assignmentName, AssignmentName newName) {
+        requireAllNonNull(groupName, assignmentName, newName);
+        tAssist.renameAssignment(groupName, assignmentName, newName);
     }
 
     //=========== Undo and redo =============================================================================
@@ -283,6 +297,13 @@ public class ModelManager implements Model {
                 .equals(tAssist.getActiveGroup().map(Group::getName))) {
             resetStudentDisplay();
         }
+        followActiveGroup();
+    }
+
+    /**
+     * Points the active group views at the group that is active in {@code tAssist}, keeping the display settings.
+     */
+    private void followActiveGroup() {
         activeGroupTracker.track(tAssist.getActiveGroup());
         assert activeGroupTracker.activeGroupProperty().get().equals(tAssist.getActiveGroup())
                 : "The active group views must show the active group";

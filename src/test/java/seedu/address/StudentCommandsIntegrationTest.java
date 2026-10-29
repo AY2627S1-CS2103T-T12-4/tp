@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,18 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_namesWithPeriods_addedAndRestored() throws Exception {
+        feedback("student add n/S. Ramanathan id/A1");
+        feedback("student add n/Mohd. Ali id/A2");
+        feedback("student add n/John Smith Jr. id/A3");
+        restart();
+        assertEquals("Students in T01:\n1. S. Ramanathan | A1\n2. Mohd. Ali | A2\n3. John Smith Jr. | A3",
+                feedback("student list"));
+        feedback("student find n/Smith Jr.");
+        assertEquals("John Smith Jr.", app.logic.getDisplayedStudentList().getFirst().getName().toString());
+    }
+
+    @Test
     public void execute_namesWithSlashParticles_addedAndRestored() throws Exception {
         assertEquals("Added Ravi s/o Kumar to T01.", feedback("student add n/Ravi s/o Kumar id/A0345678Z"));
         assertEquals("Added Siti D/O Ahmad to T01.", feedback("student add n/Siti D/O Ahmad id/A0456789W"));
@@ -43,9 +56,26 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_findWithSlashParticles_matchesNames() throws Exception {
+        feedback("student add n/Ravi s/o Kumar id/A0345678Z");
+        feedback("student add n/Muthu a/l Raju id/A0456789W");
+        Map<String, String> searches = Map.of("student find n/Ravi s/o", "A0345678Z",
+                "student find n/MUTHU A/L raju", "A0456789W");
+        for (Map.Entry<String, String> search : searches.entrySet()) {
+            assertEquals("Found 1 matching student(s) in T01.", feedback(search.getKey()), search.getKey());
+            assertEquals(List.of(search.getValue()), app.logic.getDisplayedStudentList().stream()
+                    .map(student -> student.getStudentId().toString()).toList(), search.getKey());
+        }
+        String gluedParticleMessage = "Unknown prefix 's/'. Allowed prefixes: n/ id/. "
+                + "If s/o is part of the value, put a space before and after it.";
+        String gluedSearch = "student find n/Ravi s/oKumar";
+        assertThrows(ParseException.class, gluedParticleMessage, () -> app.logic.execute(gluedSearch));
+    }
+
+    @Test
     public void execute_studentCommandsAndRestart_preservesRosterAndDeletion() throws Exception {
         assertEquals("Added Alice Tan to T01.", feedback("student add n/Alice Tan id/a0123456x"));
-        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan. "
+        assertEquals("Added Alice Tan to T01. Warning: T01 already has a student named Alice Tan (A0123456X). "
                 + "Check that the student ID is correct.", feedback("student add n/Alice Tan id/A2"));
         assertEquals(2, app.logic.getActiveGroupStudentList().size());
         restart();
@@ -193,6 +223,24 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_renameActiveGroup_preservesSearchAndSortAndSavesNewName() throws Exception {
+        feedback("student add n/Ben Lim id/B2");
+        feedback("student add n/Alice Tan id/A3");
+        feedback("student add n/Alice Ng id/A1");
+        feedback("student find n/Alice");
+        feedback("student sort by/id");
+        List<Student> displayed = List.copyOf(app.logic.getDisplayedStudentList());
+        assertTrue(app.logic.execute("group rename g/T01 n/T01-Thu").hasSavedChanges());
+        assertEquals(displayed, app.logic.getDisplayedStudentList());
+        feedback("student add n/Alice Koh id/A2");
+        assertEquals(List.of("A1", "A2", "A3"), app.logic.getDisplayedStudentList().stream()
+                .map(student -> student.getStudentId().toString()).toList());
+        restart();
+        assertEquals("T01-Thu", app.model.getActiveGroup().orElseThrow().getName().toString());
+        assertEquals(app.logic.getActiveGroupStudentList(), app.logic.getDisplayedStudentList());
+    }
+
+    @Test
     public void execute_searchAndList_changesOnlyDisplayAndResetsOnRestart() throws Exception {
         feedback("student add n/Alice Tan id/A1");
         feedback("student add n/Ben Lim id/B2");
@@ -227,7 +275,7 @@ public class StudentCommandsIntegrationTest extends AppIntegrationTest {
         String saved = Files.readString(dataFile);
         for (String command : List.of("student find", "student find n/", "student find id/",
                 "student find n/Alice n/Ben", "student find n/Alice w/1", "student sort by/grade",
-                "student sort by/name by/id", "student sort")) {
+                "student sort by/name by/id", "student sort", "student sort by/id now")) {
             assertThrows(ParseException.class, () -> app.logic.execute(command));
             assertEquals(displayed, app.logic.getDisplayedStudentList(), command);
         }

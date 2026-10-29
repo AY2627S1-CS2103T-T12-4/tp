@@ -45,6 +45,13 @@ public class GroupDeleteCommandParserTest {
     }
 
     @Test
+    public void parse_missingSpaceBeforeFastOption_reportsMissingSpace() {
+        assertParseFailure(parser, " g/T01f/yes",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "f/", "g/T01f/yes"));
+        assertParseSuccess(parser, " g/T01 f/yes", new GroupDeleteCommand(new GroupName("T01"), true));
+    }
+
+    @Test
     public void parse_invalidName_reportsConstraints() {
         assertParseFailure(parser, "g/T_01", GroupName.MESSAGE_CONSTRAINTS);
     }

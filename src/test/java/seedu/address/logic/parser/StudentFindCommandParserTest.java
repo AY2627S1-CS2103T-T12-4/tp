@@ -33,6 +33,10 @@ public class StudentFindCommandParserTest {
                 " n/Alice n/Ben", " id/A1 id/A2", " x/Alice", " Alice", " n/Alice w/1")) {
             assertThrows(ParseException.class, () -> parser.parse(input));
         }
+        String idMessage = String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "n/aliceid/0123");
+        assertThrows(ParseException.class, idMessage, () -> parser.parse(" n/aliceid/0123"));
+        String nameMessage = String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "n/", "id/0123n/alice");
+        assertThrows(ParseException.class, nameMessage, () -> parser.parse(" id/0123n/alice"));
         assertThrows(NullPointerException.class, () -> parser.parse(null));
         assertThrows(ParseException.class, StudentFindCommandParser.MESSAGE_MISSING_FILTER, () -> parser.parse(""));
         String blankMessage = String.format(StudentFindCommandParser.MESSAGE_BLANK_FILTER, "n/");
