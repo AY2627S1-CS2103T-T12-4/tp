@@ -62,6 +62,23 @@ public class StudentAddCommandParserTest {
     }
 
     @Test
+    public void parse_nameEndingInIdBeforeSlash_reportsMissingParameter() {
+        for (String input : new String[] {"n/David/Tan", "n/David/", "n/David/A1!",
+            "n/David/" + "1".repeat(StudentId.MAX_LENGTH + 1)}) {
+            assertParseFailure(parser, input, "Missing required parameter. Usage: " + StudentAddCommand.MESSAGE_USAGE);
+        }
+    }
+
+    @Test
+    public void parse_davidWithSeparatedId_preservesNameValidation() {
+        assertParseSuccess(parser, "n/David Tan id/A1", new StudentAddCommand(new StudentBuilder()
+                .withName("David Tan").withStudentId("A1").build()));
+        assertParseSuccess(parser, "n/David s/o Tan id/A1", new StudentAddCommand(new StudentBuilder()
+                .withName("David s/o Tan").withStudentId("A1").build()));
+        assertParseFailure(parser, "n/David/Tan id/A1", StudentName.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_missingSpaceBeforePrefix_reportsMissingSpace() {
         assertParseFailure(parser, "n/Aliceid/A0123456X",
                 String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "id/", "n/Aliceid/A0123456X"));
