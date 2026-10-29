@@ -18,6 +18,7 @@ import seedu.address.model.student.StudentName;
 import seedu.address.model.student.UniqueStudentList;
 import seedu.address.model.student.WeeklyRecord;
 import seedu.address.model.student.WeeklyRecordEntry;
+import seedu.address.model.student.exceptions.StudentNotFoundException;
 
 /**
  * Represents a tutorial group, the students in it, and the assignments created for it.
@@ -143,6 +144,24 @@ public class Group {
      */
     public void setStudent(Student student) {
         students.setStudent(requireNonNull(student));
+    }
+
+    /**
+     * Replaces the student with {@code studentId} by {@code replacement}, which may have a different name or student
+     * ID, preserving that student's position in the group. If the student ID changes, the student's assignment
+     * records move to the new ID.
+     * The student must be in this group, and no other student in it may have the replacement's student ID.
+     */
+    public void replaceStudent(StudentId studentId, Student replacement) {
+        requireNonNull(replacement);
+        Student target = students.find(studentId).orElseThrow(StudentNotFoundException::new);
+        students.replace(target, replacement);
+        for (Assignment assignment : List.copyOf(getAssignmentList())) {
+            Assignment updated = assignment.withStudentIdChanged(studentId, replacement.getStudentId());
+            if (!updated.equals(assignment)) {
+                setAssignment(updated);
+            }
+        }
     }
 
     /**

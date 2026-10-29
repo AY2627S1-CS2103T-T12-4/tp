@@ -25,6 +25,7 @@ import seedu.address.model.group.exceptions.DuplicateGroupException;
 import seedu.address.model.group.exceptions.GroupNotFoundException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.testutil.TAssistBuilder;
 import seedu.address.testutil.TypicalGroups;
 
@@ -389,6 +390,27 @@ public class ModelManagerTest {
 
         assertEquals(updatedStudent, modelManager.getGroup(NAME_T01).getStudentList().getFirst());
         assertEquals(updatedStudent, modelManager.getActiveGroupStudentList().getFirst());
+    }
+
+    @Test
+    public void replaceStudent_activeStudent_updatesGroupAndObservableList() {
+        modelManager = modelWithActiveGroup(NAME_T01);
+        Student student = modelManager.getGroup(NAME_T01).getStudentList().getFirst();
+        Student edited = student.withNameAndId(new StudentName("Alicia Tan"), FIONA.getStudentId());
+
+        modelManager.replaceStudent(NAME_T01, student.getStudentId(), edited);
+
+        assertEquals(edited, modelManager.getGroup(NAME_T01).getStudentList().getFirst());
+        assertEquals(edited, modelManager.getActiveGroupStudentList().getFirst());
+        assertEquals(edited, modelManager.getDisplayedStudentList().getFirst());
+    }
+
+    @Test
+    public void replaceStudent_nullArguments_throwsNullPointerException() {
+        StudentId studentId = FIONA.getStudentId();
+        assertThrows(NullPointerException.class, () -> modelManager.replaceStudent(null, studentId, FIONA));
+        assertThrows(NullPointerException.class, () -> modelManager.replaceStudent(NAME_T01, null, FIONA));
+        assertThrows(NullPointerException.class, () -> modelManager.replaceStudent(NAME_T01, studentId, null));
     }
 
     @Test

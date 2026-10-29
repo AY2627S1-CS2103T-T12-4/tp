@@ -29,6 +29,20 @@ public class StudentTest {
     }
 
     @Test
+    public void withNameAndId_changesDetailsAndKeepsRecords() {
+        Student recorded = ALICE.withAttendanceRecord(1, "PRESENT").withParticipationRecord(2, 4);
+        Student edited = recorded.withNameAndId(NAME_BEN, ID_BEN);
+
+        assertEquals(NAME_BEN, edited.getName());
+        assertEquals(ID_BEN, edited.getStudentId());
+        assertEquals(recorded.getAttendanceRecords(), edited.getAttendanceRecords());
+        assertEquals(recorded.getParticipationRecords(), edited.getParticipationRecords());
+        assertEquals(NAME_ALICE, recorded.getName());
+        assertThrows(NullPointerException.class, () -> ALICE.withNameAndId(null, ID_BEN));
+        assertThrows(NullPointerException.class, () -> ALICE.withNameAndId(NAME_BEN, null));
+    }
+
+    @Test
     public void withWeeklyRecord_addsAndReplacesWithoutChangingOriginal() {
         Student withAttendance = ALICE.withAttendanceRecord(1, "PRESENT");
         Student withBothRecords = withAttendance.withParticipationRecord(1, 4);

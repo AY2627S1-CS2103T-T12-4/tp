@@ -34,6 +34,7 @@ import seedu.address.model.group.exceptions.DuplicateGroupException;
 import seedu.address.model.group.exceptions.GroupNotFoundException;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.model.student.exceptions.DuplicateStudentException;
 import seedu.address.model.student.exceptions.StudentNotFoundException;
 import seedu.address.testutil.StudentBuilder;
@@ -237,6 +238,30 @@ public class TAssistTest {
     public void removeStudent_existingStudent_removesAndReturnsStudent() {
         assertEquals(ALICE, typicalTAssist.removeStudent(NAME_T01, new StudentId("a0123456x")));
         assertEquals(List.of(BEN, CARL), typicalTAssist.getGroup(NAME_T01).getStudentList());
+    }
+
+    @Test
+    public void replaceStudent_existingStudent_replacesInThatGroupOnly() {
+        typicalTAssist.addStudent(NAME_T02, ALICE);
+        Student edited = ALICE.withNameAndId(new StudentName("Alicia Tan"), new StudentId("A0123457X"));
+
+        typicalTAssist.replaceStudent(NAME_T01, new StudentId("a0123456x"), edited);
+
+        assertEquals(List.of(edited, BEN, CARL), typicalTAssist.getGroup(NAME_T01).getStudentList());
+        assertTrue(typicalTAssist.getGroup(NAME_T02).hasStudent(ALICE.getStudentId()));
+    }
+
+    @Test
+    public void replaceStudent_invalidArguments_throwsException() {
+        StudentId aliceId = ALICE.getStudentId();
+        assertThrows(StudentNotFoundException.class, () ->
+                typicalTAssist.replaceStudent(NAME_T01, FIONA.getStudentId(), FIONA));
+        assertThrows(GroupNotFoundException.class, () -> typicalTAssist.replaceStudent(NAME_T04, aliceId, ALICE));
+        assertThrows(DuplicateStudentException.class, () -> typicalTAssist.replaceStudent(NAME_T01, aliceId,
+                ALICE.withNameAndId(ALICE.getName(), BEN.getStudentId())));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.replaceStudent(null, aliceId, ALICE));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.replaceStudent(NAME_T01, null, ALICE));
+        assertThrows(NullPointerException.class, () -> typicalTAssist.replaceStudent(NAME_T01, aliceId, null));
     }
 
     @Test

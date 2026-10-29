@@ -108,6 +108,14 @@ public interface Model {
     Student removeStudent(GroupName groupName, StudentId studentId);
 
     /**
+     * Replaces the student with {@code studentId} in the group named {@code groupName} by {@code replacement},
+     * which may have a different name or student ID. The student keeps their position, and their assignment
+     * records follow the new ID.
+     * The group and student must exist, and no other student in the group may have the replacement's student ID.
+     */
+    void replaceStudent(GroupName groupName, StudentId studentId, Student replacement);
+
+    /**
      * Adds {@code assignment} to the group named {@code groupName}.
      * The group must exist, and no assignment in it may have the same name, ignoring case.
      */

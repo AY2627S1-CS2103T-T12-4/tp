@@ -116,6 +116,58 @@ public class GroupTest {
     }
 
     @Test
+    public void replaceStudent_changedNameAndId_keepsPositionAndRecords() {
+        Student recordedAlice = ALICE.withAttendanceRecord(1, "PRESENT").withParticipationRecord(1, 4);
+        group.addStudent(recordedAlice);
+        group.addStudent(BEN);
+        Student edited = recordedAlice.withNameAndId(new StudentName("Alicia Tan"), new StudentId("A0123457X"));
+
+        group.replaceStudent(ALICE.getStudentId(), edited);
+
+        assertEquals(List.of(edited, BEN), group.getStudentList());
+        assertFalse(group.hasStudent(ALICE.getStudentId()));
+    }
+
+    @Test
+    public void replaceStudent_changedId_movesOnlyTheirAssignmentRecords() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        StudentId newId = new StudentId("A0123457X");
+        Assignment ps1 = PS1.withSubmissionStatus(ALICE.getStudentId(), true)
+                .withGrade(ALICE.getStudentId(), 87).withSubmissionStatus(BEN.getStudentId(), true);
+        group.addAssignment(ps1);
+        group.addAssignment(PS2);
+
+        group.replaceStudent(ALICE.getStudentId(), ALICE.withNameAndId(ALICE.getName(), newId));
+
+        Assignment updatedPs1 = group.findAssignment(PS1.getName()).orElseThrow();
+        assertEquals(ps1.getStudentRecord(ALICE.getStudentId()), updatedPs1.getStudentRecord(newId));
+        assertEquals(ps1.getStudentRecord(BEN.getStudentId()), updatedPs1.getStudentRecord(BEN.getStudentId()));
+        assertEquals(2, updatedPs1.getStudentRecords().size());
+        assertFalse(updatedPs1.getStudentRecords().containsKey(ALICE.getStudentId()));
+        assertEquals(List.of(updatedPs1, PS2), group.getAssignmentList());
+    }
+
+    @Test
+    public void replaceStudent_idOfAnotherStudent_throwsDuplicateStudentExceptionAndKeepsGroup() {
+        group.addStudent(ALICE);
+        group.addStudent(BEN);
+        group.addAssignment(PS1.withSubmissionStatus(ALICE.getStudentId(), true));
+        Group before = new Group(group);
+
+        Student clashing = ALICE.withNameAndId(ALICE.getName(), BEN.getStudentId());
+
+        assertThrows(DuplicateStudentException.class, () -> group.replaceStudent(ALICE.getStudentId(), clashing));
+        assertEquals(before, group);
+    }
+
+    @Test
+    public void replaceStudent_missingStudentOrNullReplacement_throwsException() {
+        assertThrows(StudentNotFoundException.class, () -> group.replaceStudent(ALICE.getStudentId(), BEN));
+        assertThrows(NullPointerException.class, () -> group.replaceStudent(ALICE.getStudentId(), null));
+    }
+
+    @Test
     public void removeStudent_missingStudent_throwsStudentNotFoundException() {
         assertThrows(StudentNotFoundException.class, () -> group.removeStudent(ALICE.getStudentId()));
     }

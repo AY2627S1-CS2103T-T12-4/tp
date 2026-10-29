@@ -97,6 +97,26 @@ public class Assignment {
     }
 
     /**
+     * Returns a copy where the record of {@code oldId} belongs to {@code newId}, so that a student whose ID changed
+     * keeps the record. A record already held for {@code newId} is discarded. Returns this assignment when
+     * neither ID has a record.
+     */
+    public Assignment withStudentIdChanged(StudentId oldId, StudentId newId) {
+        requireNonNull(oldId);
+        requireNonNull(newId);
+        if (oldId.equals(newId) || !studentRecords.containsKey(oldId) && !studentRecords.containsKey(newId)) {
+            return this;
+        }
+        Map<StudentId, AssignmentRecord> updatedRecords = new HashMap<>(studentRecords);
+        AssignmentRecord movedRecord = updatedRecords.remove(oldId);
+        updatedRecords.remove(newId);
+        if (movedRecord != null) {
+            updatedRecords.put(newId, movedRecord);
+        }
+        return new Assignment(name, updatedRecords);
+    }
+
+    /**
      * Returns true if both assignments have the same name, ignoring case.
      * This check is used to enforce unique assignment names within a group.
      */

@@ -164,6 +164,16 @@ public class TAssist implements ReadOnlyTAssist {
         return getGroup(groupName).removeStudent(studentId);
     }
 
+    /**
+     * Replaces the student with {@code studentId} in the group named {@code groupName} by {@code replacement},
+     * which may have a different name or student ID. The student's assignment records follow the new ID.
+     * The group and student must exist, and no other student in the group may have the replacement's student ID.
+     */
+    public void replaceStudent(GroupName groupName, StudentId studentId, Student replacement) {
+        requireAllNonNull(groupName, studentId, replacement);
+        getGroup(groupName).replaceStudent(studentId, replacement);
+    }
+
     //// assignment-level operations
 
     /**
