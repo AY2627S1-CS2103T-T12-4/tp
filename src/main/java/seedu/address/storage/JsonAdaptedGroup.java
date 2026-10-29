@@ -151,7 +151,15 @@ class JsonAdaptedGroup {
         if (jsonAdaptedStudent == null) {
             throw new IllegalValueException(String.format(MESSAGE_EMPTY_STUDENT, group.getName()));
         }
-        Student student = jsonAdaptedStudent.toModelType();
+        Student student;
+        try {
+            student = jsonAdaptedStudent.toModelType();
+        } catch (IllegalValueException exception) {
+            String identifier = jsonAdaptedStudent.getStudentId() == null
+                    ? "with missing ID" : jsonAdaptedStudent.getStudentId();
+            throw new IllegalValueException(String.format("Group %s, student %s: %s",
+                    group.getName(), identifier, exception.getMessage()), exception);
+        }
         if (group.hasStudent(student.getStudentId())) {
             throw new IllegalValueException(String.format(MESSAGE_DUPLICATE_STUDENT,
                     group.getName(), student.getStudentId()));

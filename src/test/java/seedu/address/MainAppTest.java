@@ -33,6 +33,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.TAssist;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.group.GroupName;
+import seedu.address.model.student.AttendanceStatus;
+import seedu.address.model.student.StudentName;
 import seedu.address.storage.JsonTAssistStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -146,6 +148,33 @@ public class MainAppTest {
             MainApp reopened = new MainApp(prefsFile, dataFile());
             reopened.init();
             assertTrue(reopened.getDataLoadStatus().isFailure());
+            assertEquals(invalidData, Files.readString(dataFile()));
+        }
+    }
+
+    @Test
+    public void init_invalidStudentValues_namesGroupAndStudentAndProtectsFile() throws Exception {
+        String[][] cases = {
+            {"Ben_Lim", "\"attendance\":{}", StudentName.MESSAGE_CONSTRAINTS},
+            {"Ben Lim", "\"attendance\":{\"14\":\"PRESENT\"}", "Week must be a whole number from 1 to 13."},
+            {"Ben Lim", "\"attendance\":{\"3\":\"LATE\"}", AttendanceStatus.MESSAGE_CONSTRAINTS},
+            {"Ben Lim", "\"participation\":{\"14\":3}", "Week must be a whole number from 1 to 13."},
+            {"Ben Lim", "\"participation\":{\"3\":7}", "Participation score must be a whole number from 0 to 5."}
+        };
+        for (String[] testCase : cases) {
+            String invalidData = """
+                    {"activeGroup":"T01","groups":[
+                      {"name":"T01","students":[{"name":"Alice Tan","studentId":"A1"}]},
+                      {"name":"T02","students":[{"name":"Dan Koh","studentId":"B1"},
+                        {"name":"%s","studentId":"B2",%s}]}]}
+                    """.formatted(testCase[0], testCase[1]);
+            Files.writeString(dataFile(), invalidData);
+            MainApp app = new MainApp(temporaryFolder.resolve("preferences.json"), dataFile());
+            app.init();
+            assertEquals(DataLoadStatus.failed("Group T02, student B2: " + testCase[2]), app.getDataLoadStatus());
+            assertEquals(new TAssist(), app.model.getTAssist());
+            assertThrows(CommandException.class, () -> app.logic.execute("group add g/T03"));
+            app.stop();
             assertEquals(invalidData, Files.readString(dataFile()));
         }
     }
