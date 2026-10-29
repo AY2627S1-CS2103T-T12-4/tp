@@ -2,11 +2,13 @@ package seedu.address.logic.parser;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
  * Checks the required parameters of student commands before validating their values.
+ * Every value except the name, such as an ID or a sort field, is a single word.
  */
 final class StudentCommandParserUtil {
     static final Prefix PREFIX_NAME = new Prefix("n/");
@@ -28,7 +30,9 @@ final class StudentCommandParserUtil {
     static ArgumentMultimap parse(String arguments, String usage, Collection<String> literalWords, Prefix... prefixes)
             throws ParseException {
         // Check presence here so the error includes this command's complete format.
-        List<Prefix> singleWordPrefixes = List.of(prefixes).contains(PREFIX_ID) ? List.of(PREFIX_ID) : List.of();
+        List<Prefix> singleWordPrefixes = Stream.of(prefixes)
+                .filter(prefix -> !prefix.equals(PREFIX_NAME))
+                .toList();
         TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(prefixes), singleWordPrefixes,
                 literalWords);
         ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);

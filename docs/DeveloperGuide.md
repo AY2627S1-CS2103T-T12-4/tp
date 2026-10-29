@@ -590,7 +590,8 @@ The table observes the read-only `studentFilterActiveProperty()` exposed by Mode
 whether a predicate is installed. Empty-state captions and counts use this property rather than roster size.
 An active search always shows the matching count against the total, including `0 of 0 students`.
 
-`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `StudentSortField` supplies
+`StudentSortCommandParser` requires `by/name` or `by/id`, ignoring the field's case. `by/` takes a single word, so
+`by/id now` is reported as extra text rather than as an invalid field. `StudentSortField` supplies
 ascending comparators: names use case-insensitive text comparison with student ID as the tie-breaker; IDs use
 lexicographic comparison of their normalized uppercase values. Sorting is exposed through the CLI; table headers
 remain non-sortable. These transformations keep the original roster order and all record/export commands intact.
@@ -1662,7 +1663,7 @@ label.
 3. Enter `student find n/nobody`. Expect a no-matches message and a hint to use `student list`.
    Enter `student list`; expect all three students in their insertion order, with Zoe first.
 4. Search for Alice again and sort by ID. Add Alice Tan (A0); expect A0 before A1 and A2. Delete A1; it disappears.
-   Enter `student find n/`, `student find n/Alice n/Zoe`, and `student sort by/grade`.
+   Enter `student find n/`, `student find n/Alice n/Zoe`, `student sort by/grade`, and `student sort by/id now`.
    Each must report its error and preserve the displayed rows, order, and saved file.
 5. While Alice is the search, mark Zoe's attendance and participation and list those records. Zoe must still be
    addressable, and record lists and `group export` must include the complete roster in insertion order.
