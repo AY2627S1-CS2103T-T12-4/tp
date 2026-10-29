@@ -309,10 +309,19 @@ Prefixes contain lowercase letters followed by `/`, and start at the beginning o
 Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
 parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
-produce specific errors. Each command parser passes the prefixes whose values are a single word (for example `id/`
+produce specific errors. If a missing prefix appears inside another value right after other text, as `w/` does in
+`id/A0123456Xw/3`, the error says `Missing space before w/ in 'id/A0123456Xw/3'.` instead of naming `w/` as
+missing. It quotes only the value's first word, the only word that can hide a prefix, since a later word with a
+slash is read as a prefix of its own. Such a word, as in `n/Alice Tanid/A1`, is an unknown prefix (`Tanid/`). The
+error adds `If id/ starts a new parameter, put a space before it.` only when the word comes after another value,
+ends with an allowed prefix that the input lacks, and has text before that prefix that is not all lowercase letters.
+Without these checks, a mistyped prefix name such as `status/` or `studentid/` would get a hint that does not help.
+Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
-instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
-`parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes, as the student
+and group parsers do, calls `verifyNoMissingSpaceBefore()` for a missing one before reporting it. If it also has
+single-word prefixes, it calls `parseWithoutExtraTextCheck()` first and `verifyNoExtraText()` last.
+Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
 
@@ -1508,7 +1517,8 @@ through the real parsers, model and JSON storage, but the steps below also check
    1. Enter `group use g/T01`. The previous step left T02 active, and PS1 exists only in T01, so switch
       back before trying the duplicate. Note the contents of `data/tassist.json`. Enter commands with an
       invalid value (`attendance mark id/A0123456X w/14 s/present`), a missing parameter
-      (`participation set id/A0123456X w/1`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
+      (`participation set id/A0123456X w/1`), a missing space before a prefix
+      (`attendance mark id/A0123456Xw/1 s/present`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
       (`assignment add a/ps1`), an unknown student (`attendance mark id/A9 w/1 s/present`) and a very long
       value (a student name of a few thousand letters).<br>
       Expected: `group use` reports `Switched active group to T01.` and saves. Each later command fails

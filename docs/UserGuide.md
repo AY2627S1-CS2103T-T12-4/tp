@@ -129,6 +129,13 @@ Selecting rows with the keyboard does not replace your draft.
 * Command keywords and prefixes use lowercase letters. Group names ignore case and extra spaces.
   Separate command words and parameters with spaces, and specify `g/` exactly once for `group add` and `group use`.
 
+* Put a space before each prefix. If a prefix is joined to the text before it, as `w/` is in
+  `attendance mark id/A0123456Xw/3 s/present`, TAssist reports
+  `Missing space before w/ in 'id/A0123456Xw/3'. Put a space before each prefix.` If the joined word follows a
+  space, as `Tanid/` does in `student add n/Alice Tanid/A0123456X`, TAssist reports the unknown prefix `Tanid/`
+  and adds `If id/ starts a new parameter, put a space before it.` A mistyped prefix such as `status/` gets only
+  the unknown-prefix error.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
 
@@ -372,6 +379,7 @@ No active group | `No active tutorial group. Create or select a group first.` Us
 Duplicate ID | `Student ID A0123456X already exists in T01.` Check `student list` before adding.
 Unknown ID when deleting | `Student ID A0123456X does not exist in T01.` Check the ID and active group.
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the deletion format). Supply all required prefixes.
+Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
 Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `w/3`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
