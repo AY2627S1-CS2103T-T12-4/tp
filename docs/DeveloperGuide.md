@@ -19,6 +19,14 @@ title: Developer Guide
   and its separate group strip. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or
   additional libraries are bundled.
 
+* Libraries used: [JavaFX](https://openjfx.io/) (GUI), [Jackson](https://github.com/FasterXML/jackson) (JSON storage),
+  and [JUnit 5](https://github.com/junit-team/junit5) (testing). Build and quality tools: [Gradle](https://gradle.org/),
+  [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
+  [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
+
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code), an AI coding assistant by Anthropic, to help
+  with some code, tests and documentation. Team members reviewed, tested and take responsibility for all submitted work.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
