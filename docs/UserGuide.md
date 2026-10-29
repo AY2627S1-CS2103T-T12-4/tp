@@ -651,10 +651,10 @@ data unchanged.
 
 Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
 
-Example: `assignment submit a/PS1 id/A0123456X s/no` shows
+Example: because Alice has not submitted PS1 yet, `assignment submit a/PS1 id/A0123456X s/no` shows
 `Alice Tan's PS1 submission status is already not submitted. Nothing changed.`
-because Alice has not submitted PS1 yet. Running `assignment submit a/PS1 id/A0123456X s/yes`
-then shows `Updated Alice Tan's PS1 submission status to submitted.`
+Running `assignment submit a/PS1 id/A0123456X s/yes` then shows
+`Updated Alice Tan's PS1 submission status to submitted.`
 
 ### Recording a grade: `assignment grade`
 
