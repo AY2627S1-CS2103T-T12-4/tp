@@ -19,9 +19,12 @@ public class StudentFindCommandParser implements Parser<StudentFindCommand> {
 
     @Override
     public StudentFindCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID))
-                .parse(arguments);
+        TAssistArgumentParser parser = new TAssistArgumentParser(List.of(), List.of(PREFIX_NAME, PREFIX_ID));
+        ArgumentMultimap values = parser.parse(arguments);
         for (Prefix prefix : List.of(PREFIX_NAME, PREFIX_ID)) {
+            if (values.getValue(prefix).isEmpty()) {
+                parser.verifyNoMissingSpaceBefore(values, prefix);
+            }
             if (values.getValue(prefix).isPresent() && values.getValue(prefix).orElseThrow().isBlank()) {
                 throw new ParseException(String.format(MESSAGE_BLANK_FILTER, prefix));
             }
