@@ -300,6 +300,7 @@ Format: `group delete g/GROUP_NAME [f/yes]`
 
 * TAssist first asks you to confirm. The prompt names the group and how many students and assignments will be deleted.
   Cancel is selected by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+  If you cancel, the command stays in the command box so you can edit it.
 * Add `f/yes` to skip the prompt.
 
 Example: `group delete g/T02-Thu` asks whether to delete T02-Thu, its students, and its assignments. After you confirm,
@@ -416,7 +417,8 @@ The chosen order remains active for later matches or additions; sorting does not
 
 Asks you to confirm before removing a student and all their records from the active group.
 The prompt names the student, their student ID, and the group, because names are not unique. Cancel is selected
-by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete. The same student in another
+by default, so Enter or Escape leaves the data unchanged. Choose Continue to delete.
+If you cancel, the command stays in the command box so you can edit it. The same student in another
 group is unaffected, and remaining students are renumbered without changing their order. If you delete a student by
 mistake, `undo` brings them back.
 

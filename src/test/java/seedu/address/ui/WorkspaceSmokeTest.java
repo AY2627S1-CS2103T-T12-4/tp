@@ -411,7 +411,9 @@ public class WorkspaceSmokeTest {
                 TAssist beforeCancelledDelete = new TAssist(model.getTAssist());
                 String savedBeforeCancelledDelete = Files.readString(data);
                 enter(input, "student delete id/a1");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/a1", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(savedBeforeCancelledDelete, Files.readString(data));
                 assertEquals(2, studentTable().getItems().size());
@@ -457,19 +459,49 @@ public class WorkspaceSmokeTest {
                 cancelConfirmationWithEnter("Remove Ben Lim (A2) and all their attendance, participation, "
                         + "submission, and grade records from T03?");
                 enter(input, "student delete id/A2");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/A2", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(1, studentTable().getItems().size());
 
                 respondToConfirmation("Cancel");
                 enter(input, "student delete id/A2");
-                assertEquals("Command cancelled. No changes were made.", feedback.getText());
+                assertEquals(MainWindow.MESSAGE_CANCELLED, feedback.getText());
+                assertEquals("student delete id/A2", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(beforeCancelledDelete, model.getTAssist());
                 assertEquals(1, studentTable().getItems().size());
             });
         } finally {
             runOnFx(() -> stage.hide());
             shouldUseDefaultConfirmationHandler = false;
+        }
+    }
+
+    @Test
+    public void groupDelete_cancel_keepsCommandAndSavedData() throws Exception {
+        runOnFx(this::initializeWorkspace);
+        try {
+            runOnFx(() -> {
+                enter(input, "group use g/T01");
+                TAssist beforeDelete = new TAssist(model.getTAssist());
+                String savedBeforeDelete = Files.readString(data);
+                isConfirmationAccepted = false;
+                enter(input, "group delete g/T01");
+                assertEquals("group delete g/T01", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(MainWindow.MESSAGE_CANCELLED, ((TextArea) root.lookup("#resultDisplay")).getText());
+                assertEquals(beforeDelete, model.getTAssist());
+                assertEquals(savedBeforeDelete, Files.readString(data));
+                input.setText("edited draft");
+                pressKey(KeyCode.UP);
+                assertEquals("group delete g/T01", input.getText());
+                pressKey(KeyCode.UP);
+                assertEquals("group use g/T01", input.getText());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
         }
     }
 
@@ -793,6 +825,25 @@ public class WorkspaceSmokeTest {
             } finally {
                 displayStage.close();
             }
+        });
+    }
+
+    @Test
+    public void commandBox_enter_clearsInputUnlessCommandCancelled() throws Exception {
+        runOnFx(() -> {
+            CommandBox box = new CommandBox(command -> command.startsWith("cancel")
+                    ? CommandResult.forCancelled(MainWindow.MESSAGE_CANCELLED)
+                    : new CommandResult("Recorded"), isDown -> { });
+            TextField field = (TextField) box.getRoot().lookup("#commandTextField");
+            field.setText("cancel this");
+            field.getStyleClass().add(CommandBox.ERROR_STYLE_CLASS);
+            field.fireEvent(new ActionEvent());
+            assertEquals("cancel this", field.getText());
+            assertFalse(field.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
+            field.setText("run this");
+            field.fireEvent(new ActionEvent());
+            assertTrue(field.getText().isEmpty());
         });
     }
 
