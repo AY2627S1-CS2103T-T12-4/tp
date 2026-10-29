@@ -363,8 +363,8 @@ Empty values are retained for the value validator to report a value error instea
 A command declaring no prefixes rejects extra input.
 
 A parser may also declare **literal words**: words such as `s/o` that look like a prefix followed by text but belong
-to a value. `student add` declares `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`), so
-`n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
+to a value. `student add` and `student find` declare `StudentName.SLASH_PARTICLES` (`s/o`, `d/o`, `a/l` and `a/p`),
+so `n/Ravi s/o Kumar` keeps `s/o` in the name instead of reporting an unknown prefix `s/`. A literal word counts only
 when it stands alone between whitespace, ignoring case. `s/oKumar` is still an unknown prefix, and the error adds
 `If s/o is part of the value, put a space before and after it.` The hint appears only when the text after the
 literal word does not start with a lowercase letter, so `a/lee` is reported as an unknown prefix without it. A literal
@@ -373,8 +373,8 @@ words parse exactly as before, so `s/` in `attendance mark` is unaffected.
 
 **Aspect: Reading `s/o` in a name**
 
-* **Alternative 1 (current choice):** `student add` declares a short list of literal words.
-  * Pros: Only the command that takes a name changes, and only for these particles. Every other prefix check,
+* **Alternative 1 (current choice):** `student add` and `student find` declare a short list of literal words.
+  * Pros: Only the commands that take a name change, and only for these particles. Every other prefix check,
     including typos such as `x/`, still reports a specific error.
   * Cons: A particle that is not in the list, or one joined to the next word, is still read as a prefix.
 * **Alternative 2:** Treat every unknown prefix after `n/` as part of the name.
@@ -603,8 +603,8 @@ participation feedback and failed-input retention through the JavaFX command box
 The add and delete parsers use `StudentCommandParserUtil` to reject malformed parameters and report missing
 prefixes with the command's usage. Present but blank values go through the existing domain validators, so a blank
 name or ID reports its value constraints. Listing accepts no parameters. `StudentName` accepts `s/o`, `d/o`, `a/l`
-and `a/p` only as a separate word between two parts of a name, and the add parser keeps them in the name as literal
-words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
+and `a/p` only as a separate word between two parts of a name, and the add and find parsers keep them in the name as
+literal words (see [Command registration and shared validation](#command-registration-and-shared-validation)).
 
 Each command obtains the active group at execution time and throws `CommandException` if none is selected.
 `StudentAddCommand` checks ID uniqueness before calling `Model.addStudent`; names need not be unique. If
@@ -1813,6 +1813,7 @@ label.
    Then try `student add n/Ravi s/o id/A5`, `student add n/Ravi s/oKumar id/A5`, and
    `student add n/Ravi x/o Kumar id/A5`. Expect the name rules for the first, an unknown prefix `s/` with a hint to
    put spaces around `s/o` for the second, and an unknown prefix `x/` for the third.
+   Enter `student find n/Ravi s/o`; expect only Ravi s/o Kumar and `Found 1 matching student(s) in T01.`
 
 ### Managing tutorial groups
 
