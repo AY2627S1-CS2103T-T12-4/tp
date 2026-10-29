@@ -227,7 +227,8 @@ separate. Selecting the group that is already active shows
 Format: `group use g/GROUP_NAME`
 
 Examples: `group use g/T01` switches back to T01 and shows `Switched active group to T01.` Because names ignore case,
-entering `group use g/t01` instead selects the same group.
+`group use g/t01` names the same group, so entering it after the example above shows
+`T01 is already the active group. Nothing changed.`
 
 ### Exporting a group's records: `group export`
 
@@ -376,9 +377,10 @@ Format: `student edit id/STUDENT_ID [n/NEW_NAME] [nid/NEW_ID]`
 
 Examples: `student edit id/A0234567Y n/Benjamin Lim` shows
 `Edited Ben Lim (A0234567Y) to Benjamin Lim (A0234567Y) in T01. Their records are kept.`
-`student edit id/A0345678Z nid/A0345679Z` then corrects Ravi s/o Kumar's student ID.
-Entering `student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z` instead corrects both in
-one command — the ID, and the name too if it were wrong.
+To correct only the student ID, enter `student edit id/A0345678Z nid/A0345679Z`. To give both prefixes in
+one command, enter `student edit id/A0345678Z n/Ravi s/o Kumar nid/A0345679Z`, which shows
+`Edited Ravi s/o Kumar (A0345678Z) to Ravi s/o Kumar (A0345679Z) in T01. Their records are kept.`
+Use one or the other: after the first command, the second reports that A0345678Z does not exist.
 
 ### Listing students: `student list`
 
