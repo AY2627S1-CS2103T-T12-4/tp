@@ -35,7 +35,8 @@ public class StudentListPanel extends UiPart<Region> {
     static final String NO_ACTIVE_GROUP_HINT = "Add a tutorial group and make it active to see its students here.";
     static final String DATA_NOT_READ = "Saved data could not be read";
     static final String DATA_NOT_READ_HINT =
-            "The feedback box says why. Close TAssist, repair or move the data file, and restart.";
+            "Close TAssist, repair or move the data file, and restart. Any command other than help, view or exit "
+                    + "shows why.";
     static final String EMPTY_GROUP_TITLE_FORMAT = "No students in %s yet";
     static final String EMPTY_GROUP_HINT_FORMAT = "Students you add to %s will appear here.";
 
