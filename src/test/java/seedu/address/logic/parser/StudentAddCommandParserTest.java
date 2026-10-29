@@ -89,6 +89,16 @@ public class StudentAddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithoutLetters_explainsLetterRequirement() {
+        String message = "Invalid student name. Use 1-60 letters, spaces, apostrophes, or hyphens, "
+                + "with at least one letter outside the slash particles. "
+                + "Between two parts of a name, you may also use s/o, d/o, a/l, or a/p.";
+        for (String name : new String[] {"'-", "' s/o -"}) {
+            assertParseFailure(parser, "n/" + name + " id/A1", message);
+        }
+    }
+
+    @Test
     public void parse_malformedParameters_reportsSpecificError() {
         assertParseFailure(parser, "n/Alice n/Ben id/A1",
                 Messages.getErrorMessageForDuplicatePrefixes(new Prefix("n/")));
