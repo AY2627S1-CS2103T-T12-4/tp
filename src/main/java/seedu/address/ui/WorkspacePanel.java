@@ -22,7 +22,7 @@ import seedu.address.model.group.Group;
 import seedu.address.model.student.Student;
 
 /**
- * Hosts the seven TAssist screens while preserving the live student roster across navigation.
+ * Hosts the TAssist screens while preserving the live student roster across navigation.
  */
 public class WorkspacePanel extends UiPart<TabPane> {
     private final Map<WorkspaceView, Tab> views = new EnumMap<>(WorkspaceView.class);
@@ -33,27 +33,18 @@ public class WorkspacePanel extends UiPart<TabPane> {
     private TabPane tabs;
 
     /**
-     * Creates the workspace with the active group's live students and explicit previews of future features.
+     * Creates the workspace with the active group's live students, the help reference, and the storage details.
      */
-    public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
-            ObservableList<Student> displayedStudents, ObservableBooleanValue hasStudentFilter,
-            Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler) {
+    public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Group> groups,
+            ObservableList<Student> students, ObservableList<Student> displayedStudents,
+            ObservableBooleanValue hasStudentFilter,
+            Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler,
+            boolean isDataLoadFailed) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, displayedStudents,
-                hasStudentFilter, studentClickHandler);
+        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, groups, students, displayedStudents,
+                hasStudentFilter, studentClickHandler, isDataLoadFailed);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
-        addView(WorkspaceView.GROUPS, new FeaturePreview("Tutorial groups",
-                "Use group add, group list, and group use to manage tutorial groups. This table is coming soon.",
-                "#", "GROUP", "STATUS").getRoot());
-        addWeeklyView(WorkspaceView.ATTENDANCE, "Weekly attendance",
-                "Use attendance mark and attendance list for records in the feedback box. This table is coming soon.",
-                "ATTENDANCE");
-        addWeeklyView(WorkspaceView.PARTICIPATION, "Weekly participation",
-                "Use participation set and participation list to manage scores. This table is coming soon.", "SCORE");
-        addView(WorkspaceView.ASSIGNMENTS, new FeaturePreview("Assignment records",
-                "Use assignment add, assignment submit, assignment grade, and assignment list to manage records.",
-                "NAME", "STUDENT ID", "SUBMISSION", "GRADE").getRoot());
         helpPanel = new HelpPanel(helpEntries);
         addView(WorkspaceView.HELP, helpPanel.getRoot());
         addView(WorkspaceView.STORAGE, new StoragePanel(dataFilePath).getRoot());
@@ -73,12 +64,6 @@ public class WorkspacePanel extends UiPart<TabPane> {
     private WorkspaceView findView(Tab tab) {
         return views.entrySet().stream().filter(entry -> entry.getValue() == tab).map(Map.Entry::getKey)
                 .findFirst().orElseThrow();
-    }
-
-    private void addWeeklyView(WorkspaceView view, String title, String explanation, String column) {
-        FeaturePreview preview = new FeaturePreview(title, explanation, "NAME", "STUDENT ID", column);
-        preview.showWeeks();
-        addView(view, preview.getRoot());
     }
 
     private void addView(WorkspaceView view, Node content) {

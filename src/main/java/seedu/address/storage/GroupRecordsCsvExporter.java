@@ -14,6 +14,8 @@ import java.util.stream.IntStream;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.CsvUtil;
+import seedu.address.model.assignment.Assignment;
+import seedu.address.model.assignment.AssignmentRecord;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
 import seedu.address.model.student.AttendanceStatus;
@@ -21,9 +23,10 @@ import seedu.address.model.student.Student;
 import seedu.address.model.student.WeeklyRecord;
 
 /**
- * Exports the attendance and participation of one tutorial group to a CSV file in an exports folder.
- * The file has one row per student, in roster order, with their name, student ID, and attendance and participation
- * for every week of the term. A week without a record is left empty.
+ * Exports the records of one tutorial group to a CSV file in an exports folder.
+ * The file has one row per student, in roster order, with their name, student ID, attendance and participation for
+ * every week of the term, and submission status and grade for every assignment of the group, in creation order.
+ * A week or grade without a record is left empty.
  */
 public class GroupRecordsCsvExporter {
     /** Ending of every export's file name, after the group name. */
@@ -33,6 +36,10 @@ public class GroupRecordsCsvExporter {
     static final String HEADER_STUDENT_ID = "Student ID";
     static final String HEADER_ATTENDANCE_FORMAT = "Week %d Attendance";
     static final String HEADER_PARTICIPATION_FORMAT = "Week %d Participation";
+    static final String HEADER_SUBMITTED_FORMAT = "%s Submitted";
+    static final String HEADER_GRADE_FORMAT = "%s Grade";
+    static final String SUBMITTED_YES = "Yes";
+    static final String SUBMITTED_NO = "No";
     /** Marks the file as UTF-8, so that spreadsheets show accented names correctly. */
     static final String BYTE_ORDER_MARK = "\uFEFF";
 
@@ -82,8 +89,8 @@ public class GroupRecordsCsvExporter {
         } finally {
             Files.deleteIfExists(temporaryFile);
         }
-        logger.info("Exported " + group.getStudentList().size() + " students of " + group.getName() + " to "
-                + exportFile);
+        logger.info("Exported " + group.getStudentList().size() + " students and "
+                + group.getAssignmentList().size() + " assignments of " + group.getName() + " to " + exportFile);
         return exportFile;
     }
 
@@ -93,24 +100,34 @@ public class GroupRecordsCsvExporter {
     static List<List<String>> toRows(Group group) {
         requireNonNull(group);
         List<List<String>> rows = new ArrayList<>();
-        rows.add(createHeader());
-        group.getStudentList().forEach(student -> rows.add(createRow(student)));
+        List<Assignment> assignments = group.getAssignmentList();
+        rows.add(createHeader(assignments));
+        group.getStudentList().forEach(student -> rows.add(createRow(student, assignments)));
         return rows;
     }
 
-    private static List<String> createHeader() {
+    private static List<String> createHeader(List<Assignment> assignments) {
         List<String> header = new ArrayList<>(List.of(HEADER_NAME, HEADER_STUDENT_ID));
         weeks().forEach(week -> header.add(String.format(HEADER_ATTENDANCE_FORMAT, week)));
         weeks().forEach(week -> header.add(String.format(HEADER_PARTICIPATION_FORMAT, week)));
+        for (Assignment assignment : assignments) {
+            header.add(String.format(HEADER_SUBMITTED_FORMAT, assignment.getName()));
+            header.add(String.format(HEADER_GRADE_FORMAT, assignment.getName()));
+        }
         return header;
     }
 
-    private static List<String> createRow(Student student) {
+    private static List<String> createRow(Student student, List<Assignment> assignments) {
         List<String> row = new ArrayList<>(List.of(student.getName().toString(), student.getStudentId().toString()));
         weeks().forEach(week -> row.add(student.getAttendanceRecord(week)
                 .map(AttendanceStatus::formatStoredValue).orElse("")));
         weeks().forEach(week -> row.add(student.getParticipationRecord(week)
                 .map(String::valueOf).orElse("")));
+        for (Assignment assignment : assignments) {
+            AssignmentRecord record = assignment.getStudentRecord(student.getStudentId());
+            row.add(record.isSubmitted() ? SUBMITTED_YES : SUBMITTED_NO);
+            row.add(record.getGrade().map(String::valueOf).orElse(""));
+        }
         return row;
     }
 

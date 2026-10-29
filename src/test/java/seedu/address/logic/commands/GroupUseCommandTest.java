@@ -32,26 +32,26 @@ public class GroupUseCommandTest {
     }
 
     @Test
-    public void execute_alreadyActiveGroup_successAndPreservesData() {
+    public void execute_alreadyActiveGroup_reportsNoChanges() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         model.setActiveGroup(TypicalGroups.NAME_T01);
         Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
 
         assertCommandSuccess(new GroupUseCommand(new GroupName("t01")), model,
-                "Switched active group to T01.", expected);
+                "T01 is already the active group. Nothing changed.", expected);
     }
 
     @Test
     public void execute_unknownGroup_preservesData() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         assertCommandFailure(new GroupUseCommand(TypicalGroups.NAME_T04), model,
-                "Tutorial group T04 does not exist.");
+                "Tutorial group T04 does not exist. See groups with: group list");
         model.setActiveGroup(TypicalGroups.NAME_T01);
         assertCommandFailure(new GroupUseCommand(TypicalGroups.NAME_T04), model,
-                "Tutorial group T04 does not exist.");
+                "Tutorial group T04 does not exist. See groups with: group list");
         assertEquals(TypicalGroups.getT01().getStudentList(), model.getActiveGroupStudentList());
         assertCommandFailure(new GroupUseCommand(TypicalGroups.NAME_T03), new ModelManager(),
-                "Tutorial group T03 does not exist.");
+                "Tutorial group T03 does not exist. See groups with: group list");
     }
 
     @Test

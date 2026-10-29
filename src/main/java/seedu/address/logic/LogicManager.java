@@ -39,8 +39,8 @@ public class LogicManager implements Logic {
     public static final String MESSAGE_SAVE_PERMISSION_FAILURE = MESSAGE_SAVE_FAILURE
             + " Please check that the application has permission to write to its data folder.";
 
-    public static final String MESSAGE_DATA_PROTECTED = DataLoadStatus.FAILED.getMessage()
-            + " Close TAssist, repair or move the unreadable data file, and restart before making changes.";
+    public static final String MESSAGE_REPAIR_DATA_FILE =
+            " Close TAssist, repair or move the unreadable data file, and restart to see or change your records.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -87,6 +87,7 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         Command command = tAssistParser.parseCommand(commandText);
+        rejectIfSavedDataUnreadable(command);
         TAssist previousData = new TAssist(model.getTAssist());
         StudentDisplayState previousDisplay = model.getStudentDisplayState();
         TAssistHistory previousHistory = model.getTAssistHistory();
@@ -107,6 +108,26 @@ public class LogicManager implements Logic {
         return tAssistParser.parseCommand(commandText).getConfirmationPrompt(model);
     }
 
+    /**
+     * Returns the error for a command rejected because the saved data could not be read at startup. It repeats the
+     * startup message of {@code dataLoadStatus}, so the TA still sees why the data was rejected.
+     */
+    public static String getDataProtectedMessage(DataLoadStatus dataLoadStatus) {
+        requireNonNull(dataLoadStatus);
+        assert dataLoadStatus.isFailure() : "Only a failed load protects the saved data";
+        return dataLoadStatus.getMessage() + MESSAGE_REPAIR_DATA_FILE;
+    }
+
+    /**
+     * Rejects {@code command} if it needs the saved data and that data could not be read at startup.
+     */
+    private void rejectIfSavedDataUnreadable(Command command) throws CommandException {
+        if (dataLoadStatus.isFailure() && !command.canRunWithoutSavedData()) {
+            logger.info("Rejected a command because the saved data could not be read at startup");
+            throw new CommandException(getDataProtectedMessage(dataLoadStatus));
+        }
+    }
+
     private CommandResult executeAndSave(Command command, TAssist previousData, String description)
             throws CommandException {
         CommandResult commandResult = command.execute(model);
@@ -116,7 +137,7 @@ public class LogicManager implements Logic {
         }
 
         if (dataLoadStatus.isFailure()) {
-            throw new CommandException(MESSAGE_DATA_PROTECTED);
+            throw new CommandException(getDataProtectedMessage(dataLoadStatus));
         }
 
         saveData();

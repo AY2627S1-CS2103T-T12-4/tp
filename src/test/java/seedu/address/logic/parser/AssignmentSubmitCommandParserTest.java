@@ -28,7 +28,8 @@ public class AssignmentSubmitCommandParserTest {
     @Test
     public void parse_missingDuplicateAndUnknownParameters_reportErrors() {
         assertParseFailure(parser, "a/PS1 id/A0123456X",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/")
+                        + " Usage: " + AssignmentSubmitCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "a/PS1 id/A0123456X s/yes s/no",
                 "Multiple values specified for the following single-valued field(s): s/");
         assertParseFailure(parser, "a/PS1 id/A0123456X s/yes n/no",

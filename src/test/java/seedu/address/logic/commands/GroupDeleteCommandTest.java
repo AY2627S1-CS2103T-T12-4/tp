@@ -59,7 +59,7 @@ public class GroupDeleteCommandTest {
     public void execute_unknownGroup_preservesData() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
         assertCommandFailure(new GroupDeleteCommand(TypicalGroups.NAME_T04), model,
-                "Tutorial group T04 does not exist.");
+                "Tutorial group T04 does not exist. See groups with: group list");
         assertEquals(TypicalGroups.getTypicalGroups(), model.getTAssist().getGroupList());
     }
 

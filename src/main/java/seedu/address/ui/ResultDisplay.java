@@ -12,10 +12,10 @@ import javafx.scene.text.Text;
 
 /**
  * A UI component that displays the result of a command execution.
- * It grows to fit the message, so that normal messages can be read without scrolling.
+ * It grows to fit the message, up to {@link #MAX_VISIBLE_LINES} lines. A longer message scrolls.
  */
 public class ResultDisplay extends UiPart<Region> {
-    static final int MAX_VISIBLE_LINES = 6;
+    static final int MAX_VISIBLE_LINES = 4;
 
     private static final String FXML = "ResultDisplay.fxml";
     private static final String SUCCESS_ICON = "✓";

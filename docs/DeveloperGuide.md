@@ -9,6 +9,9 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
+* TAssist is based on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by
+  [SE-EDU](https://se-education.org).
+
 * The undo/redo design adapts the snapshot-history idea from the
   [AddressBook-Level3 Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
   The explanation and diagrams are rewritten for TAssist data and its save-failure recovery.
@@ -18,6 +21,16 @@ title: Developer Guide
   with the group chips, and a navigation bar that opens the screens, replace the mock-up's dark header with a menu bar
   and its separate group strip. It is implemented with native JavaFX controls; no HTML runtime, web fonts, or
   additional libraries are bundled.
+
+* Libraries used: [JavaFX](https://openjfx.io/) (GUI), [Jackson](https://github.com/FasterXML/jackson) (JSON storage),
+  and [JUnit 5](https://github.com/junit-team/junit5) (testing). Build and quality tools: [Gradle](https://gradle.org/),
+  [Checkstyle](https://checkstyle.sourceforge.io/), [JaCoCo](https://www.jacoco.org/jacoco/) and
+  [Codecov](https://about.codecov.io/). Diagrams are drawn with [PlantUML](https://plantuml.com/).
+
+* AI tool use: the team used [Claude Code](https://claude.com/claude-code) (Anthropic),
+  [Codex](https://openai.com/codex/) (OpenAI) and [Cursor](https://cursor.com/) (SpaceX), AI coding assistants, to
+  help with some code, tests and documentation. Team members reviewed, tested and take responsibility for all
+  submitted work.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -87,7 +100,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/AY2
 
 The UI consists of `MainWindow`, `GroupStrip`, `NavigationBar`, `WorkspacePanel`, `CommandBox`, `ResultDisplay`, and
 `StatusBarFooter`. `MainWindow` places the `GroupStrip` and the `NavigationBar` in one light bar at the top.
-`WorkspacePanel` hosts the live `StudentListPanel` table, `HelpPanel`, `StoragePanel`, and four `FeaturePreview` panels.
+`WorkspacePanel` hosts the three screens: the live `StudentListPanel` table, `HelpPanel`, and `StoragePanel`.
 Its tab strip is hidden: it only holds the screens, and `NavigationBar` selects them. Each button of the bar opens the
 same screen as `view SCREEN` (without its feedback message), names that command in its tooltip, and does not take
 keyboard focus away from the command box, so the UI stays usable by mouse while the app remains command-first.
@@ -98,7 +111,10 @@ views that `Logic` provides: `getGroupList()`, `activeGroupProperty()` and `getD
 [Observing the active group](#observing-the-active-group)). They never keep their own copy of the data, so a change to
 the groups, the active group or its students shows at once. The card of the Students screen is titled with the active
 group's name, and says "No active group" when none is active. When there are no students, an explanation replaces the
-table, and says whether no group is active, the active group has no students, or no search results match. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
+table, and says whether no group is active, the active group has no students, or no search results match. After a
+failed load of the saved data (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)), both the
+Students screen and the group strip say "Saved data could not be read" instead, because adding a group is rejected
+until the file is repaired. Columns cannot be sorted or reordered, a list change refreshes the row numbers,
 and long values are shortened with an ellipsis and shown in full in a tooltip.
 
 `StudentListPanel` handles primary-button clicks on populated `TableRow` objects. The row's current `Student`
@@ -136,8 +152,10 @@ It starts a fresh history position, returns focus to the input, and places the c
 A repeated template clears failed-input styling too. Enter still follows the normal parser and command path;
 an incomplete template stays editable after its validation error.
 
-The four feature previews deliberately contain no records and are marked **Coming soon**. They are UI layouts only;
-future increments must connect domain models, commands and persistence before enabling their controls.
+Groups, attendance, participation, and assignments have no screen of their own; their commands show records in the
+feedback box. Earlier versions showed empty **Coming soon** tables for them, which looked like unfinished work, so they
+were removed. Table screens for these records remain a possible future enhancement: each would observe the model in the
+same way as the Students screen, add a `WorkspaceView` constant, and register a button in `NavigationBar`.
 
 The screenshot below shows the implemented Students screen with an active group and its roster.
 
@@ -149,8 +167,8 @@ The original mock-up is preserved as [`UiMockup.png`](images/UiMockup.png). The 
 
 * The mock-up's dark menu header and separate group strip are replaced by a light group bar and a screen-navigation row.
 * The app uses native JavaFX controls rather than rendering the mock-up as an HTML page.
-* The mock-up shows only the Attendance screen. Students, Help, Storage, and the group bar use live data.
-  Groups, Attendance, Participation, and Assignments are **Coming soon** previews.
+* The mock-up shows an Attendance screen. The app has Students, Help, and Storage screens and the group bar, all
+  showing live data. Attendance, participation, and assignment records appear in the feedback box instead.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-4/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -214,7 +232,7 @@ The `Model` component,
 The `Storage` component,
 * can save both TAssist data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonTAssistStorage` and `JsonUserPrefsStorage` (one class per data file).
-* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and `JsonAdaptedStudent` for `Student` (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
+* converts TAssist data to and from JSON through one Jackson-friendly class per model class: `JsonSerializableTAssist` for `TAssist`, `JsonAdaptedGroup` for `Group` and its assignment names, `JsonAdaptedStudent` for `Student`, and `JsonAdaptedAssignmentRecord` for each student's `AssignmentRecord` in an assignment (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 * also writes a group's records to a CSV file through `GroupRecordsCsvExporter`. This is a one-way export that TAssist never reads back, so it is kept out of the `Storage` interface (see [Exporting a group's records](#exporting-a-groups-records)).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -236,16 +254,16 @@ feature's help content or adding a case to the command switch in `TAssistParser`
 
 ```java
 CommandRegistry registry = new CommandRegistry();
-GroupCommandRegistration.registerCommands(registry);
+GroupCommandRegistration.registerCommands(registry, exportFolder);
 StudentCommandRegistration.registerCommands(registry);
 ParticipationCommandRegistration.registerCommands(registry);
 AttendanceCommandRegistration.registerCommands(registry);
 AssignmentCommandRegistration.registerCommands(registry);
-Logic logic = new LogicManager(model, storage, registry);
+Logic logic = new LogicManager(model, storage, registry, dataLoadStatus);
 ```
 
-`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `list`,
-`rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
+`MainApp.init` uses this registration before constructing `LogicManager`. The group feature registers `add`, `delete`, `export`,
+`list`, `rename`, and `use` with their parsers and help entries. Future features can register their commands in the same registry.
 
 * `TAssistParser` and `LogicManager` take snapshots of registrations at construction. Later changes to the source
   registry do not change the running parser or its help.
@@ -291,9 +309,28 @@ an example that continues the session, and matching User Guide text before its t
 For registered commands, `TAssistParser` extracts the first keyword and lets `CommandRegistry` extract
 the subcommand. The registered parser receives only the remaining arguments. Missing and unknown subcommands
 produce distinct `ParseException` messages listing the registered subcommands in alphabetical order.
-Unknown feature keywords report an unknown command. Both keywords use lowercase letters; surrounding whitespace
-and repeated whitespace between keywords are ignored. Argument values retain their capitalization and spacing
-until their value validator normalizes them.
+Unknown feature keywords report an unknown command. User-entered command words and subcommands ignore case,
+using `Locale.ROOT` for lookup. Registrations still require lowercase keywords. Surrounding whitespace and repeated
+whitespace between keywords are ignored. Argument values retain their capitalization and spacing until their value
+validator normalizes them; parameter prefixes remain lowercase.
+
+Before splitting the input, `TAssistParser` replaces every Unicode space separator (`\p{Zs}`, such as the
+non-breaking space U+00A0 or the em space U+2003) and every Unicode line separator (U+2028, U+2029, and U+0085)
+with a normal space. Text pasted from a web page, a PDF, or a chat app often contains these characters. They look
+like a space or a line break, but Java's `\s` and `String#trim` do not treat them as whitespace, so a command such as
+`group add` followed by a non-breaking space would otherwise be read as one unknown subcommand. Tabs and ASCII line
+breaks are left to the existing whitespace rules.
+
+Zero-width characters, such as the zero-width space U+200B, the word joiner U+2060, and the byte order mark U+FEFF,
+are not changed. Unlike the characters above, they do not separate words: replacing one with a space would split
+`A0123<ZWSP>456X` into two words, while deleting it would join `group<ZWSP>add` into the unknown command `groupadd`.
+Either way, the command means something other than what the TA sees. Such input is rejected like any other invalid
+command, so the data stays unchanged, and the User Guide lists this under its known issues.
+`TAssistParserTest#replaceUnicodeSpaces_zeroWidthCharacters_areKept` records this choice.
+
+`HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
+lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
+that mixed-case undo and redo work.
 
 Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
 
@@ -309,10 +346,19 @@ Prefixes contain lowercase letters followed by `/`, and start at the beginning o
 Prefix-like tokens at those boundaries are reserved for parameters. A slash embedded in a value does not separate
 parameters, and URL schemes such as `https://` are retained as values. Parameters can appear in any order.
 Unknown prefixes, repeated parameters, missing required parameters, and unexpected text before parameters
-produce specific errors. Each command parser passes the prefixes whose values are a single word (for example `id/`
+produce specific errors. If a missing prefix appears inside another value right after other text, as `w/` does in
+`id/A0123456Xw/3`, the error says `Missing space before w/ in 'id/A0123456Xw/3'.` instead of naming `w/` as
+missing. It quotes only the value's first word, the only word that can hide a prefix, since a later word with a
+slash is read as a prefix of its own. Such a word, as in `n/Alice Tanid/A1`, is an unknown prefix (`Tanid/`). The
+error adds `If id/ starts a new parameter, put a space before it.` only when the word comes after another value,
+ends with an allowed prefix that the input lacks, and has text before that prefix that is not all lowercase letters.
+Without these checks, a mistyped prefix name such as `status/` or `studentid/` would get a hint that does not help.
+Each command parser passes the prefixes whose values are a single word (for example `id/`
 and `w/`). Extra words after one of those values are reported after the missing-parameter check, naming the text,
-instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes calls
-`parseWithoutExtraTextCheck()`, reports those missing prefixes, and then calls `verifyNoExtraText()`. Optional parameters may appear at most once.
+instead of being joined onto the value. A parser that checks its own optional-but-needed prefixes, as the student
+and group parsers do, calls `verifyNoMissingSpaceBefore()` for a missing one before reporting it. If it also has
+single-word prefixes, it calls `parseWithoutExtraTextCheck()` first and `verifyNoExtraText()` last.
+Optional parameters may appear at most once.
 Empty values are retained for the value validator to report a value error instead of a missing-parameter error.
 A command declaring no prefixes rejects extra input.
 
@@ -383,14 +429,16 @@ therefore have the same hash code, while display capitalization is preserved.
   one removed. The feedback states how many students were deleted.
 * `GroupRenameCommand` checks that the group exists and that `n/` does not name a different group, then calls
   `Model.renameGroup`. `TAssist` replaces the group with a renamed copy (`Group#withName`) at the same position
-  and keeps it active if it was active. Changing only the case or spacing of the group's own name is allowed.
+  and keeps it active if it was active. Changing only the case of the group's own name is allowed.
   `GroupName` equality ignores case, but `Group#equals` compares the name's exact capitalization, so `LogicManager`
-  sees a case-only rename as a change. It is saved and recorded for undo like any other rename.
+  sees a case-only rename as a change. It is saved and recorded for undo like any other rename. A new name equal
+  to the stored name, after spaces are normalized, returns unchanged feedback without calling `Model.renameGroup`.
+* `GroupUseCommand` returns unchanged feedback when the group is already active, without calling
+  `Model.setActiveGroup`.
 
 These commands return feedback without a screen-navigation request. `LogicManager` saves changes to the groups and
 active selection through JSON storage; listing or selecting the already active group does not save. The group strip
-and Students screen update through the model views, while the current screen stays selected. The separate Groups
-table remains a preview.
+and Students screen update through the model views, while the current screen stays selected.
 
 Command and parser tests cover successful operations, exact feedback, name boundaries, case and space normalization,
 and invalid input. `GroupCommandsIntegrationTest` checks that parsing and execution rejections preserve the model,
@@ -399,8 +447,8 @@ registration and shutdown/restart persistence. `WorkspaceSmokeTest` checks the c
 
 ### Exporting a group's records
 
-`group export` saves the active group's attendance and participation as a CSV file that spreadsheets open. Four
-classes share the work:
+`group export` saves the active group's attendance, participation, and assignment records as a CSV file that
+spreadsheets open. Four classes share the work:
 
 * `GroupExportCommandParser` (Logic) rejects any parameters, like the `group list` parser.
 * `GroupExportCommand` (Logic) finds the active group and reports where its file was written.
@@ -430,9 +478,12 @@ roster order:
 
 * `Name` and `Student ID`;
 * `Week 1 Attendance` to `Week 13 Attendance`;
-* `Week 1 Participation` to `Week 13 Participation`.
+* `Week 1 Participation` to `Week 13 Participation`;
+* `PS1 Submitted` and `PS1 Grade` for each assignment in `Group#getAssignmentList()`, in creation order.
 
-A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. Attendance uses
+A week without a record is an empty cell, so it is not mistaken for an absence or a score of 0. The same holds for
+a missing grade. A submission cell is always `Yes` or `No`: `Assignment#getStudentRecord` gives an unsubmitted record
+for a student without one, as `assignment list` shows. Attendance uses
 `AttendanceStatus.formatStoredValue`, which `attendance list` also uses, so the file and the app show the same
 `Present` and `Absent`.
 
@@ -455,7 +506,7 @@ without changing it, so `LogicManager` never saves after `group export`, whether
 * **Aspect: Shape of the table**
   * **Alternative 1 (current choice):** One row per student, with a column for each week.
     * Pros: Matches how a coordinator reads a gradebook. A student's total is one `SUM` over their row.
-    * Cons: The file always has 28 columns, even when only a few weeks have records.
+    * Cons: The file always has 26 week columns, even when only a few weeks have records.
   * **Alternative 2:** One row per student and week, with attendance and participation columns.
     * Pros: Never has empty cells, and suits importing into a database.
     * Cons: Each student is spread over 13 rows, so a per-student total needs a pivot table.
@@ -469,13 +520,18 @@ without changing it, so `LogicManager` never saves after `group export`, whether
     * Cons: Writes outside the home folder. Needs rules for relative paths, existing files, and paths that differ
       between operating systems.
 * **Aspect: Assignment records**
-  * Issue #71 asks for attendance and participation only, so assignments are not exported. An assignment has a
-    name rather than a week, and each group has its own assignments, so assignments would need a variable set of
-    columns, such as `PS1 Submitted` and `PS1 Grade`. These could follow the week columns without changing how
-    the existing columns are read.
+  * **Alternative 1 (current choice):** Two columns per assignment, `PS1 Submitted` and `PS1 Grade`, after the week
+    columns.
+    * Pros: One row still holds all of a student's records, and the week columns keep their positions in every
+      export.
+    * Cons: Each group has its own assignments, so the number of columns differs between groups.
+  * **Alternative 2:** One column per assignment, holding the grade, `Submitted` without a grade, or empty.
+    * Pros: Fewer columns.
+    * Cons: Mixes text and numbers in one column, so a spreadsheet cannot simply sum or average the grades.
 
 `CsvUtilTest` covers quoting, line breaks, formula guards, and CRLF. `GroupRecordsCsvExporterTest` covers the
-layout, the byte order mark, replacing an earlier export without leaving temporary files, and an unwritable folder.
+layout, including the assignment columns, the byte order mark, replacing an earlier export without leaving
+temporary files, and an unwritable folder.
 `GroupExportCommandTest` covers the feedback, a missing active group, and a failed write. `GroupCommandsIntegrationTest`
 runs `group export` through `LogicManager`, reads the file back, and checks that the model and data file are
 unchanged and that storage is never called.
@@ -532,7 +588,7 @@ changes nothing when the week has no score.
   * Cons: It only helps right after the mistake. A wrong mark noticed a week later stays in the data and the export.
 
 `participation set`, `participation list`, and `participation clear` use the standard feedback box and keep the
-current screen selected. The Participation table remains a preview and points users to the commands. Existing JSON storage already persists participation records, so the
+current screen selected. Existing JSON storage already persists participation records, so the
 feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
 it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
 restart persistence, clearing a score, and rejected commands preserving existing records and the file. Command and
@@ -614,15 +670,30 @@ within one group.
 `Model.addAssignment`. Its duplicate message shows the name of the existing assignment, so the TA sees the
 capitalization that is stored. `AssignmentSubmitCommand` and `AssignmentGradeCommand` resolve the active group,
 assignment, and student before updating an immutable `Assignment` through `Model#setAssignment`. A grade update also
-checks that the record is submitted. Each failed command leaves the model unchanged. `AssignmentListCommand` returns
-one row per student in roster order: name, student ID, submission status, and grade; missing records show
-`Not submitted` and `-`.
+checks that the record is submitted. Each failed command leaves the model unchanged. With `a/`,
+`AssignmentListCommand` returns one row per student in roster order: name, student ID, submission status, and grade;
+missing records show `Not submitted` and `-`. Without `a/`, it numbers the names of the active group's assignments in
+creation order, so the TA can recover the exact names after a restart. The unknown-assignment message points to this
+form.
+
+Design considerations for listing assignment names:
+
+* **Alternative 1 (current choice):** make `a/` optional in `assignment list`.
+  * Pros: No new command word to learn; the TA reaches for `assignment list` first anyway.
+  * Cons: One command returns two kinds of output, depending on whether `a/` is present.
+* **Alternative 2:** list the existing names in the unknown-assignment error.
+  * Pros: The names appear exactly when a guess fails.
+  * Cons: There is no way to see them before guessing, and a long list makes the error message hard to read.
 
 `Assignment` stores immutable `AssignmentRecord` values in a map keyed by `StudentId`. A record contains a submitted
 flag and an optional grade. Setting status or grade replaces the prior value; withdrawing a submission clears any
-recorded grade and the success message calls out that loss only when a grade existed. If `s/no` is requested for an
-already unsubmitted record, `AssignmentSubmitCommand` returns unchanged feedback without updating the model.
-This also covers a student with no explicit record, so the command does not create a record or save the file.
+recorded grade and the success message calls out that loss only when a grade existed. If the requested status equals
+the recorded one, `AssignmentSubmitCommand` returns unchanged feedback without updating the model. For `s/no`, this
+also covers a student with no explicit record, so the command does not create a record or save the file.
+Like `participation set`, `AssignmentGradeCommand` feedback distinguishes a first grade, a replacement (showing the
+old and new grade, such as `87 to 60`), and a grade equal to the existing one, which says nothing changed.
+Unlike `AssignmentSubmitCommand`, the grade command still calls `Model.setAssignment` for an equal grade, and
+`LogicManager` skips saving because the data is unchanged.
 Removing a student removes only that student's records from every assignment in the group.
 
 `JsonAdaptedGroup` preserves the existing `assignments` name list and stores explicit records in an optional
@@ -687,7 +758,7 @@ Existing `LogicManager` persistence saves the result.
 selects attendance through `Group#getWeeklyRecordEntries`. If the group has no students, it returns
 `No students in GROUP.` Otherwise, it lists every student, formatting each row with the student's name, ID, and
 capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
-The rows appear in the scrollable command feedback box; the Attendance workspace screen remains a preview.
+The rows appear in the scrollable command feedback box.
 
 `AttendanceClearCommandParser` requires `id/` and `w/` exactly once, with the same validation as marking. It does not
 accept `s/`, so a status copied from a mark command is reported instead of being ignored. `AttendanceClearCommand`
@@ -809,13 +880,20 @@ their previous state. The UI shows the error and retains the rejected input. A s
   can report one past the end of an unknown word. Any other read error says the file could not be opened.
 * Otherwise, `JsonSerializableTAssist#toModelType()` rebuilds the `TAssist` with the model's own constructors, so values are checked and normalized as if the TA had typed them.
 
+When reading a file, `JsonUtil` drops a leading UTF-8 byte-order mark (BOM), which some editors such as Windows
+Notepad add on save, so an otherwise unchanged file still loads. The next save writes the file without the BOM.
 `JsonUtil#fromJsonString` checks for another token after reading the first JSON value. Trailing text or another
 JSON value causes an `IOException`, which file loading wraps in a `DataLoadingException`. Trailing whitespace
 is allowed. This prevents a later save from silently removing appended content.
 
-`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects commands that would
-change data and restores the snapshot without attempting a save. Read-only commands remain available. This
-protection lasts until restart, including if the user repairs the file while the app is running. The user must
+`MainApp` passes the `DataLoadStatus` to both logic and UI. After a failed load, logic rejects every command except
+`help`, `view`, and `exit` before running it. On the empty model, a listing command would otherwise report that no
+groups exist and suggest creating records that cannot be saved. A command opts in by overriding
+`Command#canRunWithoutSavedData()`, which returns false by default. As a safeguard, logic also rejects any command
+that changes data and restores the snapshot without attempting a save. Both rejections use
+`LogicManager#getDataProtectedMessage`, which repeats the status message with its reason and adds how to recover,
+so the reason stays visible after the startup message is replaced.
+This protection lasts until restart, including if the user repairs the file while the app is running. The user must
 close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
 protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
 permission errors are reported rather than treated as missing data.
@@ -1288,7 +1366,10 @@ The following extensions apply to every use case that changes or views records o
       Use case ends.
 
 * 3a. The assignment does not exist in the active group.
-    * 3a1. TAssist shows an error message stating that the assignment does not exist.
+    * 3a1. TAssist shows an error message stating that the assignment does not exist, and how to list the group's
+      assignments.
+    * 3a2. TA requests the list of the active group's assignments.
+    * 3a3. TAssist shows the names of the group's assignments.
 
       Use case resumes at step 3.
 
@@ -1313,7 +1394,7 @@ The following extensions apply to every use case that changes or views records o
       Use case resumes at step 3.
 
 * 5c. The student already has a grade for that assignment (e.g. the TA is correcting a mistake).
-    * 5c1. TAssist replaces the previous grade with the new grade.
+    * 5c1. TAssist replaces the previous grade with the new grade and shows both grades.
 
       Use case resumes at step 6.
 
@@ -1348,7 +1429,7 @@ The following extensions apply to every use case that changes or views records o
 **MSS**
 
 1.  TA requests to export the records of the active group.
-2.  TAssist saves the group's students with their attendance and participation for every week to a CSV file, and shows the location of the file.
+2.  TAssist saves the group's students with their attendance and participation for every week and their submission status and grade for every assignment to a CSV file, and shows the location of the file.
 3.  TA opens the file in a spreadsheet and sends it to the course coordinator.
 
     Use case ends.
@@ -1470,9 +1551,9 @@ through the real parsers, model and JSON storage, but the steps below also check
 
 1. First launch
 
-   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view attendance` and
+   1. Launch the JAR as in [Launch and shutdown](#launch-and-shutdown). Enter `help`, `view storage` and
       `group list`.<br>
-      Expected: Help and the Attendance screen open, `group list` says no tutorial groups exist, and
+      Expected: Help and the Storage screen open, `group list` says no tutorial groups exist, and
       `data/tassist.json` is still not created.
 
 1. Recording a tutorial
@@ -1481,7 +1562,7 @@ through the real parsers, model and JSON storage, but the steps below also check
       Expected: The group bar shows T01 and T02 with T01 highlighted, and the footer shows `Changes saved.`
    1. Enter `student add n/Alice Tan id/A0123456X`, `student add n/Ben Lim id/A0234567Y` and
       `student add n/Chloe O'Neil-Ng id/a0345678z`.<br>
-      Expected: The Attendance screen stays open. `student add` does not switch screens, so the three
+      Expected: The Storage screen stays open. `student add` does not switch screens, so the three
       students are not listed on it. The feedback confirms that each student was added to T01.
    1. Enter `attendance mark id/A0123456X w/1 s/present`, `attendance mark id/A0234567Y w/1 s/absent`, and then
       `attendance mark id/a0123456x w/1 s/ABSENT` to correct Alice's mark.
@@ -1509,7 +1590,8 @@ through the real parsers, model and JSON storage, but the steps below also check
    1. Enter `group use g/T01`. The previous step left T02 active, and PS1 exists only in T01, so switch
       back before trying the duplicate. Note the contents of `data/tassist.json`. Enter commands with an
       invalid value (`attendance mark id/A0123456X w/14 s/present`), a missing parameter
-      (`participation set id/A0123456X w/1`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
+      (`participation set id/A0123456X w/1`), a missing space before a prefix
+      (`attendance mark id/A0123456Xw/1 s/present`), a repeated parameter (`group add g/T03 g/T04`), a duplicate
       (`assignment add a/ps1`), an unknown student (`attendance mark id/A9 w/1 s/present`) and a very long
       value (a student name of a few thousand letters).<br>
       Expected: `group use` reports `Switched active group to T01.` and saves. Each later command fails
@@ -1553,6 +1635,15 @@ label.
       Expected: The app starts empty and shows `No saved data found. Starting with an empty database.`
       `help` does not create the file. `group add g/T01` creates it and shows `Changes saved.`
 
+1. Dealing with a data file saved with a byte-order mark
+
+   1. Prerequisites: Close the app. Open `data/tassist.json` in an editor that can save "UTF-8 with BOM", such as
+      Windows Notepad, and save it with that encoding without other changes.
+
+   1. Launch the app.<br>
+      Expected: The saved groups, students, and records load as usual, with no `Saved data could not be read.`
+      message. `group add g/BomTest` shows `Changes saved.`
+
 1. Dealing with an invalid data file
 
    1. Prerequisites: Close the app. In `data/tassist.json`, delete a closing brace.
@@ -1561,9 +1652,14 @@ label.
       Expected: The app starts empty and shows `Saved data could not be read.`, then
       `The file has a JSON syntax error or a value of the wrong type near line L.`, naming the line where reading
       stopped, then `No changes were made to the saved file.` The log also records the cause.
+      With `view students`, the Students screen says **Saved data could not be read** and the group strip shows the
+      same note, instead of suggesting that you add a group.
 
-   1. Enter `group add g/T01`, then `help`, close the app, and inspect the file.<br>
-      Expected: The mutation is rejected with recovery guidance, help remains available, and the file stays unchanged.
+   1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
+      Expected: Both `group list` and the mutation are rejected with
+      `Saved data could not be read. The file has a JSON syntax error or a value of the wrong type near line L. No
+      changes were made to the saved file. Close TAssist, repair or move the unreadable data file, and restart to see
+      or change your records.` Help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
    1. Close the app and restore a valid file containing a student in T01. Set their participation map to
@@ -1617,8 +1713,9 @@ label.
    `Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` List Week 3; Alice shows `Not recorded`.
    Enter the clear command again. Expect `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
    Close and reopen, then list Weeks 3 and 13. Expect `Not recorded` and 5.
-6. Try `participation clear id/A0123456X w/3 s/2` and `participation clear w/3`. Expect unknown-prefix and
-   missing-prefix errors without changing any record.
+6. Try `participation clear id/A0123456X w/3 s/2`, `participation clear w/3`, and
+   `participation clear id/A0123456X w/3 now`. Expect unknown-prefix, missing-prefix, and
+   `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.` errors without changing any record.
 7. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
    With no active group, all three commands must ask you to create or select a group first.
 
@@ -1636,9 +1733,11 @@ label.
    `assignment submit a/PS1 id/A0123456X s/yes` and grade her with
    `assignment grade a/PS1 id/A0123456X m/87`. Expect the success messages and verify the list shows Alice's grade
    as 87.
-4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`; the list should now show 91. Withdraw her
-   submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback to say the recorded grade was
-   cleared, and the list should show `Not submitted | -` for Alice.
+4. Replace Alice's grade with `assignment grade a/PS1 id/A0123456X m/91`. Expect
+   `Updated Alice Tan's PS1 grade: 87 to 91.`, and the list should now show 91. Repeat the command and the
+   submission `assignment submit a/PS1 id/A0123456X s/yes`; expect `Nothing changed.` feedback for each, without
+   `Changes saved.` Withdraw her submission with `assignment submit a/PS1 id/A0123456X s/no`. Expect the feedback
+   to say the recorded grade was cleared, and the list should show `Not submitted | -` for Alice.
    Repeat the command; expect unchanged feedback with no mention of a grade being cleared and no save confirmation.
 5. Submit Alice again and record grade 87 so the saved file contains a complete record. Close and reopen the app,
    select T01, and list `PS1`; Alice's `Submitted | 87` record should remain. Open `data/tassist.json` while the app
@@ -1647,13 +1746,17 @@ label.
 6. Enter `assignment add a/ PS1 ` and `assignment add a/ps1`. Expect `Assignment PS1 already exists in T01` both
    times.
    Enter `assignment add a/Mid-term   1`. Expect `Created assignment Mid-term 1 for T01.`
-7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`, `assignment list`,
+7. Try `assignment list a/PS9`, `assignment add a/PS_1`, `assignment add a/`, `assignment add`,
    `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
    missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file. Enter
    `assignment grade a/PS1 id/A0123456X g/87`; expect an unknown-prefix error, since `g/` is reserved for groups.
 8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
    belong to one group.
    With no active group, both commands must ask you to create or select a group first.
+9. Switch back with `group use g/T01`, enter `assignment add a/Lab 2 (Graphs)`, close and reopen the app, select T01,
+   and enter `assignment list`. Expect
+   `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
+   assignments, expect `No assignments in T02. Create one with: assignment add a/ASSIGNMENT_NAME`.
 
 ### Finding and sorting students
 
@@ -1725,6 +1828,8 @@ label.
 1. Switching and persistence
 
    1. Enter `group use g/t01`. Expected: `Switched active group to T01.` and T01 is highlighted.
+   1. Enter `group use g/T01` again. Expected: `T01 is already the active group. Nothing changed.` without
+      `Changes saved.`
    1. Close and reopen the app. Expected: Both groups remain and T01 is active.
       If groups contain students loaded from JSON, switching shows only the selected group's roster.
 
@@ -1746,6 +1851,8 @@ label.
    1. Enter `group rename g/T01 n/t01`. Expected: `Renamed tutorial group T01 to t01.` with `Changes saved.`, and
       the chip shows t01. Enter `undo`. Expected: `Undone: group rename g/T01 n/t01`, and the chip shows T01 again,
       with T02-Thu unchanged.
+   1. Enter `group rename g/T01 n/T01`. Expected: `Tutorial group T01 already has that name. Nothing changed.`
+      without `Changes saved.`
    1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student count. Cancel it and verify
       that nothing changed. Enter the command again and choose Continue. Expected: The group and its students are
       removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
@@ -1753,12 +1860,15 @@ label.
 
 1. Exporting a group's records
 
-   1. Prerequisites: T01 is active and has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`). Enter
-      `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`.
-   1. Enter `group export`. Expected: `Exported attendance and participation of 2 students in T01 to:` followed by
+   1. Prerequisites: T01 is active, has Alice Tan (`A0123456X`) and Ben Lim (`A0234567Y`), and has no assignments.
+      Enter `attendance mark id/A0123456X w/3 s/present` and `participation set id/A0234567Y w/3 s/0`. Then enter
+      `assignment add a/PS1`, `assignment submit a/PS1 id/A0123456X s/yes`, and
+      `assignment grade a/PS1 id/A0123456X m/87`.
+   1. Enter `group export`. Expected: `Exported the records of 2 students in T01 to:` followed by
       the absolute path of `exports/T01-records.csv` in the folder that contains the JAR.
-   1. Open the file in a spreadsheet. Expected: 3 rows and 28 columns. Alice has `Present` under
-      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty.
+   1. Open the file in a spreadsheet. Expected: 3 rows and 30 columns. Alice has `Present` under
+      `Week 3 Attendance`, Ben has `0` under `Week 3 Participation`, and every other week is empty. The last two
+      columns are `PS1 Submitted` and `PS1 Grade`: Alice has `Yes` and `87`, and Ben has `No` and an empty grade.
    1. Enter `student add n/Chloé Ng id/A0345678Z`, then `group export` again. Expected: The file is replaced, Chloé
       appears with the accent intact, and the exports folder has no other files.
    1. Enter `group export g/T01`. Expected: `This command takes no parameters. Remove the extra input.`
@@ -1801,6 +1911,8 @@ label.
    1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
    1. Enter `attendance clear id/A0123456X w/4 s/present`.
       Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
+   1. Enter `attendance clear id/A0123456X w/4 now`.
+      Expected: `Unexpected extra text after 'w/4': 'now'. This value cannot contain spaces.`
 
 1. Rejected commands
 
@@ -1809,7 +1921,8 @@ label.
    1. Enter `attendance mark id/A0123456X w/3 s/late`.
       Expected: `Invalid attendance status. Use present or absent.`
    1. Use a valid student ID absent from T01 in a mark command.
-      Expected: `Student ID <ID> does not exist in T01.`, naming the ID you entered.
+      Expected: `Student ID <ID> does not exist in T01. See students in the active group with: student list`,
+      naming the ID you entered.
    1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
    1. Verify that records and the saved file remain unchanged after each rejection.
    1. Close the app, set `activeGroup` to `null` in the file, and reopen it. All three attendance commands must
@@ -1842,6 +1955,35 @@ parameter errors, empty groups, week boundaries, and display formatting.
       Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
    1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
 
+### Entering commands in mixed case
+
+1. Command words and subcommands ignore case
+
+   1. Prerequisites: Launch the JAR in an empty writable folder.
+   1. Enter `GROUP add g/T04`, then `group ADD g/T05`. Expected: Each group is created exactly as with lowercase
+      command words.
+   1. With a student in the active group, enter `attendance Mark id/A0123456X w/5 s/present`. Expected: The same
+      feedback and record as the lowercase command.
+   1. Enter `GROUP add G/T06`. Expected: The command is rejected, because parameter prefixes stay lowercase, and
+      the data does not change.
+
+### Pasting commands with unusual spaces
+
+1. Non-breaking and other Unicode spaces act as normal spaces
+
+   1. Prerequisites: Launch the JAR in an empty writable folder. In a text editor or web page, prepare
+      `group add g/T04` and `student add n/Ann Lee id/N1` with a non-breaking space (U+00A0) in place of each space,
+      and `group add g/T03` followed by one non-breaking space.
+   1. Paste and enter `group add g/T04`, then `group add g/T03`. Expected: T04 and then T03 are created, as when the
+      commands are typed with normal spaces. `group add` makes each new group active, so T03 is now active.
+   1. Paste and enter `student add n/Ann Lee id/N1`. Expected: `Added Ann Lee to T03.`
+
+1. Zero-width characters are not treated as spaces
+
+   1. Prepare `group add g/T05` with a zero-width space (U+200B) in place of the space between `group` and `add`.
+   1. Paste and enter it. Expected: an `Unknown command` error that shows `group` and `add` joined, as described in
+      the User Guide's known issues. No group is created.
+
 ### Preparing a command from a student row
 
 1. Open a group with at least two students. Type an unfinished command, then click a populated row.
@@ -1854,7 +1996,8 @@ parameter errors, empty groups, week boundaries, and display formatting.
 3. Click an empty table row or use the secondary or middle mouse button. The draft must stay unchanged.
    Selecting another row with the keyboard must also leave the command box alone.
 4. Submit the incomplete template with Enter. Expect the missing-parameter error
-   `Missing required parameter(s): s/. Include each exactly once.`, retained text, and unchanged records.
+   `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID w/WEEK s/STATUS`,
+   retained text, and unchanged records.
    Complete it with a valid week and status, then press Enter; only then should attendance be saved.
 5. Switch groups and click a student. Verify the ID comes from the current group and the current row after deletion.
    The JavaFX regression also checks filtered and sorted observable lists to prevent using a stale roster index.
@@ -1869,7 +2012,7 @@ It uses temporary storage and writes rendered previews to `build/ui-previews/`.
 Linux CI enables this test under the runner's virtual display (`xvfb-run`) so the uploaded coverage includes the UI.
 The macOS and Windows CI jobs run the standard suite.
 
-The smoke test covers all seven screens at normal and compact sizes, F1 and Escape, navigation without saving,
+The smoke test covers all three screens at normal and compact sizes, F1 and Escape, navigation without saving,
 the group strip, the navigation bar highlighting the current screen and keeping focus in the command box, the Students
 screen following the active group and its students, group creation/listing/switching through the command box,
 both empty states, long group and student names, row numbering after a removal, `help TOPIC` scrolling to its topic, commands that
@@ -1882,8 +2025,8 @@ and retaining an invalid attendance command for correction.
 
 For manual testing, build with `./gradlew shadowJar` and launch the JAR in an empty writable folder:
 
-1. Type `help`, `view groups`, `view attendance`, `view participation`, `view assignments`, and `view storage`.
-   Verify that preview features are explicitly unavailable, and the storage path is the actual TAssist data path.
+1. Type `help`, `view students`, and `view storage`. Verify that each screen opens and the storage path is the
+   actual TAssist data path. Enter `view attendance` and verify that it reports an unknown screen.
 2. Use `view students`. With no active group, the Students screen says **No active group**, and the group strip says
    that there are no tutorial groups yet. Enter `group add g/T01` and check that the group becomes active.
    Add and remove students with `student add` and `student delete`. The group strip and the table should update
@@ -1891,9 +2034,8 @@ For manual testing, build with `./gradlew shadowJar` and launch the JAR in an em
    navigation bar and check that the tooltip names the matching `view` command and that the command box keeps focus.
 3. Enter `view nowhere`. Verify that the command remains editable and the feedback names the valid screens.
    Enter `view` and verify that the whole usage message is readable without scrolling.
-4. Enter `view group`, `view student`, and `view assignment`, then repeat with their plural forms.
-   Verify that each pair opens the same screen. Enter `help group`, `help student`, and `help assignment`, then
-   repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
+4. Enter `view student` and `view students`, and verify that both open the Students screen.
+   Enter `help group`, `help student`, and `help assignment`, then repeat with their plural forms. Verify that each pair opens Help at the same topic and shows the same feedback.
 5. Check F1 and Escape while typing. Enter `view help` and `view nowhere`, type `view st`, and press Up twice:
    the box shows `view nowhere`, then `view help`. Press Down twice to return to `view st`.
    Resize the window and scroll long content and feedback. Check 1920x1080 at 100% and 125%, and 1280x720 at

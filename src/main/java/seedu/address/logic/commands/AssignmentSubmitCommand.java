@@ -17,12 +17,13 @@ import seedu.address.model.student.StudentId;
 
 /**
  * Records or replaces one student's submission status for an assignment.
+ * Marking the assignment not submitted clears any grade recorded for it.
  */
 public class AssignmentSubmitCommand extends Command {
     public static final String MESSAGE_USAGE = "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS";
     public static final String MESSAGE_SUCCESS = "Updated %s's %s submission status to %s.";
     public static final String MESSAGE_UNCHANGED =
-            "%s's %s submission status is already not submitted. Nothing changed.";
+            "%s's %s submission status is already %s. Nothing changed.";
     public static final String MESSAGE_SUCCESS_WITHDRAWN =
             "Updated %s's %s submission status to not submitted; the recorded grade was cleared.";
 
@@ -49,8 +50,9 @@ public class AssignmentSubmitCommand extends Command {
         Student student = getStudent(group, studentId);
         AssignmentRecord previousRecord = assignment.getStudentRecord(studentId);
 
-        if (!isSubmitted && !previousRecord.isSubmitted()) {
-            return new CommandResult(String.format(MESSAGE_UNCHANGED, student.getName(), assignment.getName()));
+        if (isSubmitted == previousRecord.isSubmitted()) {
+            return new CommandResult(String.format(MESSAGE_UNCHANGED,
+                    student.getName(), assignment.getName(), describeStatus()));
         }
 
         model.setAssignment(group.getName(), assignment.withSubmissionStatus(studentId, isSubmitted));
@@ -61,7 +63,11 @@ public class AssignmentSubmitCommand extends Command {
                     student.getName(), assignment.getName()));
         }
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                student.getName(), assignment.getName(), isSubmitted ? "submitted" : "not submitted"));
+                student.getName(), assignment.getName(), describeStatus()));
+    }
+
+    private String describeStatus() {
+        return isSubmitted ? "submitted" : "not submitted";
     }
 
     @Override

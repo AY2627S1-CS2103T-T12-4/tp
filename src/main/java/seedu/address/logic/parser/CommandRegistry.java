@@ -7,6 +7,7 @@ import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -114,6 +115,7 @@ public class CommandRegistry {
 
     /**
      * Dispatches the subcommand in {@code arguments} to its registered parser.
+     * Matches feature and subcommand keywords without regard to case.
      * Leading and trailing whitespace and whitespace between keywords are ignored.
      *
      * @param feature The feature keyword extracted from user input.
@@ -124,7 +126,8 @@ public class CommandRegistry {
     public Command parseCommand(String feature, String arguments) throws ParseException {
         requireNonNull(feature);
         requireNonNull(arguments);
-        Map<String, Parser<? extends Command>> parsers = featureParsers.get(feature);
+        String keyword = feature.toLowerCase(Locale.ROOT);
+        Map<String, Parser<? extends Command>> parsers = featureParsers.get(keyword);
         if (parsers == null) {
             throw new ParseException(String.format(MESSAGE_UNKNOWN_COMMAND, feature));
         }
@@ -133,13 +136,13 @@ public class CommandRegistry {
         String validSubcommands = String.join(", ", parsers.keySet());
         String trimmedArguments = arguments.trim();
         if (trimmedArguments.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_MISSING_SUBCOMMAND, feature, validSubcommands, feature));
+            throw new ParseException(String.format(MESSAGE_MISSING_SUBCOMMAND, keyword, validSubcommands, keyword));
         }
 
         String[] words = trimmedArguments.split("\\s+", 2);
-        Parser<? extends Command> parser = parsers.get(words[0]);
+        Parser<? extends Command> parser = parsers.get(words[0].toLowerCase(Locale.ROOT));
         if (parser == null) {
-            throw new ParseException(String.format(MESSAGE_UNKNOWN_SUBCOMMAND, words[0], feature, validSubcommands));
+            throw new ParseException(String.format(MESSAGE_UNKNOWN_SUBCOMMAND, words[0], keyword, validSubcommands));
         }
 
         logger.fine("Dispatching command: " + feature + " " + words[0]);

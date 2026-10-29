@@ -14,7 +14,7 @@ import java.util.Objects;
  * kept, and recording a new change discards the changes that were undone.
  */
 public class TAssistHistory {
-    /** Number of changes that can be undone, newest first. */
+    /** Maximum number of changes kept for undo and redo. */
     public static final int MAX_CHANGES = 20;
 
     private final Deque<Version> undoVersions = new ArrayDeque<>();
@@ -113,7 +113,8 @@ public class TAssistHistory {
      * A copy of TAssist data, with the description of the change made to or from it.
      *
      * @param data A copy of the data, which is never changed.
-     * @param description The command that changed the data, as the user entered it.
+     * @param description The command that changed the data, with surrounding whitespace removed and repeated
+     *         whitespace collapsed.
      */
     public record Version(ReadOnlyTAssist data, String description) {
         /**

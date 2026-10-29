@@ -11,9 +11,9 @@ import seedu.address.model.Model;
 public class ViewCommand extends Command {
     public static final String COMMAND_WORD = "view";
     public static final String MESSAGE_USAGE = "view: Opens a screen.\n"
-            + "Parameters: students | groups | attendance | participation | assignments | help | storage\n"
-            + "Student, group, and assignment are also accepted.\n"
-            + "Example: view attendance";
+            + "Parameters: students | help | storage\n"
+            + "Student is also accepted.\n"
+            + "Example: view storage";
     public static final String MESSAGE_UNKNOWN_SCREEN = "Unknown screen: %s.\n" + MESSAGE_USAGE;
 
     private final WorkspaceView view;
@@ -29,5 +29,10 @@ public class ViewCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         return new CommandResult("Showing " + view.getKeyword() + ".", view);
+    }
+
+    @Override
+    public boolean canRunWithoutSavedData() {
+        return true;
     }
 }

@@ -40,7 +40,8 @@ public class ParticipationSetCommandParserTest {
         String[][] cases = {{"", "id/ w/ s/"}, {"w/3 s/2", "id/"}, {"id/A1 s/2", "w/"}, {"id/A1 w/3", "s/"}};
         for (String[] testCase : cases) {
             assertParseFailure(parser, testCase[0],
-                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1]));
+                    String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, testCase[1])
+                        + " Usage: " + ParticipationSetCommand.MESSAGE_USAGE);
         }
     }
 
@@ -56,7 +57,7 @@ public class ParticipationSetCommandParserTest {
         assertParseFailure(parser, "Alice id/A1 w/3 s/2",
                 String.format(TAssistArgumentParser.MESSAGE_UNEXPECTED_TEXT, "Alice", "id/ w/ s/"));
         assertParseFailure(parser, "id/A1 w/3s/2",
-                String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "s/"));
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "s/", "w/3s/2"));
     }
 
     @Test

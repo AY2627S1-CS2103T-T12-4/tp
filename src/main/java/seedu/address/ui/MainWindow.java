@@ -116,13 +116,16 @@ public class MainWindow extends UiPart<Stage> {
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
-        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty());
+        GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
+                dataLoadStatus.isFailure());
         groupStripPlaceholder.getChildren().add(groupStrip.getRoot());
 
-        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getActiveGroupStudentList(),
+        workspacePanel = new WorkspacePanel(logic.activeGroupProperty(), logic.getGroupList(),
+                logic.getActiveGroupStudentList(),
                 logic.getDisplayedStudentList(), logic.studentFilterActiveProperty(),
                 dataFilePath, logic.getHelpEntries(), student -> commandBox.fillTemplate(
-                        AttendanceMarkCommand.buildTemplate(student.getStudentId())));
+                        AttendanceMarkCommand.buildTemplate(student.getStudentId())),
+                dataLoadStatus.isFailure());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
 
@@ -153,7 +156,7 @@ public class MainWindow extends UiPart<Stage> {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.initOwner(owner);
         dialog.setTitle("Confirm destructive action");
-        dialog.setHeaderText("You can reverse this later with undo.");
+        dialog.setHeaderText("You can reverse this with undo.");
         dialog.setContentText(prompt);
         ButtonType continueButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -230,7 +233,13 @@ public class MainWindow extends UiPart<Stage> {
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
             }
-            statusBarFooter.setStatus(result.hasSavedChanges() ? "Changes saved." : "Local data file");
+            if (result.hasSavedChanges()) {
+                statusBarFooter.setStatus("Changes saved.");
+            } else if (dataLoadStatus.isFailure()) {
+                statusBarFooter.setStatus(dataLoadStatus.getMessage(), true);
+            } else {
+                statusBarFooter.setStatus("Local data file");
+            }
             showHelpIfRequested(result);
             if (result.isExit()) {
                 handleExit();

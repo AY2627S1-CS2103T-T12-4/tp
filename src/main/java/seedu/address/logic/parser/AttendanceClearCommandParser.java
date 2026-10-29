@@ -13,11 +13,12 @@ public class AttendanceClearCommandParser implements Parser<AttendanceClearComma
     private static final Prefix PREFIX_WEEK = new Prefix("w/");
 
     private final TAssistArgumentParser argumentParser = new TAssistArgumentParser(
-            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK), List.of());
+            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK), List.of(),
+            List.of(PREFIX_STUDENT_ID, PREFIX_WEEK));
 
     @Override
     public AttendanceClearCommand parse(String arguments) throws ParseException {
-        ArgumentMultimap values = argumentParser.parse(arguments);
+        ArgumentMultimap values = argumentParser.parse(arguments, AttendanceClearCommand.MESSAGE_USAGE);
         return new AttendanceClearCommand(
                 TAssistParserUtil.parseStudentId(values.getValue(PREFIX_STUDENT_ID).orElseThrow()),
                 AttendanceCommandParserUtil.parseWeek(values.getValue(PREFIX_WEEK).orElseThrow()));

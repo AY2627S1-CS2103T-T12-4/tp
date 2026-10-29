@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.StudentId;
 
 /**
  * Checks the required parameters of student commands before validating their values.
@@ -38,10 +39,24 @@ final class StudentCommandParserUtil {
         ArgumentMultimap values = parser.parseWithoutExtraTextCheck(arguments);
         for (Prefix prefix : prefixes) {
             if (values.getValue(prefix).isEmpty()) {
+                if (!PREFIX_ID.equals(prefix) || hasJoinedStudentId(values)) {
+                    parser.verifyNoMissingSpaceBefore(values, prefix);
+                }
                 throw new ParseException("Missing required parameter. Usage: " + usage);
             }
         }
         parser.verifyNoExtraText(values);
         return values;
+    }
+
+    /**
+     * Returns true if the name's first word hides an id/ prefix followed by a valid student ID.
+     * A name fragment such as David/Tan has no valid ID after id/, so it needs the missing-parameter error.
+     */
+    private static boolean hasJoinedStudentId(ArgumentMultimap values) {
+        String firstWord = values.getValue(PREFIX_NAME).orElse("").split("\\s+", 2)[0];
+        int prefixStart = firstWord.lastIndexOf(PREFIX_ID.getPrefix());
+        return prefixStart > 0
+                && StudentId.isValidStudentId(firstWord.substring(prefixStart + PREFIX_ID.getPrefix().length()));
     }
 }

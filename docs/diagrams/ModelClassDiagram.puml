@@ -13,6 +13,7 @@ Class ModelManager
 Class UserPrefs
 Class Group
 Class Student
+Class Assignment
 }
 
 Class HiddenOutside #FFFFFF
@@ -27,4 +28,5 @@ TAssist .up.|> ReadOnlyTAssist
 UserPrefs .up.|> ReadOnlyUserPrefs
 TAssist --> "~* all" Group
 Group --> "~* all" Student
+Group --> "~* all" Assignment
 @enduml

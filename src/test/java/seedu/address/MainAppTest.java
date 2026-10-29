@@ -130,11 +130,14 @@ public class MainAppTest {
             app.init();
 
             assertTrue(app.getDataLoadStatus().isFailure());
-            for (String command : List.of("help", "view storage", "group list")) {
+            for (String command : List.of("help", "view storage")) {
                 assertFalse(app.logic.execute(command).hasSavedChanges());
             }
-            assertThrows(CommandException.class,
-                    LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
+            for (String command : List.of("group list", "student list", "group add g/T01")) {
+                assertThrows(CommandException.class,
+                        LogicManager.getDataProtectedMessage(app.getDataLoadStatus()), () ->
+                        app.logic.execute(command));
+            }
             assertEquals(new TAssist(), app.model.getTAssist());
             app.logic.execute("exit");
             app.stop();
@@ -200,7 +203,8 @@ public class MainAppTest {
 
         assertEquals(DataLoadStatus.failed("The file could not be opened."), app.getDataLoadStatus());
         assertThrows(CommandException.class,
-                LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
+                LogicManager.getDataProtectedMessage(app.getDataLoadStatus()), () ->
+                app.logic.execute("group add g/T01"));
         app.stop();
         assertEquals("Keep existing contents.", Files.readString(existingFile));
         assertTrue(Files.isDirectory(directory));
@@ -226,6 +230,25 @@ public class MainAppTest {
         assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
         assertFalse(Files.exists(temporaryFolder.resolve("tassist.json")));
         assertEquals(DataLoadStatus.MISSING, app.getDataLoadStatus());
+    }
+
+    @Test
+    public void init_nullGuiSettings_usesAndSavesDefaultsAcrossRestart() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, "{\"guiSettings\":null}");
+        MainApp app = new MainApp(prefsFile, dataFile());
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(Optional.of(new UserPrefs()), new JsonUserPrefsStorage(prefsFile).readUserPrefs());
+        app.logic.execute("group add g/T01");
+        app.stop();
+
+        MainApp reopened = new MainApp(prefsFile, dataFile());
+        reopened.init();
+        assertEquals(new UserPrefs(), reopened.model.getUserPrefs());
+        assertTrue(reopened.model.hasGroup(TypicalGroups.NAME_T01));
+        reopened.stop();
     }
 
     @Test

@@ -3,12 +3,14 @@ package seedu.address;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ import seedu.address.commons.core.WorkspaceView;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.help.HelpCatalog;
 import seedu.address.logic.help.HelpEntry;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.TAssist;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupName;
@@ -44,7 +47,7 @@ public class HelpIntegrationTest {
             "participation set id/STUDENT_ID w/WEEK s/SCORE", "participation list w/WEEK",
             "participation clear id/STUDENT_ID w/WEEK",
             "assignment add a/ASSIGNMENT_NAME", "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
-            "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE", "assignment list a/ASSIGNMENT_NAME");
+            "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE", "assignment list [a/ASSIGNMENT_NAME]");
 
     private static final Path USER_GUIDE = Path.of("docs", "UserGuide.md");
     private static final String COMMAND_SUMMARY_HEADING = "## Command summary";
@@ -75,20 +78,20 @@ public class HelpIntegrationTest {
         Path dataFile = temporaryFolder.resolve("tassist.json");
         String savedFile = Files.readString(dataFile);
 
-        for (WorkspaceView view : List.of(WorkspaceView.GROUPS, WorkspaceView.STUDENTS, WorkspaceView.ASSIGNMENTS)) {
-            String plural = view.getKeyword();
-            String topic = plural.substring(0, plural.length() - 1);
-            for (String name : List.of(topic, plural)) {
-                CommandResult viewResult = app.logic.execute("view " + name);
-                assertEquals(new CommandResult("Showing " + plural + ".", view), viewResult);
-                assertFalse(viewResult.hasSavedChanges());
+        for (String name : List.of("student", "students")) {
+            CommandResult viewResult = app.logic.execute("view " + name);
+            assertEquals(new CommandResult("Showing students.", WorkspaceView.STUDENTS), viewResult);
+            assertFalse(viewResult.hasSavedChanges());
+        }
+        for (String topic : List.of("group", "student", "assignment")) {
+            for (String name : List.of(topic, topic + "s")) {
                 CommandResult helpResult = app.logic.execute("help " + name);
                 assertEquals(CommandResult.forHelp("Showing " + topic + " commands.", topic), helpResult);
                 assertFalse(helpResult.hasSavedChanges());
-                assertEquals(previousData, app.model.getTAssist());
-                assertEquals(savedFile, Files.readString(dataFile));
             }
         }
+        assertEquals(previousData, app.model.getTAssist());
+        assertEquals(savedFile, Files.readString(dataFile));
     }
 
     @Test
@@ -119,6 +122,43 @@ public class HelpIntegrationTest {
         assertEquals(t01, app.model.getActiveGroup().orElseThrow());
         assertTrue(t01.hasStudent(new StudentId("A0123456X")));
         assertFalse(t01.hasStudent(new StudentId("A0234567Y")));
+    }
+
+    @Test
+    public void examples_uppercaseCommandWords_produceSameDataAndSurviveRestart() throws Exception {
+        Path uppercaseData = temporaryFolder.resolve("uppercase.json");
+        MainApp uppercaseApp = new MainApp(temporaryFolder.resolve("uppercase-prefs.json"), uppercaseData);
+        uppercaseApp.init();
+        for (HelpEntry entry : app.logic.getHelpEntries()) {
+            String commandWords = getCommandWords(entry.getCommandFormat());
+            for (String example : entry.getExamples()) {
+                app.logic.execute(example);
+                uppercaseApp.logic.execute(commandWords.toUpperCase(Locale.ROOT)
+                        + example.substring(commandWords.length()));
+                assertEquals(app.model.getTAssist(), uppercaseApp.model.getTAssist(), example);
+            }
+        }
+        MainApp reopenedApp = new MainApp(temporaryFolder.resolve("uppercase-prefs.json"), uppercaseData);
+        reopenedApp.init();
+        assertEquals(uppercaseApp.model.getTAssist(), reopenedApp.model.getTAssist());
+    }
+
+    @Test
+    public void execute_uppercaseCommandsWithInvalidArguments_preservesDataAndSavedFile() throws Exception {
+        app.logic.execute("GROUP ADD g/T01");
+        TAssist previousData = new TAssist(app.model.getTAssist());
+        Path dataFile = temporaryFolder.resolve("tassist.json");
+        String savedFile = Files.readString(dataFile);
+        for (String input : List.of("GROUP ADD G/T02", "GROUP ADD g/T02 g/T03", "GROUP ADD", "GROUP LiSts",
+                "STUDENT ADD n/Alice ID/A1", "UNDO extra", "REDO extra", "EXIT extra")) {
+            assertThrows(ParseException.class, () -> app.logic.execute(input), input);
+            assertEquals(previousData, app.model.getTAssist());
+            assertEquals(savedFile, Files.readString(dataFile));
+        }
+        app.logic.execute("UnDo");
+        assertTrue(app.model.getTAssist().getGroupList().isEmpty());
+        app.logic.execute("ReDo");
+        assertEquals(previousData, app.model.getTAssist());
     }
 
     @Test

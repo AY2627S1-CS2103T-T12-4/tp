@@ -21,12 +21,10 @@ public class ViewCommandParser implements Parser<ViewCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
         }
 
-        String screenKeyword = switch (screenName.toLowerCase(Locale.ROOT)) {
-            case "group" -> "groups";
-            case "student" -> "students";
-            case "assignment" -> "assignments";
-            default -> screenName.toLowerCase(Locale.ROOT);
-        };
+        String screenKeyword = screenName.toLowerCase(Locale.ROOT);
+        if (screenKeyword.equals("student")) {
+            screenKeyword = "students";
+        }
         for (WorkspaceView view : WorkspaceView.values()) {
             if (view.getKeyword().equals(screenKeyword)) {
                 return new ViewCommand(view);

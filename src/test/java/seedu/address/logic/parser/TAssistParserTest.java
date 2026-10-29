@@ -8,6 +8,7 @@ import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,15 +35,55 @@ public class TAssistParserTest {
     }
 
     @Test
+    public void replaceUnicodeSpaces_spaceCharacters_becomeNormalSpaces() {
+        assertEquals("group add g/T04 ", TAssistParser.replaceUnicodeSpaces("group\u00A0add\u2003g/T04\u3000"));
+        assertEquals("n/Ann Lee\tid/A1\n", TAssistParser.replaceUnicodeSpaces("n/Ann\u202FLee\tid/A1\n"));
+    }
+
+    @Test
+    public void replaceUnicodeSpaces_lineSeparators_becomeNormalSpaces() {
+        assertEquals("group add g/T04 ", TAssistParser.replaceUnicodeSpaces("group\u2028add\u2029g/T04\u0085"));
+    }
+
+    @Test
+    public void replaceUnicodeSpaces_zeroWidthCharacters_areKept() {
+        String input = "group\u200Badd g/T04\uFEFF";
+        assertEquals(input, TAssistParser.replaceUnicodeSpaces(input));
+    }
+
+    @Test
+    public void parseCommand_unicodeSpaces_separateWordsAndAreTrimmed() throws Exception {
+        StubCommand groupAdd = new StubCommand();
+        CommandRegistry registry = new CommandRegistry();
+        registry.register("group", "add", args -> {
+            assertEquals("g/T04", args.trim());
+            return groupAdd;
+        });
+        TAssistParser featureParser = new TAssistParser(registry);
+
+        assertSame(groupAdd, featureParser.parseCommand("\u00A0group\u00A0add\u00A0g/T04\u00A0"));
+        assertEquals(new UndoCommand(), parser.parseCommand("undo\u2003"));
+    }
+
+    @Test
     public void parseCommand_undoAndRedo() throws Exception {
         assertEquals(new UndoCommand(), parser.parseCommand("  " + UndoCommand.COMMAND_WORD + "  "));
         assertEquals(new RedoCommand(), parser.parseCommand(RedoCommand.COMMAND_WORD));
-        for (String input : List.of("undo 3", "redo all", "undo id/A0123456X")) {
+        for (String input : List.of("undo 3", "redo all", "undo id/A0123456X", "UNDO 3", "ReDo all", "EXIT now")) {
             assertThrows(ParseException.class, TAssistArgumentParser.MESSAGE_NO_PARAMETERS, () ->
                     parser.parseCommand(input));
         }
-        assertThrows(ParseException.class, String.format(MESSAGE_UNKNOWN_COMMAND, "UNDO"), () ->
-                parser.parseCommand("UNDO"));
+        assertEquals(new UndoCommand(), parser.parseCommand("UNDO"));
+        assertEquals(new RedoCommand(), parser.parseCommand("ReDo"));
+    }
+
+    @Test
+    public void parseCommand_uppercaseBuiltIns_returnsSameCommand() throws Exception {
+        assertTrue(parser.parseCommand("ExIt") instanceof ExitCommand);
+        for (String input : List.of("help", "help student", "view students", "undo", "redo")) {
+            assertEquals(parser.parseCommand(input).execute(new ModelManager()),
+                    parser.parseCommand(input.toUpperCase(Locale.ROOT)).execute(new ModelManager()));
+        }
     }
 
     @Test
@@ -87,9 +128,11 @@ public class TAssistParserTest {
 
         assertSame(groupList, featureParser.parseCommand("  group\t list  "));
         assertSame(studentAdd, featureParser.parseCommand("student\n add Alice Tan"));
+        assertSame(groupList, featureParser.parseCommand("  GROUP\t LiSt  "));
+        assertSame(studentAdd, featureParser.parseCommand("StuDent\n ADD Alice Tan"));
         assertTrue(featureParser.parseCommand("exit") instanceof ExitCommand);
-        assertEquals(parser.parseCommand("view attendance").execute(new ModelManager()),
-                featureParser.parseCommand("view attendance").execute(new ModelManager()));
+        assertEquals(parser.parseCommand("view storage").execute(new ModelManager()),
+                featureParser.parseCommand("view storage").execute(new ModelManager()));
     }
 
     @Test

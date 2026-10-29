@@ -13,20 +13,21 @@ import seedu.address.logic.commands.GroupListCommand;
 import seedu.address.logic.commands.GroupRenameCommand;
 import seedu.address.logic.commands.GroupUseCommand;
 import seedu.address.logic.help.HelpEntry;
+import seedu.address.model.TAssistHistory;
 import seedu.address.storage.GroupRecordsCsvExporter;
 
 /**
  * Registers tutorial-group commands and their help entries before application startup.
  */
 public final class GroupCommandRegistration {
-    /** Name of the folder, next to the TAssist JAR, that exports are written to by default. */
+    /** Name of the folder, in the application home folder, that exports are written to by default. */
     public static final String EXPORT_FOLDER_NAME = "exports";
 
     private GroupCommandRegistration() {}
 
     /**
      * Adds tutorial-group parsers and help to the given registry. Exports are written to the
-     * {@value #EXPORT_FOLDER_NAME} folder next to the TAssist JAR.
+     * {@value #EXPORT_FOLDER_NAME} folder in the application home folder.
      *
      * @param registry The registry assembled before constructing the logic component.
      */
@@ -59,9 +60,10 @@ public final class GroupCommandRegistration {
                         List.of("group use g/T01")));
         registry.register("group", "export", new GroupExportCommandParser(new GroupRecordsCsvExporter(exportFolder)),
                 new HelpEntry("group", GroupExportCommand.MESSAGE_USAGE,
-                        "Save the active group's attendance and participation for every week as a CSV file that "
-                                + "opens in a spreadsheet. The file is in the exports folder next to TAssist and "
-                                + "is replaced by the next export of the same group. Takes no parameters.",
+                        "Save the active group's attendance, participation, and assignment records as a CSV "
+                                + "file that opens in a spreadsheet. The file is in the exports folder next to "
+                                + "TAssist and is replaced by the next export of the same group. "
+                                + "Takes no parameters.",
                         List.of("group export")));
         registry.register("group", "rename", new GroupRenameCommandParser(),
                 new HelpEntry("group", GroupRenameCommand.MESSAGE_USAGE,
@@ -70,7 +72,8 @@ public final class GroupCommandRegistration {
         registry.register("group", "delete", new GroupDeleteCommandParser(),
                 new HelpEntry("group", GroupDeleteCommand.MESSAGE_USAGE,
                         "Delete a tutorial group with all its students and records, after asking to confirm. "
-                                + "Add f/yes to skip the prompt. This cannot be undone.",
+                                + "Add f/yes to skip the prompt. Undo can reverse it within your last "
+                                + TAssistHistory.MAX_CHANGES + " changes.",
                         List.of("group delete g/T02-Thu")));
     }
 }

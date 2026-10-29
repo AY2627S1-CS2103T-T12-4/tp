@@ -62,7 +62,7 @@ public abstract class Command {
      * Executes the command and returns the result message.
      *
      * @param model {@code Model} which the command should operate on.
-     * @return feedback message of the operation result for display
+     * @return the result of the command, including the feedback to display
      * @throws CommandException If an error occurs during command execution.
      */
     public abstract CommandResult execute(Model model) throws CommandException;
@@ -73,6 +73,14 @@ public abstract class Command {
      */
     public boolean isUndoable() {
         return true;
+    }
+
+    /**
+     * Returns true if this command works without the TA's saved data, so it still runs after that data could not be
+     * read at startup. Commands that show or change tutorial records return false.
+     */
+    public boolean canRunWithoutSavedData() {
+        return false;
     }
 
 }

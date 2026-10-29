@@ -76,6 +76,20 @@ public class AssignmentSubmitCommandTest {
     }
 
     @Test
+    public void execute_yesAlreadySubmitted_reportsNoChangesAndKeepsGrade() {
+        for (Assignment prior : List.of(PS1.withSubmissionStatus(ALICE_ID, true),
+                PS1.withSubmissionStatus(ALICE_ID, true).withGrade(ALICE_ID, 87))) {
+            Model model = modelWithAssignment();
+            model.setAssignment(NAME_T01, prior);
+            Model expected = modelWithAssignment();
+            expected.setAssignment(NAME_T01, prior);
+
+            assertCommandSuccess(new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, true), model,
+                    "Alice Tan's PS1 submission status is already submitted. Nothing changed.", expected);
+        }
+    }
+
+    @Test
     public void execute_noWithoutGrade_updatesStatusWithoutClearingGradeMessage() {
         Assignment prior = PS1.withSubmissionStatus(ALICE_ID, true);
         Model model = modelWithAssignment();
@@ -100,7 +114,8 @@ public class AssignmentSubmitCommandTest {
     public void execute_unknownAssignment_reportsErrorWithoutChanges() {
         Model model = modelWithAssignment();
         assertCommandFailure(new AssignmentSubmitCommand(new AssignmentName("PS2"), ALICE_ID, true), model,
-                "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
+                "Assignment PS2 does not exist in T01. See the group's assignments with: assignment list\n"
+                        + "Or create it with: assignment add a/PS2");
     }
 
     @Test

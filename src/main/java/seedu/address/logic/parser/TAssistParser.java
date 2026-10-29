@@ -5,6 +5,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -31,6 +32,11 @@ public class TAssistParser {
      */
     private static final Pattern BASIC_COMMAND_FORMAT =
             Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
+    /**
+     * Matches a Unicode space or line separator that looks like a normal space or line break, such as a non-breaking
+     * space pasted from a web page. Zero-width characters are not matched, as they separate no words.
+     */
+    private static final Pattern UNICODE_SPACE = Pattern.compile("[\\p{Zs}\\u2028\\u2029\\u0085]");
     private static final Logger logger = LogsCenter.getLogger(TAssistParser.class);
     private static final Set<String> BUILT_IN_COMMAND_WORDS = Set.of(ExitCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD, ViewCommand.COMMAND_WORD, UndoCommand.COMMAND_WORD, RedoCommand.COMMAND_WORD);
@@ -77,7 +83,7 @@ public class TAssistParser {
      */
     public Command parseCommand(String userInput) throws ParseException {
         requireNonNull(userInput);
-        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
+        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(replaceUnicodeSpaces(userInput).trim());
         if (!matcher.matches()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));
         }
@@ -90,7 +96,7 @@ public class TAssistParser {
         // Lower level log messages are used sparingly to minimize noise in the code.
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
-        return switch (commandWord) {
+        return switch (commandWord.toLowerCase(Locale.ROOT)) {
             case ExitCommand.COMMAND_WORD -> new ExitCommandParser().parse(arguments);
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser(helpEntries).parse(arguments);
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
@@ -98,6 +104,19 @@ public class TAssistParser {
             case RedoCommand.COMMAND_WORD -> withoutParameters(arguments, new RedoCommand());
             default -> commandRegistry.parseCommand(commandWord, arguments);
         };
+    }
+
+    /**
+     * Returns {@code userInput} with every Unicode space and line separator replaced by a normal space.
+     * Pasted text often contains characters such as U+00A0 that look like a normal space or line break, but that
+     * would not separate words.
+     */
+    static String replaceUnicodeSpaces(String userInput) {
+        String normalizedInput = UNICODE_SPACE.matcher(userInput).replaceAll(" ");
+        if (!normalizedInput.equals(userInput)) {
+            logger.fine("Replaced Unicode space or line separator characters in the input with normal spaces.");
+        }
+        return normalizedInput;
     }
 
     /**
