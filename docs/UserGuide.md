@@ -563,12 +563,12 @@ Listing does not change any data.
 
 Format: `assignment list a/ASSIGNMENT_NAME`
 
-Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 87,
+Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
 `assignment list a/PS1` shows
 
 ```text
 PS1 records for T01:
-Alice Tan | A0123456X | Submitted | 87
+Alice Tan | A0123456X | Submitted | 60
 ```
 
 Each row shows the student's name, ID, submission status, and grade. A student without a saved record shows
