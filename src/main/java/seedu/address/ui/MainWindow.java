@@ -232,7 +232,13 @@ public class MainWindow extends UiPart<Stage> {
             if (result.getView().isPresent()) {
                 workspacePanel.showView(result.getView().get());
             }
-            statusBarFooter.setStatus(result.hasSavedChanges() ? "Changes saved." : "Local data file");
+            if (result.hasSavedChanges()) {
+                statusBarFooter.setStatus("Changes saved.");
+            } else if (dataLoadStatus.isFailure()) {
+                statusBarFooter.setStatus(dataLoadStatus.getMessage(), true);
+            } else {
+                statusBarFooter.setStatus("Local data file");
+            }
             showHelpIfRequested(result);
             if (result.isExit()) {
                 handleExit();

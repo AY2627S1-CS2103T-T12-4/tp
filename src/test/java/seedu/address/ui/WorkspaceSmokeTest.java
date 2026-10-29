@@ -133,6 +133,48 @@ public class WorkspaceSmokeTest {
                             .startsWith(status.getMessage()));
                     assertEquals(status.isFailure(), isFooterShowingFailure());
                     assertEquals(status.isFailure(), isShowingDataNotRead());
+                    enter(input, "help");
+                    assertEquals(status.isFailure(), isFooterShowingFailure());
+                    assertTrue(((Label) root.lookup("#saveLocationStatus")).getText()
+                            .startsWith(status.isFailure() ? status.getMessage() : "Local data file"));
+                });
+            } finally {
+                runOnFx(() -> stage.hide());
+            }
+        }
+    }
+
+    @Test
+    public void startup_footerAfterCommands_preservesFailedLoadUntilDataCanBeSaved() throws Exception {
+        for (DataLoadStatus status : List.of(DataLoadStatus.LOADED, DataLoadStatus.MISSING,
+                DataLoadStatus.FAILED, DataLoadStatus.failed("Invalid JSON."))) {
+            runOnFx(() -> initializeWorkspace(status));
+            try {
+                runOnFx(() -> {
+                    Files.writeString(data, "{");
+                    Label footer = (Label) root.lookup("#saveLocationStatus");
+                    for (String command : List.of("help", "view students")) {
+                        enter(input, command);
+                        assertEquals(status.isFailure(), isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith(
+                                status.isFailure() ? status.getMessage() : "Local data file"));
+                    }
+                    TAssist beforeEdit = new TAssist(model.getTAssist());
+                    enter(input, "group add g/New group");
+                    if (status.isFailure()) {
+                        assertEquals(beforeEdit, model.getTAssist());
+                        assertEquals("{", Files.readString(data));
+                        assertTrue(isFooterShowingFailure());
+                        assertTrue(footer.getText().startsWith("Command failed"));
+                        assertFalse(footer.getText().contains("Changes saved."));
+                        enter(input, "help");
+                        assertTrue(footer.getText().startsWith(status.getMessage()));
+                        assertTrue(isFooterShowingFailure());
+                    } else {
+                        assertTrue(footer.getText().startsWith("Changes saved."));
+                        assertFalse(isFooterShowingFailure());
+                        assertFalse(Files.readString(data).equals("{"));
+                    }
                 });
             } finally {
                 runOnFx(() -> stage.hide());
