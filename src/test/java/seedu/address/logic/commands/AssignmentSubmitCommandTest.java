@@ -114,7 +114,8 @@ public class AssignmentSubmitCommandTest {
     public void execute_unknownAssignment_reportsErrorWithoutChanges() {
         Model model = modelWithAssignment();
         assertCommandFailure(new AssignmentSubmitCommand(new AssignmentName("PS2"), ALICE_ID, true), model,
-                "Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2");
+                "Assignment PS2 does not exist in T01. See the group's assignments with: assignment list\n"
+                        + "Or create it with: assignment add a/PS2");
     }
 
     @Test

@@ -23,6 +23,12 @@ public class AssignmentListCommandParserTest {
     }
 
     @Test
+    public void parse_noName_listsAssignmentNames() {
+        assertParseSuccess(parser, "", new AssignmentListCommand());
+        assertParseSuccess(parser, "   ", new AssignmentListCommand());
+    }
+
+    @Test
     public void parse_invalidName_reportsConstraints() {
         for (String name : new String[] {"", "   ", "-", "PS1_A", "PS1/PS2", "a".repeat(61)}) {
             assertParseFailure(parser, "a/" + name, AssignmentName.MESSAGE_CONSTRAINTS);
@@ -31,7 +37,6 @@ public class AssignmentListCommandParserTest {
 
     @Test
     public void parse_malformedParameters_reportsSpecificError() {
-        assertParseFailure(parser, "", String.format(TAssistArgumentParser.MESSAGE_MISSING_PARAMETERS, "a/"));
         assertParseFailure(parser, "a/PS1 a/PS2", Messages.getErrorMessageForDuplicatePrefixes(new Prefix("a/")));
         assertParseFailure(parser, "a/PS1 w/3",
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "w/", "a/"));

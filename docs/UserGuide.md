@@ -573,12 +573,24 @@ and entering the same grade again shows `Alice Tan's PS1 grade is already 60. No
 An unsubmitted assignment shows `Cannot record a grade for an unsubmitted assignment. Record it first with:
 assignment submit a/PS1 id/A0123456X s/yes`.
 
-### Listing assignment records: `assignment list`
+### Listing assignments and their records: `assignment list`
 
-Lists every student in the active group, in roster order, with their status and grade for one assignment.
+Without `a/`, lists the names of the active group's assignments in the order they were created. With `a/`, lists
+every student in the active group, in roster order, with their status and grade for that assignment.
 Listing does not change any data.
 
-Format: `assignment list a/ASSIGNMENT_NAME`
+Format: `assignment list [a/ASSIGNMENT_NAME]`
+
+Example: after `assignment add a/PS1` and `assignment add a/Lab 2 (Graphs)` in T01, `assignment list` shows
+
+```text
+Assignments in T01:
+1. PS1
+2. Lab 2 (Graphs)
+```
+
+A group without assignments shows `No assignments in T01. Create one with: assignment add a/ASSIGNMENT_NAME`.
+Use the listed names with `a/` in the other assignment commands.
 
 Example: after the examples in this guide, which leave only Alice Tan in T01 with PS1 submitted and graded 60,
 `assignment list a/PS1` shows
@@ -601,7 +613,7 @@ Problem | Feedback and correction
 --------|------------------------
 No active group | `No active tutorial group. Create or select a group first.` Use `group add` or `group use`.
 Duplicate assignment | `Assignment PS1 already exists in T01` The message shows the name of the existing assignment. Use a different name, or list its records with `assignment list a/PS1`.
-Unknown assignment | `Assignment PS2 does not exist in T01. Check the name, or create it with: assignment add a/PS2` Assignments belong to one group, so check the active group.
+Unknown assignment | `Assignment PS2 does not exist in T01. See the group's assignments with: assignment list`, then on the next line `Or create it with: assignment add a/PS2` Check the name against `assignment list`. Assignments belong to one group, so also check the active group.
 Invalid or blank name | `Invalid assignment name. Use 1-60 letters, digits, spaces, hyphens, periods, colons, or parentheses.` Follow the naming rules above.
 Invalid submission status | `Invalid submission status. Use yes or no.` Enter `yes` or `no` after `s/`.
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
@@ -851,5 +863,5 @@ Action | Format, Examples
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
 **Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
-**List assignment records** | `assignment list a/ASSIGNMENT_NAME`<br> e.g., `assignment list a/PS1`
+**List assignments or records** | `assignment list [a/ASSIGNMENT_NAME]`<br> e.g., `assignment list`, `assignment list a/PS1`
 **Exit** | `exit`
