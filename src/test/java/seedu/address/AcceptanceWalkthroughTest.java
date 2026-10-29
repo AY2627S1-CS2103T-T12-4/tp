@@ -109,8 +109,10 @@ public class AcceptanceWalkthroughTest extends AppIntegrationTest {
         assertEquals("Created tutorial group: T03.\nActive group is now T03.", feedback("group add g/T03\u00A0"));
         assertEquals("Added Ann Lee to T03.", feedback("student add n/Ann\u00A0Lee id/N1"));
         assertEquals("Added Bob Lee to T03.", feedback("\u3000student\u2003add n/Bob\u2003Lee id/A2\u202F"));
+        TAssist beforeRejected = new TAssist(app.model.getTAssist());
         assertThrows(ParseException.class, AssignmentName.MESSAGE_CONSTRAINTS, () ->
                 app.logic.execute("assignment add a/\u2003"));
+        assertEquals(beforeRejected, app.model.getTAssist());
 
         restart();
         assertEquals("Students in T03:\n1. Ann Lee | N1\n2. Bob Lee | A2", feedback("student list"));
