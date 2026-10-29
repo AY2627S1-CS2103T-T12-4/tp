@@ -135,7 +135,8 @@ public class MainAppTest {
             }
             for (String command : List.of("group list", "student list", "group add g/T01")) {
                 assertThrows(CommandException.class,
-                        LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute(command));
+                        LogicManager.getDataProtectedMessage(app.getDataLoadStatus()), () ->
+                        app.logic.execute(command));
             }
             assertEquals(new TAssist(), app.model.getTAssist());
             app.logic.execute("exit");
@@ -202,7 +203,8 @@ public class MainAppTest {
 
         assertEquals(DataLoadStatus.failed("The file could not be opened."), app.getDataLoadStatus());
         assertThrows(CommandException.class,
-                LogicManager.MESSAGE_DATA_PROTECTED, () -> app.logic.execute("group add g/T01"));
+                LogicManager.getDataProtectedMessage(app.getDataLoadStatus()), () ->
+                app.logic.execute("group add g/T01"));
         app.stop();
         assertEquals("Keep existing contents.", Files.readString(existingFile));
         assertTrue(Files.isDirectory(directory));

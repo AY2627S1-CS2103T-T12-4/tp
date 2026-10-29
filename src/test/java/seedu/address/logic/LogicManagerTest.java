@@ -336,11 +336,15 @@ public class LogicManagerTest {
     @Test
     public void execute_savedDataUnreadable_rejectsCommandsThatNeedIt() throws Exception {
         Path dataFile = temporaryFolder.resolve("unreadable.json");
+        DataLoadStatus status = DataLoadStatus.failed("Week must be a whole number from 1 to 13.");
         logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)),
-                createGroupAndStudentRegistry(), DataLoadStatus.FAILED);
+                createGroupAndStudentRegistry(), status);
 
-        for (String command : List.of("group list", "student list", "group add g/T01", "undo")) {
-            assertCommandException(command, LogicManager.MESSAGE_DATA_PROTECTED);
+        assertCommandException("group list", "Saved data could not be read. Week must be a whole number from 1 to 13."
+                + " No changes were made to the saved file. Close TAssist, repair or move the unreadable data file,"
+                + " and restart to see or change your records.");
+        for (String command : List.of("student list", "group add g/T01", "undo")) {
+            assertCommandException(command, LogicManager.getDataProtectedMessage(status));
         }
         assertEquals(CommandResult.forHelp(HelpCommand.MESSAGE_SHOWING_HELP, ""), logic.execute("help"));
         assertEquals(WorkspaceView.GROUPS, logic.execute("view groups").getView().orElseThrow());
@@ -362,7 +366,7 @@ public class LogicManagerTest {
         logic = new LogicManager(model, createStorage(new JsonTAssistStorage(dataFile)), registry,
                 DataLoadStatus.FAILED);
 
-        assertCommandException("group change", LogicManager.MESSAGE_DATA_PROTECTED);
+        assertCommandException("group change", LogicManager.getDataProtectedMessage(DataLoadStatus.FAILED));
         assertFalse(Files.exists(dataFile));
     }
 

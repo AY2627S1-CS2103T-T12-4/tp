@@ -786,7 +786,9 @@ is allowed. This prevents a later save from silently removing appended content.
 `help`, `view`, and `exit` before running it. On the empty model, a listing command would otherwise report that no
 groups exist and suggest creating records that cannot be saved. A command opts in by overriding
 `Command#canRunWithoutSavedData()`, which returns false by default. As a safeguard, logic also rejects any command
-that changes data and restores the snapshot without attempting a save.
+that changes data and restores the snapshot without attempting a save. Both rejections use
+`LogicManager#getDataProtectedMessage`, which repeats the status message with its reason and adds how to recover,
+so the reason stays visible after the startup message is replaced.
 This protection lasts until restart, including if the user repairs the file while the app is running. The user must
 close the app, repair or move the unreadable file, and restart to enable saving. Missing files do not enable this
 protection. `JsonUtil` treats only a definitely absent path as missing. Otherwise, it attempts reading the file so
@@ -1535,8 +1537,10 @@ label.
       stopped, then `No changes were made to the saved file.` The log also records the cause.
 
    1. Enter `group list`, `group add g/T01`, then `help`, close the app, and inspect the file.<br>
-      Expected: Both `group list` and the mutation are rejected with recovery guidance, help remains available, and
-      the file stays unchanged.
+      Expected: Both `group list` and the mutation are rejected with
+      `Saved data could not be read. The file has a JSON syntax error or a value of the wrong type near line L. No
+      changes were made to the saved file. Close TAssist, repair or move the unreadable data file, and restart to see
+      or change your records.` Help remains available, and the file stays unchanged.
       Repair the file while the app is closed and restart; normal saving should resume.
 
    1. Close the app and restore a valid file containing a student in T01. Set their participation map to
