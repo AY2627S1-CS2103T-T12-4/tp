@@ -298,9 +298,7 @@ validator normalizes them; parameter prefixes remain lowercase.
 
 `HelpIntegrationTest` executes every help example with uppercase command words and compares the data with the
 lowercase examples, then reloads the saved file. It also checks that invalid uppercase commands preserve data and
-that mixed-case undo and redo work. For manual testing, enter `GROUP add g/T04`, `group ADD g/T05`, and
-`attendance Mark id/A0123456X w/5 s/present` with that student in the active group; each should work as its
-lowercase form.
+that mixed-case undo and redo work.
 
 Feature parsers declare their required and optional parameters with `TAssistArgumentParser`:
 
@@ -1881,6 +1879,18 @@ parameter errors, empty groups, week boundaries, and display formatting.
    1. Enter `group add g/T09`, then `group add g/t09` (rejected as a duplicate), then `group list`, then `undo`.
       Expected: `Undone: group add g/T09`. The rejected and listing commands are skipped.
    1. Enter `undo extra`. Expected: `This command takes no parameters. Remove the extra input.`
+
+### Entering commands in mixed case
+
+1. Command words and subcommands ignore case
+
+   1. Prerequisites: Launch the JAR in an empty writable folder.
+   1. Enter `GROUP add g/T04`, then `group ADD g/T05`. Expected: Each group is created exactly as with lowercase
+      command words.
+   1. With a student in the active group, enter `attendance Mark id/A0123456X w/5 s/present`. Expected: The same
+      feedback and record as the lowercase command.
+   1. Enter `GROUP add G/T06`. Expected: The command is rejected, because parameter prefixes stay lowercase, and
+      the data does not change.
 
 ### Preparing a command from a student row
 
