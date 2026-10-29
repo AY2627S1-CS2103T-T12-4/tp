@@ -2,10 +2,13 @@ package seedu.address.ui;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -70,6 +73,12 @@ public class StudentListPanel extends UiPart<Region> {
         requireAllNonNull(activeGroup, roster, students, hasStudentFilter, studentClickHandler);
 
         studentTable.setItems(students);
+        followStudentAdditions(activeGroup, roster, students, row -> {
+            studentTable.requestLayout();
+            studentTable.layout();
+            // Scrolling just past the final row clamps to the bottom, including the entire new row.
+            studentTable.scrollTo(row == students.size() - 1 ? students.size() : row);
+        }, Platform::runLater);
         setUpStudentClicks(studentClickHandler);
         addColumn("#", ROW_NUMBER_WIDTH, student -> Integer.toString(students.indexOf(student) + 1))
                 .setMaxWidth(ROW_NUMBER_WIDTH);
@@ -97,6 +106,39 @@ public class StudentListPanel extends UiPart<Region> {
                 describeEmptyHint(activeGroup.getValue(), hasStudentFilter.get(),
                         isDataLoadFailed), activeGroup, hasStudentFilter));
         showEmptyStateInsteadOfTable(students);
+    }
+
+    /**
+     * Scrolls to a sole new roster member after the displayed list has caught up with the model.
+     * ActiveGroupTracker replaces the roster on every change, so displayed-list add events alone cannot
+     * distinguish additions from searches or group switches. A deferred group check excludes switches.
+     */
+    static void followStudentAdditions(ObservableValue<Optional<Group>> activeGroup,
+            ObservableList<Student> roster, ObservableList<Student> displayedStudents,
+            Consumer<Integer> scrollTo, Consumer<Runnable> runLater) {
+        List<Student> previousStudents = new ArrayList<>(roster);
+        roster.addListener((ListChangeListener<Student>) change -> {
+            Optional<Group> group = activeGroup.getValue();
+            Student added = null;
+            if (roster.size() == previousStudents.size() + 1 && roster.containsAll(previousStudents)) {
+                added = roster.stream().filter(student -> !previousStudents.contains(student)).findFirst().orElse(null);
+            }
+            previousStudents.clear();
+            previousStudents.addAll(roster);
+            if (added == null || group.isEmpty()) {
+                return;
+            }
+            Student newStudent = added;
+            runLater.accept(() -> {
+                if (activeGroup.getValue().orElse(null) != group.get()) {
+                    return;
+                }
+                int row = displayedStudents.indexOf(newStudent);
+                if (row >= 0) {
+                    scrollTo.accept(row);
+                }
+            });
+        });
     }
 
     /**

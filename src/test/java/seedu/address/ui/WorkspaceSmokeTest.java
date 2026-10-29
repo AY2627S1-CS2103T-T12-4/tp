@@ -843,6 +843,38 @@ public class WorkspaceSmokeTest {
     }
 
     @Test
+    public void studentAdd_longRoster_scrollsToNewRowWithoutSelectingIt() throws Exception {
+        List<Integer> scrolledRows = new ArrayList<>();
+        runOnFx(() -> {
+            initializeWorkspace();
+            stage.setWidth(854);
+            stage.setHeight(480);
+            enter(input, "view students");
+            enter(input, "group use g/T03");
+            for (int i = 0; i < 15; i++) {
+                enter(input, "student add n/Student " + (char) ('A' + i) + " id/S" + i);
+            }
+        });
+        try {
+            runOnFx(() -> {
+                studentTable().setOnScrollTo(event -> scrolledRows.add(event.getScrollTarget()));
+                enter(input, "student add n/New Person id/A9999");
+            });
+            // VirtualFlow realizes the scrolled row on a subsequent JavaFX pulse.
+            Thread.sleep(300);
+            runOnFx(() -> {
+                root.applyCss();
+                root.layout();
+                assertEquals(List.of(16), scrolledRows);
+                assertEquals(-1, studentTable().getSelectionModel().getSelectedIndex());
+                assertFalse(tableRow(studentTable(), 15).isEmpty());
+            });
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    @Test
     public void studentSearchAndSort_updatesTableCountsEmptyStateAndNavigation() throws Exception {
         runOnFx(this::initializeWorkspace);
         try {
