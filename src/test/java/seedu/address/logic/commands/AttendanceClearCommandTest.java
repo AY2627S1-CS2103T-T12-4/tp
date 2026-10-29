@@ -9,7 +9,10 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalStudents.ALICE;
 import static seedu.address.testutil.TypicalStudents.BEN;
+import static seedu.address.testutil.TypicalStudents.CARL;
 import static seedu.address.testutil.TypicalStudents.DANIEL;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
 import seedu.address.testutil.TypicalGroups;
 
 public class AttendanceClearCommandTest {
@@ -89,6 +93,52 @@ public class AttendanceClearCommandTest {
     }
 
     @Test
+    public void execute_severalStudents_clearsAllAndReportsEachInOrder() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+        model.setStudent(TypicalGroups.NAME_T01,
+                BEN.withAttendanceRecord(3, "ABSENT").withAttendanceRecord(4, "ABSENT"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(TypicalGroups.NAME_T01, ALICE);
+        expected.setStudent(TypicalGroups.NAME_T01, BEN.withAttendanceRecord(4, "ABSENT"));
+
+        assertCommandSuccess(new AttendanceClearCommand(List.of(BEN.getStudentId(), ALICE.getStudentId()), 3), model,
+                "Cleared Ben Lim's attendance for Week 3: absent to Not recorded.\n"
+                        + "Cleared Alice Tan's attendance for Week 3: present to Not recorded.", expected);
+    }
+
+    @Test
+    public void execute_someStudentsUnrecorded_clearsRecordedAndReportsOthers() {
+        model.setStudent(TypicalGroups.NAME_T01, BEN.withAttendanceRecord(3, "PRESENT"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+        expected.setStudent(TypicalGroups.NAME_T01, BEN);
+
+        assertCommandSuccess(new AttendanceClearCommand(
+                        List.of(ALICE.getStudentId(), BEN.getStudentId(), CARL.getStudentId()), 3), model,
+                "Alice Tan has no attendance recorded for Week 3. Nothing changed.\n"
+                        + "Cleared Ben Lim's attendance for Week 3: present to Not recorded.\n"
+                        + "Carl Goh has no attendance recorded for Week 3. Nothing changed.", expected);
+    }
+
+    @Test
+    public void execute_noListedStudentRecorded_changesNothing() {
+        model.setStudent(TypicalGroups.NAME_T01, CARL.withAttendanceRecord(3, "PRESENT"));
+        Model expected = new ModelManager(model.getTAssist(), new UserPrefs());
+
+        assertCommandSuccess(new AttendanceClearCommand(List.of(ALICE.getStudentId(), BEN.getStudentId()), 3), model,
+                "Alice Tan has no attendance recorded for Week 3. Nothing changed.\n"
+                        + "Ben Lim has no attendance recorded for Week 3. Nothing changed.", expected);
+    }
+
+    @Test
+    public void execute_oneUnknownStudent_failsWithoutClearingAnyone() {
+        model.setStudent(TypicalGroups.NAME_T01, ALICE.withAttendanceRecord(3, "PRESENT"));
+        Model unchanged = new ModelManager(model.getTAssist(), new UserPrefs());
+        assertCommandFailure(new AttendanceClearCommand(List.of(ALICE.getStudentId(), DANIEL.getStudentId()), 3),
+                model, String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
+        assertEquals(unchanged, model);
+    }
+
+    @Test
     public void execute_studentInAnotherGroup_failsWithoutChangingData() {
         assertCommandFailure(new AttendanceClearCommand(DANIEL.getStudentId(), 3), model,
                 String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), TypicalGroups.NAME_T01));
@@ -102,19 +152,23 @@ public class AttendanceClearCommandTest {
 
     @Test
     public void invalidConstruction_throwsException() {
-        assertThrows(NullPointerException.class, () -> new AttendanceClearCommand(null, 3));
+        assertThrows(NullPointerException.class, () -> new AttendanceClearCommand((StudentId) null, 3));
+        assertThrows(NullPointerException.class, () -> new AttendanceClearCommand((List<StudentId>) null, 3));
+        assertThrows(IllegalArgumentException.class, () -> new AttendanceClearCommand(List.of(), 3));
         assertThrows(IllegalArgumentException.class, () -> new AttendanceClearCommand(ALICE.getStudentId(), 0));
         assertThrows(IllegalArgumentException.class, () -> new AttendanceClearCommand(ALICE.getStudentId(), 14));
     }
 
     @Test
-    public void equals_comparesStudentAndWeek() {
+    public void equals_comparesKindStudentsAndWeek() {
         AttendanceClearCommand command = new AttendanceClearCommand(ALICE.getStudentId(), 3);
         AttendanceClearCommand equal = new AttendanceClearCommand(ALICE.getStudentId(), 3);
         assertEquals(command, command);
         assertEquals(command, equal);
         assertEquals(command.hashCode(), equal.hashCode());
         assertNotEquals(command, new AttendanceClearCommand(DANIEL.getStudentId(), 3));
+        assertNotEquals(command, new AttendanceClearCommand(List.of(ALICE.getStudentId(), BEN.getStudentId()), 3));
+        assertNotEquals(command, new ParticipationClearCommand(ALICE.getStudentId(), 3));
         assertNotEquals(command, new AttendanceClearCommand(ALICE.getStudentId(), 4));
         assertNotEquals(command, null);
         assertNotEquals(command, "attendance clear");

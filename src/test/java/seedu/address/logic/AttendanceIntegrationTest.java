@@ -130,6 +130,29 @@ public class AttendanceIntegrationTest {
     }
 
     @Test
+    public void execute_clearSeveralStudentsAndReload_clearsOnlyRecordedStudents() throws Exception {
+        logic.execute("attendance mark id/A0123456X id/A0234567Y w/2 s/absent");
+
+        assertFeedback("attendance clear id/a0234567y id/A0345678Z id/A0123456X id/A0234567Y w/2",
+                "Cleared Ben Lim's attendance for Week 2: absent to Not recorded.\n"
+                        + "Carl Goh has no attendance recorded for Week 2. Nothing changed.\n"
+                        + "Cleared Alice Tan's attendance for Week 2: absent to Not recorded.");
+        restart();
+
+        assertFeedback("attendance list w/2", "Attendance for T01, Week 2:\n"
+                + "Alice Tan | A0123456X | Not recorded\n"
+                + "Ben Lim | A0234567Y | Not recorded\n"
+                + "Carl Goh | A0345678Z | Not recorded");
+    }
+
+    @Test
+    public void execute_clearSeveralStudentsWithUnknownId_clearsNobody() throws Exception {
+        logic.execute("attendance mark id/A0123456X id/A0234567Y w/2 s/present");
+        assertFailureUnchanged("attendance clear id/A0123456X id/A0456789W id/A0234567Y w/2",
+                CommandException.class, String.format(MESSAGE_UNKNOWN_STUDENT, "A0456789W", TypicalGroups.NAME_T01));
+    }
+
+    @Test
     public void execute_clearUnrecordedWeek_leavesSavedFileUntouched() throws Exception {
         logic.execute("attendance mark id/A0123456X w/3 s/present");
         String savedData = Files.readString(dataFile);
@@ -137,6 +160,13 @@ public class AttendanceIntegrationTest {
         CommandResult result = logic.execute("attendance clear id/A0123456X w/4");
 
         assertEquals("Alice Tan has no attendance recorded for Week 4. Nothing changed.", result.getFeedbackToUser());
+        assertFalse(result.hasSavedChanges());
+        assertEquals(savedData, Files.readString(dataFile));
+
+        result = logic.execute("attendance clear id/A0123456X id/A0234567Y w/4");
+
+        assertEquals("Alice Tan has no attendance recorded for Week 4. Nothing changed.\n"
+                + "Ben Lim has no attendance recorded for Week 4. Nothing changed.", result.getFeedbackToUser());
         assertFalse(result.hasSavedChanges());
         assertEquals(savedData, Files.readString(dataFile));
     }

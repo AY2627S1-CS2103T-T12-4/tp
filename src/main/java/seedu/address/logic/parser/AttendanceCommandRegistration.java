@@ -38,9 +38,9 @@ public final class AttendanceCommandRegistration {
                         List.of("attendance list w/3")));
         registry.register("attendance", "clear", new AttendanceClearCommandParser(),
                 new HelpEntry("attendance", AttendanceClearCommand.MESSAGE_USAGE,
-                        "Remove a student's attendance mark for a week from 1 to 13, so that the week shows "
-                                + "Not recorded again. Use it to correct a mark entered for the wrong student or week. "
-                                + "IDs ignore case.",
+                        "Remove the attendance marks of one or more students for a week from 1 to 13, so that "
+                                + "the week shows Not recorded again. Use it to correct a mark entered for the wrong "
+                                + "student or week. Repeat id/ to clear several students at once. IDs ignore case.",
                         List.of("attendance clear id/A0123456X w/3")));
     }
 }

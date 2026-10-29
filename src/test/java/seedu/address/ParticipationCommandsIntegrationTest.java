@@ -58,11 +58,13 @@ public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
                 "participation list w/3 w/4", "participation list w/3 s/4", "participation", "participation mark",
                 "participation clear", "participation clear id/A0123456X", "participation clear w/3",
                 "participation clear id/A0123456X w/0", "participation clear id/A0123456X w/3 s/2",
-                "participation clear id/A0123456X w/3 w/4", "participation clear id/A0123456X w/3 now")) {
+                "participation clear id/A0123456X w/3 w/4", "participation clear id/A0123456X w/3 now",
+                "participation clear id/A0123456X id/ w/3")) {
             assertRejected(command, ParseException.class);
         }
         assertRejected("participation set id/A999 w/3 s/4", CommandException.class);
         assertRejected("participation clear id/A999 w/3", CommandException.class);
+        assertRejected("participation clear id/A0123456X id/A999 w/3", CommandException.class);
     }
 
     @Test
@@ -78,7 +80,7 @@ public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
     public void init_participationHelp_registersWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "participation");
         assertEquals(List.of("participation set id/STUDENT_ID [id/STUDENT_ID]... w/WEEK s/SCORE",
-                "participation list w/WEEK", "participation clear id/STUDENT_ID w/WEEK"),
+                "participation list w/WEEK", "participation clear id/STUDENT_ID [id/STUDENT_ID]... w/WEEK"),
                 entries.stream().map(HelpEntry::getCommandFormat).toList());
         assertEquals(CommandResult.forHelp("Showing participation commands.", "participation"),
                 app.logic.execute("help participation"));
@@ -108,6 +110,21 @@ public class ParticipationCommandsIntegrationTest extends AppIntegrationTest {
                 + "\nBen Lim | A0234567Y | 2\nCarl Goh | A0345678Z | Not recorded",
                 feedback("participation list w/3"));
         assertEquals(5, app.model.getActiveGroupStudentList().getFirst().getParticipationRecord(4).orElseThrow());
+    }
+
+    @Test
+    public void execute_clearSeveralStudentsAndRestart_clearsOnlyRecordedStudents() throws Exception {
+        feedback("participation set id/A0123456X id/A0234567Y w/3 s/0");
+
+        assertEquals("Cleared Ben Lim's participation score for Week 3: 0 to Not recorded.\n"
+                + "Carl Goh has no participation score recorded for Week 3. Nothing changed.\n"
+                + "Cleared Alice Tan's participation score for Week 3: 0 to Not recorded.",
+                feedback("participation clear id/a0234567y id/A0345678Z id/A0123456X id/A0234567Y w/3"));
+        restart();
+
+        assertEquals("Participation for T01, Week 3:\nAlice Tan | A0123456X | Not recorded"
+                + "\nBen Lim | A0234567Y | Not recorded\nCarl Goh | A0345678Z | Not recorded",
+                feedback("participation list w/3"));
     }
 
     @Test

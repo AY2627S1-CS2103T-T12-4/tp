@@ -3,6 +3,9 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +21,22 @@ public class ParticipationClearCommandParserTest {
         assertParseSuccess(parser, "  w/ 03   id/ a0123456x ", new ParticipationClearCommand(ALICE.getStudentId(), 3));
         assertParseSuccess(parser, "id/A0123456X w/1", new ParticipationClearCommand(ALICE.getStudentId(), 1));
         assertParseSuccess(parser, "id/A0123456X w/13", new ParticipationClearCommand(ALICE.getStudentId(), 13));
+    }
+
+    @Test
+    public void parse_repeatedStudentId_clearsEveryStudentOnceInGivenOrder() {
+        assertParseSuccess(parser, "id/A0234567Y w/3 id/A0123456X id/a0234567y",
+                new ParticipationClearCommand(List.of(BEN.getStudentId(), ALICE.getStudentId()), 3));
+    }
+
+    @Test
+    public void parse_repeatedStudentIdWithBadValue_reportsThatValue() {
+        assertParseFailure(parser, "id/A0123456X id/ w/3", StudentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "id/A0123456X id/invalid! w/3", StudentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "id/A0123456X later id/A0234567Y w/3",
+                String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "id/A0123456X", "later"));
+        assertParseFailure(parser, "id/A0123456X id/A0234567Yw/3",
+                String.format(TAssistArgumentParser.MESSAGE_MISSING_SPACE, "w/", "id/A0234567Yw/3"));
     }
 
     @Test
@@ -43,10 +62,8 @@ public class ParticipationClearCommandParserTest {
     @Test
     public void parse_repeatedOrUnknownPrefixes_reportsFormatError() {
         String validArguments = "id/A0123456X w/3";
-        for (String prefix : new String[] {"id/", "w/"}) {
-            assertParseFailure(parser, validArguments + " " + prefix + "value",
-                    Messages.getErrorMessageForDuplicatePrefixes(new Prefix(prefix)));
-        }
+        assertParseFailure(parser, validArguments + " w/4",
+                Messages.getErrorMessageForDuplicatePrefixes(new Prefix("w/")));
         // A score copied from participation set is not accepted, so a typo never clears the wrong record.
         assertParseFailure(parser, validArguments + " s/2",
                 String.format(TAssistArgumentParser.MESSAGE_UNKNOWN_PREFIX, "s/", "id/ w/"));

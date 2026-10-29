@@ -36,9 +36,10 @@ public final class ParticipationCommandRegistration {
                         List.of("participation list w/3")));
         registry.register("participation", "clear", new ParticipationClearCommandParser(),
                 new HelpEntry("participation", ParticipationClearCommand.MESSAGE_USAGE,
-                        "Remove a student's score for a week from 1 to 13, so that the week shows Not recorded "
-                                + "again. Use it to correct a score entered for the wrong student or week, since 0 "
-                                + "is a real score. IDs ignore case.",
+                        "Remove the scores of one or more students for a week from 1 to 13, so that the week "
+                                + "shows Not recorded again. Use it to correct a score entered for the wrong student "
+                                + "or week, since 0 is a real score. Repeat id/ to clear several students at once. "
+                                + "IDs ignore case.",
                         List.of("participation clear id/A0123456X w/3")));
     }
 }

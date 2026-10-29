@@ -570,8 +570,8 @@ the shared weekly listing mechanism. Each row formats its value or `Not recorded
 
 Because zero is an actual score, setting a score to 0 cannot undo a score entered by mistake.
 `ParticipationClearCommand` removes the week's score with `withoutParticipationRecord`, so the week shows
-`Not recorded` again. It works like `attendance clear`: it takes only `id/` and `w/`, names the score it removed, and
-changes nothing when the week has no score.
+`Not recorded` again. It works like `attendance clear`, and both extend `WeeklyRecordClearCommand`: it takes only a
+repeatable `id/` and `w/`, names each score it removed, and skips a student who has no score that week.
 
 **Aspect: How a TA removes a wrong weekly record**
 
@@ -592,9 +592,9 @@ changes nothing when the week has no score.
 current screen selected. Existing JSON storage already persists participation records, so the
 feature adds no new file format. Loading rejects a fractional participation score, or one outside 0–5, the same way
 it rejects a week outside 1–13. `ParticipationCommandsIntegrationTest` exercises startup registration, help,
-restart persistence, clearing a score, and rejected commands preserving existing records and the file. Command and
-parser unit tests cover boundaries, corrections, clearing a recorded or missing score, group isolation, missing
-values, and malformed input. `WorkspaceSmokeTest` checks
+restart persistence, clearing one or several students' scores, and rejected commands preserving existing records and
+the file. Command and parser unit tests cover boundaries, corrections, clearing a recorded or missing score, group
+isolation, missing values, and malformed input. `WorkspaceSmokeTest` checks
 participation feedback and failed-input retention through the JavaFX command box.
 
 ### Student commands
@@ -789,12 +789,19 @@ selects attendance through `Group#getWeeklyRecordEntries`. If the group has no s
 capitalized status, using `WeeklyRecordEntry#formatValueOrNotRecorded` to show a missing mark as `Not recorded`.
 The rows appear in the scrollable command feedback box.
 
-`AttendanceClearCommandParser` requires `id/` and `w/` exactly once, with the same validation as marking. It does not
-accept `s/`, so a status copied from a mark command is reported instead of being ignored. `AttendanceClearCommand`
-finds the student in the active group, then replaces them through `Model#setStudent` with a copy from
-`withoutAttendanceRecord`. The feedback names the status it removed, such as `present to Not recorded`, so a TA who
-cleared the wrong week can mark it again. If the week has no mark, the command changes nothing and says so. The data
-is then unchanged, so `LogicManager` does not save, just as for a repeated mark.
+`AttendanceClearCommandParser` requires `id/` and `w/`, with the same validation as marking: `w/` appears exactly
+once, and `id/` may repeat, with repeated IDs dropped by `TAssistParserUtil#parseStudentIds`. It does not accept `s/`,
+so a status copied from a mark command is reported instead of being ignored.
+
+`AttendanceClearCommand` and `ParticipationClearCommand` share their behavior through the abstract
+`WeeklyRecordClearCommand`. Each subclass supplies only how to read and remove its kind of record and the feedback
+wording. `WeeklyRecordClearCommand` finds every named student in the active group through `Command#getStudents`
+before changing anything, so an unknown ID clears nobody. For each student with a record that week, it replaces them
+through `Model#setStudent` with a copy from `withoutAttendanceRecord` (or `withoutParticipationRecord`). The feedback
+has one line per student and names the status it removed, such as `present to Not recorded`, so a TA who cleared the
+wrong week can mark it again. A student with no mark that week is skipped with a line saying nothing changed, while
+the other students are still cleared. If no listed student has a mark, the data is unchanged, so `LogicManager` does
+not save, just as for a repeated mark.
 
 #### Where per-student records are stored
 
@@ -1738,6 +1745,9 @@ label.
    `Cleared Alice Tan's participation score for Week 3: 4 to Not recorded.` List Week 3; Alice shows `Not recorded`.
    Enter the clear command again. Expect `Alice Tan has no participation score recorded for Week 3. Nothing changed.`
    Close and reopen, then list Weeks 3 and 13. Expect `Not recorded` and 5.
+   Set Alice's and Ben's Week 3 scores again, then enter `participation clear id/A0123456X id/A0999999Z w/3`. Expect an
+   unknown-student error, with both scores kept. Enter `participation clear id/A0234567Y id/A0123456X id/A0234567Y w/3`.
+   Expect one `Cleared` line for Ben, then one for Alice, and both show `Not recorded` when listing Week 3.
 6. Try `participation clear id/A0123456X w/3 s/2`, `participation clear w/3`, and
    `participation clear id/A0123456X w/3 now`. Expect unknown-prefix, missing-prefix, and
    `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.` errors without changing any record.
@@ -1933,7 +1943,8 @@ label.
 
 1. Prerequisites: Close the app and load the JSON example from the User Guide's
    [Editing the data file](UserGuide.html#editing-the-data-file) section. T01 must contain Alice Tan
-   (`A0123456X`) and be active. Remove its attendance map to start with no marks.
+   (`A0123456X`) and be active. Remove its attendance map to start with no marks. After opening the app, enter
+   `student add n/Ben Lim id/A0234567Y`.
 
 1. Marking and correcting
 
@@ -1958,6 +1969,12 @@ label.
       `Changes saved.`
    1. Enter `attendance list w/4`. Expected: every student shows `Not recorded`.
    1. Enter `attendance list w/3`. Expected: Alice is still absent in Week 3.
+   1. Enter `attendance mark id/A0123456X w/5 s/present`, then `attendance clear id/A0123456X id/A0999999Z w/5`.
+      Expected: `Student ID A0999999Z does not exist in T01. See students in the active group with: student list`,
+      and Alice is still present in Week 5.
+   1. Enter `attendance clear id/A0234567Y id/a0123456x w/5`.
+      Expected: `Ben Lim has no attendance recorded for Week 5. Nothing changed.`, then on the next line
+      `Cleared Alice Tan's attendance for Week 5: present to Not recorded.`
    1. Enter `attendance clear id/A0123456X w/4 s/present`.
       Expected: `Unknown prefix 's/'. Allowed prefixes: id/ w/.`
    1. Enter `attendance clear id/A0123456X w/4 now`.
@@ -1978,8 +1995,8 @@ label.
       report no active group and suggest `group add` or `group use`, without changing data.
 
 Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSON storage. It covers correction,
-clearing, save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
-and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
+clearing one or several students, save/reload, preservation of participation and other weeks, isolation when one
+student ID belongs to two groups, and unchanged model and file contents after invalid commands. Parser and command unit tests cover additional
 parameter errors, empty groups, week boundaries, and display formatting.
 
 ### Undoing and redoing changes
