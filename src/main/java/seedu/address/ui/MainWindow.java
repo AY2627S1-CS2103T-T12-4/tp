@@ -113,7 +113,10 @@ public class MainWindow extends UiPart<Stage> {
      * Fills the window with its independent UI parts.
      */
     void fillInnerParts() {
-        commandBox = new CommandBox(this::executeCommand);
+        resultDisplay = new ResultDisplay();
+        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+
+        commandBox = new CommandBox(this::executeCommand, resultDisplay::scrollPage);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
 
         GroupStrip groupStrip = new GroupStrip(logic.getGroupList(), logic.activeGroupProperty(),
@@ -128,9 +131,6 @@ public class MainWindow extends UiPart<Stage> {
                 dataLoadStatus.isFailure());
         workspacePlaceholder.getChildren().add(workspacePanel.getRoot());
         navigationPlaceholder.getChildren().add(workspacePanel.getNavigationBar());
-
-        resultDisplay = new ResultDisplay();
-        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
         statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
