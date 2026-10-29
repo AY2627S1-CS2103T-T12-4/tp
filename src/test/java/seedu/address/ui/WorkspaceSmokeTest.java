@@ -942,6 +942,45 @@ public class WorkspaceSmokeTest {
         assertEquals(expectedTitle, ((Label) root.lookup("#emptyTitle")).getText());
     }
 
+    @Test
+    public void groupStrip_manyGroups_revealsActiveChipAtEitherEnd() throws Exception {
+        runOnFx(() -> {
+            initializeWorkspace();
+            stage.setWidth(854);
+            stage.setHeight(480);
+            for (int i = 0; i < 12; i++) {
+                model.addGroup(new Group(new GroupName("Long tutorial group number " + i)));
+            }
+            model.setActiveGroup(new GroupName("Long tutorial group number 11"));
+        });
+        try {
+            runOnFx(this::assertActiveChipVisible);
+            runOnFx(() -> model.setActiveGroup(TypicalGroups.NAME_T01));
+            runOnFx(this::assertActiveChipVisible);
+            runOnFx(() -> {
+                model.setActiveGroup(new GroupName("Long tutorial group number 11"));
+                model.setActiveGroup(TypicalGroups.NAME_T02);
+            });
+            runOnFx(this::assertActiveChipVisible);
+        } finally {
+            runOnFx(() -> stage.hide());
+        }
+    }
+
+    private void assertActiveChipVisible() {
+        root.applyCss();
+        root.layout();
+        ScrollPane strip = (ScrollPane) root.lookup(".group-chips-scroll");
+        Label chip = root.lookupAll(".group-chip").stream().map(node -> (Label) node)
+                .filter(label -> label.getPseudoClassStates().contains(PseudoClass.getPseudoClass("active")))
+                .findFirst().orElseThrow();
+        var chipBounds = chip.localToScene(chip.getBoundsInLocal());
+        var viewport = strip.lookup(".viewport");
+        var viewportBounds = viewport.localToScene(viewport.getBoundsInLocal());
+        assertTrue(chipBounds.getMinX() >= viewportBounds.getMinX() - 1, "Active chip left edge is visible");
+        assertTrue(chipBounds.getMaxX() <= viewportBounds.getMaxX() + 1, "Active chip right edge is visible");
+    }
+
     /**
      * Asserts that the group strip shows a chip for each of {@code expectedNames}, in order, and that only the
      * chip named {@code expectedActiveName} is highlighted. An empty {@code expectedActiveName} means none is.
