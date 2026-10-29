@@ -93,7 +93,7 @@ On the Students screen, click a student's row with the primary mouse button to f
 and puts the cursor after `w/`. It does not execute a command or save data.
 
 Complete the week and status, for example `attendance mark id/A0123456X w/3 s/present`, then press **Enter**.
-Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once.`
+Pressing Enter before completing the template reports `Missing required parameter(s): s/. Include each exactly once. Usage: attendance mark id/STUDENT_ID w/WEEK s/STATUS`
 and leaves the text editable.
 You can type the same command yourself; clicking is only a shortcut for entering the ID.
 Clicking the same row again prepares a fresh template, even if that row is already selected.
@@ -452,7 +452,7 @@ The change is saved automatically, and `attendance list` and `group export` no l
 Invalid weeks, unknown students, and no active group have the same errors as `attendance mark`. Only `id/` and `w/`
 are accepted, so a status such as `s/present` is rejected. For example, `attendance clear id/A0123456X w/3 s/present`
 shows `Unknown prefix 's/'. Allowed prefixes: id/ w/.`, and `attendance clear` with no parameters
-shows `Missing required parameter(s): id/ w/. Include each exactly once.` Extra text after a value is reported too:
+shows `Missing required parameter(s): id/ w/. Include each exactly once. Usage: attendance clear id/STUDENT_ID w/WEEK` Extra text after a value is reported too:
 `attendance clear id/A0123456X w/3 now` shows
 `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.`
 

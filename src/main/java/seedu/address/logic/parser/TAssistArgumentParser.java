@@ -120,7 +120,19 @@ public class TAssistArgumentParser {
      * @throws ParseException if the arguments violate the declared parameter rules.
      */
     public ArgumentMultimap parse(String arguments) throws ParseException {
-        ArgumentMultimap values = parseWithoutExtraTextCheck(arguments);
+        return parse(arguments, "");
+    }
+
+    /**
+     * Parses parameters and includes the command format when a required parameter is missing.
+     *
+     * @param arguments The command's arguments, excluding both command keywords.
+     * @param usage The command format to append, or an empty string to omit it.
+     * @return The checked prefix-value mapping.
+     * @throws ParseException if the arguments violate the declared parameter rules.
+     */
+    public ArgumentMultimap parse(String arguments, String usage) throws ParseException {
+        ArgumentMultimap values = parseWithoutExtraTextCheck(arguments, usage);
         verifyNoExtraText(values);
         return values;
     }
@@ -135,7 +147,12 @@ public class TAssistArgumentParser {
      * @throws ParseException if the arguments violate the declared parameter rules other than extra text.
      */
     public ArgumentMultimap parseWithoutExtraTextCheck(String arguments) throws ParseException {
+        return parseWithoutExtraTextCheck(arguments, "");
+    }
+
+    private ArgumentMultimap parseWithoutExtraTextCheck(String arguments, String usage) throws ParseException {
         requireNonNull(arguments);
+        requireNonNull(usage);
         if (allowedPrefixes.isEmpty() && !arguments.trim().isEmpty()) {
             throw new ParseException(MESSAGE_NO_PARAMETERS);
         }
@@ -146,7 +163,7 @@ public class TAssistArgumentParser {
                     formatAllowedPrefixes()));
         }
         values.verifyNoDuplicatePrefixesFor(allowedPrefixes.toArray(Prefix[]::new));
-        verifyRequiredPrefixes(values);
+        verifyRequiredPrefixes(values, usage);
         return values;
     }
 
@@ -293,7 +310,7 @@ public class TAssistArgumentParser {
         return !Character.isLowerCase(word.charAt(literalWord.length()));
     }
 
-    private void verifyRequiredPrefixes(ArgumentMultimap values) throws ParseException {
+    private void verifyRequiredPrefixes(ArgumentMultimap values, String usage) throws ParseException {
         List<Prefix> missingPrefixes = requiredPrefixes.stream()
                 .filter(prefix -> values.getValue(prefix).isEmpty())
                 .toList();
@@ -303,7 +320,8 @@ public class TAssistArgumentParser {
         if (!missingPrefixes.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_MISSING_PARAMETERS, missingPrefixes.stream()
                     .map(Prefix::toString)
-                    .collect(Collectors.joining(" "))));
+                    .collect(Collectors.joining(" ")))
+                    + (usage.isEmpty() ? "" : " Usage: " + usage));
         }
     }
 
