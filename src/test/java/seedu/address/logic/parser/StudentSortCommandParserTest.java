@@ -39,6 +39,9 @@ public class StudentSortCommandParserTest {
         }
         String invalidFieldMessage = StudentSortCommandParser.MESSAGE_INVALID_FIELD;
         assertThrows(ParseException.class, invalidFieldMessage, () -> parser.parse(" by/grade"));
+        assertThrows(ParseException.class, invalidFieldMessage, () -> parser.parse(" by/"));
+        String extraTextMessage = String.format(TAssistArgumentParser.MESSAGE_EXTRA_TEXT, "by/id", "now");
+        assertThrows(ParseException.class, extraTextMessage, () -> parser.parse(" by/id now"));
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
 }

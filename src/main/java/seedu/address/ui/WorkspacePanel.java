@@ -35,13 +35,14 @@ public class WorkspacePanel extends UiPart<TabPane> {
     /**
      * Creates the workspace with the active group's live students, the help reference, and the storage details.
      */
-    public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Student> students,
-            ObservableList<Student> displayedStudents, ObservableBooleanValue hasStudentFilter,
+    public WorkspacePanel(ObservableValue<Optional<Group>> activeGroup, ObservableList<Group> groups,
+            ObservableList<Student> students, ObservableList<Student> displayedStudents,
+            ObservableBooleanValue hasStudentFilter,
             Path dataFilePath, List<HelpEntry> helpEntries, Consumer<Student> studentClickHandler,
             boolean isDataLoadFailed) {
         super("WorkspacePanel.fxml");
         requireNonNull(helpEntries);
-        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, students, displayedStudents,
+        StudentListPanel studentListPanel = new StudentListPanel(activeGroup, groups, students, displayedStudents,
                 hasStudentFilter, studentClickHandler, isDataLoadFailed);
         addView(WorkspaceView.STUDENTS, studentListPanel.getRoot());
         helpPanel = new HelpPanel(helpEntries);
