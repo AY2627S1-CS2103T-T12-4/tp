@@ -78,6 +78,30 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     }
 
     @Test
+    public void execute_submitSeveralStudentsAndRestart_savesEveryNamedStudentOnly() throws Exception {
+        feedback("assignment add a/PS1");
+        CommandResult result = app.logic.execute(
+                "assignment submit a/PS1 id/A0345678Z id/a0123456x id/A0345678Z s/yes");
+        assertEquals("Updated Carl Goh's PS1 submission status to submitted.\n"
+                + "Updated Alice Tan's PS1 submission status to submitted.", result.getFeedbackToUser());
+        assertTrue(result.hasSavedChanges());
+
+        restart();
+
+        assertEquals("PS1 records for T01:\nAlice Tan | A0123456X | Submitted | -"
+                        + "\nBen Lim | A0234567Y | Not submitted | -"
+                        + "\nCarl Goh | A0345678Z | Submitted | -",
+                feedback("assignment list a/PS1"));
+    }
+
+    @Test
+    public void execute_submitSeveralStudentsWithUnknownId_savesNobody() throws Exception {
+        feedback("assignment add a/PS1");
+        feedback("assignment submit a/PS1 id/A0234567Y s/yes");
+        assertRejected("assignment submit a/PS1 id/A0123456X id/A0456789W id/A0234567Y s/no", CommandException.class);
+    }
+
+    @Test
     public void execute_repeatedSubmitOrGrade_savesOnlyRealChanges() throws Exception {
         feedback("assignment add a/PS1");
         feedback("assignment submit a/PS1 id/A0123456X s/yes");
@@ -310,7 +334,7 @@ public class AssignmentCommandsIntegrationTest extends AppIntegrationTest {
     public void init_assignmentHelp_registersFormatsAndWorkingExamples() throws Exception {
         List<HelpEntry> entries = HelpCatalog.filterByTopic(app.logic.getHelpEntries(), "assignment");
         assertEquals(List.of("assignment add a/ASSIGNMENT_NAME",
-                        "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS",
+                        "assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID [id/STUDENT_ID]... s/STATUS",
                         "assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE",
                         "assignment list [a/ASSIGNMENT_NAME]", "assignment rename a/ASSIGNMENT_NAME n/NEW_NAME",
                         "assignment delete a/ASSIGNMENT_NAME [f/yes]"),

@@ -493,7 +493,7 @@ Nothing to edit | `Nothing to edit. Include a new name with n/ or a new student 
 Missing parameter | `Missing required parameter. Usage: student add n/NAME id/STUDENT_ID` (or the editing or deletion format). Supply all required prefixes.
 Missing space before a prefix | `Missing space before id/ in 'n/Aliceid/A0123456X'. Put a space before each prefix.` Add a space before the named prefix.
 Invalid or blank value | The feedback identifies the invalid student name or ID and gives its rules.
-Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each, except `id/` in `attendance mark` and `participation set`.
+Repeated or unknown prefix | The feedback identifies the prefix. Use only the command's documented prefixes, once each, except `id/` in `attendance mark`, `participation set`, and `assignment submit`.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X`, `f/yes`, or `by/id`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Extra input to `student list` | `This command takes no parameters. Remove the extra input.`
 
@@ -659,12 +659,18 @@ Example: `assignment add a/PS1` shows `Created assignment PS1 for T01.` when T01
 
 ### Recording a submission: `assignment submit`
 
-Records or replaces one student's submission status for an assignment in the active group. Use `yes` for submitted
-and `no` for not submitted. Entering `s/no` clears an existing grade. The feedback mentions grade removal only when
-a grade was recorded. If the student already has that status, the command reports that nothing changed and leaves the
-data unchanged.
+Records or replaces the submission status of one or more students for an assignment in the active group. Use `yes`
+for submitted and `no` for not submitted. Entering `s/no` clears an existing grade. The feedback mentions grade removal
+only when a grade was recorded. If a student already has that status, the command reports that nothing changed for
+that student and leaves their record unchanged.
 
-Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`
+Format: `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID [id/STUDENT_ID]... s/STATUS`
+
+* Student IDs ignore case. Each ID must belong to the active group. Supply `a/` and `s/` exactly once, in any order.
+* To give several students the same status, repeat `id/`, for example
+  `assignment submit a/PS1 id/A0123456X id/A0234567Y s/yes`. The feedback has one line for each student, in the order
+  you typed them. A student typed twice is updated once. If any ID is not in the active group, nobody is changed, and
+  the error names the first such ID.
 
 Example: because Alice has not submitted PS1 yet, `assignment submit a/PS1 id/A0123456X s/no` shows
 `Alice Tan's PS1 submission status is already not submitted. Nothing changed.`
@@ -764,8 +770,8 @@ Invalid submission status | `Invalid submission status. Use yes or no.` Enter `y
 Invalid grade | `Invalid grade. Enter a whole number from 0 to 100.` Supply a whole number after `m/`.
 Grade before submission | `Cannot record a grade for an unsubmitted assignment. Record it first with: assignment submit a/PS1 id/A0123456X s/yes` Run the suggested command, using the assignment and student shown in the message.
 Unknown student | `Student ID A0999999Z does not exist in T01. See students in the active group with: student list` Check the ID, or switch to the student's group with `group use`.
-Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/`, once each. `assignment rename` needs only `a/` and `n/`, and `assignment delete` needs only `a/`.
-Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each.
+Missing parameter | The feedback names the missing prefix. Supply `a/`, `id/`, and `s/` or `m/` (`id/` may be repeated in `assignment submit`). `assignment rename` needs only `a/` and `n/`, and `assignment delete` needs only `a/`.
+Repeated or unknown prefix | The feedback names the prefix. Use only the prefixes listed in the command format, once each, except `id/` in `assignment submit`.
 Extra text after a value | The feedback names the extra text after a single-word value such as `id/A0123456X` or `m/87`, and says that value cannot contain spaces. Remove the extra text, or add the prefix it was meant to follow.
 Missing or unknown subcommand | The feedback lists the valid subcommands: `add`, `delete`, `grade`, `list`, `rename`, and `submit`.
 
@@ -964,7 +970,7 @@ Action | Format, Examples
 **List participation** | `participation list w/WEEK`<br> e.g., `participation list w/3`
 **Clear participation** | `participation clear id/STUDENT_ID w/WEEK`<br> e.g., `participation clear id/A0123456X w/3`
 **Add assignment** | `assignment add a/ASSIGNMENT_NAME`<br> e.g., `assignment add a/PS1`
-**Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
+**Record submission** | `assignment submit a/ASSIGNMENT_NAME id/STUDENT_ID [id/STUDENT_ID]... s/STATUS`<br> e.g., `assignment submit a/PS1 id/A0123456X s/yes`
 **Record grade** | `assignment grade a/ASSIGNMENT_NAME id/STUDENT_ID m/GRADE`<br> e.g., `assignment grade a/PS1 id/A0123456X m/87`
 **List assignments or records** | `assignment list [a/ASSIGNMENT_NAME]`<br> e.g., `assignment list`, `assignment list a/PS1`
 **Rename assignment** | `assignment rename a/ASSIGNMENT_NAME n/NEW_NAME`<br> e.g., `assignment rename a/PS1 n/Problem Set 1`

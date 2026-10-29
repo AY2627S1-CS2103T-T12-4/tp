@@ -10,6 +10,9 @@ import static seedu.address.testutil.TypicalAssignments.NAME_PS1;
 import static seedu.address.testutil.TypicalAssignments.PS1;
 import static seedu.address.testutil.TypicalGroups.NAME_T01;
 import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BEN;
+import static seedu.address.testutil.TypicalStudents.CARL;
+import static seedu.address.testutil.TypicalStudents.DANIEL;
 
 import java.util.List;
 
@@ -26,6 +29,8 @@ import seedu.address.testutil.TypicalGroups;
 
 public class AssignmentSubmitCommandTest {
     private static final StudentId ALICE_ID = ALICE.getStudentId();
+    private static final StudentId BEN_ID = BEN.getStudentId();
+    private static final StudentId CARL_ID = CARL.getStudentId();
 
     private Model modelWithAssignment() {
         Model model = new ModelManager(TypicalGroups.getTypicalTAssist(), new UserPrefs());
@@ -102,6 +107,32 @@ public class AssignmentSubmitCommandTest {
     }
 
     @Test
+    public void execute_severalStudents_updatesAllAndReportsEachInOrder() {
+        Assignment prior = PS1.withSubmissionStatus(BEN_ID, true).withGrade(BEN_ID, 87)
+                .withSubmissionStatus(CARL_ID, true);
+        Model model = modelWithAssignment();
+        model.setAssignment(NAME_T01, prior);
+        Model expected = modelWithAssignment();
+        expected.setAssignment(NAME_T01, prior.withSubmissionStatus(BEN_ID, false)
+                .withSubmissionStatus(CARL_ID, false));
+
+        assertCommandSuccess(new AssignmentSubmitCommand(NAME_PS1, List.of(CARL_ID, ALICE_ID, BEN_ID), false), model,
+                "Updated Carl Goh's PS1 submission status to not submitted.\n"
+                        + "Alice Tan's PS1 submission status is already not submitted. Nothing changed.\n"
+                        + "Updated Ben Lim's PS1 submission status to not submitted; the recorded grade was cleared.",
+                expected);
+    }
+
+    @Test
+    public void execute_oneUnknownStudent_failsWithoutUpdatingAnyone() {
+        Model model = modelWithAssignment();
+        Model expected = modelWithAssignment();
+        assertCommandFailure(new AssignmentSubmitCommand(NAME_PS1, List.of(ALICE_ID, DANIEL.getStudentId()), true),
+                model, String.format(MESSAGE_UNKNOWN_STUDENT, DANIEL.getStudentId(), NAME_T01));
+        assertEquals(expected, model);
+    }
+
+    @Test
     public void execute_unknownStudent_reportsErrorWithoutChanges() {
         Model model = modelWithAssignment();
         Model expected = modelWithAssignment();
@@ -128,7 +159,10 @@ public class AssignmentSubmitCommandTest {
     @Test
     public void constructorAndExecute_nullInputs_throwNullPointerException() {
         assertThrows(NullPointerException.class, () -> new AssignmentSubmitCommand(null, ALICE_ID, true));
-        assertThrows(NullPointerException.class, () -> new AssignmentSubmitCommand(NAME_PS1, null, true));
+        assertThrows(NullPointerException.class, () -> new AssignmentSubmitCommand(NAME_PS1, (StudentId) null, true));
+        assertThrows(NullPointerException.class, () ->
+                new AssignmentSubmitCommand(NAME_PS1, (List<StudentId>) null, true));
+        assertThrows(IllegalArgumentException.class, () -> new AssignmentSubmitCommand(NAME_PS1, List.of(), true));
         assertThrows(NullPointerException.class, () ->
                 new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, true).execute(null));
     }
@@ -140,6 +174,7 @@ public class AssignmentSubmitCommandTest {
         assertEquals(command.hashCode(), new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, true).hashCode());
         assertNotEquals(command, new AssignmentSubmitCommand(NAME_PS1, ALICE_ID, false));
         assertNotEquals(command, new AssignmentSubmitCommand(NAME_PS1, new StudentId("A0999999Z"), true));
+        assertNotEquals(command, new AssignmentSubmitCommand(NAME_PS1, List.of(ALICE_ID, BEN_ID), true));
         assertNotEquals(command, new AssignmentSubmitCommand(new AssignmentName("PS2"), ALICE_ID, true));
         assertNotEquals(command, null);
     }
