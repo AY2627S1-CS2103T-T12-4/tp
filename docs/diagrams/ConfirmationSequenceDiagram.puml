@@ -1,0 +1,73 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box UI UI_COLOR_T1
+participant ":MainWindow" as MainWindow UI_COLOR
+participant "h:ConfirmationHandler" as Handler UI_COLOR
+end box
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "d:StudentDeleteCommand" as Command LOGIC_COLOR
+end box
+
+[-> MainWindow : executeCommand(input)
+activate MainWindow
+
+MainWindow -> LogicManager : getConfirmationPrompt(input)
+activate LogicManager
+
+ref over LogicManager, Command : parse student delete
+
+LogicManager -> Command : getConfirmationPrompt(model)
+activate Command
+
+note left of Command
+  Finds the student in the active
+  group and builds the prompt,
+  without changing any data.
+end note
+
+Command --> LogicManager : prompt
+deactivate Command
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+Command -[hidden]-> LogicManager
+destroy Command
+
+LogicManager --> MainWindow : prompt
+deactivate LogicManager
+
+MainWindow -> Handler : isConfirmed(stage, prompt)
+activate Handler
+
+note left of Handler
+  Shows a dialog whose
+  default button is Cancel.
+end note
+
+Handler --> MainWindow : confirmed
+deactivate Handler
+
+alt confirmed
+  MainWindow -> LogicManager : execute(input)
+  activate LogicManager
+
+  note right of LogicManager
+    Parses input into a new
+    command, executes it and
+    saves the change.
+  end note
+
+  LogicManager --> MainWindow : r
+  deactivate LogicManager
+else cancelled
+  note right of MainWindow
+    Shows the cancelled message
+    without executing input.
+  end note
+end
+
+[<-- MainWindow : result
+deactivate MainWindow
+@enduml

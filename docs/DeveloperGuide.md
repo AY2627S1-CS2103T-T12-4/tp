@@ -646,6 +646,16 @@ normalization, confirmation details, feedback, uniqueness, group isolation, and 
 across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
 that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
 
+The diagram below shows the confirmation for `student delete id/A0123456X`, without `f/yes`. The
+`parse student delete` frame works like the parse frame of `participation set` in
+[Participation commands](#participation-commands). The command `d` only describes the student, and a confirmed
+deletion parses `input` again into a new command, so a cancelled deletion leaves no pending command behind.
+
+![Confirmation of the `student delete id/A0123456X` command](images/ConfirmationSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `StudentDeleteCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
 #### Student search and sorting
 
 `StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
