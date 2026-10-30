@@ -649,7 +649,9 @@ that cancelling preserves the roster and saved file, while accepting or using `f
 The diagram below shows the confirmation for `student delete id/A0123456X`, without `f/yes`. The
 `parse student delete` frame works like the parse frame of `participation set` in
 [Participation commands](#participation-commands). The command `d` only describes the student, and a confirmed
-deletion parses `input` again into a new command, so a cancelled deletion leaves no pending command behind.
+deletion parses `input` again into a new command, so a cancelled deletion leaves no pending command behind. For
+simplicity, the diagram omits `ConfirmationHandler`, through which `MainWindow` shows the dialog so that tests can
+replace it.
 
 ![Confirmation of the `student delete id/A0123456X` command](images/ConfirmationSequenceDiagram.png)
 
