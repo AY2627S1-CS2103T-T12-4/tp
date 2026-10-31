@@ -646,6 +646,18 @@ normalization, confirmation details, feedback, uniqueness, group isolation, and 
 across restarts, and rejected commands preserving both the model and the saved file. `WorkspaceSmokeTest` checks
 that cancelling preserves the roster and saved file, while accepting or using `f/yes` removes the student.
 
+The diagram below shows the confirmation for `student delete id/A0123456X`, without `f/yes`. The
+`parse student delete` frame works like the parse frame of `participation set` in
+[Participation commands](#participation-commands). The command `d` only describes the student, and a confirmed
+deletion parses `input` again into a new command, so a cancelled deletion leaves no pending command behind. For
+simplicity, the diagram omits `ConfirmationHandler`, through which `MainWindow` shows the dialog so that tests can
+replace it.
+
+![Confirmation of the `student delete id/A0123456X` command](images/ConfirmationSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `StudentDeleteCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
 #### Student search and sorting
 
 `StudentFindCommandParser` accepts optional `n/` and `id/` parameters using `TAssistArgumentParser`, requiring
@@ -753,7 +765,7 @@ malformed input.
 
 TAssist's own data is modelled by the classes below. `ModelManager` holds the `TAssist` data, and the `Model` interface delegates group, active-group and student operations to it. TAssist data is saved to a JSON data file (see [Saving and loading TAssist data](#saving-and-loading-tassist-data)).
 
-<img src="images/TAssistModelClassDiagram.png" width="600" />
+<img src="images/TAssistModelClassDiagram.png" width="770" />
 
 * `TAssist` is the root object. It holds the tutorial groups in a `UniqueGroupList` and remembers which group is active, if any. Other components see it through the read-only `ReadOnlyTAssist` interface.
 * A `Group` has a `GroupName` and holds its own students in a `UniqueStudentList` and its own assignments in a `UniqueAssignmentList`.
