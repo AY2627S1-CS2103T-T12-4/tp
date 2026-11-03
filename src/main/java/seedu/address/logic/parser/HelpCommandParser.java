@@ -11,7 +11,7 @@ import seedu.address.logic.help.HelpEntry;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
- * Parses an optional topic for the help command.
+ * Parses an optional topic for the help command, rejecting any text after a valid topic.
  */
 public class HelpCommandParser implements Parser<HelpCommand> {
     private final List<HelpEntry> helpEntries;
@@ -26,7 +26,8 @@ public class HelpCommandParser implements Parser<HelpCommand> {
     @Override
     public HelpCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String topic = args.trim().toLowerCase(Locale.ROOT);
+        String[] words = args.trim().split("\\s+", 2);
+        String topic = words[0].toLowerCase(Locale.ROOT);
         topic = switch (topic) {
             case "groups" -> "group";
             case "students" -> "student";
@@ -38,6 +39,9 @@ public class HelpCommandParser implements Parser<HelpCommand> {
         }
         if (!HelpCatalog.isValidTopic(topic)) {
             throw new ParseException(HelpCommand.MESSAGE_UNKNOWN_TOPIC);
+        }
+        if (words.length > 1) {
+            throw new ParseException(String.format(HelpCommand.MESSAGE_EXTRA_TEXT, words[0], words[1]));
         }
         return new HelpCommand(helpEntries, topic);
     }

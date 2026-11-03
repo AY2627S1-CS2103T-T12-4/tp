@@ -176,6 +176,8 @@ Format: `help [TOPIC]`
 * With a `TOPIC`, the Help screen opens at that topic's commands, for example `Showing student commands.`
 * An unknown topic shows `Unknown help topic. Available topics: group, student, attendance, participation, assignment.`
   and does not change any data.
+* `help` takes one topic word. Extra text after a topic, as in `help student add`, shows
+  `Unexpected extra text after 'student': 'add'. Enter one topic.` Use `help student` to see the `student add` entry.
 
 Examples:
 * `help`
