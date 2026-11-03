@@ -1854,8 +1854,8 @@ label.
 
 ### Recording and listing participation
 
-1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
-   Select T01 with `group use g/T01`. Enter `participation list w/3`; both rows should say `Not recorded`.
+1. In an empty folder, enter `group add g/T01`, `student add n/Alice Tan id/A0123456X`, and
+   `student add n/Ben Lim id/A0234567Y`. Enter `participation list w/3`; both rows should say `Not recorded`.
 2. Enter `participation set id/a0123456x w/3 s/0`. Expect a first-entry confirmation and Alice's Week 3 score of zero.
    Set it again with `s/4`. Expect `Updated Alice Tan's participation score for Week 3: 0 to 4.`,
    with Ben still `Not recorded` when listing Week 3.
@@ -1876,7 +1876,8 @@ label.
 6. Try `participation clear id/A0123456X w/3 s/2`, `participation clear w/3`, and
    `participation clear id/A0123456X w/3 now`. Expect unknown-prefix, missing-prefix, and
    `Unexpected extra text after 'w/3': 'now'. This value cannot contain spaces.` errors without changing any record.
-7. Switch to an empty group and list Week 3. Expect `No students in GROUP_NAME.`
+7. Enter `group add g/T02`, which becomes the active group with no students, and list Week 3.
+   Expect `No students in T02.`
    With no active group, all three commands must ask you to create or select a group first.
 8. Switch back with `group use g/T01`, then enter `attendance mark id/A0234567Y w/6 s/absent`, then `participation set id/A0234567Y w/6 s/3`. Expect
    the score to be recorded with `Warning: Ben Lim is marked absent for Week 6.` Enter `participation set
@@ -1885,8 +1886,8 @@ label.
 
 ### Creating assignments and listing their records
 
-1. Load T01 with students Alice Tan (A0123456X) and Ben Lim (A0234567Y), using the JSON format in the User Guide.
-   Select T01 with `group use g/T01`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
+1. In an empty folder, enter `group add g/T01`, `student add n/Alice Tan id/A0123456X`, and
+   `student add n/Ben Lim id/A0234567Y`. Enter `assignment add a/PS1`. Expect `Created assignment PS1 for T01.`
 2. Enter `assignment list a/ps1`. Expect `PS1 records for T01:` followed by `Alice Tan | A0123456X | Not submitted | -`
    and `Ben Lim | A0234567Y | Not submitted | -`.
    Enter `assignment submit a/PS1 id/A0234567Y s/no` twice. Each time, expect
@@ -1919,9 +1920,9 @@ label.
    `assignment add a/PS2 a/PS3`, and `assignment add a/PS2 n/x`. Expect specific unknown-assignment, invalid-name,
    missing-value (`Missing value after a/.`), missing-parameter, and duplicate- or unknown-prefix errors, without changing the group or the file. Enter
    `assignment grade a/PS1 id/A0123456X g/87`; expect an unknown-prefix error, since `g/` is reserved for groups.
-8. Switch to group T02 and enter `assignment list a/PS1`. Expect an unknown-assignment error, because assignments
-   belong to one group.
-   With no active group, both commands must ask you to create or select a group first.
+8. Enter `group add g/T02`, which becomes the active group, and enter `assignment list a/PS1`. Expect an
+   unknown-assignment error, because assignments belong to one group.
+   With no active group, `assignment add a/PS2` and `assignment list` must ask you to create or select a group first.
 9. Switch back with `group use g/T01`, enter `assignment add a/Lab 2 (Graphs)`, close and reopen the app, select T01,
    and enter `assignment list`. Expect
    `Assignments in T01:` followed by `1. PS1`, `2. Mid-term 1`, and `3. Lab 2 (Graphs)`. In T02, which has no
@@ -2059,7 +2060,7 @@ label.
 
 1. Renaming and deleting groups
 
-   1. With groups T01 and T02 and T02 active, enter `group rename g/t02 n/T02-Thu`.
+   1. With groups T01 and T02, enter `group use g/T02`, then `group rename g/t02 n/T02-Thu`.
       Expected: `Renamed tutorial group T02 to T02-Thu.`, and the top bar highlights T02-Thu with its students intact.
    1. Enter `group rename g/T01 n/t01`. Expected: `Renamed tutorial group T01 to t01.` with `Changes saved.`, and
       the chip shows t01. Enter `undo`. Expected: `Undone: group rename g/T01 n/t01`, and the chip shows T01 again,
@@ -2068,8 +2069,10 @@ label.
       without `Changes saved.`
    1. Enter `group delete g/T02-Thu`. Expected: A prompt names T02-Thu and its student and assignment counts.
       Cancel it and verify that nothing changed. Enter the command again and choose Continue. Expected: The group and
-      its students are removed and no group is active. `group delete g/T01 f/yes` skips the prompt.
+      its students are removed and no group is active.
    1. Close and reopen the app. Expected: Only T01 remains, with no active group.
+   1. Enter `group add g/T03`, then `group delete g/T03 f/yes`. Expected: T03 is deleted without a prompt, and
+      only T01 remains.
 
 1. Exporting a group's records
 
@@ -2097,7 +2100,7 @@ label.
 
 1. Prerequisites: Close the app and load the JSON example from the User Guide's
    [Editing the data file](UserGuide.html#editing-the-data-file) section. T01 must contain Alice Tan
-   (`A0123456X`) and be active. Remove its attendance map to start with no marks.
+   (`A0123456X`) and be active. Remove its `attendance` and `participation` maps to start with no records.
 
 1. Marking and correcting
 
@@ -2142,7 +2145,7 @@ label.
    1. Omit `s/`, repeat `w/`, and add an unknown `x/` prefix. Expected: Specific parameter errors.
    1. Verify that records and the saved file remain unchanged after each rejection.
    1. Close the app, set `activeGroup` to `null` in the file, and reopen it. All three attendance commands must
-      report no active group and suggest `group add` or `group use`, without changing data.
+      report `No active tutorial group. Create or select a group first.` without changing data.
 
 Automated `AttendanceIntegrationTest` exercises the real parsers, model, and JSON storage. It covers correction,
 clearing, save/reload, preservation of participation and other weeks, isolation when one student ID belongs to two groups,
