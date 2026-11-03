@@ -150,6 +150,10 @@ public class WorkspaceSmokeTest {
                 TextArea feedback = (TextArea) root.lookup("#resultDisplay");
                 enter(input, "attendance mark id/S0 id/S1 id/S2 id/S3 id/S4 w/3 s/absent");
                 double listingScrollTop = listing.getScrollTop();
+                // A user presses PageDown only after the new feedback is laid out, which takes two passes.
+                root.applyCss();
+                root.layout();
+                root.layout();
                 pressKey(KeyCode.PAGE_DOWN);
                 assertTrue(feedback.getScrollTop() > 0, "PageDown reaches the hidden lines of long feedback");
                 assertEquals(listingScrollTop, listing.getScrollTop());
@@ -1691,6 +1695,9 @@ public class WorkspaceSmokeTest {
             initializeWorkspace();
             stage.setWidth(854);
             stage.setHeight(480);
+        });
+        waitForSceneWidthAtMost(854);
+        runOnFx(() -> {
             for (int i = 0; i < 12; i++) {
                 model.addGroup(new Group(new GroupName("Long tutorial group number " + i)));
             }
@@ -1860,6 +1867,21 @@ public class WorkspaceSmokeTest {
                 .filter(Stage::isShowing)
                 .filter(window -> "Confirm destructive action".equals(window.getTitle()))
                 .findFirst().orElseThrow();
+    }
+
+    /**
+     * Waits up to five seconds for the scene to be at most {@code width} wide, since some platforms, such as Linux,
+     * apply a window resize only after the call that requested it.
+     */
+    private void waitForSceneWidthAtMost(double width) throws Exception {
+        for (int i = 0; i < 100; i++) {
+            FutureTask<Boolean> check = new FutureTask<>(() -> stage.getScene().getWidth() <= width);
+            Platform.runLater(check);
+            if (check.get(20, TimeUnit.SECONDS)) {
+                return;
+            }
+            Thread.sleep(50);
+        }
     }
 
     private void runOnFx(CheckedAction action) throws Exception {
