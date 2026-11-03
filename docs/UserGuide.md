@@ -840,6 +840,9 @@ Format: `assignment rename a/ASSIGNMENT_NAME n/NEW_NAME`
 
 * The new name follows the same rules as in `assignment add`. It must not match another assignment in the group,
   ignoring case.
+* If another assignment's name differs from the new name only in capitalization, spaces, or punctuation, such as
+  `PS 2` when you rename `PS3` to `PS-2`, the assignment is still renamed, and the feedback adds
+  `Warning: T01 already has a similar assignment named PS 2. Check that this is a different assignment.`
 * Changing only the capitalization of an assignment's own name, such as `PS1` to `ps1`, is allowed.
 * Entering the assignment's current name, even with extra spaces, shows
   `Assignment PS1 already has that name. Nothing changed.` and leaves the data unchanged.

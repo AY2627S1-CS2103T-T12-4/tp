@@ -52,10 +52,13 @@ public class AssignmentRenameCommand extends Command {
             return new CommandResult(String.format(MESSAGE_UNCHANGED, oldName));
         }
 
+        String warning = AssignmentAddCommand.getSimilarNameWarning(group,
+                group.getAssignmentList().stream().filter(other -> !other.isSameAssignment(target)), newName);
         model.renameAssignment(group.getName(), oldName, newName);
         assert group.hasAssignment(newName) : "The renamed assignment must exist under its new name";
         logger.fine("Renamed an assignment in " + group.getName());
-        return CommandResult.forListingRename(String.format(MESSAGE_SUCCESS, oldName, newName, group.getName()),
+        return CommandResult.forListingRename(
+                String.format(MESSAGE_SUCCESS, oldName, newName, group.getName()) + warning,
                 AssignmentListCommand.getListCommand(oldName), AssignmentListCommand.getListCommand(newName));
     }
 
