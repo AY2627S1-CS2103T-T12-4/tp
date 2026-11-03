@@ -3,7 +3,6 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.commands.AssignmentAddCommand.MESSAGE_DUPLICATE_ASSIGNMENT;
-import static seedu.address.logic.commands.AssignmentAddCommand.MESSAGE_SIMILAR_WARNING;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -53,14 +52,8 @@ public class AssignmentRenameCommand extends Command {
             return new CommandResult(String.format(MESSAGE_UNCHANGED, oldName));
         }
 
-        String simplifiedNewName = AssignmentAddCommand.simplify(newName);
-        String warning = group.getAssignmentList().stream()
-                .filter(other -> !other.isSameAssignment(target))
-                .map(Assignment::getName)
-                .filter(name -> AssignmentAddCommand.simplify(name).equals(simplifiedNewName))
-                .findFirst()
-                .map(name -> String.format(MESSAGE_SIMILAR_WARNING, group.getName(), name))
-                .orElse("");
+        String warning = AssignmentAddCommand.getSimilarNameWarning(group,
+                group.getAssignmentList().stream().filter(other -> !other.isSameAssignment(target)), newName);
         model.renameAssignment(group.getName(), oldName, newName);
         assert group.hasAssignment(newName) : "The renamed assignment must exist under its new name";
         logger.fine("Renamed an assignment in " + group.getName());

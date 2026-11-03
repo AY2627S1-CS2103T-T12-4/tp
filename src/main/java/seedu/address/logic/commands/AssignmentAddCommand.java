@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -43,9 +44,7 @@ public class AssignmentAddCommand extends Command {
                     existing.get().getName(), group.getName()));
         }
 
-        String warning = group.getAssignmentList().stream().map(Assignment::getName)
-                .filter(name -> simplify(name).equals(simplify(assignmentName))).findFirst()
-                .map(name -> String.format(MESSAGE_SIMILAR_WARNING, group.getName(), name)).orElse("");
+        String warning = getSimilarNameWarning(group, group.getAssignmentList().stream(), assignmentName);
         model.addAssignment(group.getName(), new Assignment(assignmentName));
         assert group.hasAssignment(assignmentName) : "The added assignment must belong to the active group";
         logger.fine("Added an assignment to " + group.getName());
@@ -53,9 +52,22 @@ public class AssignmentAddCommand extends Command {
     }
 
     /**
+     * Returns the warning that {@code group} already has an assignment among {@code others} whose name looks like
+     * {@code name}, or an empty string if none does.
+     */
+    static String getSimilarNameWarning(Group group, Stream<Assignment> others, AssignmentName name) {
+        String simplifiedName = simplify(name);
+        return others.map(Assignment::getName)
+                .filter(otherName -> simplify(otherName).equals(simplifiedName))
+                .findFirst()
+                .map(otherName -> String.format(MESSAGE_SIMILAR_WARNING, group.getName(), otherName))
+                .orElse("");
+    }
+
+    /**
      * Returns the letters and digits of {@code name} in lowercase, so that PS1, PS 1 and PS-1 look alike.
      */
-    static String simplify(AssignmentName name) {
+    private static String simplify(AssignmentName name) {
         return name.fullName.replaceAll("[^\\p{L}\\p{N}]", "").toLowerCase(Locale.ROOT);
     }
 

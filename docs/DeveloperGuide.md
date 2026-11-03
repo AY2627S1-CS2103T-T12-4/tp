@@ -773,9 +773,9 @@ active group, then calls `Model.removeAssignment`, which removes it from the gro
 with its student records. Like any other change, the deletion is saved and can be undone.
 
 `AssignmentRenameCommand` finds the assignment in the active group and rejects an `n/` name that a different
-assignment already holds, reusing the duplicate message of `assignment add`. Like `assignment add`, it warns when the
-new name matches another assignment's name after `AssignmentAddCommand#simplify`, leaving out the assignment being
-renamed, so renaming `PS1` to `PS-1` gives no warning. It then calls `Model.renameAssignment`.
+assignment already holds, reusing the duplicate message of `assignment add`. It shares the similar-name warning of
+`assignment add` through `AssignmentAddCommand#getSimilarNameWarning`, leaving out the assignment being renamed, so
+renaming `PS1` to `PS-1` gives no warning. It then calls `Model.renameAssignment`.
 `Group#renameAssignment` replaces the assignment with a renamed copy (`Assignment#withName`) at the same position
 through `UniqueList#replace`, so the records and the order are kept. Changing only the case of the assignment's own
 name is allowed. `AssignmentName` equality ignores case, but `Assignment#equals` compares the name's exact
