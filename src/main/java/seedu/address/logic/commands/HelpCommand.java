@@ -26,6 +26,8 @@ public class HelpCommand extends Command {
 
     public static final String MESSAGE_UNKNOWN_TOPIC =
             "Unknown help topic. Available topics: " + String.join(", ", HelpCatalog.TOPICS) + ".";
+    public static final String MESSAGE_EXTRA_TEXT =
+            "Unexpected extra text after '%s': '%s'. Enter one topic.";
     public static final String MESSAGE_NO_COMMANDS_FOR_TOPIC = "No %1$s commands are available yet.";
     public static final String MESSAGE_SHOWING_HELP = "Showing the command reference.";
     public static final String MESSAGE_SHOWING_TOPIC = "Showing %1$s commands.";

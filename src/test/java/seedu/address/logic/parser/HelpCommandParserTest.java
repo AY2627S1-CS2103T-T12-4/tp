@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.logic.commands.HelpCommand.MESSAGE_EXTRA_TEXT;
 import static seedu.address.logic.commands.HelpCommand.MESSAGE_UNKNOWN_TOPIC;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -47,9 +48,17 @@ public class HelpCommandParserTest {
         assertParseFailure(parser, " xyz", MESSAGE_UNKNOWN_TOPIC);
         assertParseFailure(parser, " attendances", MESSAGE_UNKNOWN_TOPIC);
         assertParseFailure(parser, " participations", MESSAGE_UNKNOWN_TOPIC);
-        assertParseFailure(parser, " groups assignments", MESSAGE_UNKNOWN_TOPIC);
         assertParseFailure(parser, " groupss", MESSAGE_UNKNOWN_TOPIC);
-        assertParseFailure(parser, " group add", MESSAGE_UNKNOWN_TOPIC);
+        assertParseFailure(parser, " undo now", MESSAGE_UNKNOWN_TOPIC);
+    }
+
+    @Test
+    public void parse_validTopicWithExtraText_throwsParseException() {
+        assertParseFailure(parser, " student add", String.format(MESSAGE_EXTRA_TEXT, "student", "add"));
+        assertParseFailure(parser, " Group  add g/T01 ",
+                String.format(MESSAGE_EXTRA_TEXT, "Group", "add g/T01"));
+        assertParseFailure(parser, " groups assignments",
+                String.format(MESSAGE_EXTRA_TEXT, "groups", "assignments"));
     }
 
     @Test
