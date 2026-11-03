@@ -55,7 +55,7 @@ public class AssignmentAddCommand extends Command {
     /**
      * Returns the letters and digits of {@code name} in lowercase, so that PS1, PS 1 and PS-1 look alike.
      */
-    private static String simplify(AssignmentName name) {
+    static String simplify(AssignmentName name) {
         return name.fullName.replaceAll("[^\\p{L}\\p{N}]", "").toLowerCase(Locale.ROOT);
     }
 

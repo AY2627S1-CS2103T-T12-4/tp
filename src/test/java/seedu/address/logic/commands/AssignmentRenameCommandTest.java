@@ -47,6 +47,32 @@ public class AssignmentRenameCommandTest {
     }
 
     @Test
+    public void execute_nameSimilarToAnotherAssignment_renamesWithWarning() {
+        Model model = modelWithActiveT01();
+        Model expected = modelWithActiveT01();
+        AssignmentName similarName = new AssignmentName("PS-2");
+        expected.renameAssignment(NAME_T01, NAME_PS1, similarName);
+        String feedback = "Renamed assignment PS1 to PS-2 in T01."
+                + String.format(AssignmentAddCommand.MESSAGE_SIMILAR_WARNING, NAME_T01, NAME_PS2);
+        CommandResult expectedResult = CommandResult.forListingRename(feedback, "assignment list a/PS1",
+                "assignment list a/PS-2");
+
+        assertCommandSuccess(new AssignmentRenameCommand(NAME_PS1, similarName), model, expectedResult,
+                expected);
+    }
+
+    @Test
+    public void execute_nameSimilarOnlyToItself_renamesWithoutWarning() {
+        Model model = modelWithActiveT01();
+        Model expected = modelWithActiveT01();
+        AssignmentName similarName = new AssignmentName("PS-1");
+        expected.renameAssignment(NAME_T01, NAME_PS1, similarName);
+
+        assertCommandSuccess(new AssignmentRenameCommand(NAME_PS1, similarName), model, renamedPs1To("PS-1"),
+                expected);
+    }
+
+    @Test
     public void execute_existingAssignment_keepsRecordsAndPositionInActiveGroupOnly() {
         Model model = modelWithActiveT01();
         Model expected = modelWithActiveT01();
